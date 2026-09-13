@@ -48,6 +48,9 @@ docker run --rm --entrypoint=amtool \
 docker run --rm --entrypoint=amtool \
   -v "$ROOT_DIR/monitoring/alertmanager/tests/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro" \
   "$ALERTMANAGER_IMAGE" check-config /etc/alertmanager/alertmanager.yml
+docker run --rm --entrypoint=amtool \
+  -v "$ROOT_DIR/monitoring/drills/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro" \
+  "$ALERTMANAGER_IMAGE" check-config /etc/alertmanager/alertmanager.yml
 for config_file in "$ROOT_DIR"/monitoring/alertmanager/examples/*.yml; do
   docker run --rm --entrypoint=amtool \
     -v "$config_file:/etc/alertmanager/alertmanager.yml:ro" \
@@ -55,7 +58,19 @@ for config_file in "$ROOT_DIR"/monitoring/alertmanager/examples/*.yml; do
     "$ALERTMANAGER_IMAGE" check-config /etc/alertmanager/alertmanager.yml
 done
 
-# 4. 사용자가 실행할 두 Compose 형태가 모두 정상 렌더링되는지 확인한다.
+# 4. 장시간 실험을 다시 실행하지 않고도 Drill 실행기 문법과 격리 Compose를 검증한다.
+python3 - "$ROOT_DIR/monitoring/drills/run_drill.py" <<'PY'
+import ast
+import pathlib
+import sys
+
+ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+PY
+sh -n "$ROOT_DIR/monitoring/drills/run.sh"
+DRILL_TMP_DIR="$SECRET_DIR" docker compose \
+  -f "$ROOT_DIR/monitoring/drills/docker-compose.yml" config --quiet
+
+# 5. 사용자가 실행할 두 Compose 형태가 모두 정상 렌더링되는지 확인한다.
 docker compose -f "$ROOT_DIR/docker-compose.yml" config --quiet
 docker compose -f "$ROOT_DIR/docker-compose.yml" --profile monitoring config --quiet
 
