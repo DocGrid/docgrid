@@ -1,0 +1,67 @@
+groups:
+  - name: docgrid-backend
+    rules:
+      - alert: DocGridBackendDown
+        expr: up{job="docgrid-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: docgrid-backend
+        annotations:
+          summary: DocGrid Backend is unavailable
+          description: Prometheus has failed to scrape the Backend for one minute.
+          runbook_url: https://github.com/DocGrid/docgrid/blob/develop/docs/runbooks/backend-down.md
+
+      - alert: DocGridDatabasePoolSaturated
+        expr: |
+          (
+            hikaricp_connections_active{job="docgrid-backend"}
+            /
+            clamp_min(
+              hikaricp_connections_max{job="docgrid-backend"},
+              1
+            )
+          ) > 0.90
+        for: 2m
+        labels:
+          severity: warning
+          service: docgrid-backend
+        annotations:
+          summary: DocGrid Backend database pool is saturated
+          description: More than 90% of the HikariCP pool has been active for two minutes.
+
+      - alert: DocGridBackendHighServerErrorRatio
+        expr: |
+          (
+            sum by (cluster, environment) (
+              rate(http_server_requests_seconds_count{
+                job="docgrid-backend",
+                status=~"5..",
+                uri!="/mcp"
+              }[5m])
+            )
+            /
+            clamp_min(
+              sum by (cluster, environment) (
+                rate(http_server_requests_seconds_count{
+                  job="docgrid-backend",
+                  uri!="/mcp"
+                }[5m])
+              ),
+              0.001
+            )
+          ) > 0.05
+          and
+          sum by (cluster, environment) (
+            increase(http_server_requests_seconds_count{
+              job="docgrid-backend",
+              uri!="/mcp"
+            }[5m])
+          ) >= 20
+        for: 3m
+        labels:
+          severity: warning
+          service: docgrid-backend
+        annotations:
+          summary: DocGrid Backend server error ratio is high
+          description: More than 5% of at least 20 requests returned 5xx during the last five minutes.

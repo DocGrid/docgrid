@@ -124,6 +124,15 @@ npm --prefix frontend run dev
 - API 문서: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 
+Backend와 Embedding Provider의 운영 메트릭을 함께 수집하려면 선택형 monitoring profile을 실행합니다.
+
+```bash
+docker compose --profile monitoring up -d prometheus
+```
+
+- Prometheus Target: `http://localhost:9090/targets`
+- 설정과 기존 Prometheus 연결: [monitoring/prometheus/README.md](monitoring/prometheus/README.md)
+
 ### 6. 핵심 흐름 확인
 
 1. 회원가입 또는 로그인

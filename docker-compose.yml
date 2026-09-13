@@ -78,9 +78,13 @@ services:
       - "--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-7d}"
     ports:
       - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    # Host에서 bootRun으로 실행한 Backend Management 포트를 Linux에서도 같은 이름으로 찾는다.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - ./monitoring/prometheus/targets:/etc/prometheus/targets:ro
       - prometheus-data:/prometheus
     depends_on:
       embedding-server:
