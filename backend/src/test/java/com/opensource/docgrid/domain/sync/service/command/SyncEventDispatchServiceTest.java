@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.opensource.docgrid.domain.sync.dto.ClaimedSyncEvent;
 import com.opensource.docgrid.domain.sync.entity.SyncOutboxEvent;
@@ -29,6 +30,8 @@ import com.opensource.docgrid.domain.sync.enums.SyncEventStatus;
 import com.opensource.docgrid.domain.sync.enums.SyncEventType;
 import com.opensource.docgrid.domain.sync.repository.SyncOutboxEventRepository;
 import com.opensource.docgrid.domain.sync.service.SyncEventHandlerRegistry;
+import com.opensource.docgrid.global.observability.SyncEventAttemptMetricEvent;
+import com.opensource.docgrid.global.observability.SyncEventAttemptMetricEvent.Outcome;
 
 /**
  * Handler 실행과 Outbox Event 완료 전이가 같은 Dispatch 경계에서 수행되는지 검증한다.
@@ -43,6 +46,7 @@ class SyncEventDispatchServiceTest {
     @Mock private SyncOutboxEventRepository syncOutboxEventRepository;
     @Mock private SyncEventHandlerRegistry syncEventHandlerRegistry;
     @Mock private SyncEventDeliveryAttemptService syncEventDeliveryAttemptService;
+    @Mock private ApplicationEventPublisher applicationEventPublisher;
 
     private SyncEventDispatchService service;
     private SyncOutboxEvent event;
@@ -56,7 +60,8 @@ class SyncEventDispatchServiceTest {
             syncOutboxEventRepository,
             syncEventHandlerRegistry,
             syncEventDeliveryAttemptService,
-            clock
+            clock,
+            applicationEventPublisher
         );
         LocalDateTime now = LocalDateTime.ofInstant(NOW, ZONE_ID);
         UUID eventId = UUID.randomUUID();
@@ -85,6 +90,8 @@ class SyncEventDispatchServiceTest {
         assertThat(event.getStatus()).isEqualTo(SyncEventStatus.PROCESSING);
         assertThat(completionEvent.getStatus()).isEqualTo(SyncEventStatus.PROCESSED);
         assertThat(completionEvent.getProcessedAt()).isNotNull();
+        then(applicationEventPublisher).should()
+            .publishEvent(new SyncEventAttemptMetricEvent(Outcome.PROCESSED));
     }
 
     @Test
@@ -102,6 +109,7 @@ class SyncEventDispatchServiceTest {
         );
         assertThat(event.getStatus()).isEqualTo(SyncEventStatus.PROCESSING);
         assertThat(event.getProcessedAt()).isNull();
+        then(applicationEventPublisher).shouldHaveNoInteractions();
     }
 
     private SyncOutboxEvent event(UUID eventId, LocalDateTime now) {

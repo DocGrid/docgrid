@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,8 @@ import com.opensource.docgrid.domain.sync.entity.SyncOutboxEvent;
 import com.opensource.docgrid.domain.sync.enums.SyncEventStatus;
 import com.opensource.docgrid.domain.sync.repository.SyncOutboxEventRepository;
 import com.opensource.docgrid.domain.sync.service.SyncEventRetrySchedule;
+import com.opensource.docgrid.global.observability.SyncEventAttemptMetricEvent;
+import com.opensource.docgrid.global.observability.SyncEventAttemptMetricEvent.Outcome;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +31,7 @@ public class SyncEventLeaseRecoveryService {
     private final SyncOutboxEventRepository syncOutboxEventRepository;
     private final SyncEventRetrySchedule syncEventRetrySchedule;
     private final SyncEventDeliveryAttemptService syncEventDeliveryAttemptService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * 만료 후보 Event를 다시 확인해 실제로 만료된 현재 Claim만 회수한다.
@@ -65,7 +69,13 @@ public class SyncEventLeaseRecoveryService {
             syncEventRetrySchedule.nextAvailableAt(event, recoveredAt)
         );
 
-        // 5. Scheduler가 회수 결과를 집계할 수 있도록 변경 후 상태를 반환한다.
+        // 5. 최종 실패는 즉시 조치 경보 대상이며, 재예약된 Lease 만료는 회수 활동으로 구분한다.
+        Outcome outcome = event.getStatus() == SyncEventStatus.FAILED
+            ? Outcome.TERMINAL_FAILURE
+            : Outcome.LEASE_RECOVERED;
+        applicationEventPublisher.publishEvent(new SyncEventAttemptMetricEvent(outcome));
+
+        // 6. Scheduler가 회수 결과를 집계할 수 있도록 변경 후 상태를 반환한다.
         return new RecoveryResult(eventId, true, event.getStatus());
     }
 

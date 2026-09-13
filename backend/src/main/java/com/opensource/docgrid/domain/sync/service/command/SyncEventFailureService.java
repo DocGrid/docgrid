@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,8 @@ import com.opensource.docgrid.domain.sync.repository.SyncOutboxEventRepository;
 import com.opensource.docgrid.domain.sync.service.SyncEventRetrySchedule;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.SyncEventAttemptMetricEvent;
+import com.opensource.docgrid.global.observability.SyncEventAttemptMetricEvent.Outcome;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +34,7 @@ public class SyncEventFailureService {
     private final SyncEventRetrySchedule syncEventRetrySchedule;
     private final SyncEventDeliveryAttemptService syncEventDeliveryAttemptService;
     private final Clock clock;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * Handler 실패를 현재 Claim의 Delivery Attempt와 Queue 상태에 함께 기록한다.
@@ -54,6 +58,9 @@ public class SyncEventFailureService {
         // 4. 이번 실패가 허용 횟수를 채우면 다시 Claim되지 않는 최종 상태로 종결한다.
         if (event.getRetryCount() + 1 >= event.getMaxRetryCount()) {
             event.markFailed(claimToken, errorCode, errorMessage, failedAt);
+            applicationEventPublisher.publishEvent(
+                new SyncEventAttemptMetricEvent(Outcome.TERMINAL_FAILURE)
+            );
             return;
         }
 
@@ -64,6 +71,9 @@ public class SyncEventFailureService {
             errorMessage,
             failedAt,
             syncEventRetrySchedule.nextAvailableAt(event, failedAt)
+        );
+        applicationEventPublisher.publishEvent(
+            new SyncEventAttemptMetricEvent(Outcome.RETRY_SCHEDULED)
         );
     }
 

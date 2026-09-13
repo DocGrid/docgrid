@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,8 @@ import com.opensource.docgrid.domain.sync.repository.SyncOutboxEventRepository;
 import com.opensource.docgrid.domain.sync.service.SyncEventHandlerRegistry;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.SyncEventAttemptMetricEvent;
+import com.opensource.docgrid.global.observability.SyncEventAttemptMetricEvent.Outcome;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +36,7 @@ public class SyncEventDispatchService {
     private final SyncEventHandlerRegistry syncEventHandlerRegistry;
     private final SyncEventDeliveryAttemptService syncEventDeliveryAttemptService;
     private final Clock clock;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * Claim된 Outbox Event의 Handler 부작용과 완료 전이를 독립 트랜잭션으로 실행한다.
@@ -64,6 +68,9 @@ public class SyncEventDispatchService {
             completedAt
         );
         completionEvent.complete(claimedEvent.claimToken(), completedAt);
+
+        // 5. Handler 부작용과 완료 상태가 함께 커밋된 뒤에만 처리 성공 Counter를 기록한다.
+        applicationEventPublisher.publishEvent(new SyncEventAttemptMetricEvent(Outcome.PROCESSED));
     }
 
     /**

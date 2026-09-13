@@ -48,6 +48,7 @@ import com.opensource.docgrid.domain.worker.repository.EmbeddingJobAttemptReposi
 import com.opensource.docgrid.domain.worker.repository.IndexingEventRepository;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.EmbeddingJobAttemptMetricEvent;
 
 /**
  * 문서 인덱싱 최초 완료 Transaction의 잠금 순서, 검증, 상태 전이와 이전 검색 Set 비활성화를 검증한다.
@@ -141,6 +142,8 @@ class DocumentIndexingCompletionServiceTest {
         assertThat(eventCaptor.getValue().getFromStatus()).isEqualTo("EMBEDDING");
         assertThat(eventCaptor.getValue().getToStatus()).isEqualTo("INDEXED");
         assertThat(eventCaptor.getValue().getOccurredAt()).isEqualTo(COMPLETED_AT);
+        then(applicationEventPublisher).should()
+            .publishEvent(EmbeddingJobAttemptMetricEvent.success());
     }
 
     @Test
