@@ -10,12 +10,14 @@ JWT_SECRET=docgrid-observability-test-secret-key-2026-with-at-least-32-bytes \
 ./gradlew test
 ```
 
-결과: **1163 tests, 실패 0, errors 0, skipped 0**
+결과: **1164 tests, 실패 0, errors 0, skipped 0**
 
 새 검증은 다음 동작을 포함한다.
 
 - Embedding retryable Provider 실패와 non-retryable 문서 오류의 label 분리
 - Embedding 성공·재시도·최종 실패 Service의 metric event 발행
+- Embedding Lease 회수의 재예약·재시도 소진 최종 실패 event 분기
+- 도메인 실패 유형의 exhaustive metric label 매핑과 Retry 정책 재사용
 - RAG provider fallback과 timeout sweep Counter 분리
 - RAG 예상 밖 실패의 실제 종료와 조건부 UPDATE 경합 패배 분기
 - Sync Outbox 재시도와 최종 실패 Counter 분리

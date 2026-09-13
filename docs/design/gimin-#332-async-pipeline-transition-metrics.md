@@ -42,7 +42,9 @@ Micrometer 이름은 Prometheus endpoint에서 아래 `_total` Counter로 노출
 | `docgrid_sync_event_attempts_total` | `outcome` | `processed`, `retry_scheduled`, `terminal_failure`, `lease_recovered` |
 
 ID, 사용자 정보, 문서명, 오류 메시지는 label에 넣지 않는다. 실패 유형과 결과는 코드의 enum에서만
-생성해 입력 크기에 따라 시계열 수가 늘어나지 않게 한다.
+생성해 입력 크기에 따라 시계열 수가 늘어나지 않게 한다. `failure_type`은 `IndexingFailureType`의
+모든 값을 exhaustive switch로 매핑하고, `retryable`은 도메인 enum의 정책값을 그대로 사용한다.
+실패 유형 추가 시 누락은 컴파일 오류가 되고 Retry 정책은 한 곳에서만 관리된다.
 
 ## 도메인별 기록 위치
 

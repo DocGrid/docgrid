@@ -32,7 +32,7 @@ public class AsyncPipelineMetrics {
             EMBEDDING_ATTEMPTS,
             "outcome", event.outcome().label(),
             "failure_type", event.failureType().name(),
-            "retryable", Boolean.toString(event.failureType().isRetryable())
+            "retryable", Boolean.toString(event.retryable())
         ).increment();
     }
 

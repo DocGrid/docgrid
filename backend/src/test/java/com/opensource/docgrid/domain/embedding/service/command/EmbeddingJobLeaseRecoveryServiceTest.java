@@ -6,8 +6,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -153,6 +154,30 @@ class EmbeddingJobLeaseRecoveryServiceTest {
         assertThat(result.recovered()).isTrue();
         then(applicationEventPublisher).should()
             .publishEvent(EmbeddingJobAttemptMetricEvent.leaseExpired(EmbeddingJobStatus.PENDING));
+    }
+
+    @Test
+    @DisplayName("Lease 만료 재시도를 모두 소진하면 최종 실패 결과를 계측한다")
+    void recover_publishesTerminalFailureMetric_when_retryIsExhausted() {
+        EmbeddingJob embeddingJob = createExpiredJob();
+        EmbeddingJobAttempt attempt = createAttempt(embeddingJob, AttemptStatus.STARTED);
+        given(embeddingJobRepository.findExpiredByIdForUpdateSkipLocked(JOB_ID, RECOVERED_AT))
+            .willReturn(Optional.of(embeddingJob));
+        given(embeddingJobAttemptRepository.findByEmbeddingJobIdAndClaimToken(JOB_ID, CLAIM_TOKEN))
+            .willReturn(Optional.of(attempt));
+        doAnswer(invocation -> {
+            ReflectionTestUtils.setField(embeddingJob, "status", EmbeddingJobStatus.FAILED);
+            return null;
+        }).when(failureTransitionService).transition(
+            any(), any(), any(), any(), anyBoolean(), any(), any()
+        );
+
+        RecoveryResult result = recoveryService.recover(JOB_ID, RECOVERED_AT);
+
+        assertThat(result.recovered()).isTrue();
+        assertThat(result.status()).isEqualTo(EmbeddingJobStatus.FAILED);
+        then(applicationEventPublisher).should()
+            .publishEvent(EmbeddingJobAttemptMetricEvent.leaseExpired(EmbeddingJobStatus.FAILED));
     }
 
     @Test

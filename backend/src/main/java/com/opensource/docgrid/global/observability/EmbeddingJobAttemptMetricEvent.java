@@ -12,14 +12,15 @@ import com.opensource.docgrid.domain.embedding.enums.IndexingFailureType;
  */
 public record EmbeddingJobAttemptMetricEvent(
     Outcome outcome,
-    FailureType failureType
+    FailureType failureType,
+    boolean retryable
 ) {
 
     /**
      * 성공한 실행의 단일 label 조합을 생성한다.
      */
     public static EmbeddingJobAttemptMetricEvent success() {
-        return new EmbeddingJobAttemptMetricEvent(Outcome.SUCCESS, FailureType.NONE);
+        return new EmbeddingJobAttemptMetricEvent(Outcome.SUCCESS, FailureType.NONE, false);
     }
 
     /**
@@ -29,9 +30,14 @@ public record EmbeddingJobAttemptMetricEvent(
         EmbeddingJobStatus status,
         IndexingFailureType failureType
     ) {
+        IndexingFailureType requiredFailureType = Objects.requireNonNull(
+            failureType,
+            "failureType은 필수입니다."
+        );
         return new EmbeddingJobAttemptMetricEvent(
             Outcome.fromFailureStatus(status),
-            FailureType.from(failureType)
+            FailureType.from(requiredFailureType),
+            requiredFailureType.isRetryable()
         );
     }
 
@@ -41,7 +47,8 @@ public record EmbeddingJobAttemptMetricEvent(
     public static EmbeddingJobAttemptMetricEvent leaseExpired(EmbeddingJobStatus status) {
         return new EmbeddingJobAttemptMetricEvent(
             Outcome.fromFailureStatus(status),
-            FailureType.WORKER_LEASE_EXPIRED
+            FailureType.WORKER_LEASE_EXPIRED,
+            true
         );
     }
 
@@ -53,6 +60,9 @@ public record EmbeddingJobAttemptMetricEvent(
         Objects.requireNonNull(failureType, "failureType은 필수입니다.");
         if ((outcome == Outcome.SUCCESS) != (failureType == FailureType.NONE)) {
             throw new IllegalArgumentException("성공 결과만 NONE 실패 유형을 사용할 수 있습니다.");
+        }
+        if (outcome == Outcome.SUCCESS && retryable) {
+            throw new IllegalArgumentException("성공 결과는 retryable일 수 없습니다.");
         }
     }
 
@@ -87,33 +97,37 @@ public record EmbeddingJobAttemptMetricEvent(
      * 외부 요청 enum과 내부 Lease 회수 원인을 합친 고정 실패 label 목록이다.
      */
     public enum FailureType {
-        NONE(false),
-        STORAGE_UNAVAILABLE(true),
-        STORAGE_CONFIGURATION_INVALID(false),
-        STORAGE_OBJECT_MISSING(false),
-        DOCUMENT_CONTENT_INVALID(false),
-        EMBEDDING_PROVIDER_UNAVAILABLE(true),
-        EMBEDDING_PROVIDER_OVERLOADED(true),
-        EMBEDDING_PROVIDER_TIMEOUT(true),
-        EMBEDDING_PROVIDER_CIRCUIT_OPEN(true),
-        EMBEDDING_REQUEST_INVALID(false),
-        EMBEDDING_RESULT_INVALID(false),
-        INDEXING_STATE_INCONSISTENT(false),
-        WORKER_INTERNAL_ERROR(true),
-        WORKER_LEASE_EXPIRED(true);
-
-        private final boolean retryable;
-
-        FailureType(boolean retryable) {
-            this.retryable = retryable;
-        }
-
-        public boolean isRetryable() {
-            return retryable;
-        }
+        NONE,
+        STORAGE_UNAVAILABLE,
+        STORAGE_CONFIGURATION_INVALID,
+        STORAGE_OBJECT_MISSING,
+        DOCUMENT_CONTENT_INVALID,
+        EMBEDDING_PROVIDER_UNAVAILABLE,
+        EMBEDDING_PROVIDER_OVERLOADED,
+        EMBEDDING_PROVIDER_TIMEOUT,
+        EMBEDDING_PROVIDER_CIRCUIT_OPEN,
+        EMBEDDING_REQUEST_INVALID,
+        EMBEDDING_RESULT_INVALID,
+        INDEXING_STATE_INCONSISTENT,
+        WORKER_INTERNAL_ERROR,
+        WORKER_LEASE_EXPIRED;
 
         private static FailureType from(IndexingFailureType failureType) {
-            return valueOf(Objects.requireNonNull(failureType, "failureType은 필수입니다.").name());
+            // 도메인 enum이 늘어나면 이 switch가 컴파일 오류를 내므로 런타임 실패 경로를 막는다.
+            return switch (failureType) {
+                case STORAGE_UNAVAILABLE -> STORAGE_UNAVAILABLE;
+                case STORAGE_CONFIGURATION_INVALID -> STORAGE_CONFIGURATION_INVALID;
+                case STORAGE_OBJECT_MISSING -> STORAGE_OBJECT_MISSING;
+                case DOCUMENT_CONTENT_INVALID -> DOCUMENT_CONTENT_INVALID;
+                case EMBEDDING_PROVIDER_UNAVAILABLE -> EMBEDDING_PROVIDER_UNAVAILABLE;
+                case EMBEDDING_PROVIDER_OVERLOADED -> EMBEDDING_PROVIDER_OVERLOADED;
+                case EMBEDDING_PROVIDER_TIMEOUT -> EMBEDDING_PROVIDER_TIMEOUT;
+                case EMBEDDING_PROVIDER_CIRCUIT_OPEN -> EMBEDDING_PROVIDER_CIRCUIT_OPEN;
+                case EMBEDDING_REQUEST_INVALID -> EMBEDDING_REQUEST_INVALID;
+                case EMBEDDING_RESULT_INVALID -> EMBEDDING_RESULT_INVALID;
+                case INDEXING_STATE_INCONSISTENT -> INDEXING_STATE_INCONSISTENT;
+                case WORKER_INTERNAL_ERROR -> WORKER_INTERNAL_ERROR;
+            };
         }
     }
 }
