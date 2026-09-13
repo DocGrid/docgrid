@@ -50,6 +50,7 @@ import com.opensource.docgrid.domain.worker.repository.EmbeddingJobAttemptReposi
 import com.opensource.docgrid.domain.worker.repository.IndexingEventRepository;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.EmbeddingJobAttemptMetricEvent;
 
 /**
  * 인덱싱 실패 Service의 Retry·최종 종료·멱등 재생 분기와 원자 상태 변경을 검증한다.
@@ -159,6 +160,12 @@ class DocumentIndexingFailureServiceTest {
             .isEqualTo("{\"attemptId\":103,\"attemptNo\":1,\"failureType\":\"STORAGE_UNAVAILABLE\"}");
         assertThat(eventCaptor.getAllValues().get(1).getMetadataJson())
             .isEqualTo("{\"retryCount\":1,\"nextRetryAt\":\"2026-08-03T10:30:10\"}");
+        then(applicationEventPublisher).should().publishEvent(
+            EmbeddingJobAttemptMetricEvent.failure(
+                EmbeddingJobStatus.PENDING,
+                IndexingFailureType.STORAGE_UNAVAILABLE
+            )
+        );
     }
 
     @Test
@@ -223,6 +230,12 @@ class DocumentIndexingFailureServiceTest {
             .containsExactly(IndexingEventType.EMBEDDING_FAILED, IndexingEventType.FAILED);
         assertThat(eventCaptor.getAllValues().get(1).getMetadataJson())
             .isEqualTo("{\"retryCount\":0,\"maxRetryCount\":3}");
+        then(applicationEventPublisher).should().publishEvent(
+            EmbeddingJobAttemptMetricEvent.failure(
+                EmbeddingJobStatus.FAILED,
+                IndexingFailureType.EMBEDDING_RESULT_INVALID
+            )
+        );
     }
 
     @Test

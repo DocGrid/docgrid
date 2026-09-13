@@ -378,6 +378,37 @@ class RagFacadeTest {
         then(responseCitationCommandService).should(times(1)).saveAll(eq(job), any(), eq(List.of(searchResult)));
     }
 
+    // === markUnexpectedFailure() ===
+
+    @Test
+    @DisplayName("markUnexpectedFailure: PROCESSING job을 실제 종료하면 예상 밖 실패 메트릭을 발행한다")
+    void markUnexpectedFailure_completed_publishesMetricEvent() {
+        RagResponse job = RagResponse.builder().status(ResultStatus.PROCESSING).build();
+        given(ragResponseRepository.findById(JOB_ID)).willReturn(Optional.of(job));
+        given(ragResponseCommandService.completeFailed(job, "답변 생성 중 예상치 못한 오류가 발생했습니다.", "bug"))
+            .willReturn(true);
+
+        boolean completed = ragFacade.markUnexpectedFailure(JOB_ID, "bug");
+
+        assertThat(completed).isTrue();
+        then(applicationEventPublisher).should()
+            .publishEvent(new RagJobCompletionMetricEvent(Outcome.UNEXPECTED_FAILURE));
+    }
+
+    @Test
+    @DisplayName("markUnexpectedFailure: 조건부 종료 경합에서 지면 메트릭을 발행하지 않는다")
+    void markUnexpectedFailure_losesRace_doesNotPublishMetricEvent() {
+        RagResponse job = RagResponse.builder().status(ResultStatus.PROCESSING).build();
+        given(ragResponseRepository.findById(JOB_ID)).willReturn(Optional.of(job));
+        given(ragResponseCommandService.completeFailed(job, "답변 생성 중 예상치 못한 오류가 발생했습니다.", "bug"))
+            .willReturn(false);
+
+        boolean completed = ragFacade.markUnexpectedFailure(JOB_ID, "bug");
+
+        assertThat(completed).isFalse();
+        then(applicationEventPublisher).shouldHaveNoInteractions();
+    }
+
     // === failIfStillProcessing() ===
 
     @Test

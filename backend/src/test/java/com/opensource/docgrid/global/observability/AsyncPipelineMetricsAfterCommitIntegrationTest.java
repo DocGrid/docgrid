@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +28,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
  * 상태 전이 이벤트가 실제 Transaction 커밋 뒤에만 Counter에 반영되는지 검증한다.
  */
 @SpringJUnitConfig(AsyncPipelineMetricsAfterCommitIntegrationTest.Config.class)
+@Tag("integration")
 @DisplayName("비동기 파이프라인 Counter AFTER_COMMIT 통합 테스트")
 class AsyncPipelineMetricsAfterCommitIntegrationTest {
 

@@ -3,6 +3,7 @@ package com.opensource.docgrid.domain.embedding.service.command;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
@@ -84,7 +85,7 @@ class EmbeddingJobLeaseRecoveryServiceTest {
             );
             return null;
         }).when(failureTransitionService).transition(
-            any(), any(), any(), any(), any(Boolean.class), any(), any()
+            any(), any(), any(), any(), anyBoolean(), any(), any()
         );
     }
 

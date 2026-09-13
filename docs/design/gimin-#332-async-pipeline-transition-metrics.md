@@ -1,5 +1,7 @@
 # 비동기 Pipeline 상태 전이 메트릭 설계 (#332)
 
+closes #332
+
 ## 문제
 
 Actuator가 제공하는 JVM·HTTP·HikariCP 메트릭만으로는 DocGrid의 비동기 처리 결과를 알 수 없다.
