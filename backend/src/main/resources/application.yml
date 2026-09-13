@@ -106,6 +106,29 @@ sync:
 server:
   port: 8080
 
+management:
+  server:
+    # 운영 엔드포인트를 사용자 API와 다른 네트워크 경계에서 제어할 수 있도록 별도 포트로 분리한다.
+    port: ${MANAGEMENT_PORT:8081}
+  endpoints:
+    web:
+      # 운영 정보의 우발적 노출을 막고 수집·상태 확인에 필요한 엔드포인트만 공개한다.
+      exposure:
+        include: health,prometheus
+      discovery:
+        enabled: false
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          # Redis는 인증 경로에서 fail-open이므로 트래픽 수신 가능 여부는 애플리케이션과 DB로 판단한다.
+          include: readinessState,db
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:3600}

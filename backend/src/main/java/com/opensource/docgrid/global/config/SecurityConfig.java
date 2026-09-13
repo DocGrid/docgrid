@@ -2,6 +2,7 @@ package com.opensource.docgrid.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,6 +24,12 @@ import com.opensource.docgrid.global.exception.RestAuthenticationEntryPoint;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 사용자 API의 CORS, JWT, MCP API Key 인증과 역할 기반 인가를 구성한다.
+ *
+ * <p>Actuator 요청은 우선순위가 더 높은 {@link ManagementEndpointSecurityConfig}가 담당하며, 이
+ * 설정은 나머지 애플리케이션 요청의 보안 경계를 책임진다.
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -45,6 +52,7 @@ public class SecurityConfig {
      * {@code authorizeHttpRequests}가 별도로 담당한다.
      */
     @Bean
+    @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
