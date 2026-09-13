@@ -1,0 +1,76 @@
+groups:
+  - name: docgrid-async-pipelines
+    rules:
+      - alert: DocGridEmbeddingRetryableFailureRatioHigh
+        expr: |
+          (
+            sum by (cluster, environment) (
+              rate(docgrid_embedding_job_attempts_total{
+                outcome=~"retry_scheduled|terminal_failure",
+                retryable="true"
+              }[10m])
+            )
+            /
+            clamp_min(
+              sum by (cluster, environment) (
+                rate(docgrid_embedding_job_attempts_total[10m])
+              ),
+              0.001
+            )
+          ) > 0.10
+          and
+          sum by (cluster, environment) (
+            increase(docgrid_embedding_job_attempts_total[10m])
+          ) >= 10
+        for: 5m
+        labels:
+          severity: warning
+          service: embedding-worker
+        annotations:
+          summary: DocGrid embedding retryable failure ratio is high
+          description: More than 10% of at least 10 embedding attempts failed with a retryable cause during the last ten minutes.
+
+      - alert: DocGridRagProviderFallbackSpike
+        expr: |
+          sum by (cluster, environment) (
+            increase(docgrid_rag_job_completions_total{
+              outcome="provider_fallback"
+            }[10m])
+          ) >= 3
+        for: 1m
+        labels:
+          severity: warning
+          service: rag-worker
+          dependency: ollama
+        annotations:
+          summary: DocGrid RAG provider fallback is increasing
+          description: At least three RAG jobs used the provider fallback during the last ten minutes.
+
+      - alert: DocGridRagTimeoutSweepSpike
+        expr: |
+          sum by (cluster, environment) (
+            increase(docgrid_rag_job_completions_total{
+              outcome="timeout_swept"
+            }[10m])
+          ) >= 3
+        for: 1m
+        labels:
+          severity: warning
+          service: rag-worker
+        annotations:
+          summary: DocGrid RAG timeout recovery is increasing
+          description: At least three RAG jobs were force-failed by the timeout sweeper during the last ten minutes.
+
+      - alert: DocGridSyncOutboxTerminalFailure
+        expr: |
+          sum by (cluster, environment) (
+            increase(docgrid_sync_event_attempts_total{
+              outcome="terminal_failure"
+            }[15m])
+          ) > 0
+        labels:
+          severity: critical
+          service: sync-outbox
+        annotations:
+          summary: A DocGrid Sync Outbox event reached terminal failure
+          description: At least one Sync Outbox event exhausted retries during the last fifteen minutes.

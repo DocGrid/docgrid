@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.opensource.docgrid.domain.rag.dto.OllamaGenerateResult;
 import com.opensource.docgrid.domain.rag.dto.RagAnswer;
@@ -43,6 +44,8 @@ import com.opensource.docgrid.domain.search.repository.SearchResultRepository;
 import com.opensource.docgrid.domain.search.service.query.SearchConversationQueryService;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.RagJobCompletionMetricEvent;
+import com.opensource.docgrid.global.observability.RagJobCompletionMetricEvent.Outcome;
 
 import jakarta.persistence.EntityManager;
 
@@ -82,6 +85,9 @@ class RagFacadeTest {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
     private static final Long QUERY_ID = 100L;
     private static final Long CONVERSATION_ID = 50L;
     private static final Long JOB_ID = 999L;
@@ -107,6 +113,8 @@ class RagFacadeTest {
         then(promptBuilder).should(never()).build(anyString(), any(), any());
         then(ragResponseCommandService).should(times(1)).createNoContext(queryRef);
         then(ragResponseCommandService).should(never()).createPending(any(), anyString());
+        then(applicationEventPublisher).should()
+            .publishEvent(new RagJobCompletionMetricEvent(Outcome.NO_CONTEXT));
     }
 
     @Test
@@ -241,6 +249,8 @@ class RagFacadeTest {
         then(ragResponseCommandService).should(times(1)).completeSuccess(eq(job), any());
         then(responseCitationCommandService).should(times(1)).saveAll(eq(job), any(), eq(List.of(searchResult)));
         then(ragResponseCommandService).should(never()).completeFailed(any(), anyString(), anyString());
+        then(applicationEventPublisher).should()
+            .publishEvent(new RagJobCompletionMetricEvent(Outcome.SUCCESS));
     }
 
     @Test
@@ -275,6 +285,7 @@ class RagFacadeTest {
         assertThat(completed).isFalse();
         then(responseCitationCommandService).should(never()).saveAll(any(), any(), any());
         then(searchResultRepository).should(never()).findByQuery_IdOrderByRankNo(any());
+        then(applicationEventPublisher).shouldHaveNoInteractions();
     }
 
     @Test
@@ -299,6 +310,8 @@ class RagFacadeTest {
             eq(job), argThatFallbackContains("AI 답변 생성이 지연", "청크 내용", "인사규정"), anyString()
         );
         then(responseCitationCommandService).should(never()).saveAll(any(), any(), any());
+        then(applicationEventPublisher).should()
+            .publishEvent(new RagJobCompletionMetricEvent(Outcome.PROVIDER_FALLBACK));
     }
 
     @Test
@@ -315,6 +328,7 @@ class RagFacadeTest {
         boolean completed = ragFacade.processJob(JOB_ID);
 
         assertThat(completed).isFalse();
+        then(applicationEventPublisher).shouldHaveNoInteractions();
     }
 
     @Test
@@ -379,6 +393,8 @@ class RagFacadeTest {
         then(ragResponseRepository).should(times(1)).forceFailIfProcessing(
             eq(JOB_ID), argThatFallbackContains("AI 답변 생성이 지연", "청크 내용", "인사규정"), anyString()
         );
+        then(applicationEventPublisher).should()
+            .publishEvent(new RagJobCompletionMetricEvent(Outcome.TIMEOUT_SWEPT));
     }
 
     @Test
@@ -391,6 +407,7 @@ class RagFacadeTest {
         boolean result = ragFacade.failIfStillProcessing(JOB_ID, QUERY_ID);
 
         assertThat(result).isFalse();
+        then(applicationEventPublisher).shouldHaveNoInteractions();
     }
 
     @Test

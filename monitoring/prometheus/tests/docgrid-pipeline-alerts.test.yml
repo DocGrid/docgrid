@@ -1,0 +1,98 @@
+rule_files:
+  - /etc/prometheus/rules/docgrid-pipeline-alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: retryable embedding failures require ratio sample and duration
+    interval: 1m
+    input_series:
+      - series: 'docgrid_embedding_job_attempts_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="success",failure_type="NONE",retryable="false"}'
+        values: '0+8x12'
+      - series: 'docgrid_embedding_job_attempts_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="retry_scheduled",failure_type="EMBEDDING_PROVIDER_TIMEOUT",retryable="true"}'
+        values: '0+2x12'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: DocGridEmbeddingRetryableFailureRatioHigh
+        exp_alerts: []
+      - eval_time: 6m
+        alertname: DocGridEmbeddingRetryableFailureRatioHigh
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingRetryableFailureRatioHigh
+              cluster: docgrid-production
+              environment: production
+              service: embedding-worker
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding retryable failure ratio is high
+              description: More than 10% of at least 10 embedding attempts failed with a retryable cause during the last ten minutes.
+
+  - name: non-retryable document failures do not trigger infrastructure alert
+    interval: 1m
+    input_series:
+      - series: 'docgrid_embedding_job_attempts_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="success",failure_type="NONE",retryable="false"}'
+        values: '0+8x12'
+      - series: 'docgrid_embedding_job_attempts_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="terminal_failure",failure_type="DOCUMENT_CONTENT_INVALID",retryable="false"}'
+        values: '0+2x12'
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: DocGridEmbeddingRetryableFailureRatioHigh
+        exp_alerts: []
+
+  - name: rag fallback and timeout are evaluated independently
+    interval: 1m
+    input_series:
+      - series: 'docgrid_rag_job_completions_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="provider_fallback"}'
+        values: '0+1x8'
+      - series: 'docgrid_rag_job_completions_total{instance="backend-b:8081",environment="healthy",cluster="docgrid-healthy",outcome="success"}'
+        values: '0+5x8'
+      - series: 'docgrid_rag_job_completions_total{instance="backend-c:8081",environment="timeout",cluster="docgrid-timeout",outcome="timeout_swept"}'
+        values: '0+1x8'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: DocGridRagProviderFallbackSpike
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridRagProviderFallbackSpike
+              cluster: docgrid-production
+              dependency: ollama
+              environment: production
+              service: rag-worker
+              severity: warning
+            exp_annotations:
+              summary: DocGrid RAG provider fallback is increasing
+              description: At least three RAG jobs used the provider fallback during the last ten minutes.
+      - eval_time: 4m
+        alertname: DocGridRagTimeoutSweepSpike
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridRagTimeoutSweepSpike
+              cluster: docgrid-timeout
+              environment: timeout
+              service: rag-worker
+              severity: warning
+            exp_annotations:
+              summary: DocGrid RAG timeout recovery is increasing
+              description: At least three RAG jobs were force-failed by the timeout sweeper during the last ten minutes.
+
+  - name: outbox retries stay quiet and terminal failures alert
+    interval: 1m
+    input_series:
+      - series: 'docgrid_sync_event_attempts_total{instance="backend-a:8081",environment="retrying",cluster="docgrid-retrying",outcome="retry_scheduled"}'
+        values: '0+2x4'
+      - series: 'docgrid_sync_event_attempts_total{instance="backend-b:8081",environment="production",cluster="docgrid-production",outcome="terminal_failure"}'
+        values: '0+1x4'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: DocGridSyncOutboxTerminalFailure
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridSyncOutboxTerminalFailure
+              cluster: docgrid-production
+              environment: production
+              service: sync-outbox
+              severity: critical
+            exp_annotations:
+              summary: A DocGrid Sync Outbox event reached terminal failure
+              description: At least one Sync Outbox event exhausted retries during the last fifteen minutes.

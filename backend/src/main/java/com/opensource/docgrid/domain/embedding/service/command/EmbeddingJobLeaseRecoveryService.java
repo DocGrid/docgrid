@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import com.opensource.docgrid.domain.worker.repository.EmbeddingJobAttemptReposi
 import com.opensource.docgrid.domain.worker.repository.IndexingEventRepository;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.EmbeddingJobAttemptMetricEvent;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,6 +45,7 @@ public class EmbeddingJobLeaseRecoveryService {
     private final EmbeddingJobAttemptRepository embeddingJobAttemptRepository;
     private final IndexingEventRepository indexingEventRepository;
     private final IndexingFailureTransitionService failureTransitionService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * 후보 Snapshot 이후에도 만료 상태인 Job만 회수해 Retry 또는 최종 실패로 전환한다.
@@ -83,6 +86,11 @@ public class EmbeddingJobLeaseRecoveryService {
             true,
             recoveredAt,
             Duration.ZERO
+        );
+
+        // 5. 실제 회수 전이가 커밋된 뒤에만 재시도 또는 최종 실패 Counter가 증가하게 한다.
+        applicationEventPublisher.publishEvent(
+            EmbeddingJobAttemptMetricEvent.leaseExpired(embeddingJob.getStatus())
         );
         return RecoveryResult.recovered(embeddingJob);
     }

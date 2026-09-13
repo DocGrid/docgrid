@@ -29,6 +29,7 @@ import com.opensource.docgrid.domain.worker.repository.EmbeddingJobAttemptReposi
 import com.opensource.docgrid.domain.worker.repository.IndexingEventRepository;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.EmbeddingJobAttemptMetricEvent;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -167,11 +168,15 @@ public class DocumentIndexingFailureService {
             minimumRetryDelay
         );
 
-        // 4. 대시보드가 최신 집계를 다시 계산하도록 상태 전이를 알린다. transition()이 재시도 예약
+        // 4. 대시보드 갱신과 실패 Counter를 같은 Commit에 결박한다. transition()이 재시도 예약
         //    (PENDING)과 최종 실패(FAILED) 중 어느 쪽으로 끝났든 embeddingJob은 같은 영속 인스턴스라
         //    최종 상태를 그대로 반영한다. AFTER_COMMIT 구독자만 반응하므로 이 Transaction이 실제로
-        //    커밋된 뒤에만 push로 이어진다.
+        //    커밋된 뒤에만 push와 Counter 증가로 이어진다.
         applicationEventPublisher.publishEvent(new EmbeddingJobStatusChangedEvent(embeddingJob.getId()));
+        applicationEventPublisher.publishEvent(EmbeddingJobAttemptMetricEvent.failure(
+            embeddingJob.getStatus(),
+            request.failureType()
+        ));
 
         log.info(
             "문서 인덱싱 실패 기록: jobId={}, attemptId={}, failureType={}, retryCount={}, terminal={}",

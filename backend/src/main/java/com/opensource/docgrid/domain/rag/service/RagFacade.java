@@ -2,6 +2,7 @@ package com.opensource.docgrid.domain.rag.service;
 
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,8 @@ import com.opensource.docgrid.domain.search.repository.SearchResultRepository;
 import com.opensource.docgrid.domain.search.service.query.SearchConversationQueryService;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.RagJobCompletionMetricEvent;
+import com.opensource.docgrid.global.observability.RagJobCompletionMetricEvent.Outcome;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +91,7 @@ public class RagFacade {
     private final SearchResultRepository searchResultRepository;
     private final SearchConversationQueryService searchConversationQueryService;
     private final EntityManager entityManager;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * 검색 직후 SearchController가 동기 호출하는 접수 단계. Ollama는 아직 호출하지 않는다.
@@ -107,6 +111,8 @@ public class RagFacade {
 
         if (candidates.isEmpty()) {
             RagResponse ragResponse = ragResponseCommandService.createNoContext(queryRef);
+            // LLM 호출을 생략한 정상 완료도 저장 Transaction이 커밋된 뒤 별도 결과로 집계한다.
+            applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.NO_CONTEXT));
             log.info("[RAG] no context queryId={} responseId={}", queryId, ragResponse.getId());
             return RagEnqueueOutcome.done(RagAnswer.noContext(ragResponse.getAnswerText()));
         }
@@ -169,6 +175,11 @@ public class RagFacade {
             String fallbackAnswer = candidates.isEmpty() ? e.getErrorCode().getMessage()
                 : buildExtractiveFallbackAnswer(candidates);
             boolean completed = ragResponseCommandService.completeFailed(job, fallbackAnswer, e.getMessage());
+            if (completed) {
+                applicationEventPublisher.publishEvent(
+                    new RagJobCompletionMetricEvent(Outcome.PROVIDER_FALLBACK)
+                );
+            }
             log.warn("[RAG] fallback queryId={} errorCode={}", queryId, e.getErrorCode().getCode());
             return completed;
         }
@@ -216,6 +227,8 @@ public class RagFacade {
             // 3. 완료 처리가 성공한 답변에만 선택한 후보 순서대로 출처를 저장한다.
             responseCitationCommandService.saveAll(job, citationCandidates, citationSearchResults);
         }
+        // 답변과 citation 저장이 모두 끝난 동일 Transaction의 커밋 이후 성공 Counter를 기록한다.
+        applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.SUCCESS));
         log.info("[RAG] done queryId={} responseId={} latencyMs={}", queryId, job.getId(), result.latencyMs());
         return true;
     }
@@ -232,9 +245,15 @@ public class RagFacade {
      *         (RagJobWorker)는 이 경우 WebSocket 알림을 보내지 않는다.
      */
     public boolean markUnexpectedFailure(Long jobId, String errorMessage) {
-        return ragResponseRepository.findById(jobId)
+        boolean completed = ragResponseRepository.findById(jobId)
             .map(job -> ragResponseCommandService.completeFailed(job, UNEXPECTED_FAILURE_ANSWER_TEXT, errorMessage))
             .orElse(false);
+        if (completed) {
+            applicationEventPublisher.publishEvent(
+                new RagJobCompletionMetricEvent(Outcome.UNEXPECTED_FAILURE)
+            );
+        }
+        return completed;
     }
 
     /**
@@ -252,6 +271,9 @@ public class RagFacade {
             ? UNEXPECTED_FAILURE_ANSWER_TEXT
             : buildExtractiveFallbackAnswer(candidates);
         int updated = ragResponseRepository.forceFailIfProcessing(jobId, fallbackAnswer, TIMEOUT_ERROR_MESSAGE);
+        if (updated > 0) {
+            applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.TIMEOUT_SWEPT));
+        }
         return updated > 0;
     }
 

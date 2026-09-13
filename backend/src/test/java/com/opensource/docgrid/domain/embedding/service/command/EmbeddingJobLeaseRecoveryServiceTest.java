@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.opensource.docgrid.domain.document.entity.DocumentVersion;
@@ -36,6 +38,7 @@ import com.opensource.docgrid.domain.worker.repository.EmbeddingJobAttemptReposi
 import com.opensource.docgrid.domain.worker.repository.IndexingEventRepository;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.EmbeddingJobAttemptMetricEvent;
 
 /**
  * EmbeddingJobLeaseRecoveryService의 후보 재검증, 선택적 Attempt와 공통 실패 전이 위임을 검증한다.
@@ -59,6 +62,7 @@ class EmbeddingJobLeaseRecoveryServiceTest {
     @Mock private EmbeddingJobAttemptRepository embeddingJobAttemptRepository;
     @Mock private IndexingEventRepository indexingEventRepository;
     @Mock private IndexingFailureTransitionService failureTransitionService;
+    @Mock private ApplicationEventPublisher applicationEventPublisher;
 
     private EmbeddingJobLeaseRecoveryService recoveryService;
 
@@ -68,7 +72,19 @@ class EmbeddingJobLeaseRecoveryServiceTest {
             embeddingJobRepository,
             embeddingJobAttemptRepository,
             indexingEventRepository,
-            failureTransitionService
+            failureTransitionService,
+            applicationEventPublisher
+        );
+        // 공통 실패 전이는 mock이므로, 운영 구현처럼 회수 후 상태가 PENDING이 되도록 반영한다.
+        lenient().doAnswer(invocation -> {
+            ReflectionTestUtils.setField(
+                invocation.<EmbeddingJob>getArgument(0),
+                "status",
+                EmbeddingJobStatus.PENDING
+            );
+            return null;
+        }).when(failureTransitionService).transition(
+            any(), any(), any(), any(), any(Boolean.class), any(), any()
         );
     }
 
@@ -104,6 +120,8 @@ class EmbeddingJobLeaseRecoveryServiceTest {
         );
         assertThat(result.recovered()).isTrue();
         assertThat(result.jobId()).isEqualTo(JOB_ID);
+        then(applicationEventPublisher).should()
+            .publishEvent(EmbeddingJobAttemptMetricEvent.leaseExpired(EmbeddingJobStatus.PENDING));
     }
 
     @Test
@@ -132,6 +150,8 @@ class EmbeddingJobLeaseRecoveryServiceTest {
             Duration.ZERO
         );
         assertThat(result.recovered()).isTrue();
+        then(applicationEventPublisher).should()
+            .publishEvent(EmbeddingJobAttemptMetricEvent.leaseExpired(EmbeddingJobStatus.PENDING));
     }
 
     @Test
@@ -147,6 +167,7 @@ class EmbeddingJobLeaseRecoveryServiceTest {
         then(embeddingJobAttemptRepository).shouldHaveNoInteractions();
         then(indexingEventRepository).shouldHaveNoInteractions();
         then(failureTransitionService).shouldHaveNoInteractions();
+        then(applicationEventPublisher).shouldHaveNoInteractions();
     }
 
     @Test

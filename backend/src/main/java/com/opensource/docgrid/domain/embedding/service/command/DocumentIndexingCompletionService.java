@@ -37,6 +37,7 @@ import com.opensource.docgrid.domain.worker.repository.EmbeddingJobAttemptReposi
 import com.opensource.docgrid.domain.worker.repository.IndexingEventRepository;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.observability.EmbeddingJobAttemptMetricEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -137,9 +138,10 @@ public class DocumentIndexingCompletionService {
             durationMs
         );
 
-        // 6. 대시보드가 최신 집계를 다시 계산하도록 상태 전이를 알린다. AFTER_COMMIT 구독자만
-        //    반응하므로 이 Transaction이 실제로 커밋된 뒤에만 push로 이어진다.
+        // 6. 대시보드 갱신과 성공 Counter를 같은 Commit에 결박한다. 두 AFTER_COMMIT 구독자는
+        //    이 Transaction이 실제로 커밋된 뒤에만 반응한다.
         applicationEventPublisher.publishEvent(new EmbeddingJobStatusChangedEvent(embeddingJob.getId()));
+        applicationEventPublisher.publishEvent(EmbeddingJobAttemptMetricEvent.success());
 
         log.info(
             "문서 인덱싱 완료: jobId={}, attemptId={}, documentId={}, versionId={}, "
