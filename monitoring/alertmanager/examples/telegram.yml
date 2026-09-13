@@ -1,0 +1,29 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: telegram
+  group_by: [alertname, cluster, environment, severity, service]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - receiver: telegram
+      matchers: [severity="critical"]
+      group_wait: 10s
+      repeat_interval: 1h
+
+receivers:
+  - name: telegram
+    telegram_configs:
+      - bot_token_file: /etc/alertmanager/secrets/telegram-bot-token
+        chat_id_file: /etc/alertmanager/secrets/telegram-chat-id
+        send_resolved: true
+
+inhibit_rules:
+  - source_matchers: [severity="critical", service="embedding-provider"]
+    target_matchers: [severity="warning", service="embedding-provider"]
+    equal: [cluster, environment]
+  - source_matchers: [severity="critical", service="embedding-provider"]
+    target_matchers: [dependency="embedding-provider"]
+    equal: [cluster, environment]

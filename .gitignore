@@ -45,6 +45,10 @@ __pycache__/
 .env
 .env.properties
 
+# Alertmanager URL, token, SMTP password는 예시 설정과 분리해 로컬 파일로만 주입한다.
+/monitoring/alertmanager/secrets/*
+!/monitoring/alertmanager/secrets/.gitkeep
+
 # Local Filesystem Adapter가 저장하는 문서 원본
 /data/
 

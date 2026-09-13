@@ -1,0 +1,34 @@
+groups:
+  - name: docgrid-alertmanager-e2e
+    interval: 1s
+    rules:
+      - alert: DocGridAlertmanagerE2EGrouped
+        expr: vector(0) > 0
+        labels:
+          cluster: docgrid-e2e
+          environment: test
+          severity: warning
+          service: docgrid-backend
+        annotations:
+          summary: Alertmanager grouping E2E alert
+
+      - alert: DocGridAlertmanagerE2EProviderDown
+        expr: vector(0) > 0
+        labels:
+          cluster: docgrid-e2e
+          environment: test
+          severity: critical
+          service: embedding-provider
+        annotations:
+          summary: Alertmanager inhibition source
+
+      - alert: DocGridAlertmanagerE2EDerived
+        expr: vector(0) > 0
+        labels:
+          cluster: docgrid-e2e
+          dependency: embedding-provider
+          environment: test
+          severity: warning
+          service: embedding-worker
+        annotations:
+          summary: This derived alert must be inhibited

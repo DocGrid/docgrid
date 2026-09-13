@@ -6,6 +6,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          service: embedding-provider
         annotations:
           summary: Embedding Provider metric endpoint is unavailable
           description: Prometheus has failed to scrape the Embedding Provider for one minute.
@@ -15,6 +16,7 @@ groups:
         for: 1m
         labels:
           severity: critical
+          service: embedding-provider
         annotations:
           summary: Embedding Provider model is not ready
           description: The process is reachable but the embedding model has not been loaded for one minute.
@@ -23,6 +25,7 @@ groups:
         expr: changes(process_start_time_seconds{job="embedding-provider"}[15m]) > 0
         labels:
           severity: warning
+          service: embedding-provider
         annotations:
           summary: Embedding Provider process restarted
           description: Investigate OOMKilled, model load failure, or an operator restart.
@@ -39,6 +42,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          service: embedding-provider
         annotations:
           summary: Embedding Provider is close to its memory limit
           description: RSS has exceeded 90% of the cgroup memory limit for five minutes.
@@ -54,6 +58,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          service: embedding-provider
         annotations:
           summary: Embedding Provider p99 is consuming the timeout budget
           description: Successful request p99 has exceeded 25 seconds for five minutes.
@@ -67,6 +72,7 @@ groups:
         for: 1m
         labels:
           severity: warning
+          service: embedding-provider
         annotations:
           summary: Embedding Provider queue is continuously saturated
           description: The FIFO wait queue has remained at capacity for one minute.
@@ -86,6 +92,7 @@ groups:
         for: 5m
         labels:
           severity: warning
+          service: embedding-provider
         annotations:
           summary: Embedding Provider overload rejection ratio is high
           description: More than 10% of requests have been rejected as overloaded for five minutes.

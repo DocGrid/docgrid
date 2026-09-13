@@ -26,6 +26,7 @@ groups:
         labels:
           severity: warning
           service: embedding-worker
+          dependency: embedding-provider
         annotations:
           summary: DocGrid embedding retryable failure ratio is high
           description: More than 10% of at least 10 embedding attempts failed with a retryable cause during the last ten minutes.
@@ -105,6 +106,7 @@ groups:
         labels:
           severity: warning
           service: embedding-worker
+          dependency: embedding-provider
         annotations:
           summary: DocGrid embedding queue is stalled
           description: The oldest claimable embedding job has remained eligible for more than five minutes.

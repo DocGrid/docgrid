@@ -1,0 +1,54 @@
+services:
+  webhook-receiver:
+    image: python:3.13-alpine
+    environment:
+      EVENT_LOG: /results/events.jsonl
+    command: ["python", "/test/webhook_receiver.py"]
+    volumes:
+      - ./webhook_receiver.py:/test/webhook_receiver.py:ro
+      - ${ALERTING_E2E_TMP_DIR}/results:/results
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 1s
+      timeout: 1s
+      retries: 20
+
+  alertmanager:
+    image: quay.io/prometheus/alertmanager:v0.33.1
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--cluster.listen-address="
+    ports:
+      - "127.0.0.1::9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    depends_on:
+      webhook-receiver:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:9093/-/ready"]
+      interval: 1s
+      timeout: 1s
+      retries: 20
+
+  prometheus:
+    image: prom/prometheus:v3.5.5
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-lifecycle"
+      # 운영 기본 1분을 줄여 E2E가 최초·해결 알림을 빠르게 관측한다.
+      - "--rules.alert.resend-delay=5s"
+    ports:
+      - "127.0.0.1::9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ${ALERTING_E2E_TMP_DIR}/active-rules.yml:/etc/prometheus/rules/e2e.yml:ro
+    depends_on:
+      alertmanager:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:9090/-/ready"]
+      interval: 1s
+      timeout: 1s
+      retries: 20
