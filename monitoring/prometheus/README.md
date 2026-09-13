@@ -76,10 +76,43 @@ HTTP 오류율에서는 Streamable HTTP 특성이 다른 `/mcp`를 제외한다.
 | `DocGridRagProviderFallbackSpike` | 10분간 provider fallback 3회 이상 | 1분 |
 | `DocGridRagTimeoutSweepSpike` | 10분간 timeout 강제 종료 3회 이상 | 1분 |
 | `DocGridSyncOutboxTerminalFailure` | 15분간 새로운 최종 실패 1회 이상 | 즉시 |
+| `DocGridEmbeddingWorkersUnavailable` | claim 가능 Job이 있지만 유효 Worker가 없음 | 1분 |
+| `DocGridEmbeddingQueueStalled` | 가장 오래된 claim 가능 Job 나이가 5분 초과 | 5분 |
+| `DocGridRagQueueStalled` | 가장 오래된 PROCESSING 응답 나이가 150초 초과 | 30초 |
+| `DocGridSyncOutboxQueueStalled` | 가장 오래된 claim 가능 Event 나이가 2분 초과 | 2분 |
+| `DocGridOperationalSnapshotStale` | DB 운영 Snapshot을 1분 넘게 갱신하지 못함 | 1분 |
 
 Counter는 DB 상태 전이를 수행한 Transaction이 커밋된 뒤에만 증가한다. Embedding 실패의
 `failure_type`은 고정 enum이며 `retryable` label로 사용자 문서 오류와 운영 장애를 구분한다.
 Job ID, 오류 메시지와 사용자 입력은 label에 포함하지 않는다.
+
+### 현재 Queue 상태 Gauge
+
+Backend는 기본 15초마다 별도 단일 Thread에서 Queue별 aggregate query를 실행하고 마지막 정상 결과를
+메모리에 보관한다. `/actuator/prometheus`의 Gauge callback은 이 메모리만 읽으므로 scrape 횟수가 DB
+조회 횟수를 늘리지 않는다. 주기는 `MANAGEMENT_METRICS_SNAPSHOT_INTERVAL`로 조정할 수 있다.
+
+`PENDING` 전체 개수가 아니라 현재 시각에 실제 claim 가능한 항목만 backlog에 포함한다. Embedding
+Retry는 `next_retry_at`, Sync Outbox는 `available_at`이 미래이면 제외한다. 가장 오래된 항목의 나이도
+최초 생성 시각과 Retry 실행 가능 시각을 구분해 계산한다.
+
+| Metric | 의미 |
+|---|---|
+| `docgrid_embedding_claimable_jobs` | 지금 claim 가능한 Embedding Job 수 |
+| `docgrid_embedding_processing_jobs` | 처리 중인 Embedding Job 수 |
+| `docgrid_embedding_oldest_claimable_age_seconds` | 가장 오래된 claim 가능 Job의 대기 시간 |
+| `docgrid_embedding_active_workers` | Heartbeat가 만료되지 않은 ACTIVE·IDLE Worker 수 |
+| `docgrid_rag_processing_jobs` | PROCESSING RAG 응답 수 |
+| `docgrid_rag_oldest_processing_age_seconds` | 가장 오래된 PROCESSING 응답의 나이 |
+| `docgrid_sync_outbox_claimable_events` | 지금 claim 가능한 Sync Outbox Event 수 |
+| `docgrid_sync_outbox_processing_events` | 처리 중인 Sync Outbox Event 수 |
+| `docgrid_sync_outbox_oldest_claimable_age_seconds` | 가장 오래된 claim 가능 Event의 대기 시간 |
+| `docgrid_operational_snapshot_age_seconds` | 마지막 정상 DB Snapshot 이후 경과 시간 |
+| `docgrid_operational_snapshot_refresh_total{outcome}` | Snapshot 갱신 성공·실패 횟수 |
+
+여러 Backend가 같은 DB를 수집하면 동일 Gauge가 인스턴스 수만큼 노출된다. 번들 규칙은 이 값을
+합산하지 않고 `max by (cluster, environment)`로 평가해 backlog를 중복 계산하지 않는다. 갱신 실패는
+마지막 정상 값을 유지하며, 첫 성공 전과 장시간 실패는 `snapshot_age` 경보로 드러난다.
 
 ## 설정 검증
 
@@ -108,6 +141,11 @@ docker run --rm --entrypoint=promtool \
   -v "$PWD/monitoring/prometheus:/etc/prometheus:ro" \
   prom/prometheus:v3.5.5 \
   test rules /etc/prometheus/tests/docgrid-pipeline-alerts.test.yml
+
+docker run --rm --entrypoint=promtool \
+  -v "$PWD/monitoring/prometheus:/etc/prometheus:ro" \
+  prom/prometheus:v3.5.5 \
+  test rules /etc/prometheus/tests/docgrid-operational-alerts.test.yml
 
 docker compose config
 ```

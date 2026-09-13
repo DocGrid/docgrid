@@ -128,6 +128,10 @@ management:
         readiness:
           # Redis는 인증 경로에서 fail-open이므로 트래픽 수신 가능 여부는 애플리케이션과 DB로 판단한다.
           include: readinessState,db
+  metrics:
+    docgrid:
+      # Prometheus scrape는 메모리 Snapshot만 읽고, DB 집계는 이 독립 주기로 제한한다.
+      snapshot-interval: ${MANAGEMENT_METRICS_SNAPSHOT_INTERVAL:15s}
 
 jwt:
   secret: ${JWT_SECRET}

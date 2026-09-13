@@ -74,3 +74,84 @@ groups:
         annotations:
           summary: A DocGrid Sync Outbox event reached terminal failure
           description: At least one Sync Outbox event exhausted retries during the last fifteen minutes.
+
+      - alert: DocGridEmbeddingWorkersUnavailable
+        expr: |
+          max by (cluster, environment) (
+            docgrid_embedding_claimable_jobs
+          ) > 0
+          and
+          max by (cluster, environment) (
+            docgrid_embedding_active_workers
+          ) == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: embedding-worker
+        annotations:
+          summary: DocGrid embedding queue has no active workers
+          description: Claimable embedding jobs have been waiting without a live worker for one minute.
+
+      - alert: DocGridEmbeddingQueueStalled
+        expr: |
+          max by (cluster, environment) (
+            docgrid_embedding_claimable_jobs
+          ) > 0
+          and
+          max by (cluster, environment) (
+            docgrid_embedding_oldest_claimable_age_seconds
+          ) > 300
+        for: 5m
+        labels:
+          severity: warning
+          service: embedding-worker
+        annotations:
+          summary: DocGrid embedding queue is stalled
+          description: The oldest claimable embedding job has remained eligible for more than five minutes.
+
+      - alert: DocGridRagQueueStalled
+        expr: |
+          max by (cluster, environment) (
+            docgrid_rag_processing_jobs
+          ) > 0
+          and
+          max by (cluster, environment) (
+            docgrid_rag_oldest_processing_age_seconds
+          ) > 150
+        for: 30s
+        labels:
+          severity: warning
+          service: rag-worker
+        annotations:
+          summary: DocGrid RAG queue is stalled
+          description: The oldest RAG response has remained in PROCESSING for more than 150 seconds.
+
+      - alert: DocGridSyncOutboxQueueStalled
+        expr: |
+          max by (cluster, environment) (
+            docgrid_sync_outbox_claimable_events
+          ) > 0
+          and
+          max by (cluster, environment) (
+            docgrid_sync_outbox_oldest_claimable_age_seconds
+          ) > 120
+        for: 2m
+        labels:
+          severity: warning
+          service: sync-outbox
+        annotations:
+          summary: DocGrid Sync Outbox queue is stalled
+          description: The oldest claimable Sync Outbox event has remained eligible for more than two minutes.
+
+      - alert: DocGridOperationalSnapshotStale
+        expr: |
+          max by (cluster, environment) (
+            docgrid_operational_snapshot_age_seconds
+          ) > 60
+        for: 1m
+        labels:
+          severity: critical
+          service: docgrid-backend
+        annotations:
+          summary: DocGrid operational metrics snapshot is stale
+          description: The Backend has not completed an operational DB snapshot refresh for more than one minute.
