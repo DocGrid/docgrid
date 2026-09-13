@@ -1,0 +1,31 @@
+{
+  "scenario": "scrape-load",
+  "status": "PASS",
+  "measuredAt": "2026-09-13T12:29:48.309670+00:00",
+  "gitCommit": "9f92f04c638bc7281911886a16c06a0bb244a3da",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "images": {
+    "postgres": "pgvector/pgvector:0.8.1-pg17",
+    "prometheus": "prom/prometheus:v3.5.5",
+    "alertmanager": "quay.io/prometheus/alertmanager:v0.33.1"
+  },
+  "conditions": {
+    "requests": 300,
+    "concurrency": 20,
+    "snapshotInterval": "10m",
+    "endpoint": "/actuator/prometheus"
+  },
+  "measurements": {
+    "initialSnapshotAggregateSqlCalls": 3,
+    "aggregateSqlCallsCausedByScrapes": 0,
+    "snapshotRefreshesDuringScrapes": 0,
+    "latencyMilliseconds": {
+      "p50": 8.404,
+      "p95": 41.746,
+      "max": 80.882
+    }
+  }
+}

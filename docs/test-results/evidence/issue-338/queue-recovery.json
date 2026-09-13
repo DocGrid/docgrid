@@ -1,0 +1,47 @@
+{
+  "scenario": "queue-recovery",
+  "status": "PASS",
+  "measuredAt": "2026-09-13T12:37:01.517068+00:00",
+  "gitCommit": "9f92f04c638bc7281911886a16c06a0bb244a3da",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "images": {
+    "postgres": "pgvector/pgvector:0.8.1-pg17",
+    "prometheus": "prom/prometheus:v3.5.5",
+    "alertmanager": "quay.io/prometheus/alertmanager:v0.33.1"
+  },
+  "conditions": {
+    "queueAgeAtStart": ">10m",
+    "scrapeInterval": "15s",
+    "evaluationInterval": "15s",
+    "workersUnavailableRuleFor": "1m",
+    "queueStalledRuleFor": "5m",
+    "criticalGroupWait": "10s",
+    "warningGroupWait": "30s",
+    "testGroupInterval": "30s",
+    "productionGroupInterval": "5m"
+  },
+  "timestamps": {
+    "conditionObservedAt": "2026-09-13T12:30:20.850153+00:00",
+    "workersUnavailableFiringAt": "2026-09-13T12:31:33.077816+00:00",
+    "workersUnavailableWebhookAt": "2026-09-13T12:31:41.284908+00:00",
+    "queueStalledFiringAt": "2026-09-13T12:35:32.444496+00:00",
+    "queueStalledWebhookAt": "2026-09-13T12:36:01.278503+00:00",
+    "recoveryStartedAt": "2026-09-13T12:36:01.565641+00:00",
+    "jobIndexedAt": "2026-09-13T12:36:10.164030+00:00",
+    "workersUnavailableResolvedWebhookAt": "2026-09-13T12:36:41.302049+00:00",
+    "queueStalledResolvedWebhookAt": "2026-09-13T12:37:01.280511+00:00"
+  },
+  "measurements": {
+    "conditionToWorkersUnavailableFiringSeconds": 72.228,
+    "conditionToWorkersUnavailableWebhookSeconds": 80.435,
+    "conditionToQueueStalledFiringSeconds": 311.594,
+    "conditionToQueueStalledWebhookSeconds": 340.428,
+    "workerStartToIndexedSeconds": 8.598,
+    "workerStartToAllResolvedWebhooksSeconds": 59.715,
+    "storedEmbeddings": 1,
+    "finalJobStatus": "INDEXED"
+  }
+}

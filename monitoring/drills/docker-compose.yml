@@ -1,0 +1,113 @@
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg17
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - pg_stat_statements.track=all
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: drill_password
+    ports:
+      - "127.0.0.1::5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../../docker/postgres/init/001-enable-vector.sql:/docker-entrypoint-initdb.d/001-enable-vector.sql:ro
+      - ./init/002-enable-pg-stat-statements.sql:/docker-entrypoint-initdb.d/002-enable-pg-stat-statements.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1::6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+
+  embedding-server:
+    build:
+      context: ../../backend/embedding-server
+      dockerfile: Dockerfile
+    environment:
+      EMBEDDING_PROVIDER_MAX_CONCURRENCY: 1
+      EMBEDDING_PROVIDER_MAX_QUEUE_SIZE: 1
+      EMBEDDING_PROVIDER_QUEUE_WAIT_TIMEOUT_SECONDS: 15
+    ports:
+      - "127.0.0.1::8000"
+    volumes:
+      - huggingface-cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')"]
+      interval: 5s
+      timeout: 5s
+      retries: 180
+      start_period: 30s
+
+  webhook-receiver:
+    image: python:3.13-alpine
+    environment:
+      EVENT_LOG: /results/events.jsonl
+    command: ["python", "/drill/webhook_receiver.py"]
+    volumes:
+      - ./webhook_receiver.py:/drill/webhook_receiver.py:ro
+      - ${DRILL_TMP_DIR}/webhook:/results
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+
+  alertmanager:
+    image: quay.io/prometheus/alertmanager:v0.33.1
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--cluster.listen-address="
+    ports:
+      - "127.0.0.1::9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    depends_on:
+      webhook-receiver:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:9093/-/ready"]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+
+  prometheus:
+    image: prom/prometheus:v3.5.5
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    ports:
+      - "127.0.0.1::9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ${DRILL_TMP_DIR}/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/rules:/etc/prometheus/rules:ro
+    depends_on:
+      alertmanager:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:9090/-/ready"]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+
+volumes:
+  postgres-data:
+  huggingface-cache:
+    external: true
+    name: docgrid_huggingface-cache

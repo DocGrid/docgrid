@@ -1,0 +1,42 @@
+{
+  "scenario": "provider-outage",
+  "status": "PASS",
+  "measuredAt": "2026-09-13T12:40:32.921836+00:00",
+  "gitCommit": "9f92f04c638bc7281911886a16c06a0bb244a3da",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "images": {
+    "postgres": "pgvector/pgvector:0.8.1-pg17",
+    "prometheus": "prom/prometheus:v3.5.5",
+    "alertmanager": "quay.io/prometheus/alertmanager:v0.33.1"
+  },
+  "conditions": {
+    "scrapeInterval": "15s",
+    "evaluationInterval": "15s",
+    "productionRuleFor": "1m",
+    "criticalGroupWait": "10s",
+    "testGroupInterval": "30s",
+    "productionGroupInterval": "5m"
+  },
+  "timestamps": {
+    "providerStoppedAt": "2026-09-13T12:37:23.423467+00:00",
+    "upZeroObservedAt": "2026-09-13T12:37:38.950811+00:00",
+    "alertPendingAt": "2026-09-13T12:37:53.042109+00:00",
+    "alertFiringAt": "2026-09-13T12:38:53.234353+00:00",
+    "firingWebhookReceivedAt": "2026-09-13T12:39:02.781656+00:00",
+    "recoveryStartedAt": "2026-09-13T12:39:38.312330+00:00",
+    "providerReadyAt": "2026-09-13T12:39:43.637544+00:00",
+    "resolvedWebhookReceivedAt": "2026-09-13T12:40:32.789920+00:00"
+  },
+  "measurements": {
+    "stopToConditionSeconds": 15.527,
+    "stopToFiringSeconds": 89.811,
+    "stopToWebhookSeconds": 99.358,
+    "restartToReadySeconds": 5.325,
+    "restartToResolvedWebhookSeconds": 54.478,
+    "dependentWarningInhibited": true,
+    "dependentWarningWebhookDeliveries": 0
+  }
+}

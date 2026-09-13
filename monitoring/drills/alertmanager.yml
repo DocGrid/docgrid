@@ -1,0 +1,29 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: local-webhook
+  group_by: [alertname, cluster, environment, severity, service]
+  group_wait: 30s
+  # 운영값 5m은 반복 가능한 복구 실험 시간을 과도하게 늘리므로 resolved 관측에서만 30s로 줄인다.
+  group_interval: 30s
+  repeat_interval: 4h
+  routes:
+    - receiver: local-webhook
+      matchers: [severity="critical"]
+      group_wait: 10s
+      repeat_interval: 1h
+
+receivers:
+  - name: local-webhook
+    webhook_configs:
+      - url: http://webhook-receiver:8080/alerts
+        send_resolved: true
+
+inhibit_rules:
+  - source_matchers: [severity="critical", service="embedding-provider"]
+    target_matchers: [severity="warning", service="embedding-provider"]
+    equal: [cluster, environment]
+  - source_matchers: [severity="critical", service="embedding-provider"]
+    target_matchers: [severity="warning", dependency="embedding-provider"]
+    equal: [cluster, environment]
