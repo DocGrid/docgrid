@@ -33,5 +33,6 @@ inhibit_rules:
       - severity="critical"
       - service="embedding-provider"
     target_matchers:
+      - severity="warning"
       - dependency="embedding-provider"
     equal: [cluster, environment]

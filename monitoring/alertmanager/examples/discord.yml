@@ -24,5 +24,5 @@ inhibit_rules:
     target_matchers: [severity="warning", service="embedding-provider"]
     equal: [cluster, environment]
   - source_matchers: [severity="critical", service="embedding-provider"]
-    target_matchers: [dependency="embedding-provider"]
+    target_matchers: [severity="warning", dependency="embedding-provider"]
     equal: [cluster, environment]

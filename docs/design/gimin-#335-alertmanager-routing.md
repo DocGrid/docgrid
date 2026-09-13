@@ -21,7 +21,7 @@ Provider target에는 `cluster`와 `environment` label을 두어 여러 배포�
 
 경보는 `alertname`, `cluster`, `environment`, `severity`, `service`로 묶는다. critical은 warning보다
 짧게 기다리고 자주 반복한다. Embedding Provider의 critical 경보는 같은 배포의 Provider warning과
-`dependency="embedding-provider"`인 파생 경보를 억제한다. 다른 cluster나 environment의 경보는
+`severity="warning"`, `dependency="embedding-provider"`인 파생 경보를 억제한다. 다른 cluster나 environment의 경보는
 억제하지 않는다.
 
 ## Secret과 채널 확장

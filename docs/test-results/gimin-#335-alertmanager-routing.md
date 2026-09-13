@@ -34,7 +34,7 @@ SMTP password는 사용하거나 저장하지 않았다.
 | 같은 경보의 `backend-a`, `backend-b` instance | 하나의 webhook payload에 2개로 grouping |
 | Embedding Provider critical + 파생 warning | 파생 경보 inhibition, webhook 전달 0건 |
 | firing webhook | 전달 성공, discovery 확인 후 1초 |
-| resolved webhook | 규칙 reload 후 3초 |
+| resolved webhook | 규칙 reload 후 2초 |
 | 외부 수신 채널 | 호출하지 않음 |
 
 E2E는 별도 Compose project와 임시 rule·payload 디렉터리를 만들고 종료 시 컨테이너, network, volume,

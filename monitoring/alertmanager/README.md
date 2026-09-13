@@ -25,7 +25,7 @@ curl -f http://localhost:9093/-/ready
 warning은 4시간마다 반복한다. critical은 첫 대기 10초, 반복 1시간으로 더 빠르게 알린다.
 
 Embedding Provider의 critical 경보가 firing이면 같은 cluster와 environment의 Provider warning과
-`dependency="embedding-provider"`인 파생 경보를 억제한다. 근본 원인이 해결되면 inhibition도
+`severity="warning"`, `dependency="embedding-provider"`인 파생 경보를 억제한다. 근본 원인이 해결되면 inhibition도
 자동으로 해제된다.
 
 ## 수신 채널 연결
