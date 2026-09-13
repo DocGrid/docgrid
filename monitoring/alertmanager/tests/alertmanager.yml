@@ -1,0 +1,21 @@
+global:
+  resolve_timeout: 10s
+
+route:
+  receiver: local-webhook
+  group_by: [alertname, cluster, environment, severity, service]
+  # Source와 target이 모두 도착한 뒤 inhibition을 평가할 시간을 확보한다.
+  group_wait: 5s
+  group_interval: 2s
+  repeat_interval: 1h
+
+receivers:
+  - name: local-webhook
+    webhook_configs:
+      - url: http://webhook-receiver:8080/alerts
+        send_resolved: true
+
+inhibit_rules:
+  - source_matchers: [severity="critical", service="embedding-provider"]
+    target_matchers: [severity="warning", dependency="embedding-provider"]
+    equal: [cluster, environment]

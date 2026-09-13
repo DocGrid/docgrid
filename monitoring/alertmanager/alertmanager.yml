@@ -1,0 +1,38 @@
+global:
+  resolve_timeout: 5m
+
+# 기본 receiver는 외부 전송 설정이 없어 Alertmanager UI에서만 경보를 확인한다.
+route:
+  receiver: ui-only
+  group_by: [alertname, cluster, environment, severity, service]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - receiver: ui-only
+      matchers:
+        - severity="critical"
+      group_wait: 10s
+      repeat_interval: 1h
+
+receivers:
+  - name: ui-only
+
+inhibit_rules:
+  # Provider 자체가 중단됐을 때 같은 Provider의 파생 warning을 중복 전송하지 않는다.
+  - source_matchers:
+      - severity="critical"
+      - service="embedding-provider"
+    target_matchers:
+      - severity="warning"
+      - service="embedding-provider"
+    equal: [cluster, environment]
+
+  # Provider 중단이 원인인 Worker 실패율·Queue 정체 경보는 근본 원인 경보에 포함한다.
+  - source_matchers:
+      - severity="critical"
+      - service="embedding-provider"
+    target_matchers:
+      - severity="warning"
+      - dependency="embedding-provider"
+    equal: [cluster, environment]

@@ -21,6 +21,7 @@ tests:
           - exp_labels:
               alertname: DocGridEmbeddingRetryableFailureRatioHigh
               cluster: docgrid-production
+              dependency: embedding-provider
               environment: production
               service: embedding-worker
               severity: warning

@@ -87,8 +87,38 @@ services:
       - ./monitoring/prometheus/targets:/etc/prometheus/targets:ro
       - prometheus-data:/prometheus
     depends_on:
+      alertmanager:
+        condition: service_healthy
       embedding-server:
         condition: service_healthy
+    networks:
+      - docgrid-local
+
+  alertmanager:
+    image: quay.io/prometheus/alertmanager:v0.33.1
+    container_name: docgrid-alertmanager
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    mem_limit: "${ALERTMANAGER_MEMORY_LIMIT:-128m}"
+    cpus: "${ALERTMANAGER_CPU_LIMIT:-0.25}"
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--data.retention=${ALERTMANAGER_RETENTION:-120h}"
+      # 단일 로컬 인스턴스는 HA gossip 포트를 열 필요가 없다.
+      - "--cluster.listen-address="
+    ports:
+      - "127.0.0.1:${ALERTMANAGER_PORT:-9093}:9093"
+    volumes:
+      - ${ALERTMANAGER_CONFIG_FILE:-./monitoring/alertmanager/alertmanager.yml}:/etc/alertmanager/alertmanager.yml:ro
+      - ./monitoring/alertmanager/secrets:/etc/alertmanager/secrets:ro
+      - alertmanager-data:/alertmanager
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:9093/-/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - docgrid-local
 
@@ -118,3 +148,4 @@ volumes:
   huggingface-cache:
   redis-data:
   prometheus-data:
+  alertmanager-data:

@@ -18,11 +18,13 @@ Management endpoint는 기본적으로 Host의 `8081` 포트에서 열린다. �
 docker compose --profile monitoring up -d prometheus
 ```
 
-Prometheus는 컨테이너에서 `host.docker.internal:8081`을 수집한다. Compose의 `extra_hosts`가
-Linux의 host gateway를 같은 이름으로 연결하며 Docker Desktop도 같은 주소를 지원한다.
+Prometheus는 컨테이너에서 `host.docker.internal:8081`을 수집하고 firing·resolved 경보를 같은
+profile의 Alertmanager로 전달한다. Compose의 `extra_hosts`가 Linux의 host gateway를 같은 이름으로
+연결하며 Docker Desktop도 같은 주소를 지원한다.
 
 - Target 상태: <http://localhost:9090/targets>
 - Alert 상태: <http://localhost:9090/alerts>
+- Alertmanager 상태: <http://localhost:9093>
 
 기본 Backend target과 배포 식별 label은
 `monitoring/prometheus/targets/docgrid-backend.yml`에서 변경한다.
@@ -65,8 +67,8 @@ DocGrid 경보를 함께 사용하려면 `monitoring/prometheus/rules/`의 규�
 | `DocGridDatabasePoolSaturated` | HikariCP active/max가 90% 초과 | 2분 |
 | `DocGridBackendHighServerErrorRatio` | 5분간 20건 이상이며 5xx가 5% 초과 | 3분 |
 
-HTTP 오류율에서는 Streamable HTTP 특성이 다른 `/mcp`를 제외한다. 이 경보들은 현재 Prometheus
-화면에서 확인하며 외부 전달은 Alertmanager 설정을 추가한 뒤 활성화된다.
+HTTP 오류율에서는 Streamable HTTP 특성이 다른 `/mcp`를 제외한다. 기본 Alertmanager receiver는
+외부 전송이 없으며 채널 연결은 [Alertmanager 가이드](../alertmanager/README.md)를 따른다.
 
 ## 비동기 Pipeline 경보
 

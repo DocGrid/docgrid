@@ -50,6 +50,7 @@ tests:
           - exp_labels:
               alertname: DocGridEmbeddingQueueStalled
               cluster: docgrid-production
+              dependency: embedding-provider
               environment: production
               service: embedding-worker
               severity: warning

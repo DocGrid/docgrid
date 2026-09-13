@@ -1,0 +1,29 @@
+name: Monitoring Validation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/monitoring-validation.yml"
+      - "docker-compose.yml"
+      - ".env.example"
+      - ".gitignore"
+      - "monitoring/**"
+  push:
+    branches: [develop]
+    paths:
+      - ".github/workflows/monitoring-validation.yml"
+      - "docker-compose.yml"
+      - ".env.example"
+      - ".gitignore"
+      - "monitoring/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate monitoring configuration and routing
+        run: ./monitoring/verify.sh --e2e

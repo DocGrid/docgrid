@@ -1,0 +1,33 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: email
+  group_by: [alertname, cluster, environment, severity, service]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - receiver: email
+      matchers: [severity="critical"]
+      group_wait: 10s
+      repeat_interval: 1h
+
+receivers:
+  - name: email
+    email_configs:
+      - to: oncall@example.com
+        from: docgrid-alerts@example.com
+        smarthost: smtp.example.com:587
+        auth_username: docgrid-alerts@example.com
+        auth_password_file: /etc/alertmanager/secrets/smtp-password
+        require_tls: true
+        send_resolved: true
+
+inhibit_rules:
+  - source_matchers: [severity="critical", service="embedding-provider"]
+    target_matchers: [severity="warning", service="embedding-provider"]
+    equal: [cluster, environment]
+  - source_matchers: [severity="critical", service="embedding-provider"]
+    target_matchers: [severity="warning", dependency="embedding-provider"]
+    equal: [cluster, environment]

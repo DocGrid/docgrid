@@ -1,0 +1,29 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: microsoft-teams
+  group_by: [alertname, cluster, environment, severity, service]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - receiver: microsoft-teams
+      matchers: [severity="critical"]
+      group_wait: 10s
+      repeat_interval: 1h
+
+receivers:
+  - name: microsoft-teams
+    # Teams의 새 Workflows 형식에 맞는 v2 receiver를 사용한다.
+    msteamsv2_configs:
+      - webhook_url_file: /etc/alertmanager/secrets/microsoft-teams-webhook-url
+        send_resolved: true
+
+inhibit_rules:
+  - source_matchers: [severity="critical", service="embedding-provider"]
+    target_matchers: [severity="warning", service="embedding-provider"]
+    equal: [cluster, environment]
+  - source_matchers: [severity="critical", service="embedding-provider"]
+    target_matchers: [severity="warning", dependency="embedding-provider"]
+    equal: [cluster, environment]
