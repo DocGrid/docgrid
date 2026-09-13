@@ -1,0 +1,129 @@
+rule_files:
+  - /etc/prometheus/rules/docgrid-pipeline-alerts.yml
+
+evaluation_interval: 15s
+
+tests:
+  - name: claimable embedding work without workers alerts once per cluster
+    interval: 15s
+    input_series:
+      - series: 'docgrid_embedding_claimable_jobs{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '4x8'
+      - series: 'docgrid_embedding_claimable_jobs{instance="backend-b:8081",environment="production",cluster="docgrid-production"}'
+        values: '4x8'
+      - series: 'docgrid_embedding_active_workers{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '0x8'
+      - series: 'docgrid_embedding_active_workers{instance="backend-b:8081",environment="production",cluster="docgrid-production"}'
+        values: '0x8'
+    alert_rule_test:
+      - eval_time: 45s
+        alertname: DocGridEmbeddingWorkersUnavailable
+        exp_alerts: []
+      - eval_time: 1m
+        alertname: DocGridEmbeddingWorkersUnavailable
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingWorkersUnavailable
+              cluster: docgrid-production
+              environment: production
+              service: embedding-worker
+              severity: critical
+            exp_annotations:
+              summary: DocGrid embedding queue has no active workers
+              description: Claimable embedding jobs have been waiting without a live worker for one minute.
+
+  - name: duplicate backend gauges produce one embedding stall alert
+    interval: 15s
+    input_series:
+      - series: 'docgrid_embedding_claimable_jobs{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '3x24'
+      - series: 'docgrid_embedding_claimable_jobs{instance="backend-b:8081",environment="production",cluster="docgrid-production"}'
+        values: '3x24'
+      - series: 'docgrid_embedding_oldest_claimable_age_seconds{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '360x24'
+      - series: 'docgrid_embedding_oldest_claimable_age_seconds{instance="backend-b:8081",environment="production",cluster="docgrid-production"}'
+        values: '360x24'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: DocGridEmbeddingQueueStalled
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingQueueStalled
+              cluster: docgrid-production
+              environment: production
+              service: embedding-worker
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding queue is stalled
+              description: The oldest claimable embedding job has remained eligible for more than five minutes.
+
+  - name: rag threshold distinguishes normal processing from a stalled queue
+    interval: 15s
+    input_series:
+      - series: 'docgrid_rag_processing_jobs{instance="backend-a:8081",environment="healthy",cluster="docgrid-healthy"}'
+        values: '1x8'
+      - series: 'docgrid_rag_oldest_processing_age_seconds{instance="backend-a:8081",environment="healthy",cluster="docgrid-healthy"}'
+        values: '149x8'
+      - series: 'docgrid_rag_processing_jobs{instance="backend-b:8081",environment="production",cluster="docgrid-production"}'
+        values: '1x8'
+      - series: 'docgrid_rag_oldest_processing_age_seconds{instance="backend-b:8081",environment="production",cluster="docgrid-production"}'
+        values: '180x8'
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: DocGridRagQueueStalled
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridRagQueueStalled
+              cluster: docgrid-production
+              environment: production
+              service: rag-worker
+              severity: warning
+            exp_annotations:
+              summary: DocGrid RAG queue is stalled
+              description: The oldest RAG response has remained in PROCESSING for more than 150 seconds.
+
+  - name: sync outbox age waits for two minutes
+    interval: 15s
+    input_series:
+      - series: 'docgrid_sync_outbox_claimable_events{instance="backend:8081",environment="production",cluster="docgrid-production"}'
+        values: '2x12'
+      - series: 'docgrid_sync_outbox_oldest_claimable_age_seconds{instance="backend:8081",environment="production",cluster="docgrid-production"}'
+        values: '180x12'
+    alert_rule_test:
+      - eval_time: 1m45s
+        alertname: DocGridSyncOutboxQueueStalled
+        exp_alerts: []
+      - eval_time: 2m
+        alertname: DocGridSyncOutboxQueueStalled
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridSyncOutboxQueueStalled
+              cluster: docgrid-production
+              environment: production
+              service: sync-outbox
+              severity: warning
+            exp_annotations:
+              summary: DocGrid Sync Outbox queue is stalled
+              description: The oldest claimable Sync Outbox event has remained eligible for more than two minutes.
+
+  - name: stale operational snapshot alerts after one minute
+    interval: 15s
+    input_series:
+      - series: 'docgrid_operational_snapshot_age_seconds{instance="backend:8081",environment="production",cluster="docgrid-production"}'
+        values: '75x8'
+    alert_rule_test:
+      - eval_time: 45s
+        alertname: DocGridOperationalSnapshotStale
+        exp_alerts: []
+      - eval_time: 1m
+        alertname: DocGridOperationalSnapshotStale
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridOperationalSnapshotStale
+              cluster: docgrid-production
+              environment: production
+              service: docgrid-backend
+              severity: critical
+            exp_annotations:
+              summary: DocGrid operational metrics snapshot is stale
+              description: The Backend has not completed an operational DB snapshot refresh for more than one minute.
