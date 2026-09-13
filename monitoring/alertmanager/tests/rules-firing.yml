@@ -27,6 +27,8 @@ groups:
 
       - alert: DocGridAlertmanagerE2EDerived
         expr: vector(1)
+        # Root-cause를 Alertmanager에 먼저 등록해 동시 도착 순서에 따른 inhibition 경합을 제거한다.
+        for: 2s
         labels:
           cluster: docgrid-e2e
           dependency: embedding-provider
