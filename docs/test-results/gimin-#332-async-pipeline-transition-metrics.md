@@ -10,7 +10,7 @@ JWT_SECRET=docgrid-observability-test-secret-key-2026-with-at-least-32-bytes \
 ./gradlew test
 ```
 
-결과: **1159 tests, 실패 0, errors 0, skipped 0**
+결과: **1163 tests, 실패 0, errors 0, skipped 0**
 
 새 검증은 다음 동작을 포함한다.
 
@@ -19,6 +19,7 @@ JWT_SECRET=docgrid-observability-test-secret-key-2026-with-at-least-32-bytes \
 - RAG provider fallback과 timeout sweep Counter 분리
 - RAG 예상 밖 실패의 실제 종료와 조건부 UPDATE 경합 패배 분기
 - Sync Outbox 재시도와 최종 실패 Counter 분리
+- Sync Outbox 실패·Lease 회수의 재예약과 최종 실패 event 분기
 - Transaction commit 후 Counter 증가
 - Transaction rollback 시 Counter 미생성
 - RAG 조건부 UPDATE 경합 패배 시 metric event 미발행
