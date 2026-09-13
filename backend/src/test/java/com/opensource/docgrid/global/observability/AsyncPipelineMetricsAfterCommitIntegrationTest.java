@@ -2,6 +2,8 @@ package com.opensource.docgrid.global.observability;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,8 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -47,10 +51,23 @@ class AsyncPipelineMetricsAfterCommitIntegrationTest {
     @Test
     @DisplayName("이벤트를 발행한 Transaction이 커밋되면 Counter가 한 번 증가한다")
     void incrementsCounterAfterCommit() {
-        transactionTemplate.executeWithoutResult(status ->
-            applicationEventPublisher.publishEvent(EmbeddingJobAttemptMetricEvent.success())
-        );
+        AtomicBoolean beforeCommitObserved = new AtomicBoolean();
+        transactionTemplate.executeWithoutResult(status -> {
+            applicationEventPublisher.publishEvent(EmbeddingJobAttemptMetricEvent.success());
 
+            // 1. Event 발행 직후에는 아직 commit이 아니므로 Counter가 생성되지 않아야 한다.
+            assertThat(meterRegistry.find("docgrid.embedding.job.attempts").counter()).isNull();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void beforeCommit(boolean readOnly) {
+                    // 2. BEFORE_COMMIT phase에서도 값이 없음을 확인해 listener phase 회귀를 잡는다.
+                    assertThat(meterRegistry.find("docgrid.embedding.job.attempts").counter()).isNull();
+                    beforeCommitObserved.set(true);
+                }
+            });
+        });
+
+        assertThat(beforeCommitObserved).isTrue();
         assertThat(successCounter()).isEqualTo(1.0);
     }
 

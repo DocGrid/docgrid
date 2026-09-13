@@ -50,6 +50,9 @@ tests:
       - series: 'docgrid_rag_job_completions_total{instance="backend-c:8081",environment="timeout",cluster="docgrid-timeout",outcome="timeout_swept"}'
         values: '0+1x8'
     alert_rule_test:
+      - eval_time: 3m
+        alertname: DocGridRagProviderFallbackSpike
+        exp_alerts: []
       - eval_time: 4m
         alertname: DocGridRagProviderFallbackSpike
         exp_alerts:
@@ -63,6 +66,9 @@ tests:
             exp_annotations:
               summary: DocGrid RAG provider fallback is increasing
               description: At least three RAG jobs used the provider fallback during the last ten minutes.
+      - eval_time: 3m
+        alertname: DocGridRagTimeoutSweepSpike
+        exp_alerts: []
       - eval_time: 4m
         alertname: DocGridRagTimeoutSweepSpike
         exp_alerts:

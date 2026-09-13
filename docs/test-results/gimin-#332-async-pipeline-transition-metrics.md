@@ -7,7 +7,7 @@
 ```bash
 DB_PORT=55433 \
 JWT_SECRET=docgrid-observability-test-secret-key-2026-with-at-least-32-bytes \
-./gradlew test
+./backend/gradlew -p backend test
 ```
 
 결과: **1164 tests, 실패 0, errors 0, skipped 0**
