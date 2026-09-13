@@ -1,0 +1,95 @@
+rule_files:
+  - /etc/prometheus/rules/docgrid-backend-alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: backend down waits for one minute
+    interval: 1m
+    input_series:
+      - series: 'up{job="docgrid-backend",instance="host.docker.internal:8081",environment="local",cluster="docgrid-local"}'
+        values: '0x3'
+    alert_rule_test:
+      - eval_time: 0m
+        alertname: DocGridBackendDown
+        exp_alerts: []
+      - eval_time: 1m
+        alertname: DocGridBackendDown
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridBackendDown
+              cluster: docgrid-local
+              environment: local
+              instance: host.docker.internal:8081
+              job: docgrid-backend
+              service: docgrid-backend
+              severity: critical
+            exp_annotations:
+              summary: DocGrid Backend is unavailable
+              description: Prometheus has failed to scrape the Backend for one minute.
+              runbook_url: https://github.com/DocGrid/docgrid/blob/develop/docs/runbooks/backend-down.md
+
+  - name: database pool saturation waits for two minutes
+    interval: 1m
+    input_series:
+      - series: 'hikaricp_connections_active{job="docgrid-backend",instance="backend:8081",environment="production",cluster="docgrid-production",pool="docgrid-db-pool"}'
+        values: '10x4'
+      - series: 'hikaricp_connections_max{job="docgrid-backend",instance="backend:8081",environment="production",cluster="docgrid-production",pool="docgrid-db-pool"}'
+        values: '10x4'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: DocGridDatabasePoolSaturated
+        exp_alerts: []
+      - eval_time: 2m
+        alertname: DocGridDatabasePoolSaturated
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridDatabasePoolSaturated
+              cluster: docgrid-production
+              environment: production
+              instance: backend:8081
+              job: docgrid-backend
+              pool: docgrid-db-pool
+              service: docgrid-backend
+              severity: warning
+            exp_annotations:
+              summary: DocGrid Backend database pool is saturated
+              description: More than 90% of the HikariCP pool has been active for two minutes.
+
+  - name: high server error ratio requires enough traffic
+    interval: 1m
+    input_series:
+      - series: 'http_server_requests_seconds_count{job="docgrid-backend",instance="backend-a:8081",environment="production",cluster="docgrid-production",status="500",uri="/documents"}'
+        values: '0+2x10'
+      - series: 'http_server_requests_seconds_count{job="docgrid-backend",instance="backend-a:8081",environment="production",cluster="docgrid-production",status="200",uri="/documents"}'
+        values: '0+18x10'
+      - series: 'http_server_requests_seconds_count{job="docgrid-backend",instance="backend-b:8081",environment="low-traffic",cluster="docgrid-low-traffic",status="500",uri="/documents"}'
+        values: '0+0.2x10'
+      - series: 'http_server_requests_seconds_count{job="docgrid-backend",instance="backend-b:8081",environment="low-traffic",cluster="docgrid-low-traffic",status="200",uri="/documents"}'
+        values: '0+1.8x10'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: DocGridBackendHighServerErrorRatio
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: DocGridBackendHighServerErrorRatio
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridBackendHighServerErrorRatio
+              cluster: docgrid-production
+              environment: production
+              service: docgrid-backend
+              severity: warning
+            exp_annotations:
+              summary: DocGrid Backend server error ratio is high
+              description: More than 5% of at least 20 requests returned 5xx during the last five minutes.
+
+  - name: mcp traffic uses a separate error budget
+    interval: 1m
+    input_series:
+      - series: 'http_server_requests_seconds_count{job="docgrid-backend",instance="backend:8081",environment="production",cluster="docgrid-production",status="500",uri="/mcp"}'
+        values: '0+20x6'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: DocGridBackendHighServerErrorRatio
+        exp_alerts: []
