@@ -12,15 +12,14 @@ import com.opensource.docgrid.domain.embedding.enums.IndexingFailureType;
  */
 public record EmbeddingJobAttemptMetricEvent(
     Outcome outcome,
-    FailureType failureType,
-    boolean retryable
+    FailureType failureType
 ) {
 
     /**
      * 성공한 실행의 단일 label 조합을 생성한다.
      */
     public static EmbeddingJobAttemptMetricEvent success() {
-        return new EmbeddingJobAttemptMetricEvent(Outcome.SUCCESS, FailureType.NONE, false);
+        return new EmbeddingJobAttemptMetricEvent(Outcome.SUCCESS, FailureType.NONE);
     }
 
     /**
@@ -36,8 +35,7 @@ public record EmbeddingJobAttemptMetricEvent(
         );
         return new EmbeddingJobAttemptMetricEvent(
             Outcome.fromFailureStatus(status),
-            FailureType.from(requiredFailureType),
-            requiredFailureType.isRetryable()
+            FailureType.from(requiredFailureType)
         );
     }
 
@@ -47,8 +45,7 @@ public record EmbeddingJobAttemptMetricEvent(
     public static EmbeddingJobAttemptMetricEvent leaseExpired(EmbeddingJobStatus status) {
         return new EmbeddingJobAttemptMetricEvent(
             Outcome.fromFailureStatus(status),
-            FailureType.WORKER_LEASE_EXPIRED,
-            true
+            FailureType.WORKER_LEASE_EXPIRED
         );
     }
 
@@ -60,9 +57,6 @@ public record EmbeddingJobAttemptMetricEvent(
         Objects.requireNonNull(failureType, "failureType은 필수입니다.");
         if ((outcome == Outcome.SUCCESS) != (failureType == FailureType.NONE)) {
             throw new IllegalArgumentException("성공 결과만 NONE 실패 유형을 사용할 수 있습니다.");
-        }
-        if (outcome == Outcome.SUCCESS && retryable) {
-            throw new IllegalArgumentException("성공 결과는 retryable일 수 없습니다.");
         }
     }
 
@@ -97,20 +91,32 @@ public record EmbeddingJobAttemptMetricEvent(
      * 외부 요청 enum과 내부 Lease 회수 원인을 합친 고정 실패 label 목록이다.
      */
     public enum FailureType {
-        NONE,
-        STORAGE_UNAVAILABLE,
-        STORAGE_CONFIGURATION_INVALID,
-        STORAGE_OBJECT_MISSING,
-        DOCUMENT_CONTENT_INVALID,
-        EMBEDDING_PROVIDER_UNAVAILABLE,
-        EMBEDDING_PROVIDER_OVERLOADED,
-        EMBEDDING_PROVIDER_TIMEOUT,
-        EMBEDDING_PROVIDER_CIRCUIT_OPEN,
-        EMBEDDING_REQUEST_INVALID,
-        EMBEDDING_RESULT_INVALID,
-        INDEXING_STATE_INCONSISTENT,
-        WORKER_INTERNAL_ERROR,
-        WORKER_LEASE_EXPIRED;
+        NONE(null),
+        STORAGE_UNAVAILABLE(IndexingFailureType.STORAGE_UNAVAILABLE),
+        STORAGE_CONFIGURATION_INVALID(IndexingFailureType.STORAGE_CONFIGURATION_INVALID),
+        STORAGE_OBJECT_MISSING(IndexingFailureType.STORAGE_OBJECT_MISSING),
+        DOCUMENT_CONTENT_INVALID(IndexingFailureType.DOCUMENT_CONTENT_INVALID),
+        EMBEDDING_PROVIDER_UNAVAILABLE(IndexingFailureType.EMBEDDING_PROVIDER_UNAVAILABLE),
+        EMBEDDING_PROVIDER_OVERLOADED(IndexingFailureType.EMBEDDING_PROVIDER_OVERLOADED),
+        EMBEDDING_PROVIDER_TIMEOUT(IndexingFailureType.EMBEDDING_PROVIDER_TIMEOUT),
+        EMBEDDING_PROVIDER_CIRCUIT_OPEN(IndexingFailureType.EMBEDDING_PROVIDER_CIRCUIT_OPEN),
+        EMBEDDING_REQUEST_INVALID(IndexingFailureType.EMBEDDING_REQUEST_INVALID),
+        EMBEDDING_RESULT_INVALID(IndexingFailureType.EMBEDDING_RESULT_INVALID),
+        INDEXING_STATE_INCONSISTENT(IndexingFailureType.INDEXING_STATE_INCONSISTENT),
+        WORKER_INTERNAL_ERROR(IndexingFailureType.WORKER_INTERNAL_ERROR),
+        WORKER_LEASE_EXPIRED(null);
+
+        private final IndexingFailureType indexingFailureType;
+
+        FailureType(IndexingFailureType indexingFailureType) {
+            this.indexingFailureType = indexingFailureType;
+        }
+
+        /** Retry 정책은 도메인 enum을 단일 출처로 사용하고 내부 Lease 원인만 고정한다. */
+        public boolean isRetryable() {
+            return this == WORKER_LEASE_EXPIRED
+                || (indexingFailureType != null && indexingFailureType.isRetryable());
+        }
 
         private static FailureType from(IndexingFailureType failureType) {
             // 도메인 enum이 늘어나면 이 switch가 컴파일 오류를 내므로 런타임 실패 경로를 막는다.
