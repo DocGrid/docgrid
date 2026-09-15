@@ -22,17 +22,33 @@ import com.opensource.docgrid.domain.search.enums.ResultStatus;
 public interface RagResponseRepository extends JpaRepository<RagResponse, Long> {
 
     /**
-     * 주어진 상태(보통 PROCESSING)인 것들 중 가장 오래 기다린 것 하나를 반환한다 — RagJobWorker가
-     * 1초마다 폴링하며 이 메서드로 FIFO 큐를 구현한다. Worker가 1개뿐이라 별도 락/claim 없이도
-     * 안전하다.
-     *
-     * <p>{@code query}/{@code query.user}를 {@link EntityGraph}로 미리 fetch한다 — Worker가
-     * 이 메서드로 job을 꺼낸 트랜잭션이 끝난 뒤(WebSocket push 시점)에
-     * {@code job.getQuery().getUser().getEmail()}에 접근해도 두 연관관계 모두 LAZY라서 자칫
-     * {@code LazyInitializationException}이 날 수 있는데, 미리 로딩해두면 그 문제가 없다.
+     * PROCESSING 중 아직 아무 Worker도 집지 않은(claim 안 된) 것 하나를 골라 행 잠금을 건다(#340).
+     * {@code claimed_at IS NULL} 조건이 "대기 중"과 "이미 처리 중"을 구분하는 유일한 신호다 —
+     * status만으로는 둘 다 PROCESSING이라 구분이 안 된다. {@code FOR UPDATE SKIP LOCKED}로
+     * 여러 Worker가 동시에 이 쿼리를 날려도 이미 잠긴 행은 건너뛰고 그다음 미잠금 행을 잡아온다.
+     * {@code created_at}이 같은 밀리초를 공유할 수 있는 동시 접수 상황을 대비해 {@code id}를
+     * 2차 정렬 기준으로 둔다. {@link RagResponseClaimService}가 이 메서드로 잠근 행을 같은 짧은
+     * 트랜잭션 안에서 즉시 {@link RagResponse#markClaimed}로 확정하고 커밋해, 락을 오래 들고
+     * 있지 않는다({@code embedding_jobs}의 claim 패턴과 동일).
+     */
+    @Query(value = """
+        SELECT * FROM rag_responses
+        WHERE status = 'PROCESSING' AND claimed_at IS NULL
+        ORDER BY created_at ASC, id ASC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED
+        """, nativeQuery = true)
+    Optional<RagResponse> findNextUnclaimedProcessingForUpdate();
+
+    /**
+     * claim된 job을 실제로 처리하는 Worker 스레드가 쓰는 조회. {@code query}/{@code query.user}를
+     * {@link EntityGraph}로 미리 fetch해, 처리가 끝난 뒤(WebSocket push 시점) 트랜잭션 밖에서
+     * {@code job.getQuery().getUser().getEmail()}에 접근해도 {@code LazyInitializationException}이
+     * 나지 않게 한다. 기존 {@code findById}는 그대로 두고 이름을 다르게 둔 이유는, {@code RagFacade}가
+     * 이미 쓰고 있는 평범한 {@code findById(jobId)} 호출의 동작을 이번 변경으로 건드리지 않기 위함이다.
      */
     @EntityGraph(attributePaths = {"query", "query.user"})
-    Optional<RagResponse> findFirstByStatusOrderByCreatedAtAsc(ResultStatus status);
+    Optional<RagResponse> findWithQueryAndUserById(Long id);
 
     /** 특정 검색 요청(queryId)에 대한 RAG 답변을 찾는다. GET /search/{queryId} 재조회에 쓰인다. */
     Optional<RagResponse> findByQuery_Id(Long queryId);
