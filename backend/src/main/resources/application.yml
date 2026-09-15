@@ -200,11 +200,15 @@ ollama:
 
 rag:
   worker:
-    # RagJobWorker가 PROCESSING 건이 있는지 확인하는 주기. Worker가 1개뿐이라 짧게 잡아도
-    # 부하가 안 크고, 사용자 체감 지연에 직접 영향을 주므로 1초로 짧게 유지한다.
+    # RagJobWorker가 PROCESSING 건이 있는지 확인하는 주기. 동시성 상한(max-concurrency)이
+    # 작아 짧게 잡아도 부하가 안 크고, 사용자 체감 지연에 직접 영향을 주므로 1초로 짧게 유지한다.
     polling-interval: ${RAG_WORKER_POLLING_INTERVAL:1s}
     # 이 시간 이상 PROCESSING으로 남아있으면(정상 백로그든 실제 hang이든 원인 불문) RagJobTimeoutSweeper가
     # 무기한 대기시키지 않고 강제로 fallback 답변을 채워 종료한다(#286).
     stale-threshold: ${RAG_WORKER_STALE_THRESHOLD:90s}
     # RagJobTimeoutSweeper가 위 stale-threshold 기준을 얼마나 자주 확인할지.
     timeout-sweep-interval: ${RAG_WORKER_TIMEOUT_SWEEP_INTERVAL:15s}
+    # GPU/Ollama 하나가 실제로 감당 가능한 동시 생성 건수(#340). Ollama 쪽 병렬 슬롯
+    # (OLLAMA_NUM_PARALLEL)과 실측 후 맞춰야 하며, 이 값을 그냥 올린다고 처리량이 느는 건
+    # 아니다 — Ollama 서버 자체가 병렬 처리를 지원하도록 먼저 설정돼 있어야 한다.
+    max-concurrency: ${RAG_WORKER_MAX_CONCURRENCY:2}
