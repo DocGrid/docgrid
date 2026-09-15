@@ -135,7 +135,7 @@ public class RagFacade {
      * extractive fallback을 채운 채 FAILED로 확정한다.
      *
      * <p>{@code job} 객체가 아니라 {@code jobId}만 받아 이 메서드 자신의 트랜잭션 안에서 다시
-     * 조회하는 이유: RagJobWorker가 {@code findFirstByStatusOrderByCreatedAtAsc()}로 꺼낸
+     * 조회하는 이유: RagJobWorker가 claim 단계({@code RagResponseClaimService}, #340)에서 꺼낸
      * job은 그 조회 시점에 트랜잭션이 끝나 detached 상태다. 원래(#218) 이 detached 인스턴스를
      * 그대로 받아 필드만 바꾸면 dirty checking이 감지 못해 DB에 반영되지 않는 버그가 있었는데,
      * 지금은 완료 처리 자체가 dirty checking에 의존하지 않는다({@link
@@ -229,7 +229,11 @@ public class RagFacade {
         }
         // 답변과 citation 저장이 모두 끝난 동일 Transaction의 커밋 이후 성공 Counter를 기록한다.
         applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.SUCCESS));
-        log.info("[RAG] done queryId={} responseId={} latencyMs={}", queryId, job.getId(), result.latencyMs());
+        // promptTokens/answerTokens을 함께 남겨, 느린 job이 프롬프트를 읽느라(prefill) 오래 걸린 건지
+        // 답변을 쓰느라(decode) 오래 걸린 건지 로그만으로 구분할 수 있게 한다 — 병렬화(#340) 이후
+        // 요청당 작업량을 어느 쪽부터 줄여야 할지 판단하는 근거 자료.
+        log.info("[RAG] done queryId={} responseId={} latencyMs={} promptTokens={} answerTokens={}",
+            queryId, job.getId(), result.latencyMs(), result.inputTokenCount(), result.outputTokenCount());
         return true;
     }
 

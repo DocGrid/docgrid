@@ -1,7 +1,9 @@
 package com.opensource.docgrid.domain.rag.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.AfterEach;
@@ -31,13 +33,18 @@ import com.opensource.docgrid.domain.user.enums.UserStatus;
 import com.opensource.docgrid.domain.user.repository.UserRepository;
 
 /**
- * RagResponseRepository.findFirstByStatusOrderByCreatedAtAsc()로 꺼낸 job이 detached 상태라,
- * RagFacade.processJob()에 그 인스턴스를 그대로 넘기면(원래 #218 당시 그랬듯) 완료 처리가 DB에
- * 반영되지 않는(=영원히 PROCESSING으로 남는) 실사용 버그가 있었다. 지금은 완료 처리 자체가
- * 조건부 UPDATE(#288)라 detached 상태 여부와 무관하게 반영되지만, processJob()이 여전히
- * jobId만 받아 자기 트랜잭션에서 다시 조회하는 설계를 유지하는지는 이 테스트로 계속 검증한다.
- * 이 테스트는 이걸 Mockito 목이 아니라 실제 트랜잭션 경계로 재현·검증한다 — 목 기반 단위
- * 테스트는 "메서드가 호출됐는지"만 보고 "DB에 실제로 반영됐는지"는 증명하지 못한다.
+ * claim 단계(RagResponseClaimService)로 꺼낸 job이 detached 상태라, RagFacade.processJob()에 그
+ * 인스턴스를 그대로 넘기면(원래 #218 당시 그랬듯) 완료 처리가 DB에 반영되지 않는(=영원히
+ * PROCESSING으로 남는) 실사용 버그가 있었다. 지금은 완료 처리 자체가 조건부 UPDATE(#288)라
+ * detached 상태 여부와 무관하게 반영되지만, processJob()이 여전히 jobId만 받아 자기 트랜잭션에서
+ * 다시 조회하는 설계를 유지하는지는 이 테스트로 계속 검증한다. 이 테스트는 이걸 Mockito 목이
+ * 아니라 실제 트랜잭션 경계로 재현·검증한다 — 목 기반 단위 테스트는 "메서드가 호출됐는지"만
+ * 보고 "DB에 실제로 반영됐는지"는 증명하지 못한다.
+ *
+ * <p>병렬화(#340) 이후 {@code processNext()}는 claim만 하고 실제 처리는 전용 Executor
+ * 스레드에 넘긴 뒤 즉시 반환한다 — 그래서 이 테스트도 호출 직후 동기적으로 결과를 확인하는
+ * 대신, {@link RagJobWorkerConcurrentQueueIntegrationTest}가 이미 쓰는 Awaitility로 처리가
+ * 끝날 때까지 기다린다.
  */
 @Tag("integration")
 @SpringBootTest
@@ -118,11 +125,15 @@ class RagJobWorkerIntegrationTest {
 
         ragJobWorker.processNext();
 
-        // Ollama가 로컬에 떠 있지 않을 수도 있으므로 SUCCESS/FAILED 둘 다 통과 조건으로 둔다 —
-        // 이 테스트가 검증하는 건 "LLM 호출 성공 여부"가 아니라 "detached 상태에서도 최종
-        // 상태가 DB에 반영되는지"다.
-        RagResponse persisted = ragResponseRepository.findById(jobId).orElseThrow();
-        assertThat(persisted.getStatus()).isNotEqualTo(ResultStatus.PROCESSING);
-        assertThat(persisted.getAnswerText()).isNotNull();
+        // processNext()는 claim만 하고 즉시 반환하므로(#340), 실제 Ollama 호출·완료 확정은
+        // 전용 Executor 스레드에서 비동기로 이어진다 — 120초(read-timeout 90s + 여유)까지
+        // 기다렸다가 확인한다. Ollama가 로컬에 떠 있지 않을 수도 있으므로 SUCCESS/FAILED 둘 다
+        // 통과 조건으로 둔다 — 이 테스트가 검증하는 건 "LLM 호출 성공 여부"가 아니라 "detached
+        // 상태에서도 최종 상태가 DB에 반영되는지"다.
+        await().atMost(Duration.ofSeconds(120)).untilAsserted(() -> {
+            RagResponse persisted = ragResponseRepository.findById(jobId).orElseThrow();
+            assertThat(persisted.getStatus()).isNotEqualTo(ResultStatus.PROCESSING);
+            assertThat(persisted.getAnswerText()).isNotNull();
+        });
     }
 }

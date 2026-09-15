@@ -40,6 +40,13 @@ import com.opensource.docgrid.domain.user.repository.UserRepository;
  * 비우도록 두고(수동으로 processNext()를 여러 번 호출하지 않음), 3명이 정확히 같은 순간에
  * 질문을 던졌다고 가정해 3개 job을 동시 스레드로 접수한 뒤, 셋 다 결국 SUCCESS로 끝나는지
  * 실제 로컬 Ollama를 상대로 확인한다.
+ *
+ * <p>병렬화(#340) 이후에는 여기에 "실제로 동시에 처리됐는가"까지 증명한다 — {@code claimed_at}이
+ * "언제부터 실제로 처리되기 시작했는지"를 알려주는 유일한 신호다({@code updatedAt}은 완료 확정이
+ * 전부 벌크 UPDATE라 채워지지 않는다). {@code rag.worker.max-concurrency}가 2 이상이면 3건 중
+ * 최소 2건은 거의 동시에 claim되어야 한다 — 셋 다 동시에 claim되길 요구하지 않는 이유는
+ * max-concurrency가 정확히 2일 때는 3번째 job이 앞선 두 건 중 하나가 끝날 때까지 자연스럽게
+ * 기다리기 때문이다(그래도 안전 실패는 없다 — #218의 핵심 목표).
  */
 @Tag("integration")
 @SpringBootTest
@@ -149,6 +156,19 @@ class RagJobWorkerConcurrentQueueIntegrationTest {
         long successCount = finished.stream().filter(j -> j.getStatus() == ResultStatus.SUCCESS).count();
         System.out.println("[TEST] SUCCESS=" + successCount + "/3, answers=" +
             finished.stream().map(RagResponse::getAnswerText).toList());
+
+        // #340 병렬화 증명: claimed_at 3건 중 최소 2건은 서로 가까운 시각에 claim됐어야 한다 —
+        // 순차 처리였다면(#218 이전 방식) 각 claim은 앞선 job의 전체 처리 시간(수 초~수십 초)만큼
+        // 떨어져 있었을 것이다. max-concurrency가 정확히 2여도(기본값) 최소 두 건은 동시에 슬롯을
+        // 잡을 수 있으므로, "셋 다"가 아니라 "가장 가까운 두 건"의 간격으로 판단한다.
+        List<LocalDateTime> claimedAtValues = finished.stream()
+            .map(RagResponse::getClaimedAt)
+            .sorted()
+            .toList();
+        assertThat(claimedAtValues).allSatisfy(claimedAt -> assertThat(claimedAt).isNotNull());
+        Duration closestGap = Duration.between(claimedAtValues.get(0), claimedAtValues.get(1));
+        System.out.println("[TEST] claimedAt=" + claimedAtValues + " closestGap=" + closestGap);
+        assertThat(closestGap).isLessThan(Duration.ofSeconds(10));
     }
 
     private User createUser() {

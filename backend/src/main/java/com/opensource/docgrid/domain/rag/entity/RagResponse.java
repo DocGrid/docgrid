@@ -1,5 +1,7 @@
 package com.opensource.docgrid.domain.rag.entity;
 
+import java.time.LocalDateTime;
+
 import com.opensource.docgrid.domain.search.entity.SearchQuery;
 import com.opensource.docgrid.domain.search.enums.ResultStatus;
 import com.opensource.docgrid.global.common.entity.BaseEntity;
@@ -88,6 +90,12 @@ public class RagResponse extends BaseEntity {
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
+    // 병렬 Worker가 이 job을 이미 집었는지 표시한다(#340). status만으로는 "대기 중"과 "누가 이미
+    // 처리 중"을 구분할 수 없어서(둘 다 PROCESSING) 별도로 둔다. RagResponseClaimService의 짧은
+    // claim 트랜잭션 안에서만 채워지며, 그 밖의 완료 확정 경로(조건부 UPDATE)는 이 컬럼을 건드리지 않는다.
+    @Column(name = "claimed_at")
+    private LocalDateTime claimedAt;
+
     @Builder
     public RagResponse(SearchQuery query, String answerText, String llmProvider, String llmModelName,
                         String promptText, Integer inputTokenCount, Integer outputTokenCount, Integer latencyMs,
@@ -102,5 +110,14 @@ public class RagResponse extends BaseEntity {
         this.latencyMs = latencyMs;
         this.status = status;
         this.errorMessage = errorMessage;
+    }
+
+    /**
+     * 이 job을 지금 이 Worker가 처리하기 시작했다는 표시를 남긴다. {@code RagResponseClaimService}의
+     * 짧은 claim 트랜잭션 안에서만 호출되어야 한다 — dirty checking으로 반영되므로, 이 엔티티가
+     * detached된 뒤(다른 트랜잭션/스레드로 넘어간 뒤)에 호출하면 반영되지 않는다.
+     */
+    public void markClaimed(LocalDateTime claimedAt) {
+        this.claimedAt = claimedAt;
     }
 }
