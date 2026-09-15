@@ -141,6 +141,34 @@ class RagResponseRepositoryTest {
     }
 
     @Test
+    @DisplayName("releaseAllClaimsOnStartup: PROCESSING이면서 claim된 job만 claim을 해제하고 영향받은 행 수를 반환한다")
+    void releaseAllClaimsOnStartup_releasesOnlyClaimedProcessingJobs() {
+        RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
+        claimed.markClaimed(LocalDateTime.now());
+        ragResponseRepository.save(claimed);
+        RagResponse unclaimed = saveRagResponse(ResultStatus.PROCESSING);
+        RagResponse succeeded = saveRagResponse(ResultStatus.SUCCESS);
+
+        int released = ragResponseRepository.releaseAllClaimsOnStartup();
+
+        assertThat(released).isEqualTo(1);
+        assertThat(ragResponseRepository.findById(claimed.getId()).orElseThrow().getClaimedAt()).isNull();
+        // 재시작 복구가 다른 job까지 잘못 건드리지 않는지 확인 — 원래 claim이 없던 job과
+        // 이미 확정된 job은 이 호출과 무관해야 한다.
+        assertThat(ragResponseRepository.findById(unclaimed.getId()).orElseThrow().getClaimedAt()).isNull();
+        assertThat(ragResponseRepository.findById(succeeded.getId()).orElseThrow().getStatus())
+            .isEqualTo(ResultStatus.SUCCESS);
+    }
+
+    @Test
+    @DisplayName("releaseAllClaimsOnStartup: 복구할 job이 없으면 영향받은 행이 0건이다")
+    void releaseAllClaimsOnStartup_noStaleClaims_returnsZero() {
+        saveRagResponse(ResultStatus.PROCESSING);
+
+        assertThat(ragResponseRepository.releaseAllClaimsOnStartup()).isZero();
+    }
+
+    @Test
     @DisplayName("findByStatusAndCreatedAtBefore: cutoff 이전에 생성된 PROCESSING만 찾고, 상태가 다른 job은 제외한다")
     void findByStatusAndCreatedAtBefore_filtersOnStatusAndCreatedAt() {
         LocalDateTime beforeAnyCreation = LocalDateTime.now();

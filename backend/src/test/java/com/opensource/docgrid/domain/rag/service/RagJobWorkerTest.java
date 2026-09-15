@@ -73,6 +73,16 @@ class RagJobWorkerTest {
     }
 
     @Test
+    @DisplayName("앱 시작 시 복구할 claim이 있으면 경고 로그를 남긴다(부작용은 claim 서비스에 위임)")
+    void recoverStaleClaimsOnStartup_delegatesToClaimServiceAndReturns() {
+        given(ragResponseClaimService.recoverStaleClaimsOnStartup()).willReturn(2);
+
+        ragJobWorker.recoverStaleClaimsOnStartup();
+
+        then(ragResponseClaimService).should(times(1)).recoverStaleClaimsOnStartup();
+    }
+
+    @Test
     @DisplayName("슬롯이 없으면 claim 자체를 시도하지 않는다")
     void processNext_noSlotAvailable_neverClaims() {
         // 이미 다른 job이 유일한 슬롯을 쓰고 있는 상황을 재현한다. permit이 이미 있는 상태의
