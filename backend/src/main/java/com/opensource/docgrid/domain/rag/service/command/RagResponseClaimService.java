@@ -44,6 +44,18 @@ public class RagResponseClaimService {
             .map(this::claim);
     }
 
+    /**
+     * 앱 시작 시 1회 호출된다(#340 CodeRabbit 리뷰 반영). 이전 프로세스 인스턴스가 claim한 채
+     * 완료하지 못한 job은 새 프로세스에서 영원히 재시도되지 않는다 — {@link
+     * RagResponseRepository#releaseAllClaimsOnStartup}로 그 claim을 전부 풀어, 새로 뜬
+     * Worker가 정상적으로 다시 claim해 처리할 수 있게 한다.
+     *
+     * @return 실제로 claim이 풀린 행 수
+     */
+    public int recoverStaleClaimsOnStartup() {
+        return ragResponseRepository.releaseAllClaimsOnStartup();
+    }
+
     private Long claim(RagResponse job) {
         job.markClaimed(LocalDateTime.now(clock));
         return job.getId();

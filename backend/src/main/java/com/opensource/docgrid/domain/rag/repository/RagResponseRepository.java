@@ -50,6 +50,22 @@ public interface RagResponseRepository extends JpaRepository<RagResponse, Long> 
     @EntityGraph(attributePaths = {"query", "query.user"})
     Optional<RagResponse> findWithQueryAndUserById(Long id);
 
+    /**
+     * 앱 재시작 복구 전용(#340 CodeRabbit 리뷰 반영). 이전 프로세스가 claim한 채 완료하지 못하고
+     * 죽은 job은 {@code claimed_at}이 채워진 상태로 DB에 남는다 — 이 상태로는
+     * {@link #findNextUnclaimedProcessingForUpdate}가 절대 다시 집어주지 않아, 스위퍼의
+     * {@code stale-threshold} 강제종료(fallback)만 기다리게 된다. 재시작 직후 한 번,
+     * PROCESSING인데 claim만 남아있는 행의 claim을 전부 풀어 새 Worker가 다시 시도할 수 있게
+     * 한다. "인스턴스는 항상 1개"라는 이 프로젝트의 전제 위에서만 안전하다 — 이 메서드가
+     * 실행되는 시점엔 다른 프로세스가 진짜로 처리 중일 수 없으므로, claim이 남아있는 행은
+     * 전부 죽은 이전 프로세스의 흔적이다.
+     */
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE RagResponse r SET r.claimedAt = NULL "
+        + "WHERE r.status = com.opensource.docgrid.domain.search.enums.ResultStatus.PROCESSING "
+        + "AND r.claimedAt IS NOT NULL")
+    int releaseAllClaimsOnStartup();
+
     /** 특정 검색 요청(queryId)에 대한 RAG 답변을 찾는다. GET /search/{queryId} 재조회에 쓰인다. */
     Optional<RagResponse> findByQuery_Id(Long queryId);
 

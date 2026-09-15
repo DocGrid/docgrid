@@ -6,6 +6,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,9 @@ import lombok.extern.slf4j.Slf4j;
  * 처리는 {@link #ragWorkerJobExecutor}(전용 {@link ThreadPoolExecutor})에서 실행되어,
  * {@link #processNext()} 자체는 claim만 하고 즉시 반환한다 — Ollama 호출(최대
  * {@code ollama.generate-deadline})로 폴링 스레드가 막히지 않는다.
+ *
+ * <p>{@link #recoverStaleClaimsOnStartup()}은 재시작 전 프로세스가 claim한 채 남긴 job의
+ * claim을 앱 시작 시 1회 풀어준다 — "인스턴스 1개" 전제를 유지하는 한 안전한 최소한의 복구다.
  */
 @Component
 @Slf4j
@@ -60,6 +65,23 @@ public class RagJobWorker {
         this.ragWebSocketController = ragWebSocketController;
         this.ragWorkerSlots = ragWorkerSlots;
         this.ragWorkerJobExecutor = ragWorkerJobExecutor;
+    }
+
+    /**
+     * 앱 준비 완료 시 1회, 이전 프로세스가 claim한 채 완료하지 못한 job의 claim을 전부 풀어
+     * 재시작 뒤에도 다시 시도될 수 있게 한다(#340 CodeRabbit 리뷰 반영). 이 복구가 없으면
+     * {@code claimed_at}이 남아있는 job은 {@link RagResponseClaimService#claimNext}가 영원히
+     * 다시 집어주지 않아, 실제로 한 번도 재시도되지 않고 {@code RagJobTimeoutSweeper}의
+     * fallback만 기다리게 된다(#218 이전 방식은 이런 job을 자동으로 재시도했으므로 이 복구가
+     * 없으면 퇴보다). "인스턴스는 항상 1개"라는 전제 위에서만 안전 — 이 시점엔 다른 프로세스가
+     * 진짜로 처리 중일 수 없다.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void recoverStaleClaimsOnStartup() {
+        int recovered = ragResponseClaimService.recoverStaleClaimsOnStartup();
+        if (recovered > 0) {
+            log.warn("[RAG-WORKER] 재시작 복구: 이전 프로세스가 claim한 채 방치된 job {}건의 claim을 해제함", recovered);
+        }
     }
 
     /**
