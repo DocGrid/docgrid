@@ -1,19 +1,25 @@
 package com.opensource.docgrid.domain.rag.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
 import java.util.Optional;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadPoolExecutor;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -21,24 +27,29 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import com.opensource.docgrid.domain.rag.controller.RagWebSocketController;
 import com.opensource.docgrid.domain.rag.entity.RagResponse;
 import com.opensource.docgrid.domain.rag.repository.RagResponseRepository;
-import com.opensource.docgrid.domain.search.enums.ResultStatus;
+import com.opensource.docgrid.domain.rag.service.command.RagResponseClaimService;
 
 /**
- * RagJobWorker.processNext() 한 사이클의 동작만 검증한다 — 큐 조회(가장 오래된 PROCESSING 하나를
- * 꺼내는지), 처리 위임(RagFacade.processJob()으로 id를 넘기는지), 완료/실패 각각에서 요청자
- * 본인에게만 알림이 가는지가 검증 범위다. 실제 OllamaClient 호출이나 DB 반영 여부(dirty checking이
- * 실제로 먹히는지)는 이 테스트의 목(mock) 구조로는 증명할 수 없어 검증 범위 밖이다 —
- * RagJobWorkerIntegrationTest가 그 부분을 담당한다.
+ * RagJobWorker.processNext()의 디스패치 로직(#340)을 검증한다 — 슬롯을 먼저 확보한 뒤에만 claim을
+ * 시도하는지, claim 결과에 따라 슬롯을 되돌려주는지, claim된 job을 Executor에 제출하는지가 검증
+ * 범위다. Executor는 실제 스레드를 안 쓰고 제출된 Runnable을 캡처해 테스트 스레드에서 직접
+ * 실행한다 — 그래야 실행 결과(성공/false/예외/OptimisticLocking 분기)를 결정적으로 검증할 수
+ * 있다. 실제 OllamaClient 호출이나 DB 반영 여부(dirty checking이 실제로 먹히는지)는 이 테스트의
+ * 목(mock) 구조로는 증명할 수 없어 검증 범위 밖이다 — RagJobWorkerIntegrationTest가 그 부분을
+ * 담당한다.
+ *
+ * <p>{@code Semaphore}는 mock하지 않고 실제 인스턴스를 쓴다 — I/O가 없는 순수 카운터라, mock보다
+ * 실제 객체로 "슬롯이 진짜 반환됐는지"를 permit 개수로 직접 확인하는 편이 더 간단하고 정확하다.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RagJobWorker 단위 테스트")
 class RagJobWorkerTest {
 
-    @InjectMocks
-    private RagJobWorker ragJobWorker;
-
     @Mock
     private RagResponseRepository ragResponseRepository;
+
+    @Mock
+    private RagResponseClaimService ragResponseClaimService;
 
     @Mock
     private RagFacade ragFacade;
@@ -46,62 +57,89 @@ class RagJobWorkerTest {
     @Mock
     private RagWebSocketController ragWebSocketController;
 
-    @Test
-    @DisplayName("PROCESSING 건이 없으면 아무것도 하지 않는다")
-    void processNext_noPendingJob_doesNothing() {
-        given(ragResponseRepository.findFirstByStatusOrderByCreatedAtAsc(ResultStatus.PROCESSING))
-            .willReturn(Optional.empty());
+    @Mock
+    private ThreadPoolExecutor ragWorkerJobExecutor;
 
-        ragJobWorker.processNext();
+    private Semaphore ragWorkerSlots;
+    private RagJobWorker ragJobWorker;
 
-        then(ragFacade).should(never()).processJob(any());
-        then(ragWebSocketController).should(never()).notifyAnswerReady(any(), any());
+    @BeforeEach
+    void setUp() {
+        ragWorkerSlots = new Semaphore(1);
+        ragJobWorker = new RagJobWorker(
+            ragResponseRepository, ragResponseClaimService, ragFacade, ragWebSocketController,
+            ragWorkerSlots, ragWorkerJobExecutor
+        );
     }
 
     @Test
-    @DisplayName("PROCESSING 건이 있으면 처리하고, 요청자 본인에게만 완료를 push한다")
-    void processNext_pendingJobExists_processesAndNotifiesOwner() {
-        RagResponse job = deepStubJob(999L, 100L, "user@example.com");
-        given(ragResponseRepository.findFirstByStatusOrderByCreatedAtAsc(ResultStatus.PROCESSING))
-            .willReturn(Optional.of(job));
-        given(ragFacade.processJob(999L)).willReturn(true);
+    @DisplayName("슬롯이 없으면 claim 자체를 시도하지 않는다")
+    void processNext_noSlotAvailable_neverClaims() {
+        // 이미 다른 job이 유일한 슬롯을 쓰고 있는 상황을 재현한다. permit이 이미 있는 상태의
+        // acquireUninterruptibly()는 즉시 반환되므로 실제로 블로킹되지 않는다.
+        ragWorkerSlots.acquireUninterruptibly();
 
         ragJobWorker.processNext();
 
-        // Worker는 detached entity를 그대로 넘기지 않고 id만 넘긴다 — processJob()이 자기 트랜잭션
-        // 안에서 다시 조회해야 완료 처리(조건부 UPDATE)가 최신 상태 기준으로 실행된다.
+        then(ragResponseClaimService).should(never()).claimNext();
+        then(ragWorkerJobExecutor).should(never()).execute(any());
+    }
+
+    @Test
+    @DisplayName("claim할 job이 없으면 슬롯을 반환하고 Executor를 부르지 않는다")
+    void processNext_claimEmpty_releasesSlotAndSkipsExecutor() {
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.empty());
+
+        ragJobWorker.processNext();
+
+        then(ragWorkerJobExecutor).should(never()).execute(any());
+        assertThat(ragWorkerSlots.availablePermits()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("claim에 성공하면 Executor에 제출하고, 정상 처리되면 요청자 본인에게만 완료를 push한다")
+    void processNext_claimSucceeds_submitsAndNotifiesOwner() {
+        RagResponse job = deepStubJob(999L, 100L, "user@example.com");
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.of(job));
+        given(ragFacade.processJob(999L)).willReturn(true);
+
+        ragJobWorker.processNext();
+        runSubmittedTask();
+
         then(ragFacade).should(times(1)).processJob(999L);
         then(ragWebSocketController).should(times(1)).notifyAnswerReady("user@example.com", 100L);
+        // 처리(성공적으로 실행된 Runnable)가 끝나면 finally에서 슬롯을 되돌려준다.
+        assertThat(ragWorkerSlots.availablePermits()).isEqualTo(1);
     }
 
     @Test
     @DisplayName("경합(#288): processJob이 false를 반환하면(RagJobTimeoutSweeper가 이미 확정함) 알림을 보내지 않는다")
     void processNext_processJobLosesRace_doesNotNotify() {
         RagResponse job = deepStubJob(999L, 100L, "user@example.com");
-        given(ragResponseRepository.findFirstByStatusOrderByCreatedAtAsc(ResultStatus.PROCESSING))
-            .willReturn(Optional.of(job));
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.of(job));
         given(ragFacade.processJob(999L)).willReturn(false);
 
         ragJobWorker.processNext();
+        runSubmittedTask();
 
         then(ragWebSocketController).should(never()).notifyAnswerReady(any(), any());
     }
 
     @Test
-    @DisplayName("processJob이 예상 밖 예외를 던지면 job을 FAILED로 확정하고, Worker는 죽지 않고 이번 건만 건너뛴다")
-    void processNext_unexpectedException_marksFailedAndSkipsJobWithoutCrashingWorker() {
+    @DisplayName("processJob이 예상 밖 예외를 던지면 job을 FAILED로 확정하고, 알림은 그대로 보낸다")
+    void processNext_unexpectedException_marksFailedAndNotifies() {
         RagResponse job = deepStubJob(999L, 100L, "user@example.com");
-        given(ragResponseRepository.findFirstByStatusOrderByCreatedAtAsc(ResultStatus.PROCESSING))
-            .willReturn(Optional.of(job));
-        org.mockito.Mockito.doThrow(new RuntimeException("예상 밖 버그")).when(ragFacade).processJob(999L);
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.of(job));
+        doThrow(new RuntimeException("예상 밖 버그")).when(ragFacade).processJob(999L);
         given(ragFacade.markUnexpectedFailure(999L, "예상 밖 버그")).willReturn(true);
 
         ragJobWorker.processNext();
+        runSubmittedTask();
 
-        // job을 PROCESSING으로 방치하면 Worker가 같은 job을 계속 다시 집어 무한 재시도하게 된다
-        // (detached entity 버그와 같은 증상) — 그래서 반드시 FAILED로 확정해야 한다.
         then(ragFacade).should(times(1)).markUnexpectedFailure(999L, "예상 밖 버그");
-        // FAILED로 확정된 이상 사용자도 결과(비록 실패 안내지만)를 받아야 하므로 알림은 그대로 간다.
         then(ragWebSocketController).should(times(1)).notifyAnswerReady("user@example.com", 100L);
     }
 
@@ -109,44 +147,61 @@ class RagJobWorkerTest {
     @DisplayName("다른 트랜잭션이 이미 같은 job을 처리했으면(낙관적 락 경합) FAILED로 덮어쓰지 않고 조용히 넘어간다")
     void processNext_optimisticLockingFailure_skipsWithoutOverwritingAsFailed() {
         RagResponse job = deepStubJob(999L, 100L, "user@example.com");
-        given(ragResponseRepository.findFirstByStatusOrderByCreatedAtAsc(ResultStatus.PROCESSING))
-            .willReturn(Optional.of(job));
-        org.mockito.Mockito.doThrow(new OptimisticLockingFailureException("경합"))
-            .when(ragFacade).processJob(999L);
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.of(job));
+        doThrow(new OptimisticLockingFailureException("경합")).when(ragFacade).processJob(999L);
 
         ragJobWorker.processNext();
+        runSubmittedTask();
 
-        // 다른 트랜잭션이 이미 올바르게 처리한 결과이므로, 이걸 FAILED로 덮어쓰면 정상 처리된
-        // 결과를 오답으로 바꿔버리는 2차 사고가 난다 — markUnexpectedFailure를 호출하면 안 된다.
         then(ragFacade).should(never()).markUnexpectedFailure(any(), any());
         then(ragWebSocketController).should(never()).notifyAnswerReady(any(), any());
     }
 
     @Test
-    @DisplayName("한 job이 예외로 실패해도 다음 폴링에서 뒤에 대기 중인 job이 정상 처리된다")
-    void processNext_afterUnexpectedFailure_nextPollingProcessesFollowingJob() {
-        RagResponse failingJob = deepStubJob(1L, 100L, "user1@example.com");
-        RagResponse nextJob = deepStubJob(2L, 200L, "user2@example.com");
-        org.mockito.Mockito.doThrow(new RuntimeException("예상 밖 버그")).when(ragFacade).processJob(1L);
+    @DisplayName("claim 중 예외가 나면 슬롯을 반환하고 Executor를 부르지 않는다")
+    void processNext_claimThrows_releasesSlotAndSkipsExecutor() {
+        given(ragResponseClaimService.claimNext()).willThrow(new RuntimeException("DB 오류"));
 
-        given(ragResponseRepository.findFirstByStatusOrderByCreatedAtAsc(ResultStatus.PROCESSING))
-            .willReturn(Optional.of(failingJob));
-        ragJobWorker.processNext();  // 1번째 폴링: failingJob 실패 → FAILED로 확정됨
+        ragJobWorker.processNext();
 
-        // FAILED로 확정됐으니 실제 DB에선 이제 findFirst...가 다음 대기 건(nextJob)을 돌려준다 —
-        // 여기서는 그 상태 변화를 목으로 흉내낸다.
-        given(ragResponseRepository.findFirstByStatusOrderByCreatedAtAsc(ResultStatus.PROCESSING))
-            .willReturn(Optional.of(nextJob));
-        given(ragFacade.processJob(2L)).willReturn(true);
-        ragJobWorker.processNext();  // 2번째 폴링: nextJob은 정상 처리돼야 한다
+        then(ragWorkerJobExecutor).should(never()).execute(any());
+        assertThat(ragWorkerSlots.availablePermits()).isEqualTo(1);
+    }
 
-        then(ragFacade).should(times(1)).processJob(2L);
-        then(ragWebSocketController).should(times(1)).notifyAnswerReady("user2@example.com", 200L);
+    @Test
+    @DisplayName("Executor 제출이 거부되면(RejectedExecutionException) 슬롯을 반환한다")
+    void processNext_executorRejects_releasesSlot() {
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        doThrow(new RejectedExecutionException()).when(ragWorkerJobExecutor).execute(any());
+
+        ragJobWorker.processNext();
+
+        assertThat(ragWorkerSlots.availablePermits()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("claim 직후 job이 사라졌으면(극단적 상황) processJob을 부르지 않고 슬롯만 반환한다")
+    void processNext_claimedJobVanished_skipsProcessing() {
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.empty());
+
+        ragJobWorker.processNext();
+        runSubmittedTask();
+
+        then(ragFacade).should(never()).processJob(any());
+        assertThat(ragWorkerSlots.availablePermits()).isEqualTo(1);
+    }
+
+    /** Executor에 제출된 Runnable을 캡처해 테스트 스레드에서 즉시(동기) 실행한다. */
+    private void runSubmittedTask() {
+        ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
+        then(ragWorkerJobExecutor).should(times(1)).execute(taskCaptor.capture());
+        taskCaptor.getValue().run();
     }
 
     private RagResponse deepStubJob(Long jobId, Long queryId, String userEmail) {
         RagResponse job = mock(RagResponse.class, RETURNS_DEEP_STUBS);
-        given(job.getId()).willReturn(jobId);
         given(job.getQuery().getId()).willReturn(queryId);
         given(job.getQuery().getUser().getEmail()).willReturn(userEmail);
         return job;

@@ -117,6 +117,30 @@ class RagResponseRepositoryTest {
     }
 
     @Test
+    @DisplayName("findNextUnclaimedProcessingForUpdate: claim 안 된 PROCESSING만 찾고, claim된 것과 다른 상태는 제외한다")
+    void findNextUnclaimedProcessingForUpdate_filtersOnClaimedAtAndStatus() {
+        RagResponse unclaimed = saveRagResponse(ResultStatus.PROCESSING);
+        RagResponse alreadyClaimed = saveRagResponse(ResultStatus.PROCESSING);
+        alreadyClaimed.markClaimed(LocalDateTime.now());
+        ragResponseRepository.save(alreadyClaimed);
+        saveRagResponse(ResultStatus.SUCCESS);
+
+        RagResponse found = ragResponseRepository.findNextUnclaimedProcessingForUpdate().orElseThrow();
+
+        assertThat(found.getId()).isEqualTo(unclaimed.getId());
+    }
+
+    @Test
+    @DisplayName("findNextUnclaimedProcessingForUpdate: claim 가능한 job이 없으면 빈 값을 반환한다")
+    void findNextUnclaimedProcessingForUpdate_noCandidates_returnsEmpty() {
+        RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
+        claimed.markClaimed(LocalDateTime.now());
+        ragResponseRepository.save(claimed);
+
+        assertThat(ragResponseRepository.findNextUnclaimedProcessingForUpdate()).isEmpty();
+    }
+
+    @Test
     @DisplayName("findByStatusAndCreatedAtBefore: cutoff 이전에 생성된 PROCESSING만 찾고, 상태가 다른 job은 제외한다")
     void findByStatusAndCreatedAtBefore_filtersOnStatusAndCreatedAt() {
         LocalDateTime beforeAnyCreation = LocalDateTime.now();
