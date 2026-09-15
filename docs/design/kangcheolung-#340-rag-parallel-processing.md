@@ -57,10 +57,10 @@ introspection 메서드 포함)까지는 필요 없다고 판단해 순수 `Sema
 |---|---|
 | `db/migration/V43__add_rag_responses_claimed_at.sql` | 신규. `claimed_at TIMESTAMP` nullable 컬럼 추가만. |
 | `domain/rag/entity/RagResponse.java` | `claimedAt` 필드 + `markClaimed(LocalDateTime)` 메서드 추가. 짧은 claim 트랜잭션 안에서만 로드·수정·커밋되므로 #218 detached-entity 버그와 다른 안전한 케이스. |
-| `domain/rag/repository/RagResponseRepository.java` | `findFirstByStatusOrderByCreatedAtAsc` 제거(참조 없음 확인). `findNextUnclaimedProcessingForUpdate()`(native, `SKIP LOCKED`) 신규. `findWithQueryAndUserById(Long)`(`@EntityGraph`) 신규 — 기존 `findById`는 그대로 둠. |
-| `domain/rag/service/command/RagResponseClaimService.java` | 신규. `@Service @Transactional`, `claimNext(): Optional<Long>` — 짧은 트랜잭션 안에서 claim 쿼리 실행 후 즉시 `markClaimed()` 호출, 커밋과 함께 락 해제. |
+| `domain/rag/repository/RagResponseRepository.java` | `findFirstByStatusOrderByCreatedAtAsc` 제거(참조 없음 확인). `findNextUnclaimedProcessingForUpdate()`(native, `SKIP LOCKED`) 신규. `findWithQueryAndUserById(Long)`(`@EntityGraph`) 신규 — 기존 `findById`는 그대로 둠. `releaseAllClaimsOnStartup()`(재시작 복구용, CodeRabbit 리뷰 반영) 신규. |
+| `domain/rag/service/command/RagResponseClaimService.java` | 신규. `@Service @Transactional`, `claimNext(): Optional<Long>` — 짧은 트랜잭션 안에서 claim 쿼리 실행 후 즉시 `markClaimed()` 호출, 커밋과 함께 락 해제. `recoverStaleClaimsOnStartup()`(CodeRabbit 리뷰 반영) 추가. |
 | `domain/rag/config/RagExecutionConfig.java` | 신규. `ragWorkerJobExecutor`(`ThreadPoolExecutor`) + `ragWorkerSlots`(`Semaphore`), `rag.worker.max-concurrency` 기반. `@ConditionalOnProperty` 없음(RAG는 항상 켜져야 함). |
-| `domain/rag/service/RagJobWorker.java` | `processNext()`를 디스패처로 재작성: `while (ragWorkerSlots.tryAcquire())` → claim → 비었으면 슬롯 반환, 있으면 `ragWorkerJobExecutor.execute(() -> executeClaimedJob(jobId))`. |
+| `domain/rag/service/RagJobWorker.java` | `processNext()`를 디스패처로 재작성: `while (ragWorkerSlots.tryAcquire())` → claim → 비었으면 슬롯 반환, 있으면 `ragWorkerJobExecutor.execute(() -> executeClaimedJob(jobId))`. `recoverStaleClaimsOnStartup()`(`@EventListener(ApplicationReadyEvent.class)`, CodeRabbit 리뷰 반영) 추가. |
 | `application.yml` | `rag.worker.max-concurrency: 2` 추가. |
 | `RagFacade.java` | 진단용 로그 한 줄 추가(`promptTokens`/`answerTokens`, 아래 "추가 개선 검토" 참고). Javadoc 한 줄 수정(옛 메서드명 참조 정정). 로직 무변경. |
 
@@ -80,12 +80,14 @@ introspection 메서드 포함)까지는 필요 없다고 판단해 순수 `Sema
   Awaitility로 전환
 - `RagJobWorkerConcurrentQueueIntegrationTest`에 동시성 증명 assertion 추가 — `claimed_at` 값들의
   최소 간격이 10초 이내인지 확인(실제 동시 claim의 증거)
+- (CodeRabbit 리뷰 반영) `RagResponseRepositoryTest`에 `releaseAllClaimsOnStartup()` 케이스 2개,
+  `RagJobWorkerTest`에 `recoverStaleClaimsOnStartup()` 위임 검증 1개 추가
 
 ### 실행 결과
 
 ```
 RAG 패키지 테스트 9개 파일 전부 통과 (통합 테스트 3개 포함, 실제 로컬 PostgreSQL + Ollama 대상)
-전체 프로젝트 1,178개 테스트 → 실패 0건, 에러 0건
+전체 프로젝트 테스트 → 실패 0건, 에러 0건 (초기 확인 1,178개 + CodeRabbit 반영 후 재확인)
 ```
 
 ---
@@ -185,6 +187,19 @@ log.info("[RAG] done queryId={} responseId={} latencyMs={} promptTokens={} answe
 | Kafka 도입 | 병목이 메시지 전달 속도가 아니라 GPU 메모리 대역폭이라 무관 — 오히려 불필요한 인프라 복잡도만 추가. 기각. |
 
 ---
+
+## 코드리뷰 반영 (CodeRabbit)
+
+PR #341에 직접 고도화 아이디어를 질문했고, 5가지 제안이 왔다. 하나씩 실제 코드/과거 설계
+문서와 대조 검증한 뒤 처리했다.
+
+| # | 제안 요지 | 처리 | 근거 |
+|---|---|---|---|
+| 1 | 재시작 시 `claimed_at`이 남은 job은 새 프로세스가 영원히 재claim하지 못한다 | **반영함** | 검증 결과 실제 퇴보였다 — #218 이전(순수 status 기반) 방식은 재시작하면 자동으로 재시도됐는데, claim 도입 후에는 스위퍼의 fallback만 기다리게 된다. 앱 시작 시 1회(`ApplicationReadyEvent`) `claimed_at`을 전부 풀어주는 복구를 추가했다("인스턴스 1개" 전제 위에서만 안전, 이 전제는 이미 이 Worker 전체 설계의 기존 전제와 동일). |
+| 2 | 큐 대기 시간과 실행 시간을 분리해 타임아웃 판단해야 한다 | **반영 안 함(문서화만)** | `#286` 설계 문서에 이미 동일한 내용이 "실사용에서 재조정" 항목으로 기록돼 있었다. 오늘 실측 최악값(38.8초)이 90초 기준 안에 여유 있어 지금 분리할 근거 데이터가 없다 — 감으로 값을 새로 짓느니, 값을 넉넉히 잡으면 진짜 hang 감지가 오히려 늦어지는 트레이드오프도 있어 보류. |
+| 3 | claim 쿼리에 partial index 추가 검토 | **반영 안 함** | CodeRabbit 스스로도 "큐가 작으면 우선순위 낮음, `EXPLAIN`으로 확인 후 결정"이라고 명시. 설계 문서에 이미 같은 결론(인덱스 불필요)이 적혀 있었다. |
+| 4 | claim 타이밍만이 아니라 실제 `generate()` 호출 자체가 겹치는지 직접 증명하는 테스트 추가 | **반영 안 함(후속 과제)** | claim 직후 Executor가 곧바로 처리를 시작하는 구조상 claim 타이밍이 곧 generate 호출 타이밍의 신뢰할 만한 대리 지표다. "정렬된 리스트의 인덱스 0,1이 항상 최소 간격"이라는 지적도 일반적으로는 맞지만, 이 설계(슬롯 2개+3건 접수)에서는 3번째 job이 항상 앞 두 개보다 늦게 claim될 수밖에 없어 현재 검증 방식이 틀리진 않았다. 더 강한 증명(`OllamaClient` 테스트 더블 + `CountDownLatch`)은 가치 있으나 지금 급하지 않음. |
+| 5 | queue_wait/execution_time/슬롯 사용률 등 운영 지표 추가 | **반영 안 함(다른 계획에 포함)** | 이미 별도로 미뤄둔 관측성(Grafana/트레이싱) 작업 범위와 겹친다 — 그때 같이 반영 예정. |
 
 ## 설계 결정 요약
 
