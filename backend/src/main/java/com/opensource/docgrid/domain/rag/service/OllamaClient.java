@@ -37,8 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class OllamaClient {
 
-    // eval_count(실제 생성된 토큰 수)가 num_predict에 도달했다는 건 모델이 할 말을 다 못 하고
-    // 토큰 상한에 걸려 끊겼다는 확정적 신호다 — LLM이 스스로 이를 감지·보고하게 하는 것보다 신뢰할 수 있다.
+    /**
+     * eval_count(실제 생성된 토큰 수)가 num_predict에 도달했다는 건 모델이 할 말을 다 못 하고
+     * 토큰 상한에 걸려 끊겼다는 확정적 신호다 — LLM이 스스로 이를 감지·보고하게 하는 것보다 신뢰할 수 있다.
+     */
     private static final String TRUNCATION_NOTICE =
         "\n\n(※ 답변이 길어 일부 내용이 생략됐을 수 있습니다. 자세한 내용은 문서를 확인해주세요.)";
 
@@ -46,13 +48,17 @@ public class OllamaClient {
     private static final ObjectMapper CHUNK_MAPPER = new ObjectMapper()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    // 한국어 RAG 답변에 한자·히라가나·가타카나가 나올 일은 없다. qwen 계열의 code-switching으로
-    // 섞여 나온 문자를 프롬프트 지시(모델이 무시할 수 있음)가 아닌 코드로 제거한다.
+    /**
+     * 한국어 RAG 답변에 한자·히라가나·가타카나가 나올 일은 없다. qwen 계열의 code-switching으로
+     * 섞여 나온 문자를 프롬프트 지시(모델이 무시할 수 있음)가 아닌 코드로 제거한다.
+     */
     private static final Pattern FOREIGN_CJK_PATTERN =
         Pattern.compile("[\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}]+");
 
-    // 혼입이 이 글자 수를 넘으면 낱자 노이즈가 아니라 모델이 중국어로 넘어가 무너진 구간으로 판단하고,
-    // 문자만 지워 구두점 뼈대를 남기는 대신 혼입 시작 지점에서 답변을 자른다.
+    /**
+     * 혼입이 이 글자 수를 넘으면 낱자 노이즈가 아니라 모델이 중국어로 넘어가 무너진 구간으로 판단하고,
+     * 문자만 지워 구두점 뼈대를 남기는 대신 혼입 시작 지점에서 답변을 자른다.
+     */
     private static final int FOREIGN_CJK_CUT_THRESHOLD = 8;
 
     private final String model;
@@ -134,9 +140,11 @@ public class OllamaClient {
             throw new DocGridException(ErrorCode.RAG_SERVICE_UNAVAILABLE);
         }
 
-        // done:true 없이 스트림이 끝나는 경우가 있다: 데드라인 조기 종료 외에도, Ollama의 PEG 파서가
-        // 한글이 토큰 경계에서 바이트 단위로 쪼개진 출력을 파싱하지 못하고 생성을 취소하는 버그
-        // (llama.cpp #24807)가 확인됐다. 발생 빈도를 추적할 수 있게 경고 로그를 남긴다.
+        /**
+         * done:true 없이 스트림이 끝나는 경우가 있다: 데드라인 조기 종료 외에도, Ollama의 PEG 파서가
+         * 한글이 토큰 경계에서 바이트 단위로 쪼개진 출력을 파싱하지 못하고 생성을 취소하는 버그
+         * (llama.cpp #24807)가 확인됐다. 발생 빈도를 추적할 수 있게 경고 로그를 남긴다.
+         */
         boolean prematureEnd = !chunks.last().done();
         if (prematureEnd && !chunks.deadlineExceeded()) {
             log.warn("Ollama 스트림이 done 없이 조기 종료됨(서버 측 생성 취소 추정): 수신 텍스트 길이={}", chunks.answer().length());
@@ -191,8 +199,10 @@ public class OllamaClient {
                 }
             }
         } catch (IOException e) {
-            // 스트림이 멈춰 read-timeout이 본문 연결을 끊는 경우 등. 이미 받은 부분 답변이 있으면
-            // 버리지 않고 done 없는 조기 종료로 처리해 반환하고, 하나도 없을 때만 실패로 전파한다.
+            /**
+             * 스트림이 멈춰 read-timeout이 본문 연결을 끊는 경우 등. 이미 받은 부분 답변이 있으면
+             * 버리지 않고 done 없는 조기 종료로 처리해 반환하고, 하나도 없을 때만 실패로 전파한다.
+             */
             if (answer.isEmpty()) {
                 throw e;
             }

@@ -18,18 +18,52 @@ import com.opensource.docgrid.domain.search.enums.ResultStatus;
 
 /**
  * RagResponse 엔티티에 대한 JPA Repository.
+ *
+ * <p>{@code rag_responses} 테이블은 답변 저장소이면서 동시에 RagJobWorker의 job 큐다 — 별도 큐
+ * 테이블 없이 {@code status=PROCESSING} 행이 곧 대기/처리 중인 job이다. 그래서 이 Repository에는
+ * 평범한 조회 외에 큐 소비를 위한 쿼리가 섞여 있다.
+ *
+ * <p>동시성 방침: 잠금은 job을 집는 순간({@link #findNextUnclaimedProcessingForUpdate})에만 짧게
+ * 걸고, 완료 확정은 잠금 없이 {@code WHERE status = PROCESSING} 조건부 UPDATE
+ * ({@link #completeSuccessIfProcessing}/{@link #forceFailIfProcessing})로 한다. 이 프로젝트엔
+ * {@code @Version}이 없어 엔티티를 불러와 save()하면 나중 쓰기가 무조건 이기는데, SQL의 WHERE절이
+ * "먼저 끝난 결과를 덮어쓰지 마라"를 대신한다.
+ *
+ * <pre>
+ * 메서드                                  호출자          시점
+ * findNextUnclaimedProcessingForUpdate    Claim 서비스    폴링마다 (job 집기)
+ * findWithQueryAndUserById                Worker          claim 직후 (알림용 email)
+ * releaseAllClaimsOnStartup               Worker          기동 1회 (죽은 claim 복구)
+ * findByStatusAndCreatedAtBefore          Sweeper         15초마다 (90초 넘은 job 탐색)
+ * forceFailIfProcessing                   Sweeper+Worker  FAILED 확정
+ * completeSuccessIfProcessing             Worker          SUCCESS 확정
+ * </pre>
  */
 public interface RagResponseRepository extends JpaRepository<RagResponse, Long> {
 
     /**
-     * PROCESSING 중 아직 아무 Worker도 집지 않은(claim 안 된) 것 하나를 골라 행 잠금을 건다(#340).
-     * {@code claimed_at IS NULL} 조건이 "대기 중"과 "이미 처리 중"을 구분하는 유일한 신호다 —
-     * status만으로는 둘 다 PROCESSING이라 구분이 안 된다. {@code FOR UPDATE SKIP LOCKED}로
-     * 여러 Worker가 동시에 이 쿼리를 날려도 이미 잠긴 행은 건너뛰고 그다음 미잠금 행을 잡아온다.
-     * {@code created_at}이 같은 밀리초를 공유할 수 있는 동시 접수 상황을 대비해 {@code id}를
-     * 2차 정렬 기준으로 둔다. {@link RagResponseClaimService}가 이 메서드로 잠근 행을 같은 짧은
-     * 트랜잭션 안에서 즉시 {@link RagResponse#markClaimed}로 확정하고 커밋해, 락을 오래 들고
-     * 있지 않는다({@code embedding_jobs}의 claim 패턴과 동일).
+     * 대기 중인 job 중 가장 오래된 것 하나를 골라 행 잠금을 걸고 가져온다(#340). 절별 의미:
+     * <ul>
+     * <li>{@code status = 'PROCESSING' AND claimed_at IS NULL} — 둘이 합쳐져야 "대기 중"이다.
+     *     status만 보면 처리 중인 것도 잡히고, {@code claimed_at IS NULL}만 보면 끝난 것도 잡힌다.</li>
+     * <li>{@code ORDER BY created_at, id} — 먼저 온 것부터. 동시 접수로 {@code created_at}이 같은
+     *     밀리초일 수 있어 {@code id}로 순서를 확정한다.</li>
+     * <li>{@code FOR UPDATE} — 이 행에 쓰기 잠금. 트랜잭션이 끝날 때까지 다른 쪽은 못 건드린다.</li>
+     * <li>{@code SKIP LOCKED} — 다른 트랜잭션이 이미 잠근 행은 기다리지 말고 건너뛴다. 이게 없으면
+     *     두 번째 Worker는 첫 번째가 커밋할 때까지 대기했다가, 그때는 이미 claim된 뒤라 빈 결과를
+     *     받는다. 있으면 곧바로 그다음 미잠금 행을 잡는다.</li>
+     * </ul>
+     * JPQL은 {@code FOR UPDATE SKIP LOCKED}를 지원하지 않아 native SQL이다.
+     *
+     * <p>이 쿼리 혼자서는 소유권이 안 생긴다 — 잠금은 트랜잭션이 끝나면 풀리므로,
+     * {@link RagResponseClaimService}가 같은 짧은 트랜잭션 안에서 {@link RagResponse#markClaimed}로
+     * {@code claimed_at}을 채우고 커밋해야 그 뒤로도 다른 Worker가 못 집는다.
+     *
+     * <p>왜 잠금 없이 {@code claimed_at}만으로는 부족한가: 두 Worker가 정말 같은 순간에
+     * "1번 job의 claimed_at이 NULL이네"를 각자 확인하면, 그 확인 결과를 써서 UPDATE하려는
+     * 찰나에 둘 다 같은(NULL) 값을 본 상태라 둘 다 자기가 집은 줄 안다 — "확인하고 쓰는" 그
+     * 틈에 경합이 생긴다. {@code FOR UPDATE}는 그 틈에 한 트랜잭션만 행을 보게 만들어 이
+     * 경합을 원천 차단하고, {@code claimed_at}은 잠금이 풀린 뒤의 장기 소유권 표시를 맡는다.
      */
     @Query(value = """
         SELECT * FROM rag_responses
@@ -104,7 +138,12 @@ public interface RagResponseRepository extends JpaRepository<RagResponse, Long> 
     /**
      * 주어진 상태(보통 PROCESSING)로 threshold 이전부터 남아있는 job들을 찾는다 —
      * RagJobTimeoutSweeper가 "얼마나 오래 대기 중인지"를 별도 컬럼 없이 {@code createdAt}
-     * 기준으로 판단할 때 쓴다. {@link EntityGraph}로 {@code query}/{@code query.user}를 미리
+     * 기준으로 판단할 때 쓴다. {@code threshold}는 시각 하나(예: "지금-90초")이고,
+     * {@code created_at < threshold}(생성 시각이 그보다 이전)는 "생성된 지 90초보다 더
+     * 지났다"와 같은 뜻이다 — threshold 자체가 "정확히 90초 전 시점"이라, 그보다 더 과거에
+     * 생성된 job은 전부 경과 시간이 90초를 넘긴 것이다. {@code claimed_at} 여부는 보지 않는다
+     * — 아직 아무 Worker도 안 집은 job도 접수 후 threshold가 지나면 대상이 된다(큐 대기 시간
+     * + 실행 시간 합산). {@link EntityGraph}로 {@code query}/{@code query.user}를 미리
      * fetch하는 이유는 {@code findFirstByStatusOrderByCreatedAtAsc}와 동일하다 — 스위퍼도
      * WebSocket 알림을 보내려면 트랜잭션 밖에서 {@code query.user.email}에 접근해야 한다.
      */
@@ -112,24 +151,19 @@ public interface RagResponseRepository extends JpaRepository<RagResponse, Long> 
     List<RagResponse> findByStatusAndCreatedAtBefore(ResultStatus status, LocalDateTime threshold);
 
     /**
-     * PROCESSING 상태인 job을 FAILED로 강제 종료한다. {@code WHERE ... AND status = PROCESSING}
-     * 조건 덕분에, 이 UPDATE가 실행되는 순간 RagJobWorker가 이미 다른 트랜잭션에서 이 job을
-     * SUCCESS/FAILED로 먼저 확정했다면 영향받은 행이 0건이 된다 — 이 저장소엔 {@code @Version}
-     * 필드가 없어 엔티티를 그대로 불러와 save()하면 나중 쓰기가 그냥 이기는데, 그 대신 이 조건부
-     * UPDATE로 "이미 끝난 job을 덮어쓰는" 경합을 막는다. 반환값(영향받은 행 수)으로 호출자가
-     * 실제로 강제 종료가 일어났는지 판단한다.
+     * 아직 PROCESSING일 때만 FAILED로 확정한다. 핵심은 {@code WHERE id = ? AND status = PROCESSING}
+     * — id만 있으면 무조건 덮어쓰지만, status 조건이 붙어 "누가 먼저 끝냈으면 아무것도 하지 마라"가
+     * 된다. 반환값이 영향받은 행 수라 1이면 내가 확정한 것, 0이면 이미 끝나 있어 건너뛴 것이다.
+     * 호출자는 이 값으로 WebSocket 알림을 보낼지 결정한다.
      *
-     * <p>{@code RagJobTimeoutSweeper}뿐 아니라 {@code RagResponseCommandService.completeFailed()}
-     * (RagJobWorker가 Ollama 호출 실패를 처리하는 정상 경로)도 이 메서드를 그대로 재사용한다 —
-     * 둘 다 "PROCESSING인 job을 FAILED + 문구로 확정한다"는 동일한 SQL이 필요하고, 반대로
-     * RagJobTimeoutSweeper가 먼저 이 job을 확정해버렸다면 RagJobWorker 쪽 시도도 똑같이
-     * 무시돼야 하기 때문이다(#288).
+     * <p>호출자는 둘이다 — RagJobTimeoutSweeper의 타임아웃 강제 종료와, Worker의 Ollama 호출 실패
+     * 처리({@code RagResponseCommandService.completeFailed}). SQL 모양이 같아 공유하며, 어느 쪽이
+     * 먼저 끝냈든 나중 쪽은 똑같이 무시돼야 하기 때문이기도 하다(#288).
      *
-     * <p>{@code clearAutomatically}: 벌크 UPDATE는 영속성 컨텍스트를 거치지 않고 DB에 직접
-     * 실행되므로, 같은 트랜잭션에서 이 job 엔티티를 이미 로딩해둔 상태라면 그 캐시된 인스턴스가
-     * 여전히 갱신 전 값을 들고 있다 — 이후 같은 트랜잭션에서 다시 조회해도 DB가 아니라 그 캐시를
-     * 돌려줘 최신 상태를 못 본다. {@code clearAutomatically = true}로 UPDATE 직후 영속성
-     * 컨텍스트를 비워 이 문제를 막는다.
+     * <p>{@code clearAutomatically = true}: 벌크 UPDATE는 영속성 컨텍스트(1차 캐시)를 거치지 않고
+     * DB로 바로 간다. 같은 트랜잭션에서 이 엔티티를 이미 읽어 뒀다면 캐시엔 옛 값이 남고, 그 뒤
+     * {@code findById}는 DB가 아니라 캐시를 돌려줘 갱신 전 값을 본다. UPDATE 직후 캐시를 비워 이를
+     * 막는다(#286 테스트에서 실제로 걸렸던 문제).
      */
     @Modifying(clearAutomatically = true)
     @Query("UPDATE RagResponse r SET r.status = com.opensource.docgrid.domain.search.enums.ResultStatus.FAILED, "
@@ -139,11 +173,12 @@ public interface RagResponseRepository extends JpaRepository<RagResponse, Long> 
                                @Param("errorMessage") String errorMessage);
 
     /**
-     * PROCESSING 상태인 job을 SUCCESS + 생성 결과로 확정한다. {@link #forceFailIfProcessing}과
-     * 대칭되는 목적이다 — RagJobTimeoutSweeper가 이 job을 먼저 FAILED로 강제 종료했다면,
-     * RagJobWorker의 뒤늦은 정상 완료 시도가 그 결과를 조건 없이 덮어써버리는 경합(#288)을
-     * 막는다. {@code WHERE ... AND status = PROCESSING} 조건 덕분에, 스위퍼가 먼저 확정해
-     * 이 UPDATE 시점에 status가 이미 FAILED라면 영향받은 행이 0건이 된다.
+     * 아직 PROCESSING일 때만 SUCCESS + 생성 결과로 확정한다. {@link #forceFailIfProcessing}의 반대
+     * 방향 — 스위퍼가 먼저 FAILED로 끝낸 job을 Worker의 뒤늦은 정상 완료가 덮어쓰는 경합(#288)을
+     * 막는다. 0건이면 호출자(RagFacade.processJob)는 citation 저장도 건너뛴다.
+     *
+     * <p>SET 절의 5개 필드가 완료 시 채우는 전부다 — 옛 {@code markSuccess()}가 하던 일을 SQL이
+     * 대신한다. {@code claimed_at}은 건드리지 않아 완료 뒤에도 "언제 집혔는지"가 남는다.
      */
     @Modifying(clearAutomatically = true)
     @Query("UPDATE RagResponse r SET r.status = com.opensource.docgrid.domain.search.enums.ResultStatus.SUCCESS, "
