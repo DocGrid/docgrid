@@ -57,9 +57,11 @@ public class RagResponse extends BaseEntity {
     @JoinColumn(name = "query_id", nullable = false)
     private SearchQuery query;
 
-    // PROCESSING 상태로 처음 저장될 때는 아직 값이 없다 — Worker의 정상 완료(completeSuccess/
-    // completeFailed) 또는 RagJobTimeoutSweeper의 강제 종료(forceFailIfProcessing) 중 먼저
-    // 확정되는 쪽이 채운다.
+    /**
+     * PROCESSING 상태로 처음 저장될 때는 아직 값이 없다 — Worker의 정상 완료(completeSuccess/
+     * completeFailed) 또는 RagJobTimeoutSweeper의 강제 종료(forceFailIfProcessing) 중 먼저
+     * 확정되는 쪽이 채운다.
+     */
     @Column(name = "answer_text", columnDefinition = "TEXT")
     private String answerText;
 
@@ -90,9 +92,11 @@ public class RagResponse extends BaseEntity {
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    // 병렬 Worker가 이 job을 이미 집었는지 표시한다(#340). status만으로는 "대기 중"과 "누가 이미
-    // 처리 중"을 구분할 수 없어서(둘 다 PROCESSING) 별도로 둔다. RagResponseClaimService의 짧은
-    // claim 트랜잭션 안에서만 채워지며, 그 밖의 완료 확정 경로(조건부 UPDATE)는 이 컬럼을 건드리지 않는다.
+    /**
+     * 병렬 Worker가 이 job을 이미 집었는지 표시한다(#340). status만으로는 "대기 중"과 "누가 이미
+     * 처리 중"을 구분할 수 없어서(둘 다 PROCESSING) 별도로 둔다. RagResponseClaimService의 짧은
+     * claim 트랜잭션 안에서만 채워지며, 그 밖의 완료 확정 경로(조건부 UPDATE)는 이 컬럼을 건드리지 않는다.
+     */
     @Column(name = "claimed_at")
     private LocalDateTime claimedAt;
 

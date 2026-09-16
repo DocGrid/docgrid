@@ -51,6 +51,10 @@ public class RagJobTimeoutSweeper {
      */
     @Scheduled(fixedDelayString = "${rag.worker.timeout-sweep-interval:15s}")
     public void sweep() {
+        /**
+         * cutoff는 "정확히 staleThreshold(90초) 전 시점" 하나다 — created_at이 이보다 이전인
+         * job은 곧 생성된 지 90초보다 더 지났다는 뜻이라, 아래 쿼리는 그런 job을 전부 찾는다.
+         */
         LocalDateTime cutoff = LocalDateTime.now().minus(staleThreshold);
         List<RagResponse> staleJobs =
             ragResponseRepository.findByStatusAndCreatedAtBefore(ResultStatus.PROCESSING, cutoff);

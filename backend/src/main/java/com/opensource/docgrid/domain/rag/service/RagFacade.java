@@ -36,9 +36,14 @@ import lombok.extern.slf4j.Slf4j;
  * <pre>
  * 1. enqueue()  — SearchController가 검색 직후 동기 호출. 프롬프트만 조립해 PROCESSING으로 저장하고
  *                 즉시 반환한다(LLM 호출 없음). candidates가 비어있으면(NO_CONTEXT) 여기서 바로 끝난다.
- * 2. processJob() — RagJobWorker가 PROCESSING row를 하나씩 꺼내 호출. 실제 OllamaClient 호출과
- *                    결과 영속화(rag_responses, response_citations)를 담당한다.
+ * 2. processJob() — RagJobWorker가 PROCESSING row를 하나 claim할 때마다 호출. 실제 OllamaClient
+ *                    호출과 결과 영속화(rag_responses, response_citations)를 담당한다.
  * </pre>
+ *
+ * <p>이 클래스 자체엔 동시성 조율 코드가 없다 — "몇 건을 동시에 처리할지"는 RagJobWorker와
+ * {@code RagExecutionConfig}가 정한다(#340). 대신 RagJobWorker의 스레드 여러 개가 서로 다른
+ * jobId로 {@link #processJob}을 동시에 부를 수 있다는 전제로 짜여 있다 — 인스턴스 필드를
+ * 바꾸는 코드가 없고, 결과가 이미 다른 경로(스위퍼)에 뺏겼으면 boolean으로 조용히 물러난다.
  *
  * <p>SearchFacade와 별도 트랜잭션으로 분리되어 있다(SearchController가 순차 호출) — 검색 DB 작업이
  * enqueue()의 짧은 DB 작업과 하나의 커넥션을 오래 물고 있지 않도록 하기 위함이다.
@@ -49,29 +54,28 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RagFacade {
 
-    /*
-     * LLM_FALLBACK_PREFIX          — Ollama 호출 실패 시 최상위 검색 후보 원문을 인용하며 붙이는
-     *                                안내 문구(buildExtractiveFallbackAnswer 참고).
-     * UNEXPECTED_FAILURE_ANSWER_TEXT — processJob() 내부에서 예상 못한 예외(버그 등)로 실패했을
-     *                                때 쓰는 최소 안내 문구. extractive fallback과 달리 candidates를
-     *                                다시 불러오지 않는다 — 이미 한 번 예상 밖으로 실패한 상황에서
-     *                                추가 조회를 시도하다 또 실패할 위험을 만들지 않기 위함이다
-     *                                (RagJobWorker 참고).
-     * FALLBACK_EXCERPT_MAX_CODE_POINTS(300) — fallback 문구에 원문을 통째로 붙이면 답변이
-     *                                지나치게 길어져, 미리보기 수준으로만 잘라 보여준다.
-     * MAX_PROMPT_CANDIDATES(3)    — topK는 호출자가 1~20까지 자유롭게 요청할 수 있어
-     *                                (SearchRequest), 후보 수를 그대로 프롬프트에 다 넣으면
-     *                                prefill 시간이 예측 불가능해진다(#210). 검색 결과 수(topK)와
-     *                                별개로 프롬프트와 정상 답변 citation 모두 상위 후보를 이 값까지
-     *                                제한해, LLM에 제공하지 않은 후보가 출처로 추가되지 않게 한다.
-     * NO_RELEVANT_DOC_PHRASE       — PromptBuilder가 LLM에게 무관한 문서일 때 이 문구로만 답하도록
-     *                                지시한다(#65 INSTRUCTION 참고). 검색은 됐지만(candidates 존재)
-     *                                LLM이 무관하다고 판단한 경우, 화면에 근거 문서를 같이 보여주면
-     *                                안내 문구와 모순돼 보인다.
-     * TIMEOUT_ERROR_MESSAGE        — RagJobTimeoutSweeper가 너무 오래 PROCESSING으로 남은 job을
-     *                                강제 종료할 때 error_message에 남기는 문구(#286). Ollama
-     *                                예외 메시지와 구분해, 나중에 로그/DB로 "진짜 실패"와 "큐
-     *                                적체로 인한 강제 종료"를 구분할 수 있게 한다.
+    /**
+     * 상수 7개 요약:
+     * <ul>
+     * <li>{@link #LLM_FALLBACK_PREFIX} — Ollama 호출 실패 시 최상위 검색 후보 원문을 인용하며
+     *     붙이는 안내 문구 앞부분.</li>
+     * <li>{@link #UNEXPECTED_FAILURE_ANSWER_TEXT} — 예상 못한 예외로 실패했을 때 쓰는 최소
+     *     안내 문구. extractive fallback과 달리 candidates를 다시 안 불러온다 — 이미 예상 밖
+     *     으로 실패한 상황에서 추가 조회로 또 실패할 위험을 만들지 않기 위함.</li>
+     * <li>{@link #FALLBACK_EXCERPT_MAX_CODE_POINTS}(300) — fallback 문구에 원문을 통째로 안
+     *     붙이고 미리보기 수준으로만 자르는 글자 수 상한.</li>
+     * <li>{@link #MAX_PROMPT_CANDIDATES}(3) — 프롬프트·citation에 쓸 검색 후보 상한(#210).
+     *     topK는 1~20까지 자유롭게 요청되는데 그대로 다 넣으면 prefill 시간이 예측 불가능해진다
+     *     — LLM에 주지 않은 후보가 출처로 나오지 않도록 프롬프트와 citation 모두 이 값까지만
+     *     쓴다.</li>
+     * <li>{@link #MAX_CONVERSATION_CONTEXT_TURNS}(3) — 프롬프트에 넣을 이전 대화 턴 수 상한.</li>
+     * <li>{@link #NO_RELEVANT_DOC_PHRASE} — PromptBuilder가 무관한 문서일 때 이 문구로만
+     *     답하도록 지시한 것과 동일한 문자열(#65). 답변이 이 문구로 시작하면 근거 문서를
+     *     화면에 같이 보여주지 않는다.</li>
+     * <li>{@link #TIMEOUT_ERROR_MESSAGE} — RagJobTimeoutSweeper가 강제 종료할 때 남기는
+     *     error_message(#286). Ollama 예외 메시지와 구분해 "진짜 실패"와 "큐 적체로 인한
+     *     강제 종료"를 나중에 구분할 수 있게 한다.</li>
+     * </ul>
      */
     private static final String LLM_FALLBACK_PREFIX = "AI 답변 생성이 지연되고 있습니다. "
         + "가장 관련도 높은 문서에서 다음 내용을 찾았습니다:\n\n";
@@ -152,9 +156,9 @@ public class RagFacade {
      * 반환하고 Ollama를 아예 호출하지 않는다 — RagJobWorker가 이 job을 집어든 뒤, 여기서
      * {@code findById}로 다시 읽기 전에 RagJobTimeoutSweeper가 먼저 강제 종료했을 수 있다.
      * 이 조기 반환이 없으면 이미 끝난 job에도 Ollama 호출(수십 초)을 그대로 낭비하게 되는데,
-     * Worker/GPU가 1개뿐이라 그 시간만큼 뒤에 대기 중인 다른 job까지 더 늦어진다 — 아래
-     * completeSuccess/completeFailed의 조건부 UPDATE는 이 조기 체크 "이후"에 벌어지는 경합(더
-     * 좁은 창)까지 막아주는 최종 방어선이다.
+     * Worker 슬롯이 {@code rag.worker.max-concurrency}개뿐이라(#340) 그 슬롯 하나가 낭비되는
+     * 동안 전체 동시 처리량이 그만큼 줄어든다 — 아래 completeSuccess/completeFailed의 조건부
+     * UPDATE는 이 조기 체크 "이후"에 벌어지는 경합(더 좁은 창)까지 막아주는 최종 방어선이다.
      */
     public boolean processJob(Long jobId) {
         RagResponse job = ragResponseRepository.findById(jobId)
@@ -168,9 +172,11 @@ public class RagFacade {
         try {
             result = ollamaClient.generate(job.getPromptText());
         } catch (DocGridException e) {
-            // LLM 장애가 권한 검증을 통과한 벡터 검색 결과까지 숨기지 않도록, 최상위 후보 원문을
-            // 그대로 인용해 최소한의 답을 제공한다(extractive fallback). 이 fallback은 비동기 전환
-            // 이전과 달리 rag_responses에 그대로 영속화된다 — 나중에 GET/조회로 이 값을 그대로 돌려준다.
+            /**
+             * LLM 장애가 권한 검증을 통과한 벡터 검색 결과까지 숨기지 않도록, 최상위 후보 원문을
+             * 그대로 인용해 최소한의 답을 제공한다(extractive fallback). 이 fallback은 비동기 전환
+             * 이전과 달리 rag_responses에 그대로 영속화된다 — 나중에 GET/조회로 이 값을 그대로 돌려준다.
+             */
             List<VectorSearchCandidate> candidates = loadCandidates(queryId);
             String fallbackAnswer = candidates.isEmpty() ? e.getErrorCode().getMessage()
                 : buildExtractiveFallbackAnswer(candidates);
@@ -184,12 +190,14 @@ public class RagFacade {
             return completed;
         }
 
-        // LLM이 무관하다고 판단해 안내 문구로만 답했으면, 근거 문서를 같이 보여주지 않는다. 단, 7B
-        // 모델이 정상 답변을 끝낸 뒤 지시문을 메아리처럼 이 문구를 덧붙이는 패턴이 관찰됨 — 문구가
-        // 답변의 사실상 전부(맨 앞)일 때만 무관으로 취급하고, 정상 답변 중간에 박힌 문구는 그
-        // 지점부터 잘라내고 근거 문서는 유지한다. 잘라낸 결과를 그대로 영속화해야 GET 조회 시
-        // 사용자에게 보이는 값과 DB 값이 일치한다(동기 시절엔 반환값에만 트리밍이 적용되고 DB엔
-        // 원문이 남았는데, 비동기에서는 이 row가 유일한 진실 소스라 그대로 두면 안 된다).
+        /**
+         * LLM이 무관하다고 판단해 안내 문구로만 답했으면, 근거 문서를 같이 보여주지 않는다. 단, 7B
+         * 모델이 정상 답변을 끝낸 뒤 지시문을 메아리처럼 이 문구를 덧붙이는 패턴이 관찰됨 — 문구가
+         * 답변의 사실상 전부(맨 앞)일 때만 무관으로 취급하고, 정상 답변 중간에 박힌 문구는 그
+         * 지점부터 잘라내고 근거 문서는 유지한다. 잘라낸 결과를 그대로 영속화해야 GET 조회 시
+         * 사용자에게 보이는 값과 DB 값이 일치한다(동기 시절엔 반환값에만 트리밍이 적용되고 DB엔
+         * 원문이 남았는데, 비동기에서는 이 row가 유일한 진실 소스라 그대로 두면 안 된다).
+         */
         String answerText = result.answerText();
         boolean noRelevant = false;
         int phraseIndex = answerText != null ? answerText.indexOf(NO_RELEVANT_DOC_PHRASE) : -1;
@@ -207,8 +215,10 @@ public class RagFacade {
             result.model(), answerText, result.inputTokenCount(), result.outputTokenCount(), result.latencyMs()
         ));
         if (!completed) {
-            // RagJobTimeoutSweeper가 이 job을 이미 FAILED로 강제 종료한 뒤라는 뜻이다 — 방금
-            // 만든 답변은 이미 아무도 안 볼 결과라, citation 저장도 하지 않고 그대로 물러난다.
+            /**
+             * RagJobTimeoutSweeper가 이 job을 이미 FAILED로 강제 종료한 뒤라는 뜻이다 — 방금
+             * 만든 답변은 이미 아무도 안 볼 결과라, citation 저장도 하지 않고 그대로 물러난다.
+             */
             log.info("[RAG] job이 이미 timeout으로 종료됨(경합), 완료 결과 반영 안 함 queryId={} responseId={}",
                 queryId, job.getId());
             return false;
@@ -229,9 +239,11 @@ public class RagFacade {
         }
         // 답변과 citation 저장이 모두 끝난 동일 Transaction의 커밋 이후 성공 Counter를 기록한다.
         applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.SUCCESS));
-        // promptTokens/answerTokens을 함께 남겨, 느린 job이 프롬프트를 읽느라(prefill) 오래 걸린 건지
-        // 답변을 쓰느라(decode) 오래 걸린 건지 로그만으로 구분할 수 있게 한다 — 병렬화(#340) 이후
-        // 요청당 작업량을 어느 쪽부터 줄여야 할지 판단하는 근거 자료.
+        /**
+         * promptTokens/answerTokens을 함께 남겨, 느린 job이 프롬프트를 읽느라(prefill) 오래 걸린 건지
+         * 답변을 쓰느라(decode) 오래 걸린 건지 로그만으로 구분할 수 있게 한다 — 병렬화(#340) 이후
+         * 요청당 작업량을 어느 쪽부터 줄여야 할지 판단하는 근거 자료.
+         */
         log.info("[RAG] done queryId={} responseId={} latencyMs={} promptTokens={} answerTokens={}",
             queryId, job.getId(), result.latencyMs(), result.inputTokenCount(), result.outputTokenCount());
         return true;

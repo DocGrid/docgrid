@@ -88,6 +88,12 @@ public class RagJobWorker {
      * 1초마다 실행되어, 로컬 슬롯이 남아있는 한 PROCESSING job을 계속 claim해 전용 Executor에
      * 넘긴다. 슬롯이 없거나(이미 정원만큼 처리 중) 대기 중인 job이 없으면 그 자리에서 멈춘다.
      *
+     * <p>이 메서드 자체는 기다리는 코드가 없다 — claim 한 번은 수 ms 안에 끝나고, 실제 Ollama
+     * 호출(수십 초)은 {@link #executeClaimedJob}으로 넘겨 이 메서드는 곧바로 다음 슬롯을 보러
+     * 돌아간다. {@code tryAcquire()}를 {@code claimNext()}보다 먼저 부르는 순서도 이 때문에
+     * 중요하다 — 순서가 바뀌면 "DB엔 claim됐다고 적혔는데 넘길 스레드가 없는" 유령 job이
+     * 생긴다(클래스 Javadoc 참고).
+     *
      * <p>{@code while (tryAcquire())}만으로 반복 횟수 상한이 자동으로 걸린다 — Semaphore의 총
      * permit 수가 이미 {@code max-concurrency}와 같아서, 별도 카운터 변수 없이도 이 루프가
      * {@code max-concurrency}번보다 더 돌 수 없다.
@@ -114,8 +120,10 @@ public class RagJobWorker {
             try {
                 ragWorkerJobExecutor.execute(() -> executeClaimedJob(jobId));
             } catch (RejectedExecutionException e) {
-                // 슬롯을 먼저 확보했으므로 이론상 도달하지 않아야 하지만(Executor 정원 =
-                // Semaphore 총 permit 수), 종료 절차 중 등 극단적 상황에 대비한 방어다.
+                /**
+                 * 슬롯을 먼저 확보했으므로 이론상 도달하지 않아야 하지만(Executor 정원 =
+                 * Semaphore 총 permit 수), 종료 절차 중 등 극단적 상황에 대비한 방어다.
+                 */
                 ragWorkerSlots.release();
                 log.warn("[RAG-WORKER] 실행 제출이 거부됨 jobId={}", jobId);
                 return;
@@ -144,8 +152,10 @@ public class RagJobWorker {
         try {
             RagResponse job = ragResponseRepository.findWithQueryAndUserById(jobId).orElse(null);
             if (job == null) {
-                // claim 직후 이 job이 통째로 사라지는 건 극단적 상황(예: 테스트 데이터 정리)에서만
-                // 가능하다 — processJob() 자신도 findById로 다시 조회하므로 여기서는 방어만 한다.
+                /**
+                 * claim 직후 이 job이 통째로 사라지는 건 극단적 상황(예: 테스트 데이터 정리)에서만
+                 * 가능하다 — processJob() 자신도 findById로 다시 조회하므로 여기서는 방어만 한다.
+                 */
                 log.error("[RAG-WORKER] claim된 job을 찾을 수 없음 jobId={}", jobId);
                 return;
             }
