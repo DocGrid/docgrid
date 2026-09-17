@@ -72,8 +72,10 @@ public class DocGridMcpTools {
         this.permissionQueryService = permissionQueryService;
         this.documentQueryService = documentQueryService;
         this.rateLimiter = rateLimiter;
-        // 1. MCP 응답은 null 필드를 제외한다. 앱 전체가 공유하는 ObjectMapper Bean을 직접 바꾸면
-        // 다른 REST API 응답에도 영향을 주므로, 이 클래스 전용 복사본에만 설정을 적용한다.
+        /*
+         * 1. MCP 응답은 null 필드를 제외한다. 앱 전체가 공유하는 ObjectMapper Bean을 직접 바꾸면
+         * 다른 REST API 응답에도 영향을 주므로, 이 클래스 전용 복사본에만 설정을 적용한다.
+         */
         this.objectMapper = objectMapper.copy().setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
     }
 
@@ -84,8 +86,10 @@ public class DocGridMcpTools {
             @McpToolParam(description = "검색어", required = true) String query,
             @McpToolParam(description = "반환할 최대 결과 수 (기본 5, 1~20)", required = false) Integer topK) {
 
-        // 1. SDK는 required(필수값)를 강제하지 않음이 실측으로 확인됨 (query=null로 그대로 호출됨)
-        // → null/blank 여부와 비즈니스 규칙(길이/범위)을 전부 여기서 직접 검증한다
+        /*
+         * 1. SDK는 required(필수값)를 강제하지 않음이 실측으로 확인됨 (query=null로 그대로 호출됨)
+         * → null/blank 여부와 비즈니스 규칙(길이/범위)을 전부 여기서 직접 검증한다
+         */
         validateSearchInput(query, topK);
 
         // 2. 공통 인증·호출 제한·예외 변환 안에서 기존 권한 적용 검색 흐름을 실행한다.
@@ -111,14 +115,18 @@ public class DocGridMcpTools {
                 throw new DocGridException(ErrorCode.PERMISSION_DENIED);
             }
 
-            // 4. title/status/currentVersion/updatedAt은 Document 엔티티에 이미 있어 직접 사용한다.
-            // currentVersion은 LAZY라 OSIV가 꺼진 /mcp 경로에서는 findById만 쓰면 트랜잭션
-            // 종료 후 LazyInitializationException이 나므로 JOIN FETCH 쿼리를 사용한다.
+            /*
+             * 4. title/status/currentVersion/updatedAt은 Document 엔티티에 이미 있어 직접 사용한다.
+             * currentVersion은 LAZY라 OSIV가 꺼진 /mcp 경로에서는 findById만 쓰면 트랜잭션
+             * 종료 후 LazyInitializationException이 나므로 JOIN FETCH 쿼리를 사용한다.
+             */
             Document document = documentRepository.findByIdWithCurrentVersion(documentId)
                     .orElseThrow(() -> new DocGridException(ErrorCode.DOCUMENT_NOT_FOUND));
 
-            // 5. 소프트 삭제된 문서는 존재하지 않는 것과 동일하게 취급한다 — get_indexing_status가
-            // 위임하는 DocumentQueryService.getDocumentStatus()와 동일한 처리.
+            /*
+             * 5. 소프트 삭제된 문서는 존재하지 않는 것과 동일하게 취급한다 — get_indexing_status가
+             * 위임하는 DocumentQueryService.getDocumentStatus()와 동일한 처리.
+             */
             if (document.getStatus() == DocumentStatus.DELETED) {
                 throw new DocGridException(ErrorCode.DOCUMENT_NOT_FOUND);
             }

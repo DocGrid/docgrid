@@ -77,9 +77,11 @@ public class SecurityConfig {
                 .authenticationEntryPoint(restAuthenticationEntryPoint)
                 .accessDeniedHandler(restAccessDeniedHandler)
             )
-            // UsernamePasswordAuthenticationFilter는 폼 로그인용이라 실제로는 안 쓰지만, addFilterBefore(A, B.class)가
-            // "A를 B보다 앞자리에 꽂아라"는 뜻이라 위치 기준점(앵커)으로만 재사용한다 — 이 필터 앞에 꽂아야
-            // 두 인증 필터가 authorizeHttpRequests의 최종 인가 판정보다 먼저 실행돼 SecurityContext를 채울 수 있다.
+            /*
+             * UsernamePasswordAuthenticationFilter는 폼 로그인용이라 실제로는 안 쓰지만, addFilterBefore(A, B.class)가
+             * "A를 B보다 앞자리에 꽂아라"는 뜻이라 위치 기준점(앵커)으로만 재사용한다 — 이 필터 앞에 꽂아야
+             * 두 인증 필터가 authorizeHttpRequests의 최종 인가 판정보다 먼저 실행돼 SecurityContext를 채울 수 있다.
+             */
             .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenBlacklistService, roleAuthorityService), UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(new McpApiKeyAuthFilter(mcpAccessTokenCommandService), UsernamePasswordAuthenticationFilter.class);
         return http.build();
