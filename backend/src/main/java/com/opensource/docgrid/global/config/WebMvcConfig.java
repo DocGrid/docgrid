@@ -53,8 +53,17 @@ public class WebMvcConfig implements WebMvcConfigurer {
         }
         OpenEntityManagerInViewInterceptor interceptor = new OpenEntityManagerInViewInterceptor();
         interceptor.setEntityManagerFactory(entityManagerFactory);
-        // McpApiKeyAuthFilter가 판단하는 /mcp 경로와 동일한 상수를 참조해 두 곳이
-        // 서로 다른 경로 문자열로 어긋나지 않게 한다.
+        /*
+         * addWebRequestInterceptor()로 이 OSIV 인터셉터를 모든 경로에 등록하되,
+         * excludePathPatterns()로 /mcp 하나만 등록 대상에서 뺀다 — application.yml의
+         * spring.jpa.open-in-view=false로 전역으로 꺼둔 OSIV를, /mcp를 제외한 나머지
+         * 경로에서만 이 줄이 다시 켜주는 셈이다(클래스 Javadoc 참고, #120).
+         *
+         * "/mcp"라는 경로 문자열을 여기 직접 적지 않고 McpApiKeyAuthFilter.MCP_ENDPOINT
+         * 상수를 그대로 참조하는 이유: 그 필터도 동일한 "/mcp" 문자열로 자기 담당 경로를
+         * 판단하는데, 두 파일에 각각 "/mcp"를 따로 적어두면 나중에 경로가 바뀔 때 한쪽만
+         * 고치는 실수로 두 곳이 어긋날 수 있다. 상수 하나를 공유해 그 위험을 없앤다.
+         */
         registry.addWebRequestInterceptor(interceptor).excludePathPatterns(McpApiKeyAuthFilter.MCP_ENDPOINT);
     }
 }

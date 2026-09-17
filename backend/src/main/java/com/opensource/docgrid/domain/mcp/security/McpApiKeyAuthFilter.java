@@ -37,10 +37,13 @@ public class McpApiKeyAuthFilter extends OncePerRequestFilter {
 
     private final McpAccessTokenCommandService mcpAccessTokenCommandService;
 
-    // MCP Streamable HTTP는 응답을 비동기 재디스패치로 처리한다. SecurityContextHolder에만
-    // 세팅하면 그 스레드가 끝나는 순간 사라져서, 재디스패치 시점에 SecurityContextHolderFilter가
-    // 빈 컨텍스트를 다시 로드해 AuthorizationDeniedException이 발생한다. 요청 attribute에
-    // 명시적으로 저장해 재디스패치에서도 같은 인증 정보를 복원할 수 있게 한다.
+    /**
+     * MCP Streamable HTTP는 응답을 비동기 재디스패치로 처리한다. {@link SecurityContextHolder}에만
+     * 세팅하면 그 스레드가 끝나는 순간 인증 정보가 사라져서, 재디스패치 시점에
+     * {@code SecurityContextHolderFilter}가 빈 컨텍스트를 다시 로드해
+     * {@code AuthorizationDeniedException}이 발생한다. 요청(request) attribute에 명시적으로
+     * 저장해 재디스패치에서도 같은 인증 정보를 복원할 수 있게 한다.
+     */
     private final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
 
     @Override
@@ -53,14 +56,16 @@ public class McpApiKeyAuthFilter extends OncePerRequestFilter {
         HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
 
-        String token = resolveToken(request); // 토큰 추출
+        String token = resolveToken(request); // "Authorization: Bearer {토큰}" 헤더에서 토큰 값만 추출
         if (StringUtils.hasText(token)) {
             Optional<Long> userId = mcpAccessTokenCommandService.authenticate(token);
             userId.ifPresent(id -> {
-                // principal에는 JWT 필터처럼 userId를 바로 넣지 않고 고정 문자열("mcp-client")만
-                // 넣는다 — API 키엔 email 같은 신원 표시값이 없어서다. 진짜 userId는 details에
-                // 저장하므로, 도구 핸들러에서 사용자를 식별할 땐 getPrincipal()이 아니라
-                // getDetails()를 써야 한다.
+                /*
+                 * principal에는 JWT 필터처럼 userId를 바로 넣지 않고 고정 문자열("mcp-client")만
+                 * 넣는다 — API 키엔 email 같은 신원 표시값이 없어서다. 진짜 userId는 details에
+                 * 저장하므로, 도구 핸들러에서 사용자를 식별할 땐 getPrincipal()이 아니라
+                 * getDetails()를 써야 한다.
+                 */
                 UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken("mcp-client", null, List.of());
                 authentication.setDetails(id);
@@ -71,8 +76,10 @@ public class McpApiKeyAuthFilter extends OncePerRequestFilter {
             });
         }
 
-        // 인증 실패(SecurityContext가 비어있음)의 최종 차단은 이 필터가 아니라 SecurityConfig의
-        // anyRequest().authenticated() + RestAuthenticationEntryPoint가 401로 응답한다.
+        /*
+         * 인증 실패(SecurityContext가 비어있음)의 최종 차단은 이 필터가 아니라 SecurityConfig의
+         * anyRequest().authenticated() + RestAuthenticationEntryPoint가 401로 응답한다.
+         */
         filterChain.doFilter(request, response);
     }
 
