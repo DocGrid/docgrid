@@ -7,6 +7,8 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,6 +65,30 @@ class LocalFileStorageServiceTest {
         storageService.delete(storedFile);
 
         assertThat(temporaryRoot.resolve(storedFile.objectKey())).doesNotExist();
+    }
+
+    @Test
+    @DisplayName("접두사 아래 일반 파일만 논리 Object Metadata로 조회한다")
+    void streamObjects_listsFilesUnderPrefix() throws Exception {
+        Path document = temporaryRoot.resolve("documents/a/source.txt");
+        Path outside = temporaryRoot.resolve("other/ignored.txt");
+        Files.createDirectories(document.getParent());
+        Files.createDirectories(outside.getParent());
+        Files.writeString(document, "source");
+        Files.writeString(outside, "ignored");
+        Instant modifiedAt = Instant.parse("2026-09-18T00:00:00Z");
+        Files.setLastModifiedTime(document, java.nio.file.attribute.FileTime.from(modifiedAt));
+
+        List<StorageObjectMetadata> result;
+        try (var objects = storageService.streamObjects("documents/", 100)) {
+            result = objects.toList();
+        }
+
+        assertThat(result).containsExactly(new StorageObjectMetadata(
+            new StoredFile(StorageProvider.LOCAL, BUCKET, "documents/a/source.txt"),
+            6L,
+            modifiedAt
+        ));
     }
 
     @Test

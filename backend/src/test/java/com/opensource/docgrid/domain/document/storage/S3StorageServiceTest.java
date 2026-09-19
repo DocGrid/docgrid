@@ -9,6 +9,8 @@ import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,9 +29,13 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 /**
  * AWS S3 Adapter의 Object 위치 전달과 SDK 오류 변환 계약을 검증한다.
@@ -103,6 +109,36 @@ class S3StorageServiceTest {
         assertThat(result).isEqualTo(content);
         assertThat(requestCaptor.getValue().bucket()).isEqualTo(STORED_FILE.bucketName());
         assertThat(requestCaptor.getValue().key()).isEqualTo(STORED_FILE.objectKey());
+    }
+
+    @Test
+    @DisplayName("접두사와 Page 크기로 S3 Object Metadata를 조회한다")
+    void streamObjects_listsMetadataWithConfiguredScope() {
+        Instant modifiedAt = Instant.parse("2026-09-18T00:00:00Z");
+        S3Object item = S3Object.builder()
+            .key("documents/a/source.pdf")
+            .size(37L)
+            .lastModified(modifiedAt)
+            .build();
+        ArgumentCaptor<ListObjectsV2Request> requestCaptor = ArgumentCaptor.forClass(ListObjectsV2Request.class);
+        given(s3Client.listObjectsV2Paginator(requestCaptor.capture()))
+            .willAnswer(invocation -> new ListObjectsV2Iterable(s3Client, invocation.getArgument(0)));
+        given(s3Client.listObjectsV2(any(ListObjectsV2Request.class)))
+            .willReturn(ListObjectsV2Response.builder().contents(item).isTruncated(false).build());
+
+        List<StorageObjectMetadata> result;
+        try (var objects = storageService.streamObjects("documents/", 200)) {
+            result = objects.toList();
+        }
+
+        assertThat(result).containsExactly(new StorageObjectMetadata(
+            new StoredFile(StorageProvider.S3, STORED_FILE.bucketName(), "documents/a/source.pdf"),
+            37L,
+            modifiedAt
+        ));
+        assertThat(requestCaptor.getValue().bucket()).isEqualTo(STORED_FILE.bucketName());
+        assertThat(requestCaptor.getValue().prefix()).isEqualTo("documents/");
+        assertThat(requestCaptor.getValue().maxKeys()).isEqualTo(200);
     }
 
     @Test

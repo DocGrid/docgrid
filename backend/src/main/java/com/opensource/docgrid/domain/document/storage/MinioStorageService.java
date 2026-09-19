@@ -1,6 +1,9 @@
 package com.opensource.docgrid.domain.document.storage;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -12,16 +15,19 @@ import com.opensource.docgrid.global.exception.ErrorCode;
 
 import io.minio.BucketExistsArgs;
 import io.minio.GetObjectArgs;
+import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
+import io.minio.Result;
 import io.minio.errors.ErrorResponseException;
+import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * MinIO SDK를 사용해 문서 원본을 저장·조회·삭제하는 파일 저장소 Adapter다.
+ * MinIO SDK를 사용해 문서 원본을 저장·조회·목록·삭제하는 파일 저장소 Adapter다.
  * MinIO가 선택된 환경에서만 등록되며 공통 Bucket과 Object Key를 저장 위치로 반환하고 검증한다.
  */
 @Slf4j
@@ -85,6 +91,29 @@ public class MinioStorageService implements FileStorageService {
             throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
         } catch (Exception exception) {
             logStorageReadFailure(exception);
+            throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
+        }
+    }
+
+    /** 설정 Bucket에서 접두사가 일치하는 Object를 SDK의 지연 Iterator로 조회한다. */
+    @Override
+    public Stream<StorageObjectMetadata> streamObjects(String prefix, int pageSize) {
+        if (prefix == null || prefix.isBlank() || pageSize <= 0) {
+            throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED);
+        }
+        try {
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                    .bucket(fileStorageProperties.getBucket())
+                    .prefix(prefix)
+                    .recursive(true)
+                    .maxKeys(pageSize)
+                    .build()
+            );
+            return StreamSupport.stream(results.spliterator(), false)
+                .map(this::toStorageObjectMetadata);
+        } catch (Exception exception) {
+            log.error("MinIO Object 목록 조회에 실패했습니다.", exception);
             throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
         }
     }
@@ -159,5 +188,25 @@ public class MinioStorageService implements FileStorageService {
     private void logStorageReadFailure(Exception exception) {
         // 원본 저장 위치는 내부 식별 정보이므로 장애 로그에는 예외 원인만 남긴다.
         log.error("MinIO 파일 읽기에 실패했습니다.", exception);
+    }
+
+    /** MinIO Result의 지연 오류를 공통 저장소 오류로 변환하면서 Metadata를 만든다. */
+    private StorageObjectMetadata toStorageObjectMetadata(Result<Item> result) {
+        try {
+            Item item = result.get();
+            Instant lastModified = item.lastModified() == null ? null : item.lastModified().toInstant();
+            return new StorageObjectMetadata(
+                new StoredFile(
+                    StorageProvider.MINIO,
+                    fileStorageProperties.getBucket(),
+                    item.objectName()
+                ),
+                item.size(),
+                lastModified
+            );
+        } catch (Exception exception) {
+            log.error("MinIO Object Metadata 조회에 실패했습니다.", exception);
+            throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
+        }
     }
 }

@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +47,7 @@ import com.opensource.docgrid.domain.document.service.DocumentVersionUploadFacad
 import com.opensource.docgrid.domain.document.service.FileHashService;
 import com.opensource.docgrid.domain.document.storage.FileStorageService;
 import com.opensource.docgrid.domain.document.storage.MinioStorageService;
+import com.opensource.docgrid.domain.document.storage.StorageObjectMetadata;
 import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.domain.user.repository.UserRepository;
 import com.opensource.docgrid.global.exception.DocGridException;
@@ -481,6 +483,11 @@ class MinioUploadConcurrencyIntegrationTest {
         @Override
         public byte[] read(StoredFile storedFile) {
             return delegate.read(storedFile);
+        }
+
+        @Override
+        public Stream<StorageObjectMetadata> streamObjects(String prefix, int pageSize) {
+            return delegate.streamObjects(prefix, pageSize);
         }
 
         @Override

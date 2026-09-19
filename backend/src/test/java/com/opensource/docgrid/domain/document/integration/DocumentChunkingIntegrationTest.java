@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -48,6 +49,7 @@ import com.opensource.docgrid.domain.document.enums.StorageProvider;
 import com.opensource.docgrid.domain.document.service.DocumentParsingService;
 import com.opensource.docgrid.domain.document.service.command.DocumentChunkTransactionService.ChunkResult;
 import com.opensource.docgrid.domain.document.storage.FileStorageService;
+import com.opensource.docgrid.domain.document.storage.StorageObjectMetadata;
 import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.domain.embedding.dto.request.CreateDocumentChunksRequest;
 import com.opensource.docgrid.global.exception.DocGridException;
@@ -462,6 +464,11 @@ class DocumentChunkingIntegrationTest {
                 }
             }
             return files.get(storedFile).clone();
+        }
+
+        @Override
+        public Stream<StorageObjectMetadata> streamObjects(String prefix, int pageSize) {
+            return Stream.empty();
         }
 
         @Override

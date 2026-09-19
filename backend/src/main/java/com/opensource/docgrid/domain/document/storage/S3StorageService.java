@@ -1,6 +1,8 @@
 package com.opensource.docgrid.domain.document.storage;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -16,12 +18,13 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
- * AWS SDK v2를 사용해 문서 원본을 저장·조회·삭제하는 파일 저장소 Adapter다.
+ * AWS SDK v2를 사용해 문서 원본을 저장·조회·목록·삭제하는 파일 저장소 Adapter다.
  * Bucket 생성과 권한 관리는 인프라 경계에 두고 설정과 일치하는 Object 작업만 수행한다.
  */
 @Slf4j
@@ -87,6 +90,30 @@ public class S3StorageService implements FileStorageService {
             throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
         } catch (Exception exception) {
             logStorageReadFailure(exception);
+            throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
+        }
+    }
+
+    /** 설정 Bucket에서 접두사가 일치하는 Object를 SDK Paginator로 지연 조회한다. */
+    @Override
+    public Stream<StorageObjectMetadata> streamObjects(String prefix, int pageSize) {
+        if (!StringUtils.hasText(prefix) || pageSize <= 0 || pageSize > 1_000) {
+            throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED);
+        }
+        try {
+            ListObjectsV2Request request = ListObjectsV2Request.builder()
+                .bucket(bucketName)
+                .prefix(prefix)
+                .maxKeys(pageSize)
+                .build();
+            return s3Client.listObjectsV2Paginator(request).contents().stream()
+                .map(item -> new StorageObjectMetadata(
+                    new StoredFile(StorageProvider.S3, bucketName, item.key()),
+                    item.size(),
+                    item.lastModified() == null ? null : Instant.from(item.lastModified())
+                ));
+        } catch (Exception exception) {
+            log.error("S3 Object 목록 조회에 실패했습니다.", exception);
             throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
         }
     }

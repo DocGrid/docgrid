@@ -10,6 +10,9 @@ import static org.mockito.Mockito.mock;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,9 +27,12 @@ import com.opensource.docgrid.global.exception.ErrorCode;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
+import io.minio.ListObjectsArgs;
 import io.minio.PutObjectArgs;
+import io.minio.Result;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.ErrorResponse;
+import io.minio.messages.Item;
 import okhttp3.Headers;
 
 /**
@@ -99,6 +105,34 @@ class MinioStorageServiceTest {
         assertThat(source.closed).isTrue();
         assertThat(argsCaptor.getValue().bucket()).isEqualTo(STORED_FILE.bucketName());
         assertThat(argsCaptor.getValue().object()).isEqualTo(STORED_FILE.objectKey());
+    }
+
+    @Test
+    @DisplayName("접두사와 Page 크기로 MinIO Object Metadata를 조회한다")
+    void streamObjects_listsMetadataWithConfiguredScope() throws Exception {
+        Instant modifiedAt = Instant.parse("2026-09-18T00:00:00Z");
+        Item item = mock(Item.class);
+        given(item.objectName()).willReturn("documents/a/source.pdf");
+        given(item.size()).willReturn(37L);
+        given(item.lastModified()).willReturn(modifiedAt.atZone(ZoneOffset.UTC));
+        ArgumentCaptor<ListObjectsArgs> argsCaptor = ArgumentCaptor.forClass(ListObjectsArgs.class);
+        given(minioClient.listObjects(argsCaptor.capture()))
+            .willReturn(List.of(new Result<>(item)));
+
+        List<StorageObjectMetadata> result;
+        try (var objects = storageService.streamObjects("documents/", 200)) {
+            result = objects.toList();
+        }
+
+        assertThat(result).containsExactly(new StorageObjectMetadata(
+            new StoredFile(StorageProvider.MINIO, STORED_FILE.bucketName(), "documents/a/source.pdf"),
+            37L,
+            modifiedAt
+        ));
+        assertThat(argsCaptor.getValue().bucket()).isEqualTo(STORED_FILE.bucketName());
+        assertThat(argsCaptor.getValue().prefix()).isEqualTo("documents/");
+        assertThat(argsCaptor.getValue().maxKeys()).isEqualTo(200);
+        assertThat(argsCaptor.getValue().recursive()).isTrue();
     }
 
     @Test

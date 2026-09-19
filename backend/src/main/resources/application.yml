@@ -56,6 +56,14 @@ storage:
   bucket: ${STORAGE_BUCKET:}
   local:
     root: ${STORAGE_LOCAL_ROOT:./data/docgrid}
+  orphan-gc:
+    # 1단계는 Object를 삭제하지 않고 오래된 미참조 후보와 용량만 집계한다.
+    enabled: ${STORAGE_ORPHAN_GC_ENABLED:false}
+    initial-delay: ${STORAGE_ORPHAN_GC_INITIAL_DELAY:1m}
+    interval: ${STORAGE_ORPHAN_GC_INTERVAL:24h}
+    # 진행 중 업로드와 늦게 끝난 DB Transaction을 후보에서 제외하는 안전 유예 시간이다.
+    grace-period: ${STORAGE_ORPHAN_GC_GRACE_PERIOD:72h}
+    page-size: ${STORAGE_ORPHAN_GC_PAGE_SIZE:500}
 
 s3:
   region: ${AWS_REGION:ap-northeast-2}

@@ -9,6 +9,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ import com.opensource.docgrid.global.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 설정된 Local Root 아래에서 문서 원본을 저장·조회·삭제하는 파일 저장소 Adapter다.
+ * 설정된 Local Root 아래에서 문서 원본을 저장·조회·목록·삭제하는 파일 저장소 Adapter다.
  * DB에는 Host 절대 경로 대신 논리 Bucket과 Object Key만 전달하며 Root 밖 경로와 설정 불일치를 차단한다.
  */
 @Slf4j
@@ -83,6 +85,35 @@ public class LocalFileStorageService implements FileStorageService {
             throw new DocGridException(ErrorCode.FILE_OBJECT_NOT_FOUND, exception);
         } catch (Exception exception) {
             log.error("Local 파일 읽기에 실패했습니다.", exception);
+            throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
+        }
+    }
+
+    /**
+     * 설정 Root 안의 접두사 경로를 Symbolic Link 없이 순회하고 일반 파일 Metadata만 반환한다.
+     */
+    @Override
+    public Stream<StorageObjectMetadata> streamObjects(String prefix, int pageSize) {
+        try {
+            // 1. 외부 Adapter와 같은 계약을 유지하도록 접두사와 처리 크기를 먼저 검증한다.
+            if (pageSize <= 0) {
+                throw new IOException("Object 목록 Page 크기는 0보다 커야 합니다.");
+            }
+            Path prefixPath = resolvePath(prefix);
+            if (Files.notExists(prefixPath, LinkOption.NOFOLLOW_LINKS)) {
+                return Stream.empty();
+            }
+            if (Files.isSymbolicLink(prefixPath)
+                || !Files.isDirectory(prefixPath, LinkOption.NOFOLLOW_LINKS)) {
+                throw new IOException("Object 목록 접두사는 안전한 Directory여야 합니다.");
+            }
+
+            // 2. Files.walk의 지연 Stream을 그대로 전달해 전체 파일 목록을 메모리에 적재하지 않는다.
+            return Files.walk(prefixPath)
+                .filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
+                .map(this::toStorageObjectMetadata);
+        } catch (Exception exception) {
+            log.error("Local 파일 목록 조회에 실패했습니다.", exception);
             throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
         }
     }
@@ -250,6 +281,23 @@ public class LocalFileStorageService implements FileStorageService {
             Files.deleteIfExists(temporaryFile);
         } catch (IOException cleanupException) {
             log.warn("Local 임시 파일 정리에 실패했습니다.", cleanupException);
+        }
+    }
+
+    /** Root 기준 상대 경로와 파일 속성을 저장소 중립 Metadata로 변환한다. */
+    private StorageObjectMetadata toStorageObjectMetadata(Path path) {
+        try {
+            String objectKey = rootPath.relativize(path).toString()
+                .replace(path.getFileSystem().getSeparator(), "/");
+            Instant lastModified = Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS).toInstant();
+            return new StorageObjectMetadata(
+                new StoredFile(StorageProvider.LOCAL, bucketName, objectKey),
+                Files.size(path),
+                lastModified
+            );
+        } catch (Exception exception) {
+            log.error("Local 파일 Metadata 조회에 실패했습니다.", exception);
+            throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
         }
     }
 }
