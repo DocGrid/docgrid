@@ -1,0 +1,29 @@
+spring:
+  config:
+    activate:
+      on-profile: opensql-ha
+
+  datasource:
+    # 두 OpenProxy 진입점은 OPENSQL_APP_JDBC_URL에만 지정한다.
+    url: ${OPENSQL_APP_JDBC_URL}
+    username: ${OPENSQL_APP_USER}
+    password: ${OPENSQL_APP_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: docgrid-opensql-ha-pool
+      maximum-pool-size: ${OPENSQL_APP_POOL_SIZE:5}
+      connection-timeout: ${OPENSQL_APP_CONNECTION_TIMEOUT_MS:5000}
+      validation-timeout: ${OPENSQL_APP_VALIDATION_TIMEOUT_MS:3000}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    # DDL 권한은 애플리케이션 계정에 주지 않고 리더를 찾는 별도 경로에서만 사용한다.
+    enabled: true
+    url: ${OPENSQL_MIGRATION_JDBC_URL}
+    user: ${OPENSQL_MIGRATION_USER}
+    password: ${OPENSQL_MIGRATION_PASSWORD}
+    locations: classpath:db/migration
