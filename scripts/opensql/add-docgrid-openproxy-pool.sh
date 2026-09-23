@@ -53,7 +53,8 @@ printf '\n[pools.docgrid.shards.0]\nservers = [\n' >> "${temporary}"
 printf '    ["%s", 5432, "auto"],\n    ["%s", 5432, "auto"],\n    ["%s", 5432, "auto"],\n' \
   "${node1_host}" "${node2_host}" "${node3_host}" >> "${temporary}"
 printf ']\ndatabase = "docgrid"\nuse_patroni = true\npatroni_port = "8008"\n' >> "${temporary}"
-chown opensql:opensql "${temporary}"
+# 호스트에 opensql 계정이 없어도 컨테이너와 공유하는 기존 UID/GID를 유지한다.
+chown --reference="${config}" "${temporary}"
 chmod 0600 "${temporary}"
 mv "${temporary}" "${config}"
 trap - EXIT
