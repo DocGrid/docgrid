@@ -66,7 +66,7 @@ class OpenSqlHaConnectionTest {
     }
 
     private void selectPrimary(Connection connection) throws SQLException {
-        // 이 OpenProxy 버전은 기본 라우팅이 replica로 향할 수 있어 Hikari 초기화 SQL을 재현한다.
+        // 진단용 JDBC 연결은 초기 쿼리 전에 역할을 지정해 복제본에 세션이 고정되지 않게 한다.
         try (Statement statement = connection.createStatement()) {
             statement.execute("SET SERVER ROLE TO 'primary'");
         }
