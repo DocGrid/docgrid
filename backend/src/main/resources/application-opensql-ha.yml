@@ -4,7 +4,7 @@ spring:
       on-profile: opensql-ha
 
   datasource:
-    # OpenProxy 세션 풀이 JDBC 초기 쿼리를 replica에 고정하므로 앱은 3노드에서 리더를 직접 찾는다.
+    # 앱은 트랜잭션 풀·읽기/쓰기 분기가 검증된 두 OpenProxy로 연결한다.
     url: ${OPENSQL_APP_JDBC_URL}
     username: ${OPENSQL_APP_USER}
     password: ${OPENSQL_APP_PASSWORD}

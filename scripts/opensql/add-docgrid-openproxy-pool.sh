@@ -27,6 +27,15 @@ if grep -q '^\[pools.docgrid\]$' "${config}"; then
   printf 'DocGrid 풀이 이미 있어 중단합니다.\n' >&2
   exit 1
 fi
+if ! grep -q '^\[general\]$' "${config}"; then
+  printf 'OpenProxy general 설정을 찾을 수 없습니다.\n' >&2
+  exit 1
+fi
+cache_setting="$(grep -E '^prepared_statements_cache_size[[:space:]]*=' "${config}" || true)"
+if [[ -n "${cache_setting}" && ! "${cache_setting}" =~ ^prepared_statements_cache_size[[:space:]]*=[[:space:]]*[1-9][0-9]*[[:space:]]*$ ]]; then
+  printf 'prepared statement 캐시 크기는 양수여야 합니다.\n' >&2
+  exit 1
+fi
 
 # 1. 암호를 명령 인자와 출력에 노출하지 않고 root 전용 파일에서만 읽는다.
 set -a
@@ -45,8 +54,12 @@ chmod 0600 "${backup}"
 temporary="$(mktemp "${config}.docgrid.XXXXXX")"
 trap 'rm -f "${temporary}"' EXIT
 cat "${config}" > "${temporary}"
+# 트랜잭션 풀에서 JDBC prepared statement가 서버 연결을 바꿔도 유지되도록 캐시를 활성화한다.
+if [[ -z "${cache_setting}" ]]; then
+  sed -i '/^\[general\]$/a prepared_statements_cache_size = 1000' "${temporary}"
+fi
 printf '\n[pools.docgrid]\n' >> "${temporary}"
-printf 'pool_mode = "session"\ndefault_role = "primary"\nquery_parser_enabled = false\n' >> "${temporary}"
+printf 'pool_mode = "transaction"\ndefault_role = "primary"\nquery_parser_enabled = true\nquery_parser_read_write_splitting = true\n' >> "${temporary}"
 printf '\n[pools.docgrid.users.0]\nusername = "docgrid_app"\npassword = "%s"\npool_size = 5\n' \
   "${DOCGRID_APP_PASSWORD}" >> "${temporary}"
 printf '\n[pools.docgrid.shards.0]\nservers = [\n' >> "${temporary}"
