@@ -16,8 +16,8 @@ import org.junit.jupiter.api.Timeout;
 /**
  * 외부 OpenSQL 3노드에서 DDL 계정과 런타임 계정의 접속 경로·권한 경계를 확인한다.
  *
- * <p>애플리케이션 쿼리는 OpenProxy를, 마이그레이션 쿼리는 현재 리더를 사용해야 한다. 이 테스트는
- * 자격 증명을 출력하거나 스키마를 변경하지 않으며 실제 프록시 장애는 별도의 운영 절차에서 주입한다.
+ * <p>애플리케이션과 마이그레이션은 각자 다른 계정으로 현재 리더를 사용한다. OpenProxy 접속은
+ * 세션 라우팅의 별도 진단 대상이다. 이 테스트는 자격 증명을 출력하거나 스키마를 변경하지 않는다.
  */
 @Tag("integration")
 @Tag("opensql-ha-connection")
@@ -48,6 +48,7 @@ class OpenSqlHaConnectionTest {
             : new String[] {"OPENSQL_PROXY_A_JDBC_URL", "OPENSQL_PROXY_B_JDBC_URL"};
         for (String urlName : urls) {
             try (Connection connection = connect(urlName, "OPENSQL_APP_USER", "OPENSQL_APP_PASSWORD")) {
+                selectPrimary(connection);
                 assertAppTarget(connection);
             }
         }
@@ -55,12 +56,19 @@ class OpenSqlHaConnectionTest {
 
     @Test
     @Timeout(30)
-    @DisplayName("다중 호스트 URL은 프록시 A 장애 시에도 DocGrid에 연결된다")
+    @DisplayName("앱의 3호스트 URL은 쓰기 가능한 리더의 DocGrid에 연결된다")
     void multiHostUrlConnects() throws SQLException {
-        // 1. 장애 주입 실행에서는 프록시 A가 실제로 차단된 상태로 같은 URL을 다시 시험한다.
+        // 1. PostgreSQL 3호스트 URL이 현재 리더를 선택하는지 확인한다.
         try (Connection connection = connect(
                 "OPENSQL_APP_JDBC_URL", "OPENSQL_APP_USER", "OPENSQL_APP_PASSWORD")) {
             assertAppTarget(connection);
+        }
+    }
+
+    private void selectPrimary(Connection connection) throws SQLException {
+        // 진단용 JDBC 연결은 초기 쿼리 전에 역할을 지정해 복제본에 세션이 고정되지 않게 한다.
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("SET SERVER ROLE TO 'primary'");
         }
     }
 
