@@ -111,6 +111,17 @@ class HaEvidenceTest(unittest.TestCase):
         with self.assertRaisesRegex(EVIDENCE.EvidenceError, "operation"):
             EVIDENCE.append_event(self.directory, "sent", request_id="bad", operation="=HYPERLINK")
 
+    def test_invalid_run_metadata_is_rejected_before_directory_creation(self):
+        """A malformed fingerprint cannot leave a misleading partial run."""
+        other = Path(self.temporary.name) / "invalid"
+        with self.assertRaisesRegex(EVIDENCE.EvidenceError, "SHA-256"):
+            EVIDENCE.initialize(type("Args", (), {
+                "run_dir": other, "scenario": "proxy-stop", "config_sha256": "bad",
+                "opensql_version": "17.8", "openproxy_version": "1",
+                "patroni_version": "4", "etcd_version": "3",
+            })())
+        self.assertFalse(other.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -217,6 +217,12 @@ def initialize(args):
     """Start a fresh run without copying configuration contents or credentials."""
     if not SHA256.fullmatch(args.config_sha256):
         raise EvidenceError("redacted config의 SHA-256 64자리가 필요합니다")
+    if not LABEL.fullmatch(args.scenario):
+        raise EvidenceError("scenario는 100자 이내의 영문·숫자·점·하이픈·밑줄만 허용합니다")
+    versions = (args.opensql_version, args.openproxy_version,
+                args.patroni_version, args.etcd_version)
+    if any(not value.strip() or len(value) > 128 or "\n" in value for value in versions):
+        raise EvidenceError("제품 버전은 비어 있지 않은 한 줄의 128자 이하여야 합니다")
     git_sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True,
                              capture_output=True, text=True).stdout.strip()
     directory = args.run_dir
