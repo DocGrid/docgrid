@@ -89,6 +89,13 @@ postgresql:
         self.assertIsNone(dynamic["ttl"])
         self.assertNotIn("do-not-publish", json.dumps(dynamic))
 
+    def test_opensql_banner_version_is_extracted_without_copyright_text(self):
+        """The product version is not the first line of its --version banner."""
+        banner = "###\n\nOpenSQL version v3.17.8.7\n\nCopyright notice\n"
+        with patch.object(CONTRACT.subprocess, "run",
+                          return_value=SimpleNamespace(stdout=banner)):
+            self.assertEqual("v3.17.8.7", CONTRACT.opensql_version(self.root / "opensql"))
+
     def test_assembly_is_order_independent_and_rejects_proxy_drift(self):
         """One canonical SHA-256 represents the same three sanitized nodes."""
         paths = []
@@ -160,6 +167,100 @@ postgresql:
         self.assertEqual("Transaction", data["effective_config"]["pools.docgrid.pool_mode"])
         self.assertEqual(7, data["stats"][0]["queries"])
         self.assertNotIn("do-not-publish", json.dumps(data))
+
+    def test_etcd_snapshot_keeps_members_and_explicit_timing_without_urls(self):
+        """A live three-member result must not publish peer addresses or tokens."""
+        environment = self.root / "etc/etcd/etcd.env"
+        environment.parent.mkdir(parents=True)
+        environment.write_text(
+            "ETCD_INITIAL_CLUSTER=etcd1=http://192.0.2.1:2380,"
+            "etcd2=http://192.0.2.2:2380,etcd3=http://192.0.2.3:2380\n"
+            "ETCD_INITIAL_CLUSTER_STATE=existing\n"
+            "ETCD_INITIAL_CLUSTER_TOKEN=do-not-publish-token\n",
+            encoding="utf-8")
+        live = {"members": [{"name": f"etcd{number}",
+                             "peerURLs": [f"http://192.0.2.{number}:2380"]}
+                            for number in (1, 2, 3)]}
+        with patch.object(CONTRACT.subprocess, "run",
+                          return_value=SimpleNamespace(stdout=json.dumps(live))):
+            with patch.object(CONTRACT, "etcd_timing_inputs", return_value={
+                    "heartbeat_interval_ms": {"value": 100, "source": "installed binary default"},
+                    "election_timeout_ms": {"value": 1000, "source": "installed binary default"}}):
+                settings = CONTRACT.etcd_settings(self.root)
+        self.assertEqual(2, settings["quorum"])
+        self.assertIsNone(settings["explicit_timing"]["election_timeout_ms"])
+        self.assertEqual(["node1", "node2", "node3"], settings["live_member_names"])
+        self.assertNotIn("192.0.2", json.dumps(settings))
+        self.assertNotIn("do-not-publish", json.dumps(settings))
+
+    def test_etcd_running_timing_uses_installed_defaults_or_process_override(self):
+        """Do not call an absent env override an effective default without checking /proc."""
+        process = self.root / "proc/1234"
+        process.mkdir(parents=True)
+        process.joinpath("comm").write_text("etcd\n", encoding="utf-8")
+        process.joinpath("cmdline").write_bytes(b"/bin/etcd\0")
+        process.joinpath("environ").write_bytes(b"ETCD_NAME=etcd1\0")
+        binary_help = "--heartbeat-interval '100'\n--election-timeout '1000'\n"
+        with patch.object(CONTRACT.subprocess, "run",
+                          return_value=SimpleNamespace(stdout=binary_help, stderr="")):
+            timing = CONTRACT.etcd_timing_inputs(self.root, self.root / "proc")
+            self.assertEqual(1000, timing["election_timeout_ms"]["value"])
+            self.assertEqual("installed binary default", timing["election_timeout_ms"]["source"])
+            process.joinpath("environ").write_bytes(b"ETCD_ELECTION_TIMEOUT=1500\0")
+            overridden = CONTRACT.etcd_timing_inputs(self.root, self.root / "proc")
+            self.assertEqual(1500, overridden["election_timeout_ms"]["value"])
+            self.assertEqual("process override", overridden["election_timeout_ms"]["source"])
+
+    def test_merge_matches_node_and_assembly_hashes_admin_snapshots(self):
+        """Generated node/runtime joins and both admin snapshots enter one fingerprint."""
+        paths = []
+        for node in ("node1", "node2", "node3"):
+            collect = self.root / f"{node}-collect.json"
+            runtime = self.root / f"{node}-runtime.json"
+            collect.write_text(json.dumps({"schema_version": 1, "node": node,
+                "os": {"id": "rocky", "version_id": "9.7", "architecture": "x86_64"},
+                "patroni_dynamic": {"ttl": 30},
+                **({"openproxy": {"pool_mode": "transaction"}} if node != "node1" else {})}),
+                encoding="utf-8")
+            runtime.write_text(json.dumps({"node": node, "host_time_zone": "UTC+0000"}),
+                               encoding="utf-8")
+            merged = CONTRACT.merge_node(collect, runtime)
+            path = self.root / f"{node}.json"
+            path.write_text(json.dumps(merged), encoding="utf-8")
+            paths.append(path)
+        admins = []
+        for proxy, node in (("proxy-a", "node2"), ("proxy-b", "node3")):
+            path = self.root / f"{proxy}.json"
+            path.write_text(json.dumps({"proxy": proxy, "node": node,
+                                        "effective_config": {"pool_mode": "Transaction"}}),
+                            encoding="utf-8")
+            admins.append(path)
+        before = CONTRACT.assemble(paths, admins)["evidence_sha256"]
+        changed = json.loads(admins[1].read_text())
+        changed["effective_config"]["pool_mode"] = "Session"
+        admins[1].write_text(json.dumps(changed), encoding="utf-8")
+        with self.assertRaisesRegex(CONTRACT.ContractError, "관리 콘솔 설정"):
+            CONTRACT.assemble(paths, admins)
+        changed["effective_config"]["pool_mode"] = "Transaction"
+        changed["stats"] = [{"queries": 7}]
+        admins[1].write_text(json.dumps(changed), encoding="utf-8")
+        self.assertNotEqual(before, CONTRACT.assemble(paths, admins)["evidence_sha256"])
+
+    def test_junit_summary_drops_hostname_and_rejects_sensitive_output(self):
+        """Retain the case verdict while removing machine identity from Gradle XML."""
+        path = self.root / "TEST-contract.xml"
+        path.write_text('<testsuite tests="1" failures="0" errors="0" skipped="0" '
+                        'hostname="private-host"><testcase name="prepared"/>'
+                        '<system-out>CONTRACT_PREPARED proxy=proxy-a threshold=5</system-out>'
+                        '</testsuite>', encoding="utf-8")
+        summary = CONTRACT.junit_summary(path)
+        self.assertEqual(1, summary["tests"])
+        self.assertEqual("passed", summary["cases"][0]["status"])
+        self.assertNotIn("private-host", json.dumps(summary))
+        path.write_text(path.read_text().replace("threshold=5", "password=do-not-publish"),
+                        encoding="utf-8")
+        with self.assertRaisesRegex(CONTRACT.ContractError, "공개"):
+            CONTRACT.junit_summary(path)
 
 
 if __name__ == "__main__":
