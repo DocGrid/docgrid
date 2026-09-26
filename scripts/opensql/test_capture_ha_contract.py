@@ -46,8 +46,8 @@ pool_size = 5
 
 [pools.docgrid.shards.0]
 servers = [
-  ["10.1.2.3", 5432, "auto"],
-  ["10.1.2.4", 5432, "auto"]
+  ["192.0.2.1", 5432, "auto"],
+  ["192.0.2.2", 5432, "auto"]
 ]
 database = "docgrid"
 use_patroni = true
@@ -61,7 +61,7 @@ patroni_port = "8008"
         self.assertEqual(1000, settings["general"]["prepared_statements_cache_size"])
         self.assertEqual("transaction", settings["pools.docgrid"]["pool_mode"])
         self.assertNotIn("do-not-publish", serialized)
-        self.assertNotIn("10.1.2", serialized)
+        self.assertNotIn("192.0.2", serialized)
 
     def test_duplicate_or_sensitive_allowlisted_value_is_rejected(self):
         """Do not silently choose one duplicate or print an identifying value."""
@@ -69,7 +69,7 @@ patroni_port = "8008"
         with self.assertRaisesRegex(CONTRACT.ContractError, "중복"):
             CONTRACT.proxy_settings(self.config)
         self.config.write_text(self.config.read_text().replace(
-            'pool_mode = "transaction"', 'pool_mode = "10.1.2.3"').replace(
+            'pool_mode = "transaction"', 'pool_mode = "192.0.2.1"').replace(
             '\n[pools.docgrid]\npool_mode = "session"\n', ''))
         with self.assertRaisesRegex(CONTRACT.ContractError, "공개"):
             CONTRACT.proxy_settings(self.config)
