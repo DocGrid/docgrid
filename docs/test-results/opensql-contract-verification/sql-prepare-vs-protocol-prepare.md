@@ -12,10 +12,11 @@
 ./backend/gradlew -p backend openSqlOpenProxyContractTest --rerun-tasks --offline
 ```
 
-| 방식 | Java 실행 위치·API | DB에 보낸 핵심 명령 | 목적 |
-| --- | --- | --- | --- |
-| SQL-level | 개발자 컴퓨터 JVM의 `Statement`, [`sqlLevelPrepareIsObservedSeparately()`](../../../backend/src/test/java/com/opensource/docgrid/opensql/OpenSqlOpenProxyContractTest.java) | `PREPARE contract_<무작위식별자>(integer) AS SELECT $1::integer` → `EXECUTE contract_<식별자>(41)` → `DEALLOCATE contract_<식별자>` | 앱이 명시적으로 보내는 서버 SQL 명령의 **같은 트랜잭션 내** 동작을 확인한다. 이름은 충돌 방지를 위해 실행 때마다 생성했다. |
-| pgJDBC 프로토콜 | 같은 JVM의 `PreparedStatement`와 `PGStatement`, [`preparedStatementsSurviveTransactionPooling()`](../../../backend/src/test/java/com/opensource/docgrid/opensql/OpenSqlOpenProxyContractTest.java) | `SELECT ?::integer` 15회; URL에 `prepareThreshold=5` 또는 `1` | 드라이버가 server-side prepare 단계로 들어가고 반복 결과가 맞는지 확인한다. SQL-level `PREPARE` 문자열을 직접 보내는 시험이 아니다. |
+| 방식 | Java 실행 위치·API | DB에 보낸 핵심 명령 | 목적 | 결과 요약 |
+| --- | --- | --- | --- | --- |
+| 계약 JUnit 실행 | 개발자 컴퓨터의 저장소 루트, Gradle | `./backend/gradlew -p backend openSqlOpenProxyContractTest --rerun-tasks --offline` | 아래 두 방식의 테스트를 포함한 전체 계약 시험을 실행한다. | JUnit 5개 통과·실패 0건. 두 준비문 테스트도 모두 통과했다. |
+| SQL-level | 개발자 컴퓨터 JVM의 `Statement`, [`sqlLevelPrepareIsObservedSeparately()`](../../../backend/src/test/java/com/opensource/docgrid/opensql/OpenSqlOpenProxyContractTest.java) | `PREPARE contract_<무작위식별자>(integer) AS SELECT $1::integer` → `EXECUTE contract_<식별자>(41)` → `DEALLOCATE contract_<식별자>` | 앱이 명시적으로 보내는 서버 SQL 명령의 **같은 트랜잭션 내** 동작을 확인한다. 이름은 충돌 방지를 위해 실행 때마다 생성했다. | A/B 모두 `41` 반환, `same_transaction_pass`. 다른 트랜잭션·backend로의 재사용은 미검증. |
+| pgJDBC 프로토콜 | 같은 JVM의 `PreparedStatement`와 `PGStatement`, [`preparedStatementsSurviveTransactionPooling()`](../../../backend/src/test/java/com/opensource/docgrid/opensql/OpenSqlOpenProxyContractTest.java) | `SELECT ?::integer` 15회; URL에 `prepareThreshold=5` 또는 `1` | 드라이버가 server-side prepare 단계로 들어가고 반복 결과가 맞는지 확인한다. SQL-level `PREPARE` 문자열을 직접 보내는 시험이 아니다. | A/B × 임계값 2개, 네 조합 모두 15회 정확한 결과와 `isUseServerPrepare()=true`; 각 조합의 관측 backend는 `1개`. |
 
 SQL-level 테스트는 `setAutoCommit(false)` 이후 `PREPARE`, `EXECUTE`, `DEALLOCATE`를 **같은 트랜잭션 안에서** 실행해 `41`을 확인하고 `rollback()`했다. 프록시 A 결과와 B 결과가 같은지도 assert했다. 프로토콜 테스트는 같은 `PreparedStatement`를 유지한 채 **매 반복 후 commit**해 15개 트랜잭션을 통과했다.
 

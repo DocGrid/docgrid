@@ -27,6 +27,14 @@ for (int value = 1; value <= 15; value++) {
 
 실제 코드에서는 매번 `SELECT pg_postmaster_start_time()::text || ':' || pg_backend_pid()`로 backend 식별자를 기록하고, 마지막 반복과 같은 트랜잭션 안에서 `SELECT count(*) FROM pg_prepared_statements`를 읽었다. `PGStatement.getPrepareThreshold()`로 요청한 임계값을 확인하고, 루프가 끝난 뒤 `PGStatement.isUseServerPrepare()`가 `true`인지 assert했다. 이 때문에 단순히 SQL 15회 성공했다는 것보다 **드라이버가 준비문 단계에 들어갔다는 증거**가 하나 더 있다.
 
+| 실행 위치 | 명령·코드 내부 SQL | 목적 | 결과 요약 |
+| --- | --- | --- | --- |
+| 개발자 컴퓨터의 저장소 루트 | `./backend/gradlew -p backend openSqlOpenProxyContractTest --rerun-tasks --offline` | A/B와 두 임계값 조합의 계약 JUnit을 실행한다. | 전체 JUnit 5개 통과·실패 0건; 준비문 테스트도 통과했다. |
+| A/B OpenProxy를 통한 DB 세션 | `SELECT ?::integer`를 각 조합에서 15회 실행 | 입력값과 반환값의 정확성 및 여러 commit 사이의 반복 동작을 확인한다. | A/B × `prepareThreshold=5/1` 네 조합 모두 15회 정확한 정수를 반환했다. |
+| 같은 DB 세션 | `SELECT pg_postmaster_start_time()::text \|\| ':' \|\| pg_backend_pid()` | 반복 중 사용한 backend가 바뀌었는지 센다. | 네 조합 모두 서로 다른 backend가 `1개`여서 backend 교체 시험은 되지 않았다. |
+| 마지막 반복과 같은 DB 트랜잭션 | `SELECT count(*) FROM pg_prepared_statements` | 마지막 backend에 보이는 준비문을 확인한다. | threshold `5`는 A/B 각 `22`, threshold `1`은 각 `40`이었다. 해당 SQL만의 독립 개수는 아니다. |
+| 개발자 컴퓨터 JVM | `PGStatement.getPrepareThreshold()` 및 `isUseServerPrepare()` | 요청한 임계값과 드라이버의 server-prepare 상태를 확인한다. | 네 조합 모두 요청값 `5` 또는 `1`과 일치했고 `isUseServerPrepare()=true`였다. |
+
 ## 관측 결과
 
 | 프록시 | `prepareThreshold` | 반복·정확성 | 관측 backend 수 | 마지막 backend의 전체 준비문 수 |

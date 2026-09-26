@@ -12,6 +12,12 @@
 jq '{patroni: [.snapshot.nodes[] | {node, failsafe_mode: .patroni_dynamic.failsafe_mode, ttl: .patroni_dynamic.ttl, primary_start_timeout: .patroni_dynamic.primary_start_timeout}], proxies: [.snapshot.admins[] | {proxy, pool_mode: .effective_config["pools.docgrid.pool_mode"], connect_timeout: .effective_config.connect_timeout, shutdown_timeout: .effective_config.shutdown_timeout}]}' docs/test-results/opensql-contract-evidence/contract-manifest.json
 ```
 
+| 실행 위치 | 명령 | 목적 | 결과 요약 |
+| --- | --- | --- | --- |
+| 개발자 컴퓨터의 저장소 루트 | `bash scripts/opensql/capture_live_ha_contract.sh` | 장애 기준을 정하기 전에 현재 설정·실행 감독을 수집한다. | node1/2/3과 proxy-a/b의 비식별 스냅샷이 생성됐다. 장애 주입은 포함하지 않았다. |
+| 같은 worktree | 위의 `jq '{patroni: ..., proxies: ...}'` | 후속 시험 판정에 영향을 주는 설정값만 다시 확인한다. | 세 노드 `failsafe_mode=true`, `ttl=30`, `primary_start_timeout=null`; A/B `pool_mode=Transaction`, `connect_timeout=10000`, `shutdown_timeout=60000`. |
+| 실행하지 않음 | `kill -9`, `systemctl stop`, 방화벽 `DROP`, VM stop/delete, `etcdctl member remove`, `pg_wal_replay_pause()` | 이번 문서가 장애 결과가 아닌 사전 기준임을 분명히 한다. | **미실행**. RTO·RPO·장애 전환 결과는 없다. |
+
 결과는 세 노드 모두 `failsafe_mode=true`, `ttl=30`, `primary_start_timeout=null`; 프록시 A/B 모두 `pool_mode=Transaction`, `connect_timeout=10000`, `shutdown_timeout=60000`이었다. `primary_start_timeout=null`은 동적 설정에 명시되지 않았다는 뜻이지 값 `0`이 아니다. 설치 예시 systemd unit의 재시작 옵션과 실제 실행 감독은 [별도 설정 결과](ha-settings-and-runtime-supervision.md)에 구분했다.
 
 이 단계에서 **실행하지 않은 명령**도 명확히 적는다: `kill -9`, `systemctl stop`, 방화벽 `DROP`, VM stop/delete, `etcdctl member remove`, `pg_wal_replay_pause()` 등. 아래 표는 그 명령들을 실행한 결과가 아니라 안전하게 시험하기 위한 사전 약속이다.
@@ -27,13 +33,13 @@ jq '{patroni: [.snapshot.nodes[] | {node, failsafe_mode: .patroni_dynamic.failsa
 
 ## 장애별 통과·중단 기준
 
-| 후속 시험 | 장애 유형을 구분할 이유 | DocGrid 통과 목표 | 경고·실패·즉시 중단 |
-| --- | --- | --- | --- |
-| OpenProxy A/B | 프로세스 kill은 재시작할 수 있고, 지속 stop은 다른 시험이며, 패킷 DROP은 응답 없이 매달릴 수 있다. | A 중단과 B 중단을 각각 반복. 새 연결이 살아 있는 프록시로 도달하고 RTO ≤30초, 성공 응답 누락·중복 0건. | 30~60초 경고, >60초 실패. 상대 프록시에도 못 붙거나 성공 응답이 사라지면 즉시 중단. |
-| PostgreSQL 프로세스 종료 | Patroni가 **같은 노드 재시작**을 선택할 수 있으므로 “새 리더 선출”과 구분한다. | 실제 복구 유형을 기록하고 RTO ≤60초, 성공 응답 누락·중복 0건. | 이중 writable primary 또는 원장 대조 불가 시 즉시 중단. |
-| 리더 VM 상실 | PostgreSQL 프로세스 종료와 달리 노드 자체가 빠져 TTL 이후 failover가 필요할 수 있다. | 새 단일 리더와 라우팅 회복 RTO ≤120초, 성공 응답 후 누락 ID 수 공개. | RTO 초과 실패. 비동기 복제로 RPO>0이면 DocGrid의 무손실 목표 실패; 이중 리더 즉시 중단. |
-| Worker 인덱싱 중 리더 상실 | lease·Outbox·임베딩 저장의 중간 상태를 최종 결과와 구분해야 한다. | 최종 완료 문서·청크·임베딩·Outbox 누락/중복 0건. | 최종 상태 불일치·재처리 불가 실패. 시험 전용 pause 지점 구현 전에는 ‘임베딩 저장 중’ 주입을 주장하지 않는다. |
-| etcd 멤버 장애 | 1대 상실(2/3)과 2대 상실(1/3)은 다르며 현재 `failsafe_mode=true`다. | 단일 writable primary 유지 여부와 복구 후 정상 복제를 기록. | 2대 상실 시 무조건 쓰기 정지를 기대하지 않는다. 이중 리더·복구 불능·사전 스냅샷 부재는 즉시 중단. |
+| 후속 시험 | 장애 유형을 구분할 이유 | DocGrid 통과 목표 | 경고·실패·즉시 중단 | 현재 결과 요약 |
+| --- | --- | --- | --- | --- |
+| OpenProxy A/B | 프로세스 kill은 재시작할 수 있고, 지속 stop은 다른 시험이며, 패킷 DROP은 응답 없이 매달릴 수 있다. | A 중단과 B 중단을 각각 반복. 새 연결이 살아 있는 프록시로 도달하고 RTO ≤30초, 성공 응답 누락·중복 0건. | 30~60초 경고, >60초 실패. 상대 프록시에도 못 붙거나 성공 응답이 사라지면 즉시 중단. | 미실행·RTO 미측정. |
+| PostgreSQL 프로세스 종료 | Patroni가 **같은 노드 재시작**을 선택할 수 있으므로 “새 리더 선출”과 구분한다. | 실제 복구 유형을 기록하고 RTO ≤60초, 성공 응답 누락·중복 0건. | 이중 writable primary 또는 원장 대조 불가 시 즉시 중단. | 미실행·재시작/선출 여부 미확인. |
+| 리더 VM 상실 | PostgreSQL 프로세스 종료와 달리 노드 자체가 빠져 TTL 이후 failover가 필요할 수 있다. | 새 단일 리더와 라우팅 회복 RTO ≤120초, 성공 응답 후 누락 ID 수 공개. | RTO 초과 실패. 비동기 복제로 RPO>0이면 DocGrid의 무손실 목표 실패; 이중 리더 즉시 중단. | 미실행·RTO/RPO 미측정. |
+| Worker 인덱싱 중 리더 상실 | lease·Outbox·임베딩 저장의 중간 상태를 최종 결과와 구분해야 한다. | 최종 완료 문서·청크·임베딩·Outbox 누락/중복 0건. | 최종 상태 불일치·재처리 불가 실패. 시험 전용 pause 지점 구현 전에는 ‘임베딩 저장 중’ 주입을 주장하지 않는다. | 미실행·최종 중복/누락 미측정. |
+| etcd 멤버 장애 | 1대 상실(2/3)과 2대 상실(1/3)은 다르며 현재 `failsafe_mode=true`다. | 단일 writable primary 유지 여부와 복구 후 정상 복제를 기록. | 2대 상실 시 무조건 쓰기 정지를 기대하지 않는다. 이중 리더·복구 불능·사전 스냅샷 부재는 즉시 중단. | 미실행·정족수 상실 때의 실제 동작 미확인. |
 
 ## 해석과 남은 일
 

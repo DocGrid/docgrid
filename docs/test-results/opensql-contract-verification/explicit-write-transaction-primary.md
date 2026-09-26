@@ -14,12 +14,13 @@ JUnit은 개발자 컴퓨터의 저장소 루트에서 실행했다. 두 개의 
 
 실행 시 `OPENSQL_PROXY_A_JDBC_URL`, `OPENSQL_PROXY_B_JDBC_URL`, `OPENSQL_APP_USER`, `OPENSQL_APP_PASSWORD`를 **셸 환경 변수**로 제공했다. A/B URL에는 이 수동 시험을 위한 `connectTimeout=5&socketTimeout=15`를 붙였다. 이 값으로 운영 `.env`를 변경했다는 뜻은 아니다. 암호는 공개 로그·Git에 넣지 않았다. 같은 한 번의 JUnit 실행에서 아래 SQL 테스트와 준비문·시간대 테스트 등 총 5개가 함께 돌았다.
 
-| 장소 | 수행 주체 | 수행 내용 | 이유 |
-| --- | --- | --- | --- |
-| 개발자 컴퓨터 JVM | [`routesQueriesByTransactionContract()`](../../../backend/src/test/java/com/opensource/docgrid/opensql/OpenSqlOpenProxyContractTest.java) | A/B마다 JDBC 연결을 만들고 `setAutoCommit(false)` | 명시적 트랜잭션의 라우팅을 분리 측정한다. |
-| A/B OpenProxy를 지난 DB 세션 | `SELECT pg_is_in_recovery()` | `false`면 현재 SQL이 primary에서 실행됐음을 직접 확인한다. |
-| 같은 트랜잭션의 DB 세션 | `UPDATE documents SET id = id WHERE id = ?`에 `-1` 바인딩 | 쓰기 SQL도 같은 트랜잭션에서 허용되는지 확인한다. 존재하지 않는 ID라 0행이어야 한다. |
-| 개발자 컴퓨터 JVM | `connection.rollback()` | 테스트가 운영 데이터를 남기지 않도록 한다. |
+| 장소 | 수행 주체 | 수행 내용 | 이유 | 결과 요약 |
+| --- | --- | --- | --- | --- |
+| 개발자 컴퓨터의 저장소 루트 | Gradle | `./backend/gradlew -p backend openSqlOpenProxyContractTest --rerun-tasks --offline` | A/B에 대한 계약 JUnit 5개를 실행한다. | 2026-09-26 12:46 UTC 실행에서 5개 통과·실패 0건. 이 문서의 쓰기 시험은 그중 하나다. |
+| 개발자 컴퓨터 JVM | [`routesQueriesByTransactionContract()`](../../../backend/src/test/java/com/opensource/docgrid/opensql/OpenSqlOpenProxyContractTest.java) | A/B마다 JDBC 연결을 만들고 `setAutoCommit(false)` | 명시적 트랜잭션의 라우팅을 분리 측정한다. | 두 프록시의 명시적 읽기·쓰기 경로가 모두 통과했다. |
+| A/B OpenProxy를 지난 DB 세션 | JDBC `Statement` | `SELECT pg_is_in_recovery()` | `false`면 현재 SQL이 primary에서 실행됐음을 직접 확인한다. | A/B 모두 `false`를 반환해 `role=primary`로 기록됐다. |
+| 같은 트랜잭션의 DB 세션 | JDBC `PreparedStatement` | `UPDATE documents SET id = id WHERE id = ?`에 `-1` 바인딩 | 쓰기 SQL도 같은 트랜잭션에서 허용되는지 확인한다. 존재하지 않는 ID라 0행이어야 한다. | A/B 모두 오류 없이 실행됐고 영향 행은 `0`이었다. 실제 행 변경의 내구성은 검증하지 않는다. |
+| 개발자 컴퓨터 JVM | JDBC `Connection` | `connection.rollback()` | 테스트가 운영 데이터를 남기지 않도록 한다. | 두 경로 모두 rollback 호출이 오류 없이 끝났다. 변경 행이 0개였으므로 rollback의 데이터 복구 효과를 별도로 측정한 것은 아니다. |
 
 핵심 코드의 실제 순서는 아래와 같다. 의도를 보여주기 위해 핵심 호출만 발췌했으며 전체 구현은 위 파일을 참조한다.
 

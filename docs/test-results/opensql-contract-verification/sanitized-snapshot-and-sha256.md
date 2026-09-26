@@ -24,6 +24,15 @@ python3 scripts/opensql/capture_ha_contract.py assemble \
 python3 -c 'import json,hashlib,pathlib; p=pathlib.Path("docs/test-results/opensql-contract-evidence/contract-manifest.json"); d=json.loads(p.read_text()); b=json.dumps(d["snapshot"],ensure_ascii=False,sort_keys=True,separators=(",",":")).encode(); print(hashlib.sha256(b).hexdigest()); print(d["evidence_sha256"]); print(hashlib.sha256(b).hexdigest()==d["evidence_sha256"])'
 ```
 
+| 실행 위치 | 명령·수집기 모드 | 목적 | 결과 요약 |
+| --- | --- | --- | --- |
+| 개발자 컴퓨터의 저장소 루트 | `bash scripts/opensql/capture_live_ha_contract.sh` | 승인 GCP 환경에서 다섯 스냅샷을 자동 수집한다. | 2026-09-26 12:57:23~12:58:14 UTC에 노드 3개·관리자 2개를 수집했다. |
+| 각 GCP VM/컨테이너 | 수집기의 `collect`, `runtime`, `admin` | 설치값·호스트 실행 상태·프록시 관리값을 분리해서 읽는다. | 노드 3개, proxy-a/b 관리자 2개의 비식별 JSON이 생성됐다. |
+| 개발자 컴퓨터 | `capture_ha_contract.py merge` | 같은 별칭의 컨테이너/호스트 결과만 결합한다. | node1/2/3 각각의 병합이 성공했고 중복·별칭 불일치가 관측되지 않았다. |
+| 개발자 컴퓨터 | `capture_ha_contract.py assemble` | 다섯 결과의 허용 항목·A/B 일치 여부를 검사하고 canonical JSON을 해시한다. | 검증을 통과했고 SHA-256 `0a0b86ef…549794`를 manifest에 기록했다. |
+| 개발자 컴퓨터, 문서 작성 시 재검산 | 위의 `python3 -c 'import json,hashlib,pathlib; ...'` | 공개 manifest의 `snapshot`에서 해시를 독립 재계산한다. | 재계산값과 기록값이 같았고 비교 결과가 `True`였다. 원격 상태를 새로 수집한 것은 아니다. |
+| 개발자 컴퓨터 | `python3 -m unittest scripts.opensql.test_capture_ha_contract -v` | 비식별화·병합·해시의 코드 방어 동작을 확인한다. | 단위시험 `11개`, 실패 `0건`. 원격 서버 상태의 진실성 증명은 아니다. |
+
 ## 코드가 하는 검증
 
 [`merge_node()`](../../../scripts/opensql/capture_ha_contract.py)은 컨테이너 결과와 호스트 결과의 노드 별칭이 다르면 실패한다. [`assemble()`](../../../scripts/opensql/capture_ha_contract.py)은 node1/2/3이 정확히 하나씩 있는지, OS가 모두 Rocky 9.7 `x86_64`인지, A/B 설치·관리 계약 값이 같은지, OpenSQL 버전과 Patroni 동적 설정이 같은지 검사한다. 민감 문자열 탐지도 통과해야 한다. 그 뒤 `snapshot`을 `ensure_ascii=False`, `sort_keys=True`, `separators=(",",":")`로 직렬화한 **UTF-8 바이트**에 SHA-256을 적용한다. 수집 시작/종료 시각은 해시 대상 `snapshot`의 바깥 필드다.

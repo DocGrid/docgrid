@@ -18,15 +18,16 @@ python3 - runtime --node nodeN
 
 위 두 줄은 개발자 컴퓨터에서 SSH를 통해 **원격 실행된 명령의 본문**이다. `python3 -`의 표준 입력으로 [`capture_ha_contract.py`](../../../scripts/opensql/capture_ha_contract.py)를 보냈다. 원격 호스트에 수집 스크립트를 영구 설치하지 않았다. 수집기 내부의 읽기 전용 호출은 아래와 같다.
 
-| 실행 장소 | 수집기 내부 호출·조회 | 왜 필요한가 |
-| --- | --- | --- |
-| 각 Rocky 컨테이너 | `patronictl -c <설치된 patroni.yml> show-config` 및 `list --format json` | 동적 HA 정책과 당시 3멤버 역할을 분리해서 확인한다. 전체 설정 파일은 공개하지 않는다. |
-| 각 Rocky 컨테이너 | `etcdctl --endpoints=http://127.0.0.1:2379 member list --write-out=json` | 부트스트랩 파일에 적힌 3멤버가 아니라 **실행 중인** 멤버가 3개인지 확인한다. 주소는 결과에서 제거한다. |
-| 각 Rocky 컨테이너 | 설치된 `etcd --help` + 실행 etcd 프로세스의 시간 관련 인자·환경 변수 검사 | `heartbeat-interval`, `election-timeout`이 명시 값인지 설치 바이너리 기본값인지 판별한다. 프로세스 인자 전체는 공개하지 않는다. |
-| OpenProxy 설치 컨테이너 | `openproxy.toml`의 허용 키와 동봉 `openproxy.service`의 `Restart/RestartSec`만 읽기 | 풀·라우팅·캐시 값과 **예시 systemd 파일**의 내용을 기록한다. 암호·주소는 읽기 출력에 포함하지 않는다. |
-| 각 GCP VM 호스트 | `sudo docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' docgrid-nodeN` | 컨테이너 재시작 정책을 확인한다. |
-| 각 GCP VM 호스트 | `systemctl show docgrid-opensql@docgrid-nodeN.service -p ActiveState -p Restart -p RestartUSec` | 호스트의 실제 bootstrap unit 상태를 확인한다. 설치 예시 파일과 혼동하지 않는다. |
-| 각 GCP VM 호스트에서 컨테이너 내부 조회 | `sudo docker exec docgrid-nodeN ps -eo ppid=,stat=,comm=` | 살아 있는 OpenProxy 개수와 부모가 컨테이너 PID 1인지 확인한다. |
+| 실행 장소 | 수집기 내부 호출·조회 | 왜 필요한가 | 결과 요약 |
+| --- | --- | --- | --- |
+| 개발자 컴퓨터의 저장소 루트 | `bash scripts/opensql/capture_live_ha_contract.sh` | 승인 계정·프로젝트를 검사하고 컨테이너/호스트의 읽기 전용 수집을 시작한다. | 노드 3개·프록시 관리자 2개의 비식별 스냅샷을 생성했고 통합 검증을 통과했다. |
+| 각 Rocky 컨테이너 | `patronictl -c <설치된 patroni.yml> show-config` 및 `list --format json` | 동적 HA 정책과 당시 3멤버 역할을 분리해서 확인한다. 전체 설정 파일은 공개하지 않는다. | 세 노드의 동적 설정이 일치했다. node1 `Leader/running`, node2/3 `Replica/streaming`; `ttl=30`, `failsafe_mode=true`였다. |
+| 각 Rocky 컨테이너 | `etcdctl --endpoints=http://127.0.0.1:2379 member list --write-out=json` | 부트스트랩 파일에 적힌 3멤버가 아니라 **실행 중인** 멤버가 3개인지 확인한다. 주소는 결과에서 제거한다. | 실행 멤버 `node1/2/3`이 확인됐고 계산된 정족수는 `2`다. |
+| 각 Rocky 컨테이너 | 설치된 `etcd --help` + 실행 etcd 프로세스의 시간 관련 인자·환경 변수 검사 | `heartbeat-interval`, `election-timeout`이 명시 값인지 설치 바이너리 기본값인지 판별한다. 프로세스 인자 전체는 공개하지 않는다. | override가 없어 설치 바이너리 기본값 heartbeat `100ms`, election timeout `1000ms`를 기록했다. 실제 장애 선출 시간은 측정하지 않았다. |
+| OpenProxy 설치 컨테이너 | `openproxy.toml`의 허용 키와 동봉 `openproxy.service`의 `Restart/RestartSec`만 읽기 | 풀·라우팅·캐시 값과 **예시 systemd 파일**의 내용을 기록한다. 암호·주소는 읽기 출력에 포함하지 않는다. | A/B의 허용 설정이 같았다. 동봉 service 예시는 `Restart=always`, `RestartSec=1`이지만 실제 실행 supervisor로 확인된 것은 아니다. |
+| 각 GCP VM 호스트 | `sudo docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' docgrid-nodeN` | 컨테이너 재시작 정책을 확인한다. | 세 컨테이너 모두 `unless-stopped`였다. |
+| 각 GCP VM 호스트 | `systemctl show docgrid-opensql@docgrid-nodeN.service -p ActiveState -p Restart -p RestartUSec` | 호스트의 실제 bootstrap unit 상태를 확인한다. 설치 예시 파일과 혼동하지 않는다. | 세 호스트 모두 `ActiveState=inactive`, `Restart=on-failure`, `RestartUSec=15s`였다. |
+| 각 GCP VM 호스트에서 컨테이너 내부 조회 | `sudo docker exec docgrid-nodeN ps -eo ppid=,stat=,comm=` | 살아 있는 OpenProxy 개수와 부모가 컨테이너 PID 1인지 확인한다. | node1 `0개`, node2/3 각 `1개`; node2/3 프록시의 부모는 컨테이너 PID 1이었다. |
 
 ## 코드의 판별 방식
 

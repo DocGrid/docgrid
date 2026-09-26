@@ -6,13 +6,13 @@ Rocky Linux 9.7 `x86_64` 컨테이너 세 개에 설치된 OpenSQL·PostgreSQL·
 
 ## 어디에서 어떤 명령을 실행했나
 
-| 실행 위치 | 명령 또는 호출 | 목적 |
-| --- | --- | --- |
-| 개발자 컴퓨터의 저장소 루트 | `bash scripts/opensql/capture_live_ha_contract.sh` | 승인된 GCP 계정·프로젝트인지 먼저 검사하고 기존 세 VM의 컨테이너에서 버전만 수집한다. 실제 실행에는 `OPENSQL_GCP_ZONE`, `OPENSQL_SSH_KEY`, `OPENSQL_EXPECTED_ACCOUNT`, `OPENSQL_EXPECTED_PROJECT`를 환경 변수로 제공했다. 값 자체는 공개하지 않는다. |
-| 스크립트가 SSH로 접근한 `node1/2/3`의 Rocky 컨테이너 | `python3 - collect --node nodeN` | [`capture_ha_contract.py`](../../../scripts/opensql/capture_ha_contract.py)의 `collect`가 설치된 실행 파일의 버전 출력을 허용 목록으로 가공한다. `node1`에는 OpenProxy가 없으므로 그 값은 `null`이다. |
-| 개발자 컴퓨터의 저장소 루트 | `./backend/gradlew -p backend dependencyInsight --dependency org.postgresql:postgresql --configuration testRuntimeClasspath --offline` | Gradle 테스트 런타임이 실제로 선택한 pgJDBC 버전을 확인한다. 선언 버전만 읽는 것과 다르다. |
-| 같은 위치 | `./backend/gradlew -p backend dependencyInsight --dependency com.zaxxer:HikariCP --configuration testRuntimeClasspath --offline` | HikariCP의 실제 선택 버전을 확인한다. |
-| 개발자 컴퓨터에서 A/B OpenProxy로 연결한 JUnit | `./backend/gradlew -p backend openSqlOpenProxyContractTest --rerun-tasks --offline` | JDBC 메타데이터의 PostgreSQL 서버·드라이버 버전도 원격 연결을 통해 교차 확인한다. 연결 변수와 비밀번호는 셸 환경에만 주입했다. |
+| 실행 위치 | 명령 또는 호출 | 목적 | 결과 요약 |
+| --- | --- | --- | --- |
+| 개발자 컴퓨터의 저장소 루트 | `bash scripts/opensql/capture_live_ha_contract.sh` | 승인된 GCP 계정·프로젝트인지 먼저 검사하고 기존 세 VM의 컨테이너에서 버전만 수집한다. 실제 실행에는 `OPENSQL_GCP_ZONE`, `OPENSQL_SSH_KEY`, `OPENSQL_EXPECTED_ACCOUNT`, `OPENSQL_EXPECTED_PROJECT`를 환경 변수로 제공했다. 값 자체는 공개하지 않는다. | 3개 노드·2개 관리자 스냅샷을 만들었다. 수집 구간은 2026-09-26 12:57:23~12:58:14 UTC다. |
+| 스크립트가 SSH로 접근한 `node1/2/3`의 Rocky 컨테이너 | `python3 - collect --node nodeN` | [`capture_ha_contract.py`](../../../scripts/opensql/capture_ha_contract.py)의 `collect`가 설치된 실행 파일의 버전 출력을 허용 목록으로 가공한다. `node1`에는 OpenProxy가 없으므로 그 값은 `null`이다. | 모두 Rocky Linux 9.7 `x86_64`, OpenSQL `v3.17.8.7`, PostgreSQL `17.8`, Patroni `4.0.5`, etcd `3.6.5`; OpenProxy는 node2/3에서 `1.1.3` revision `723`이었다. |
+| 개발자 컴퓨터의 저장소 루트 | `./backend/gradlew -p backend dependencyInsight --dependency org.postgresql:postgresql --configuration testRuntimeClasspath --offline` | Gradle 테스트 런타임이 실제로 선택한 pgJDBC 버전을 확인한다. 선언 버전만 읽는 것과 다르다. | `testRuntimeClasspath`에서 pgJDBC `42.7.11`이 선택됐다. |
+| 같은 위치 | `./backend/gradlew -p backend dependencyInsight --dependency com.zaxxer:HikariCP --configuration testRuntimeClasspath --offline` | HikariCP의 실제 선택 버전을 확인한다. | HikariCP `6.3.3`이 선택됐다. **버전 조회이지 Hikari 실행 시험은 아니다.** |
+| 개발자 컴퓨터에서 A/B OpenProxy로 연결한 JUnit | `./backend/gradlew -p backend openSqlOpenProxyContractTest --rerun-tasks --offline` | JDBC 메타데이터의 PostgreSQL 서버·드라이버 버전도 원격 연결을 통해 교차 확인한다. 연결 변수와 비밀번호는 셸 환경에만 주입했다. | 5개 테스트/실패 0건. A/B 모두 JDBC 서버 메타데이터 PostgreSQL `17.8`, 드라이버 `42.7.11`을 반환했다. |
 
 수집 스크립트 안의 SSH 명령 형태는 다음과 같다. `nodeN`은 `node1`부터 `node3`까지 반복되고 SSH 키 경로는 공개하지 않는다.
 

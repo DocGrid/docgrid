@@ -10,11 +10,12 @@ OpenProxy가 모든 SELECT를 primary로 보내는지, 자동 커밋 SELECT와 �
 
 [`routesQueriesByTransactionContract()`](../../../backend/src/test/java/com/opensource/docgrid/opensql/OpenSqlOpenProxyContractTest.java)의 실제 세 경로는 아래와 같다.
 
-| 경로 | JDBC 코드/원격 SQL | 왜 이렇게 했나 |
-| --- | --- | --- |
-| 자동 커밋 SELECT | 기본 auto-commit 연결에서 `SELECT pg_is_in_recovery()` | 단일 조회가 실제 어떤 역할의 DB에 도착하는지 본다. |
-| 명시적 읽기·쓰기 | `setAutoCommit(false)` → `SELECT pg_is_in_recovery()` → `UPDATE documents SET id=id WHERE id=-1` → `rollback()` | 쓰기 가능 트랜잭션이 primary에 선제적으로 고정되는지 확인하고 데이터 변경은 남기지 않는다. |
-| JDBC read-only | `setReadOnly(true)` → `setAutoCommit(false)` → `SELECT pg_is_in_recovery()` → `rollback()` | read-only 힌트가 primary 일관성을 보장하는지 **가정하지 않고** 측정한다. |
+| 경로 | JDBC 코드/원격 SQL | 왜 이렇게 했나 | 결과 요약 |
+| --- | --- | --- | --- |
+| 계약 JUnit 실행 | 개발자 컴퓨터에서 `./backend/gradlew -p backend openSqlOpenProxyContractTest --rerun-tasks --offline` | A/B의 세 JDBC 경로를 같은 시험 실행에서 비교한다. | 전체 계약 JUnit 5개 통과·실패 0건; 아래 여섯 역할 출력이 기록됐다. |
+| 자동 커밋 SELECT | 기본 auto-commit 연결에서 `SELECT pg_is_in_recovery()` | 단일 조회가 실제 어떤 역할의 DB에 도착하는지 본다. | A/B 모두 `true`, 즉 standby 도착. 물리 standby 번호는 미확인. |
+| 명시적 읽기·쓰기 | `setAutoCommit(false)` → `SELECT pg_is_in_recovery()` → `UPDATE documents SET id=id WHERE id=-1` → `rollback()` | 쓰기 가능 트랜잭션이 primary에 선제적으로 고정되는지 확인하고 데이터 변경은 남기지 않는다. | A/B 모두 `false`, 즉 primary 도착; UPDATE 영향 행 `0`, 오류 없음. |
+| JDBC read-only | `setReadOnly(true)` → `setAutoCommit(false)` → `SELECT pg_is_in_recovery()` → `rollback()` | read-only 힌트가 primary 일관성을 보장하는지 **가정하지 않고** 측정한다. | A/B 모두 `true`, 즉 standby 도착. Spring `@Transactional` 경로는 별도 미검증. |
 
 SQL 함수 `pg_is_in_recovery()`가 `true`면 그 SQL이 standby에서 실행된 것이고, `false`면 primary에서 실행된 것이다. 이 결과는 관리 콘솔의 누적 통계보다 해당 요청의 역할을 직접 보여준다.
 
