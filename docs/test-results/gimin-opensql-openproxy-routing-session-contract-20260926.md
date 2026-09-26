@@ -18,6 +18,8 @@
 
 수집기의 비밀값 차단·중복 감지·제품 버전 추출·etcd 시간 설정 우선순위·자동 병합·관리값 포함 해시·JUnit 비식별화는 `python3 -m unittest scripts.opensql.test_capture_ha_contract -v`로 **11개 시험/실패 0건**을 확인했다.
 
+별도로 `./backend/gradlew -p backend test --offline`도 실행했으나 **1,124개 중 104개가 실패하여 전체 테스트는 통과하지 않았다.** 다수의 PostgreSQL 통합 테스트에서 `Connection refused`가 관측됐고 이 실행 환경에서는 로컬 Docker 데몬도 연결되지 않았다. 모든 실패가 동일 원인이라고 단정하지 않으며, 로컬 인프라를 복구한 뒤 전체 테스트를 다시 실행해야 한다. 이 결과를 위의 외부 클러스터 전용 5개 계약 시험 성공과 섞어 ‘전체 빌드 성공’이라고 주장하지 않는다.
+
 공개한 **비식별 수집 결과**: [node1](opensql-contract-evidence/node1.json), [node2](opensql-contract-evidence/node2.json), [node3](opensql-contract-evidence/node3.json), [proxy-a 관리값](opensql-contract-evidence/proxy-a-admin.json), [proxy-b 관리값](opensql-contract-evidence/proxy-b-admin.json), [통합 manifest](opensql-contract-evidence/contract-manifest.json), [JUnit 요약](opensql-contract-evidence/junit-summary.json), [이전 캐시 카운터 전후](opensql-contract-evidence/prepared-cache-delta.json). 마지막 캐시 카운터 파일은 **이전 실행의 관측값**이며 이번 통합 스냅샷·JUnit 실행과 같은 시점의 수치가 아니다. 원본 설정과 Gradle XML은 민감정보·머신 고유명 때문에 공개하지 않는다.
 
 ## 설치·실행 계약
