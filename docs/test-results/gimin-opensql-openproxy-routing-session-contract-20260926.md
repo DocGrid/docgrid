@@ -76,6 +76,8 @@ pgJDBC 프로토콜 방식은 JDBC `PreparedStatement`가 확장 쿼리 프로�
 | 9. 비식별 canonical JSON·SHA-256 | 완료. 새 자동 수집·병합 경로가 노드 3개와 관리자 결과 2개를 검증·해시한다. | 해시는 수집 코드와 공개 파일의 일관성 지표이지 클라우드 제공자의 서명은 아니다. |
 | 10. 후속 HA 판정 기준 | 완료. 바로 아래에 사전조건·통과·경고·즉시 중단 기준을 명시했다. | 장애 결과가 나왔다는 뜻은 아니다. |
 
+각 항목의 **실행 위치·명령/코드·목적·관측값·해석**은 별도의 상세 기록으로 나눴다: [제품·드라이버 버전](opensql-contract-verification/product-and-driver-versions.md), [HA 설정·실행 감독](opensql-contract-verification/ha-settings-and-runtime-supervision.md), [A/B 설정 일치](opensql-contract-verification/openproxy-a-b-config-parity.md), [쓰기 트랜잭션](opensql-contract-verification/explicit-write-transaction-primary.md), [pgJDBC 반복 준비문](opensql-contract-verification/pgjdbc-prepared-threshold-repeat.md), [자동 커밋·read-only·read-write 라우팅](opensql-contract-verification/autocommit-readonly-readwrite-routing.md), [SQL-level·프로토콜 준비문 구분](opensql-contract-verification/sql-prepare-vs-protocol-prepare.md), [시간대·자정 경계](opensql-contract-verification/timezone-and-midnight-boundary.md), [비식별 JSON·해시](opensql-contract-verification/sanitized-snapshot-and-sha256.md), [후속 HA 판정 기준](opensql-contract-verification/ha-fault-test-acceptance-gates.md). 마지막 문서는 **실행한 장애 결과가 아니라 앞으로 적용할 판정 규칙**이다.
+
 ## 후속 HA 시험의 사전 판정 기준
 
 아래 시간은 **DocGrid의 시험 목표값**이며 OpenSQL의 제품 보장 수치가 아니다. 부하 발생기·앱은 DB 노드 밖의 GCP 내부에서 실행한다. 모든 요청의 `request_id`, HTTP 결과와 최종 DB 반영을 대조한 뒤 판정한다. RTO는 장애 시각이 아니라 **마지막 정상 성공부터 30초 연속 안정 구간의 시작까지**로 정의한다. RPO는 성공 응답을 받은 `request_id` 중 최종 DB에 없는 개수로 보고한다. 재시도 주체(HTTP 부하 발생기·앱·Worker)를 각각 구분한다.
