@@ -2,7 +2,7 @@
 
 ## 결과와 검증 범위
 
-Google Cloud의 Rocky Linux 9.7 `x86_64` 컨테이너 3개에 OpenSQL을 설치하고 실행했다. 각 PostgreSQL 프로세스에 해당 노드의 `OPENSQL_LICENSE_PATH`가 전달됐고, `opensql_license` 모듈을 로드한 상태에서 SQL 접속과 쿼리가 성공했다. 앞선 [라이선스 배치 검증](opensql-three-node-license-installation-20260923.md)의 후속 단계다.
+Google Cloud의 Rocky Linux 9.7 `x86_64` 컨테이너 3개에 OpenSQL을 설치하고 실행했다. 각 PostgreSQL 프로세스에 해당 노드의 `OPENSQL_LICENSE_PATH`가 전달됐고, `opensql_license` 모듈을 로드한 상태에서 SQL 접속과 쿼리가 성공했다. 앞선 [라이선스 배치 검증](gimin-opensql-three-node-license-installation-20260923.md)의 후속 단계다.
 
 이 결과는 **라이선스 경로 전달·모듈 로드·DBMS 실행 및 쿼리 처리**를 확인한 것이다. 공급사의 별도 라이선스 상태 조회 명령이나 만료·재부팅 상황까지 검증했다는 뜻은 아니다. 공개 문서에는 프로젝트 ID, 실제 호스트명·사설 IP, 운영 파일 경로, 라이선스 원본과 해시를 기재하지 않는다.
 

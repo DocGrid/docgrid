@@ -2,7 +2,7 @@
 
 ## 목적과 판정 범위
 
-두 OpenProxy를 거친 실제 SQL의 primary/standby 역할, 트랜잭션 풀에서의 pgJDBC named prepared statement, 시간대 경계, HA 관련 설치·동적 설정을 **운영 데이터를 바꾸지 않고** 확인했다. 이 문서는 장애 전환, 물리 standby별 부하 분산, Hikari/JPA 전체 경로의 무중단성을 합격 처리하지 않는다. 기존 Hikari/JPA 쓰기 검증은 [별도 결과](opensql-openproxy-hikari-troubleshooting-20260924.md)를 참조한다.
+두 OpenProxy를 거친 실제 SQL의 primary/standby 역할, 트랜잭션 풀에서의 pgJDBC named prepared statement, 시간대 경계, HA 관련 설치·동적 설정을 **운영 데이터를 바꾸지 않고** 확인했다. 이 문서는 장애 전환, 물리 standby별 부하 분산, Hikari/JPA 전체 경로의 무중단성을 합격 처리하지 않는다. 기존 Hikari/JPA 쓰기 검증은 [별도 결과](gimin-opensql-openproxy-hikari-troubleshooting-20260924.md)를 참조한다.
 
 공개 증거는 논리 별칭 `node1~3`, `proxy-a/b`만 사용한다. 프로젝트 ID, IP, 관리자·앱 암호, 라이선스 파일은 포함하지 않는다. 수집 당시 `node1`이 leader, `node2/3`이 streaming replica였고, 프록시는 각각 `node2/3`에서 실행됐다. 세 컨테이너 모두 Rocky Linux 9.7 `x86_64`였다.
 
