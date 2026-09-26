@@ -1,0 +1,55 @@
+{
+  "node": "node1",
+  "os": {
+    "architecture": "x86_64",
+    "id": "rocky",
+    "version_id": "9.7"
+  },
+  "patroni_dynamic": {
+    "check_timeline": null,
+    "failsafe_mode": true,
+    "loop_wait": 10,
+    "maximum_lag_on_failover": 1048576,
+    "primary_start_timeout": null,
+    "primary_stop_timeout": null,
+    "retry_timeout": 10,
+    "synchronous_mode": null,
+    "synchronous_mode_strict": null,
+    "ttl": 30
+  },
+  "patroni_members": [
+    {
+      "node": "node1",
+      "role": "Leader",
+      "state": "running"
+    },
+    {
+      "node": "node2",
+      "role": "Replica",
+      "state": "streaming"
+    },
+    {
+      "node": "node3",
+      "role": "Replica",
+      "state": "streaming"
+    }
+  ],
+  "schema_version": 1,
+  "versions": {
+    "etcd": "etcd Version: 3.6.5",
+    "openproxy": null,
+    "openproxy_revision": null,
+    "patroni": "patroni 4.0.5",
+    "psql_client": "psql (PostgreSQL) 17.8"
+  },
+  "runtime": {
+    "container_restart_policy": "unless-stopped",
+    "host_bootstrap_unit": {
+      "ActiveState": "inactive",
+      "Restart": "on-failure",
+      "RestartUSec": "15s"
+    },
+    "openproxy_live_process_count": 0,
+    "openproxy_parent_is_container_pid1": null
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "experiment": "prepared-statement-repeat",
+  "executions_per_proxy": 30,
+  "notes": "Counters are cumulative snapshots, not isolated per-query traces.",
+  "proxies": {
+    "proxy-a": {
+      "before": {
+        "hit": 526,
+        "miss": 212,
+        "eviction": 0
+      },
+      "after": {
+        "hit": 750,
+        "miss": 292,
+        "eviction": 0
+      },
+      "delta": {
+        "hit": 224,
+        "miss": 80,
+        "eviction": 0
+      }
+    },
+    "proxy-b": {
+      "before": {
+        "hit": 514,
+        "miss": 204,
+        "eviction": 0
+      },
+      "after": {
+        "hit": 738,
+        "miss": 284,
+        "eviction": 0
+      },
+      "delta": {
+        "hit": 224,
+        "miss": 80,
+        "eviction": 0
+      }
+    }
+  }
+}

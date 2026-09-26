@@ -61,7 +61,7 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'benchmark', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'opensql-ha-connection'
+		excludeTags 'benchmark', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'opensql-ha-connection', 'opensql-ha-contract'
 	}
 }
 
@@ -508,6 +508,27 @@ tasks.register('openSqlHaConnectionTest', Test) {
 		].each { name ->
 			if (!System.getenv(name)?.trim()) {
 				throw new GradleException("필수 3노드 OpenSQL 환경 변수가 비어 있습니다: ${name}")
+			}
+		}
+	}
+}
+
+tasks.register('openSqlOpenProxyContractTest', Test) {
+	group = 'verification'
+	description = '실제 OpenProxy 두 대의 라우팅, prepared statement, 시간대 계약을 검증합니다.'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'opensql-ha-contract'
+	}
+	maxParallelForks = 1
+	outputs.upToDateWhen { false }
+	doFirst {
+		// 1. 외부 환경이 빠졌을 때 로컬 기본 DB에 잘못 연결해 통과하는 것을 막는다.
+		['OPENSQL_PROXY_A_JDBC_URL', 'OPENSQL_PROXY_B_JDBC_URL',
+		 'OPENSQL_APP_USER', 'OPENSQL_APP_PASSWORD'].each { name ->
+			if (!System.getenv(name)?.trim()) {
+				throw new GradleException("필수 OpenProxy 계약 환경 변수가 비어 있습니다: ${name}")
 			}
 		}
 	}
