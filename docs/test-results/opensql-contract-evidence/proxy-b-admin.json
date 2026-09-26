@@ -11,48 +11,26 @@
     "shutdown_timeout": 60000
   },
   "node": "node3",
-  "servers": [
-    {
-      "prepare_cache_eviction": 0,
-      "prepare_cache_hit": 490,
-      "prepare_cache_miss": 188,
-      "prepare_cache_size": 94,
-      "role": "primary"
-    },
-    {
-      "prepare_cache_eviction": 0,
-      "prepare_cache_hit": 15,
-      "prepare_cache_miss": 10,
-      "prepare_cache_size": 5,
-      "role": "replica_0"
-    },
-    {
-      "prepare_cache_eviction": 0,
-      "prepare_cache_hit": 9,
-      "prepare_cache_miss": 6,
-      "prepare_cache_size": 3,
-      "role": "replica_1"
-    }
-  ],
+  "proxy": "proxy-b",
+  "servers": [],
   "stats": [
     {
       "errors": 0,
-      "queries": 697,
+      "queries": 1387,
       "role": "primary",
-      "transactions": 265
+      "transactions": 469
     },
     {
       "errors": 0,
-      "queries": 119,
+      "queries": 127,
       "role": "replica_0",
-      "transactions": 83
+      "transactions": 87
     },
     {
       "errors": 0,
-      "queries": 105,
+      "queries": 112,
       "role": "replica_1",
-      "transactions": 89
+      "transactions": 94
     }
-  ],
-  "proxy": "proxy-b"
+  ]
 }

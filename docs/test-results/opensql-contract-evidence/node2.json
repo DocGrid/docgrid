@@ -1,4 +1,33 @@
 {
+  "container_time_zone": "UTC+0000",
+  "etcd": {
+    "configured_member_names": [
+      "node1",
+      "node2",
+      "node3"
+    ],
+    "explicit_timing": {
+      "election_timeout_ms": null,
+      "heartbeat_interval_ms": null
+    },
+    "initial_cluster_state": "new",
+    "live_member_names": [
+      "node1",
+      "node2",
+      "node3"
+    ],
+    "quorum": 2,
+    "running_timing": {
+      "election_timeout_ms": {
+        "source": "installed binary default",
+        "value": 1000
+      },
+      "heartbeat_interval_ms": {
+        "source": "installed binary default",
+        "value": 100
+      }
+    }
+  },
   "node": "node2",
   "openproxy": {
     "general": {
@@ -57,14 +86,6 @@
       "state": "streaming"
     }
   ],
-  "schema_version": 1,
-  "versions": {
-    "etcd": "etcd Version: 3.6.5",
-    "openproxy": "openproxy 1.1.3",
-    "openproxy_revision": "revision number: 723",
-    "patroni": "patroni 4.0.5",
-    "psql_client": "psql (PostgreSQL) 17.8"
-  },
   "runtime": {
     "container_restart_policy": "unless-stopped",
     "host_bootstrap_unit": {
@@ -72,7 +93,18 @@
       "Restart": "on-failure",
       "RestartUSec": "15s"
     },
+    "host_time_zone": "UTC+0000",
     "openproxy_live_process_count": 1,
     "openproxy_parent_is_container_pid1": true
+  },
+  "schema_version": 1,
+  "versions": {
+    "etcd": "etcd Version: 3.6.5",
+    "openproxy": "openproxy 1.1.3",
+    "openproxy_revision": "revision number: 723",
+    "opensql": "v3.17.8.7",
+    "patroni": "patroni 4.0.5",
+    "postgres_server_binary": "postgres (PostgreSQL) 17.8",
+    "psql_client": "psql (PostgreSQL) 17.8"
   }
 }
