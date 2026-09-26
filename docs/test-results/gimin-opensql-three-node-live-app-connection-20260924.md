@@ -2,7 +2,7 @@
 
 ## 실행 범위
 
-기존 Rocky Linux 9.7 `x86_64` VM 세 대의 OpenSQL 클러스터에서 DocGrid 앱 계정과 마이그레이션 계정을 분리해 실접속했다. 세 VM은 같은 영역에 있다. 프로젝트 식별자, 사설 IP, 서버 경로, 암호는 이 문서에 기록하지 않는다. [전날 접속 준비 결과](opensql-three-node-app-connection-20260923.md)의 미실행 항목을 실제로 검증한 기록이다.
+기존 Rocky Linux 9.7 `x86_64` VM 세 대의 OpenSQL 클러스터에서 DocGrid 앱 계정과 마이그레이션 계정을 분리해 실접속했다. 세 VM은 같은 영역에 있다. 프로젝트 식별자, 사설 IP, 서버 경로, 암호는 이 문서에 기록하지 않는다. [전날 접속 준비 결과](gimin-opensql-three-node-app-connection-20260923.md)의 미실행 항목을 실제로 검증한 기록이다.
 
 | 항목 | 실행 결과 |
 |---|---|

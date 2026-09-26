@@ -19,7 +19,7 @@ Flyway ─ 별도 마이그레이션 계정 ─ DB 3노드 중 현재 primary
 
 초기 `docgrid` 프록시 풀은 `pool_mode="session"`, `default_role="primary"`, `query_parser_enabled=false`였다. 일반 JDBC 연결에서 프록시를 통해 인증·조회가 된다고 해서 앱의 Hikari 연결도 primary에 있다고 볼 수 없었다. Hikari로 실제 연결한 뒤 `pg_is_in_recovery()`를 실행하자 `true`가 나왔다. 즉, 연결은 성공했지만 쓰기 불가능한 standby에 있었다.
 
-기존 진단에서는 단독 JDBC 연결의 **첫 명령**을 `SET SERVER ROLE TO 'primary'`로 보내면 primary에 도달했다. 그러나 앱에서는 Hikari/드라이버가 `connection-init-sql`보다 먼저 초기 검증·메타데이터 조회를 수행했다. 세션 풀에서는 처음 선택된 서버 연결이 클라이언트 세션 동안 유지되므로, 나중에 역할을 지정하는 방식으로는 문제를 고칠 수 없었다. 이 동작은 [이전 실접속 기록](opensql-three-node-live-app-connection-20260924.md)에 남겨 두었다.
+기존 진단에서는 단독 JDBC 연결의 **첫 명령**을 `SET SERVER ROLE TO 'primary'`로 보내면 primary에 도달했다. 그러나 앱에서는 Hikari/드라이버가 `connection-init-sql`보다 먼저 초기 검증·메타데이터 조회를 수행했다. 세션 풀에서는 처음 선택된 서버 연결이 클라이언트 세션 동안 유지되므로, 나중에 역할을 지정하는 방식으로는 문제를 고칠 수 없었다. 이 동작은 [이전 실접속 기록](gimin-opensql-three-node-live-app-connection-20260924.md)에 남겨 두었다.
 
 공급사도 세션 풀에서 첫 조회가 replica를 선택하면 이후 primary 전용 SQL이 실패할 수 있다고 설명한다. 다만 **왜 현재 빌드에서 `default_role="primary"`가 첫 연결을 primary로 고정하지 못했는지 내부 구현 원인까지 확인한 것은 아니다.** 여기서 확정한 것은 Hikari 연결의 실제 대상과 재현 가능한 실패다. [OpenProxy 읽기 분산 문서](https://docs.tibero.com/tmaxopensql.en/administration/openproxy/load-balancing)
 
