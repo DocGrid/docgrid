@@ -1,0 +1,36 @@
+{
+  "effective_config": {
+    "connect_timeout": 10000,
+    "pools.docgrid.default_role": "primary",
+    "pools.docgrid.load_balancing_mode": "Random",
+    "pools.docgrid.pool_mode": "Transaction",
+    "pools.docgrid.prepared_statements_cache_size": 0,
+    "pools.docgrid.primary_reads_enabled": false,
+    "pools.docgrid.query_parser_enabled": true,
+    "pools.docgrid.query_parser_read_write_splitting": true,
+    "shutdown_timeout": 60000
+  },
+  "node": "node2",
+  "proxy": "proxy-a",
+  "servers": [],
+  "stats": [
+    {
+      "errors": 0,
+      "queries": 1068,
+      "role": "primary",
+      "transactions": 333
+    },
+    {
+      "errors": 0,
+      "queries": 44,
+      "role": "replica_0",
+      "transactions": 32
+    },
+    {
+      "errors": 0,
+      "queries": 60,
+      "role": "replica_1",
+      "transactions": 40
+    }
+  ]
+}

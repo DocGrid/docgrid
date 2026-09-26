@@ -1,0 +1,110 @@
+{
+  "container_time_zone": "UTC+0000",
+  "etcd": {
+    "configured_member_names": [
+      "node1",
+      "node2",
+      "node3"
+    ],
+    "explicit_timing": {
+      "election_timeout_ms": null,
+      "heartbeat_interval_ms": null
+    },
+    "initial_cluster_state": "new",
+    "live_member_names": [
+      "node1",
+      "node2",
+      "node3"
+    ],
+    "quorum": 2,
+    "running_timing": {
+      "election_timeout_ms": {
+        "source": "installed binary default",
+        "value": 1000
+      },
+      "heartbeat_interval_ms": {
+        "source": "installed binary default",
+        "value": 100
+      }
+    }
+  },
+  "node": "node3",
+  "openproxy": {
+    "general": {
+      "connect_timeout": 10000,
+      "prepared_statements_cache_size": 1000
+    },
+    "pools.docgrid": {
+      "default_role": "primary",
+      "pool_mode": "transaction",
+      "query_parser_enabled": true,
+      "query_parser_read_write_splitting": true
+    },
+    "pools.docgrid.shards.0": {
+      "patroni_port": "8008",
+      "use_patroni": true
+    },
+    "pools.docgrid.users.0": {
+      "pool_size": 5
+    }
+  },
+  "openproxy_service_template": {
+    "Restart": "always",
+    "RestartSec": "1"
+  },
+  "os": {
+    "architecture": "x86_64",
+    "id": "rocky",
+    "version_id": "9.7"
+  },
+  "patroni_dynamic": {
+    "check_timeline": null,
+    "failsafe_mode": true,
+    "loop_wait": 10,
+    "maximum_lag_on_failover": 1048576,
+    "primary_start_timeout": null,
+    "primary_stop_timeout": null,
+    "retry_timeout": 10,
+    "synchronous_mode": null,
+    "synchronous_mode_strict": null,
+    "ttl": 30
+  },
+  "patroni_members": [
+    {
+      "node": "node1",
+      "role": "Leader",
+      "state": "running"
+    },
+    {
+      "node": "node2",
+      "role": "Replica",
+      "state": "streaming"
+    },
+    {
+      "node": "node3",
+      "role": "Replica",
+      "state": "streaming"
+    }
+  ],
+  "runtime": {
+    "container_restart_policy": "unless-stopped",
+    "host_bootstrap_unit": {
+      "ActiveState": "inactive",
+      "Restart": "on-failure",
+      "RestartUSec": "15s"
+    },
+    "host_time_zone": "UTC+0000",
+    "openproxy_live_process_count": 1,
+    "openproxy_parent_is_container_pid1": true
+  },
+  "schema_version": 1,
+  "versions": {
+    "etcd": "etcd Version: 3.6.5",
+    "openproxy": "openproxy 1.1.3",
+    "openproxy_revision": "revision number: 723",
+    "opensql": "v3.17.8.7",
+    "patroni": "patroni 4.0.5",
+    "postgres_server_binary": "postgres (PostgreSQL) 17.8",
+    "psql_client": "psql (PostgreSQL) 17.8"
+  }
+}
