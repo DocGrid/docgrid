@@ -67,7 +67,7 @@ public class SecurityConfig {
                 // 요청에 커스텀 헤더를 못 실어서, 여기(HTTP)에서는 검증하지 않는다:
                 // 1. HTTP 핸드셰이크(여기) — permitAll
                 // 2. STOMP CONNECT — StompAuthChannelInterceptor가 JWT 검증
-                // 3. STOMP SUBSCRIBE·SEND — DashboardSubscriptionAuthorizationInterceptor가 목적지별 권한 검증
+                // 3. STOMP SUBSCRIBE·SEND — StompDestinationAuthorizationInterceptor가 목적지별 권한 검증
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

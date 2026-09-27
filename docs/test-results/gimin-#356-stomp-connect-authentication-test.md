@@ -119,5 +119,5 @@ BUILD SUCCESSFUL in 53s
 신규 STOMP 연결에서 두 연결 명령이 같은 인증 경계를 통과하고, 로그아웃 token과 blacklist 상태를
 확인할 수 없는 token이 거부됨을 단위·실제 WebSocket·전체 회귀 테스트로 확인했다.
 
-이번 결과는 연결 시점 인증을 대상으로 한다. 연결 후 로그아웃·만료된 기존 session의 강제 종료와
-pattern·wildcard subscription 권한 검증은 별도 범위다.
+이번 결과는 연결 시점 인증을 대상으로 한다. 연결 후 로그아웃·만료된 기존 session의 강제 종료는
+별도 범위이며, pattern·wildcard subscription 권한 검증은 후속 #358에서 보강했다.

@@ -42,7 +42,7 @@ import com.opensource.docgrid.domain.dashboard.dto.response.WorkersSummaryRespon
  * 관통하는 통합 테스트.
  *
  * <p>CONNECT 시점 JWT 검증({@code StompAuthChannelInterceptor})과 SUBSCRIBE·SEND 시점 ADMIN
- * 권한 검증({@code DashboardSubscriptionAuthorizationInterceptor})이 실제 Channel Interceptor
+ * 권한 검증({@code StompDestinationAuthorizationInterceptor})이 실제 Channel Interceptor
  * 체인에서 함께 동작하는지 확인한다.
  */
 @Tag("integration")
