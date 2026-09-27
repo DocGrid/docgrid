@@ -141,6 +141,38 @@ class StompSessionRevalidationSchedulerTest {
     }
 
     @Test
+    @DisplayName("DB 역할 검증 실패 시 검사 대상 세션을 fail-closed한다")
+    void revalidate_closesAllCandidates_whenRoleLookupFails() {
+        // Given
+        SessionSnapshot session = session("first", 1L, "jti-1", NOW.plusSeconds(60), "USER");
+        given(stompSessionRegistry.authenticatedSessions()).willReturn(List.of(session));
+        given(tokenBlacklistService.findBlacklistedJtis(List.of("jti-1"))).willReturn(Set.of());
+        given(userRoleRepository.findAllWithRoleByUserIdIn(List.of(1L)))
+            .willThrow(new RuntimeException("database down"));
+        given(stompSessionRegistry.close("first")).willReturn(true);
+
+        // When
+        scheduler.revalidate();
+
+        // Then
+        then(stompSessionRegistry).should().close("first");
+        assertThat(closedCount("validation_failed")).isEqualTo(1.0);
+    }
+
+    @Test
+    @DisplayName("활성 세션 Gauge는 registry의 현재 인증 세션 수를 읽는다")
+    void activeSessionGauge_readsCurrentRegistryCount() {
+        // Given
+        given(stompSessionRegistry.authenticatedSessionCount()).willReturn(3);
+
+        // When
+        double activeSessions = meterRegistry.get("docgrid.stomp.sessions.active").gauge().value();
+
+        // Then
+        assertThat(activeSessions).isEqualTo(3.0);
+    }
+
+    @Test
     @DisplayName("고유 token과 사용자가 batch-size를 넘으면 Redis와 DB를 같은 크기로 나눠 조회한다")
     void revalidate_chunksBlacklistAndRoleQueries() {
         // Given
