@@ -4,6 +4,7 @@ import java.security.Principal;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>애플리케이션에는 client가 호출할 {@code @MessageMapping}이 없고 실제 push는 서버의
  * {@code SimpMessagingTemplate}만 사용한다. 서버 전송은 {@code clientInboundChannel}을 거치지 않으므로
- * client SEND를 목적지와 무관하게 거부해도 정상 push에는 영향이 없다.
+ * client의 SEND와 서버 전용 MESSAGE 명령을 목적지와 무관하게 거부해도 정상 push에는 영향이 없다.
  *
  * <p>{@code @EnableWebSocketSecurity}(Spring Security 메시지 인가 DSL)는 STOMP endpoint가
  * 등록된 것을 감지하면 세션 기반 CSRF 토큰을 무조건 요구하는 {@code CsrfChannelInterceptor}를
@@ -46,8 +47,8 @@ public class StompDestinationAuthorizationInterceptor implements ChannelIntercep
             return message;
         }
 
-        // 1. 서버만 push를 발행하므로 client SEND는 목적지와 권한에 관계없이 거부한다.
-        if (StompCommand.SEND.equals(accessor.getCommand())) {
+        // 1. SEND와 서버 전용 MESSAGE는 같은 발행 타입이므로 command 별칭과 무관하게 모두 거부한다.
+        if (SimpMessageType.MESSAGE.equals(accessor.getMessageType())) {
             throw new AccessDeniedException(SEND_DENIED_MESSAGE);
         }
 

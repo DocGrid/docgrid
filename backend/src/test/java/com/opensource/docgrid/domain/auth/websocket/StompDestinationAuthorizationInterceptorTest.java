@@ -128,6 +128,17 @@ class StompDestinationAuthorizationInterceptorTest {
     }
 
     @Test
+    @DisplayName("예외 케이스: client가 서버 전용 MESSAGE 명령을 보내도 발행으로 보고 거부한다")
+    void preSend_rejectsServerOnlyMessageCommand_fromClient() {
+        // Given — Spring은 SEND와 MESSAGE를 모두 SimpMessageType.MESSAGE로 변환한다.
+        Message<byte[]> message = message(StompCommand.MESSAGE, RAG_ANSWER_QUEUE, user());
+
+        // When & Then
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+            .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
     @DisplayName("정상 케이스: destination 인가 대상이 아닌 DISCONNECT는 그대로 통과한다")
     void preSend_passesDisconnect() {
         // Given

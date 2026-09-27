@@ -4,12 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,8 +37,12 @@ import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHttpHeaders;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -164,6 +173,36 @@ class StompDestinationAuthorizationIntegrationTest {
         }
     }
 
+    @Test
+    @DisplayName("예외 케이스: raw client가 서버 전용 MESSAGE로 발행을 시도해도 거부한다")
+    void rejectsServerOnlyMessageCommand_fromRawClient() throws Exception {
+        // Given
+        String targetEmail = "raw-message-target@example.com";
+        BlockingQueue<Throwable> targetFailures = new LinkedBlockingQueue<>();
+        StompSession targetSession = connect(userToken(targetEmail), targetFailures);
+        BlockingQueue<JsonNode> targetEvents = subscribeRag(targetSession);
+        awaitSubscription(targetEmail, RAG_ANSWER_QUEUE);
+        RawStompFrameHandler handler = new RawStompFrameHandler();
+        WebSocketSession rawSession = openRawSession(handler);
+
+        try {
+            rawSession.sendMessage(new TextMessage(connectFrame(userToken("raw-message-sender@example.com"))));
+            await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
+                .until(() -> handler.hasFrameStartingWith("CONNECTED"));
+
+            // When — STOMP spec상 server command지만 Spring decoder가 inbound channel까지 전달한다.
+            rawSession.sendMessage(new TextMessage(messageFrame(targetEmail, 99L)));
+
+            // Then
+            awaitRejected(handler);
+            assertThat(targetEvents.poll(NO_DELIVERY_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isNull();
+            assertThat(targetFailures).isEmpty();
+        } finally {
+            disconnect(targetSession);
+            close(rawSession);
+        }
+    }
+
     private StompSession connect(String token, BlockingQueue<Throwable> failures) throws Exception {
         StompHeaders connectHeaders = new StompHeaders();
         connectHeaders.add("Authorization", "Bearer " + token);
@@ -191,6 +230,34 @@ class StompDestinationAuthorizationIntegrationTest {
             }
         });
         return events;
+    }
+
+    private WebSocketSession openRawSession(RawStompFrameHandler handler) throws Exception {
+        return new StandardWebSocketClient()
+            .execute(handler, new WebSocketHttpHeaders(), URI.create(wsUrl()))
+            .get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private String connectFrame(String token) {
+        return "CONNECT\naccept-version:1.2\nAuthorization:Bearer " + token + "\nheart-beat:0,0\n\n\0";
+    }
+
+    private String messageFrame(String targetEmail, Long queryId) {
+        String payload = "{\"queryId\":" + queryId + "}";
+        int contentLength = payload.getBytes(StandardCharsets.UTF_8).length;
+        return "MESSAGE\n"
+            + "subscription:forged\n"
+            + "message-id:forged\n"
+            + "destination:/user/" + targetEmail + "/queue/rag-answer\n"
+            + "content-type:application/json\n"
+            + "content-length:" + contentLength + "\n\n"
+            + payload + "\0";
+    }
+
+    private void awaitRejected(RawStompFrameHandler handler) {
+        await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
+            .until(() -> handler.hasFrameStartingWith("ERROR") || handler.isClosed()
+                || handler.getTransportError() != null);
     }
 
     private void awaitSubscription(String email, String destination) {
@@ -243,6 +310,49 @@ class StompDestinationAuthorizationIntegrationTest {
     private void disconnect(StompSession session) {
         if (session.isConnected()) {
             session.disconnect();
+        }
+    }
+
+    private void close(WebSocketSession session) throws Exception {
+        if (session.isOpen()) {
+            session.close();
+        }
+    }
+
+    /**
+     * raw STOMP 응답과 연결 종료·전송 오류를 비동기 callback에서 안전하게 수집한다.
+     */
+    private static final class RawStompFrameHandler extends TextWebSocketHandler {
+
+        private final Queue<String> frames = new ConcurrentLinkedQueue<>();
+        private final AtomicReference<Throwable> transportError = new AtomicReference<>();
+        private volatile boolean closed;
+
+        @Override
+        protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+            frames.add(message.getPayload());
+        }
+
+        @Override
+        public void handleTransportError(WebSocketSession session, Throwable exception) {
+            transportError.compareAndSet(null, exception);
+        }
+
+        @Override
+        public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+            closed = true;
+        }
+
+        private boolean hasFrameStartingWith(String command) {
+            return frames.stream().anyMatch(frame -> frame.startsWith(command));
+        }
+
+        private Throwable getTransportError() {
+            return transportError.get();
+        }
+
+        private boolean isClosed() {
+            return closed;
         }
     }
 }
