@@ -13,6 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
@@ -41,9 +43,10 @@ class StompAuthChannelInterceptorTest {
         interceptor = new StompAuthChannelInterceptor(jwtProvider, roleAuthorityService);
     }
 
-    @Test
-    @DisplayName("정상 케이스: 유효한 ADMIN 토큰이면 CONNECT 프레임에 Principal을 부착한다")
-    void preSend_attachesPrincipal_whenTokenValid() {
+    @ParameterizedTest
+    @EnumSource(value = StompCommand.class, names = {"CONNECT", "STOMP"})
+    @DisplayName("정상 케이스: 유효한 ADMIN 토큰이면 연결 프레임에 Principal을 부착한다")
+    void preSend_attachesPrincipal_whenTokenValid(StompCommand command) {
         // Given
         Claims claims = mock(Claims.class);
         given(claims.getSubject()).willReturn("admin@example.com");
@@ -51,7 +54,7 @@ class StompAuthChannelInterceptorTest {
         given(jwtProvider.getClaimsIfValid("valid-token")).willReturn(claims);
         given(roleAuthorityService.getRoles(1L)).willReturn(List.of("ADMIN"));
 
-        Message<byte[]> connectMessage = connectMessage("Bearer valid-token");
+        Message<byte[]> connectMessage = connectMessage(command, "Bearer valid-token");
 
         // When
         Message<?> result = interceptor.preSend(connectMessage, channel);
@@ -66,11 +69,12 @@ class StompAuthChannelInterceptorTest {
             .containsExactly("ROLE_ADMIN");
     }
 
-    @Test
+    @ParameterizedTest
+    @EnumSource(value = StompCommand.class, names = {"CONNECT", "STOMP"})
     @DisplayName("예외 케이스: Authorization 헤더가 없으면 연결을 거부한다")
-    void preSend_throws_whenNoAuthorizationHeader() {
+    void preSend_throws_whenNoAuthorizationHeader(StompCommand command) {
         // Given
-        Message<byte[]> connectMessage = connectMessage(null);
+        Message<byte[]> connectMessage = connectMessage(command, null);
 
         // When & Then
         assertThatThrownBy(() -> interceptor.preSend(connectMessage, channel))
@@ -107,7 +111,11 @@ class StompAuthChannelInterceptorTest {
     }
 
     private Message<byte[]> connectMessage(String authorizationHeader) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
+        return connectMessage(StompCommand.CONNECT, authorizationHeader);
+    }
+
+    private Message<byte[]> connectMessage(StompCommand command, String authorizationHeader) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(command);
         if (authorizationHeader != null) {
             accessor.setNativeHeader("Authorization", authorizationHeader);
         }

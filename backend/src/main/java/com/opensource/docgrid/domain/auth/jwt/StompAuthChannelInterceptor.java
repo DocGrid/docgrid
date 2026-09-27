@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
@@ -18,12 +18,12 @@ import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 
 /**
- * STOMP CONNECT 프레임의 JWT를 검증해 WebSocket 세션에 Principal을 부착한다.
+ * STOMP 연결 프레임의 JWT를 검증해 WebSocket 세션에 Principal을 부착한다.
  *
  * <p>WebSocket 자체는 그냥 양방향 파이프를 열어줄 뿐, "이 메시지가 연결 요청인지 구독인지" 같은
  * 구조가 없다. STOMP는 그 파이프 위에 CONNECT·SUBSCRIBE·SEND 같은 프레임 타입을 정의해 의미
- * 있는 대화를 가능하게 하는 프로토콜이고, 클라이언트는 파이프가 열리면 규격상 반드시 CONNECT
- * 프레임을 제일 먼저 보내야 한다. 이 Interceptor는 그 첫 CONNECT 프레임을 가로채 "로그인한
+ * 있는 대화를 가능하게 하는 프로토콜이고, 클라이언트는 파이프가 열리면 규격상 반드시 CONNECT 또는
+ * STOMP 프레임을 제일 먼저 보내야 한다. 이 Interceptor는 그 연결 프레임을 가로채 "로그인한
  * 사용자인가"를 확인하는 문지기이며, JWT가 없거나 무효하면 그 자리에서 연결을 끊는다.
  *
  * <p>HTTP 핸드셰이크(/ws)는 {@code SecurityConfig}에서 permitAll로 열려 있다. 네이티브
@@ -57,8 +57,8 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        // 인증은 세션 시작 시점(CONNECT) 한 번만 하면 된다. SUBSCRIBE 등 이후 프레임은 그대로 통과시킨다.
-        if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
+        // CONNECT와 STOMP는 모두 같은 연결 메시지다. SUBSCRIBE 등 이후 프레임은 그대로 통과시킨다.
+        if (accessor != null && SimpMessageType.CONNECT.equals(accessor.getMessageType())) {
             String token = resolveToken(accessor);
             // JWT가 유효해야 신원을 확인한 것으로 본다. 없거나 무효하면 여기서 바로 연결을 끊는다.
             Claims claims = token == null ? null : jwtProvider.getClaimsIfValid(token);
