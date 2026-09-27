@@ -6,9 +6,11 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 import com.opensource.docgrid.domain.auth.jwt.StompAuthChannelInterceptor;
 import com.opensource.docgrid.domain.auth.websocket.StompDestinationAuthorizationInterceptor;
+import com.opensource.docgrid.domain.auth.websocket.StompSessionTrackingDecoratorFactory;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,7 +19,8 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>인증·인가는 이 설정이 아니라 {@link StompAuthChannelInterceptor}(CONNECT 시점 인증)와
  * {@link StompDestinationAuthorizationInterceptor}(SUBSCRIBE·SEND 시점 인가)가 담당한다.
- * 이 클래스는 전송 계층 구성(endpoint·broker·origin)과 두 Interceptor의 등록 순서만 책임진다.
+ * 이 클래스는 전송 계층 구성(endpoint·broker·origin), 물리 세션 추적과 두 Interceptor의 등록 순서만
+ * 책임진다.
  *
  * <p>{@code /queue}는 RAG 답변 개인 알림({@code convertAndSendToUser})의 broker 내부 목적지로 쓰인다.
  * client는 {@code /user/queue/rag-answer}만 구독할 수 있고, 실제 {@code /queue}와 pattern 접근은
@@ -30,6 +33,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
     private final StompDestinationAuthorizationInterceptor stompDestinationAuthorizationInterceptor;
+    private final StompSessionTrackingDecoratorFactory stompSessionTrackingDecoratorFactory;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -41,6 +45,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/topic", "/queue");
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        // CONNECT 전에 생성되는 물리 세션을 보관해야 이후 인증 snapshot과 같은 sessionId로 결합할 수 있다.
+        registration.addDecoratorFactory(stompSessionTrackingDecoratorFactory);
     }
 
     @Override

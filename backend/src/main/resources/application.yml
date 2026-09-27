@@ -139,6 +139,14 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:3600}
 
+auth:
+  stomp:
+    session-revalidation:
+      # 이미 열린 연결에도 logout·token 만료·역할 변경을 반영하는 최대 검사 간격이다.
+      interval: ${STOMP_SESSION_REVALIDATION_INTERVAL:5s}
+      # Redis MGET과 역할 IN query가 한 번에 처리할 고유 token·사용자 상한이다.
+      batch-size: ${STOMP_SESSION_REVALIDATION_BATCH_SIZE:500}
+
 embedding:
   server:
     base-url: ${EMBEDDING_SERVER_URL:http://localhost:8000}

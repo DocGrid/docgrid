@@ -1,6 +1,9 @@
 package com.opensource.docgrid.domain.auth.jwt;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -13,6 +16,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import com.opensource.docgrid.domain.auth.websocket.StompSessionAuthorization;
+import com.opensource.docgrid.domain.auth.websocket.StompSessionRegistry;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -41,8 +47,8 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>HTTP는 요청 하나로 끝나 매번 {@code SecurityContextHolder}를 새로 채우지만, WebSocket은 연결이
  * 오래 유지되는 세션이라 {@code accessor.setUser()}로 세션 자체에 Principal을 붙여 이후 프레임에서
- * 재사용한다. 이 검증은 신규 연결에만 적용되며 이미 열린 세션의 로그아웃·만료 반영은 별도 세션 수명
- * 주기에서 다룬다.
+ * 재사용한다. 연결 당시의 jti·만료 시각·role snapshot은 {@code StompSessionRegistry}에도 등록하고,
+ * 별도 재검증 작업이 열린 세션의 로그아웃·만료·역할 변경을 확인한다.
  *
  * <p>이때 Accessor는 반드시 {@link MessageHeaderAccessor#getAccessor}로 가져와야 한다.
  * {@code StompHeaderAccessor.wrap(message)}는 검증 전용 복사본이라 그 위에 {@code setUser()}를
@@ -61,6 +67,7 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
     private final JwtProvider jwtProvider;
     private final TokenBlacklistService tokenBlacklistService;
     private final RoleAuthorityService roleAuthorityService;
+    private final StompSessionRegistry stompSessionRegistry;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -81,9 +88,16 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
                 throw invalidAuthentication();
             }
 
-            // 4. 거부되지 않은 토큰에 대해서만 현재 권한을 조회하고 세션 Principal을 만든다.
+            // 4. 수명 검증에 필요한 식별자가 없으면 추적할 수 없는 연결이므로 거부한다.
             String email = claims.getSubject();
             Long userId = claims.get("userId", Long.class);
+            Date expiration = claims.getExpiration();
+            String sessionId = accessor.getSessionId();
+            if (userId == null || expiration == null || !StringUtils.hasText(sessionId)) {
+                throw invalidAuthentication();
+            }
+
+            // 5. 거부되지 않은 토큰에 대해서만 현재 권한을 조회하고 세션 Principal을 만든다.
             List<String> roles = roleAuthorityService.getRoles(userId);
             List<SimpleGrantedAuthority> authorities = roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
@@ -92,6 +106,17 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(email, null, authorities);
             authentication.setDetails(userId);
+
+            // 6. 물리 연결이 이미 추적 중일 때만 인증을 완료해 검사에서 빠지는 세션을 만들지 않는다.
+            StompSessionAuthorization authorization = new StompSessionAuthorization(
+                userId,
+                jti,
+                Instant.ofEpochMilli(expiration.getTime()),
+                Set.copyOf(roles)
+            );
+            if (!stompSessionRegistry.authenticate(sessionId, authorization)) {
+                throw invalidAuthentication();
+            }
             accessor.setUser(authentication);
         }
 
