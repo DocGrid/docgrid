@@ -14,17 +14,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 /**
- * {@code /topic/dashboard} 목적지를 ADMIN 전용으로 보호한다.
+ * STOMP client의 SUBSCRIBE·SEND 목적지를 명시적인 허용 목록으로 제한한다.
  *
  * <p>{@code StompAuthChannelInterceptor}가 CONNECT 시점에 세션에 부착한 Principal을 재사용해
- * 목적지 접근 시점에 다시 한 번 검증한다. CONNECT 검증 하나에만 의존하지 않는 이중 방어다.
+ * 목적지 접근 시점에 다시 검증한다. {@code /topic/dashboard}는 ADMIN만, 사용자별 RAG 완료 알림인
+ * {@code /user/queue/rag-answer}는 인증된 사용자만 구독할 수 있다. 그 외 정확한 목적지와 pattern,
+ * Spring이 내부에서 만드는 실제 {@code /queue} 목적지는 모두 거부한다.
  *
- * <p>SUBSCRIBE뿐 아니라 SEND도 차단한다. {@code enableSimpleBroker("/topic")} 구성에서는
- * 클라이언트가 {@code /topic/dashboard}로 STOMP SEND 프레임을 보내면 SimpleBroker가 이를 그대로
- * 구독자 전원에게 브로드캐스트한다 — 인증만 된 일반 사용자도 위조된 지표를 ADMIN 구독자에게 보낼
- * 수 있다는 뜻이다. 실제 push는 {@code DashboardWebSocketController}가 {@code clientInboundChannel}을
- * 거치지 않는 {@code SimpMessagingTemplate}으로만 하므로, 이 목적지로의 클라이언트발 SEND는
- * ADMIN 여부와 무관하게 전부 차단해도 정상 기능에 영향이 없다.
+ * <p>애플리케이션에는 client가 호출할 {@code @MessageMapping}이 없고 실제 push는 서버의
+ * {@code SimpMessagingTemplate}만 사용한다. 서버 전송은 {@code clientInboundChannel}을 거치지 않으므로
+ * client SEND를 목적지와 무관하게 거부해도 정상 push에는 영향이 없다.
  *
  * <p>{@code @EnableWebSocketSecurity}(Spring Security 메시지 인가 DSL)는 STOMP endpoint가
  * 등록된 것을 감지하면 세션 기반 CSRF 토큰을 무조건 요구하는 {@code CsrfChannelInterceptor}를
@@ -35,46 +34,51 @@ import org.springframework.stereotype.Component;
 public class StompDestinationAuthorizationInterceptor implements ChannelInterceptor {
 
     private static final String DASHBOARD_TOPIC = "/topic/dashboard";
+    private static final String RAG_ANSWER_QUEUE = "/user/queue/rag-answer";
     private static final String ADMIN_AUTHORITY = "ROLE_ADMIN";
+    private static final String SUBSCRIPTION_DENIED_MESSAGE = "구독 권한이 없습니다.";
+    private static final String SEND_DENIED_MESSAGE = "메시지를 보낼 권한이 없습니다.";
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-
-        /*
-         * /topic/dashboard 목적지가 아니면 이 Interceptor는 그냥 통과시킨다 — 다른 목적지별로
-         * 전담 Interceptor가 따로 있는 게 아니라, 그 목적지들은 애초에 이 검사 대상이 아니다.
-         * 예를 들어 RAG 개인 알림(/user/queue/rag-answer)은 Spring의 user-destination 격리
-         * 자체가 안전을 보장해서 별도 Interceptor가 필요 없다.
-         */
-        if (accessor == null || !DASHBOARD_TOPIC.equals(accessor.getDestination())) {
+        if (accessor == null) {
             return message;
         }
 
-        /*
-         * SEND는 ADMIN 여부와 무관하게 전부 차단한다 — SimpleBroker 구성상 클라이언트가 SEND
-         * 프레임을 보내면 그대로 구독자 전원에게 방송돼버려, 위조된 값을 퍼뜨릴 수 있는 경로이기
-         * 때문이다. 실제 push는 서버 쪽 SimpMessagingTemplate로만 이뤄지므로 클라이언트발 SEND는
-         * 정상 기능이 아니다.
-         */
+        // 1. 서버만 push를 발행하므로 client SEND는 목적지와 권한에 관계없이 거부한다.
         if (StompCommand.SEND.equals(accessor.getCommand())) {
-            throw new AccessDeniedException("이 목적지로는 메시지를 보낼 수 없습니다.");
+            throw new AccessDeniedException(SEND_DENIED_MESSAGE);
         }
 
-        /* SUBSCRIBE 시점에 세션에 부착된 Principal이 ADMIN 권한인지 검증한다. */
-        if (StompCommand.SUBSCRIBE.equals(accessor.getCommand()) && !isAdmin(accessor.getUser())) {
-            throw new AccessDeniedException("대시보드 구독 권한이 없습니다.");
+        // 2. CONNECT·DISCONNECT·UNSUBSCRIBE 등 목적지 인가 대상이 아닌 명령은 그대로 통과시킨다.
+        if (!StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+            return message;
         }
 
-        return message;
+        // 3. 넓은 pattern 대신 프런트가 실제 사용하는 두 목적지만 정확히 일치할 때 허용한다.
+        String destination = accessor.getDestination();
+        if (DASHBOARD_TOPIC.equals(destination) && isAdmin(accessor.getUser())) {
+            return message;
+        }
+        if (RAG_ANSWER_QUEUE.equals(destination) && isAuthenticated(accessor.getUser())) {
+            return message;
+        }
+
+        // 4. pattern·내부 queue·알 수 없는 목적지와 권한 부족을 같은 응답으로 거부한다.
+        throw new AccessDeniedException(SUBSCRIPTION_DENIED_MESSAGE);
     }
 
     private boolean isAdmin(Principal user) {
         if (!(user instanceof Authentication authentication)) {
             return false;
         }
-        return authentication.getAuthorities().stream()
+        return authentication.isAuthenticated() && authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .anyMatch(ADMIN_AUTHORITY::equals);
+    }
+
+    private boolean isAuthenticated(Principal user) {
+        return user instanceof Authentication authentication && authentication.isAuthenticated();
     }
 }

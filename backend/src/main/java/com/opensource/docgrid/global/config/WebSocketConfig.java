@@ -19,9 +19,9 @@ import lombok.RequiredArgsConstructor;
  * {@link StompDestinationAuthorizationInterceptor}(SUBSCRIBE·SEND 시점 인가)가 담당한다.
  * 이 클래스는 전송 계층 구성(endpoint·broker·origin)과 두 Interceptor의 등록 순서만 책임진다.
  *
- * <p>{@code /queue}는 RAG 답변 개인 알림({@code convertAndSendToUser})에 쓰인다. 대시보드처럼
- * 별도 구독 인가 Interceptor가 없는 이유는 {@code RagWebSocketController} 문서 참고 — 사용자별
- * 격리가 Spring의 user destination 메커니즘 자체로 이미 보장된다.
+ * <p>{@code /queue}는 RAG 답변 개인 알림({@code convertAndSendToUser})의 broker 내부 목적지로 쓰인다.
+ * client는 {@code /user/queue/rag-answer}만 구독할 수 있고, 실제 {@code /queue}와 pattern 접근은
+ * {@code StompDestinationAuthorizationInterceptor}가 broker에 도달하기 전에 거부한다.
  */
 @EnableWebSocketMessageBroker
 @Configuration
