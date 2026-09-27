@@ -11,6 +11,13 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 로그아웃한 access token의 jti를 Redis에 보관하고 단건·일괄 폐기 여부 조회를 제공한다.
+ *
+ * <p>HTTP 인증은 단건 조회를 사용하고, 열린 STOMP 세션 재검증은 네트워크 왕복이 세션 수만큼
+ * 늘지 않도록 MGET 기반 일괄 조회를 사용한다. Redis 장애에 대한 fail-open·fail-closed 결정은 각
+ * 호출 경로가 자신의 가용성 요구에 맞게 담당한다.
+ */
 @Component
 @RequiredArgsConstructor
 public class TokenBlacklistService {
