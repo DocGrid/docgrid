@@ -90,7 +90,7 @@ Spring은 `CONNECT`와 `STOMP`를 모두 `SimpMessageType.CONNECT`로 변환한�
 
 `SEND`, `SUBSCRIBE`, `DISCONNECT` 같은 후속 frame은 이 interceptor에서 token을 다시 파싱하지
 않는다. 연결 때 session에 등록한 Principal을 사용하고, destination 권한은 기존
-`DashboardSubscriptionAuthorizationInterceptor`가 담당한다.
+`StompDestinationAuthorizationInterceptor`가 담당한다.
 
 ### 4.2 인증 절차를 네 단계로 고정한다
 
@@ -172,7 +172,7 @@ Principal 타입까지 확인한다.
 ## 7. 남아 있는 범위
 
 - 로그아웃·token 만료 후 기존 session을 종료하는 session lifecycle 정책
-- dashboard destination의 pattern·wildcard subscription 권한 규칙
+- dashboard destination의 pattern·wildcard subscription 권한 규칙(후속 #358에서 해결)
 - 로그아웃 blacklist 기록 자체가 실패했을 때의 전달 보장
 - Redis 재시작으로 blacklist가 유실되지 않도록 하는 persistence·운영 정책
 
