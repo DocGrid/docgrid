@@ -171,7 +171,7 @@ Principal 타입까지 확인한다.
 
 ## 7. 남아 있는 범위
 
-- 로그아웃·token 만료 후 기존 session을 종료하는 session lifecycle 정책
+- 로그아웃·token 만료 후 기존 session을 종료하는 session lifecycle 정책(후속 #360에서 해결)
 - dashboard destination의 pattern·wildcard subscription 권한 규칙(후속 #358에서 해결)
 - 로그아웃 blacklist 기록 자체가 실패했을 때의 전달 보장
 - Redis 재시작으로 blacklist가 유실되지 않도록 하는 persistence·운영 정책

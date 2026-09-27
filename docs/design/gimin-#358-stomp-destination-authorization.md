@@ -160,4 +160,5 @@ client message 전체 거부가 서버 push를 막지 않는다. command 문자�
   `onclose` 뒤 REST polling으로 전환하므로 기능은 유지된다.
 - 새 destination은 허용 목록을 명시적으로 확장하기 전까지 거부된다. 이는 누락된 인가 정책으로 새
   채널이 열리는 것을 막기 위한 의도된 기본값이다.
-- 연결 뒤 역할 변경, token 만료, 로그아웃을 기존 session에 즉시 반영하는 lifecycle 문제는 남는다.
+- 연결 뒤 역할 변경, token 만료, 로그아웃을 기존 session에 반영하는 lifecycle 문제는 후속 #360에서
+  주기 재검증 방식으로 해결했다.
