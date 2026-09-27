@@ -2,11 +2,15 @@ package com.opensource.docgrid.domain.auth.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.mock;
 import static org.mockito.BDDMockito.then;
 
 import java.security.Principal;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +30,14 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.opensource.docgrid.domain.auth.websocket.StompSessionAuthorization;
+import com.opensource.docgrid.domain.auth.websocket.StompSessionRegistry;
+
 import io.jsonwebtoken.Claims;
 
+/**
+ * STOMP CONNECT·STOMP 명령의 JWT, blacklist, 역할 조회와 세션 수명 snapshot 등록 계약을 검증한다.
+ */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("StompAuthChannelInterceptor 단위 테스트")
 class StompAuthChannelInterceptorTest {
@@ -35,13 +45,19 @@ class StompAuthChannelInterceptorTest {
     @Mock private JwtProvider jwtProvider;
     @Mock private TokenBlacklistService tokenBlacklistService;
     @Mock private RoleAuthorityService roleAuthorityService;
+    @Mock private StompSessionRegistry stompSessionRegistry;
     @Mock private MessageChannel channel;
 
     private StompAuthChannelInterceptor interceptor;
 
     @BeforeEach
     void setUp() {
-        interceptor = new StompAuthChannelInterceptor(jwtProvider, tokenBlacklistService, roleAuthorityService);
+        interceptor = new StompAuthChannelInterceptor(
+            jwtProvider,
+            tokenBlacklistService,
+            roleAuthorityService,
+            stompSessionRegistry
+        );
     }
 
     @ParameterizedTest
@@ -53,9 +69,12 @@ class StompAuthChannelInterceptorTest {
         given(claims.getSubject()).willReturn("admin@example.com");
         given(claims.get("userId", Long.class)).willReturn(1L);
         given(claims.get("jti", String.class)).willReturn("valid-jti");
+        given(claims.getExpiration()).willReturn(Date.from(Instant.parse("2026-09-28T01:00:00Z")));
         given(jwtProvider.getClaimsIfValid("valid-token")).willReturn(claims);
         given(tokenBlacklistService.isBlacklisted("valid-jti")).willReturn(false);
         given(roleAuthorityService.getRoles(1L)).willReturn(List.of("ADMIN"));
+        given(stompSessionRegistry.authenticate(eq("stomp-session"), any(StompSessionAuthorization.class)))
+            .willReturn(true);
 
         Message<byte[]> connectMessage = connectMessage(command, "Bearer valid-token");
 
@@ -71,6 +90,8 @@ class StompAuthChannelInterceptorTest {
             .extracting(GrantedAuthority::getAuthority)
             .containsExactly("ROLE_ADMIN");
         then(tokenBlacklistService).should().isBlacklisted("valid-jti");
+        then(stompSessionRegistry).should()
+            .authenticate(eq("stomp-session"), any(StompSessionAuthorization.class));
     }
 
     @ParameterizedTest
@@ -151,6 +172,46 @@ class StompAuthChannelInterceptorTest {
     }
 
     @Test
+    @DisplayName("예외 케이스: 만료 시각이 없는 token은 세션 수명을 추적할 수 없어 거부한다")
+    void preSend_throws_whenExpirationMissing() {
+        // Given
+        Claims claims = mock(Claims.class);
+        given(claims.getSubject()).willReturn("missing-expiration@example.com");
+        given(claims.get("userId", Long.class)).willReturn(1L);
+        given(claims.get("jti", String.class)).willReturn("missing-expiration-jti");
+        given(jwtProvider.getClaimsIfValid("missing-expiration-token")).willReturn(claims);
+        given(tokenBlacklistService.isBlacklisted("missing-expiration-jti")).willReturn(false);
+        Message<byte[]> connectMessage = connectMessage("Bearer missing-expiration-token");
+
+        // When & Then
+        assertThatThrownBy(() -> interceptor.preSend(connectMessage, channel))
+            .isInstanceOf(AccessDeniedException.class);
+        then(roleAuthorityService).shouldHaveNoInteractions();
+        then(stompSessionRegistry).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("예외 케이스: 물리 연결을 추적할 수 없으면 인증된 세션으로 등록하지 않는다")
+    void preSend_throws_whenTransportSessionMissing() {
+        // Given
+        Claims claims = mock(Claims.class);
+        given(claims.getSubject()).willReturn("missing-transport@example.com");
+        given(claims.get("userId", Long.class)).willReturn(1L);
+        given(claims.get("jti", String.class)).willReturn("missing-transport-jti");
+        given(claims.getExpiration()).willReturn(Date.from(Instant.parse("2026-09-28T01:00:00Z")));
+        given(jwtProvider.getClaimsIfValid("missing-transport-token")).willReturn(claims);
+        given(tokenBlacklistService.isBlacklisted("missing-transport-jti")).willReturn(false);
+        given(roleAuthorityService.getRoles(1L)).willReturn(List.of("USER"));
+        given(stompSessionRegistry.authenticate(eq("stomp-session"), any(StompSessionAuthorization.class)))
+            .willReturn(false);
+        Message<byte[]> connectMessage = connectMessage("Bearer missing-transport-token");
+
+        // When & Then
+        assertThatThrownBy(() -> interceptor.preSend(connectMessage, channel))
+            .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
     @DisplayName("CONNECT가 아닌 프레임은 검증 없이 통과시킨다")
     void preSend_skipsValidation_forNonConnectFrames() {
         // Given
@@ -174,6 +235,7 @@ class StompAuthChannelInterceptorTest {
 
     private Message<byte[]> connectMessage(StompCommand command, String authorizationHeader) {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(command);
+        accessor.setSessionId("stomp-session");
         if (authorizationHeader != null) {
             accessor.setNativeHeader("Authorization", authorizationHeader);
         }

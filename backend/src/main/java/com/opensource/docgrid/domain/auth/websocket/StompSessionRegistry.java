@@ -83,7 +83,7 @@ public class StompSessionRegistry {
             state.session().close(AUTHORIZATION_INVALID);
             sessions.remove(sessionId, state);
             return true;
-        } catch (IOException exception) {
+        } catch (IOException | RuntimeException exception) {
             // 추적 정보를 남겨 다음 검사에서 다시 닫을 수 있게 한다. 식별 정보는 로그에 노출하지 않는다.
             log.warn("유효하지 않은 STOMP WebSocket 세션 종료에 실패했습니다: {}", exception.getMessage());
             return false;

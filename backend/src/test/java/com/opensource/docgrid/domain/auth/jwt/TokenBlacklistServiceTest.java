@@ -1,10 +1,14 @@
 package com.opensource.docgrid.domain.auth.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,5 +56,34 @@ class TokenBlacklistServiceTest {
         given(redisTemplate.hasKey("auth:blacklist:test-jti")).willReturn(false);
 
         assertThat(tokenBlacklistService.isBlacklisted("test-jti")).isFalse();
+    }
+
+    @Test
+    @DisplayName("여러 jti의 blacklist 상태를 MGET 한 번으로 조회한다")
+    void findBlacklistedJtis_returnsOnlyExistingKeys() {
+        // Given
+        List<String> keys = List.of("auth:blacklist:jti-1", "auth:blacklist:jti-2");
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.multiGet(keys)).willReturn(Arrays.asList(null, "1"));
+
+        // When
+        Set<String> result = tokenBlacklistService.findBlacklistedJtis(List.of("jti-1", "jti-2", "jti-2"));
+
+        // Then
+        assertThat(result).containsExactly("jti-2");
+        then(valueOperations).should().multiGet(keys);
+    }
+
+    @Test
+    @DisplayName("Redis MGET 응답이 불완전하면 정상 token으로 오인하지 않고 실패한다")
+    void findBlacklistedJtis_throws_whenResponseIncomplete() {
+        // Given
+        List<String> keys = List.of("auth:blacklist:jti-1", "auth:blacklist:jti-2");
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.multiGet(keys)).willReturn(List.of("1"));
+
+        // When & Then
+        assertThatThrownBy(() -> tokenBlacklistService.findBlacklistedJtis(List.of("jti-1", "jti-2")))
+            .isInstanceOf(IllegalStateException.class);
     }
 }
