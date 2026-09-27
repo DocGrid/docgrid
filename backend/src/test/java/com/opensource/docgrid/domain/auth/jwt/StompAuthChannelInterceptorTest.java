@@ -33,6 +33,7 @@ import io.jsonwebtoken.Claims;
 class StompAuthChannelInterceptorTest {
 
     @Mock private JwtProvider jwtProvider;
+    @Mock private TokenBlacklistService tokenBlacklistService;
     @Mock private RoleAuthorityService roleAuthorityService;
     @Mock private MessageChannel channel;
 
@@ -40,7 +41,7 @@ class StompAuthChannelInterceptorTest {
 
     @BeforeEach
     void setUp() {
-        interceptor = new StompAuthChannelInterceptor(jwtProvider, roleAuthorityService);
+        interceptor = new StompAuthChannelInterceptor(jwtProvider, tokenBlacklistService, roleAuthorityService);
     }
 
     @ParameterizedTest
@@ -51,7 +52,9 @@ class StompAuthChannelInterceptorTest {
         Claims claims = mock(Claims.class);
         given(claims.getSubject()).willReturn("admin@example.com");
         given(claims.get("userId", Long.class)).willReturn(1L);
+        given(claims.get("jti", String.class)).willReturn("valid-jti");
         given(jwtProvider.getClaimsIfValid("valid-token")).willReturn(claims);
+        given(tokenBlacklistService.isBlacklisted("valid-jti")).willReturn(false);
         given(roleAuthorityService.getRoles(1L)).willReturn(List.of("ADMIN"));
 
         Message<byte[]> connectMessage = connectMessage(command, "Bearer valid-token");
@@ -67,6 +70,7 @@ class StompAuthChannelInterceptorTest {
         assertThat(((Authentication) user).getAuthorities())
             .extracting(GrantedAuthority::getAuthority)
             .containsExactly("ROLE_ADMIN");
+        then(tokenBlacklistService).should().isBlacklisted("valid-jti");
     }
 
     @ParameterizedTest
@@ -80,6 +84,8 @@ class StompAuthChannelInterceptorTest {
         assertThatThrownBy(() -> interceptor.preSend(connectMessage, channel))
             .isInstanceOf(AccessDeniedException.class);
         then(jwtProvider).shouldHaveNoInteractions();
+        then(tokenBlacklistService).shouldHaveNoInteractions();
+        then(roleAuthorityService).shouldHaveNoInteractions();
     }
 
     @Test
@@ -92,6 +98,56 @@ class StompAuthChannelInterceptorTest {
         // When & Then
         assertThatThrownBy(() -> interceptor.preSend(connectMessage, channel))
             .isInstanceOf(AccessDeniedException.class);
+        then(tokenBlacklistService).shouldHaveNoInteractions();
+        then(roleAuthorityService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("예외 케이스: jti가 없는 토큰이면 연결을 거부한다")
+    void preSend_throws_whenJtiMissing() {
+        // Given
+        Claims claims = mock(Claims.class);
+        given(jwtProvider.getClaimsIfValid("missing-jti-token")).willReturn(claims);
+        Message<byte[]> connectMessage = connectMessage("Bearer missing-jti-token");
+
+        // When & Then
+        assertThatThrownBy(() -> interceptor.preSend(connectMessage, channel))
+            .isInstanceOf(AccessDeniedException.class);
+        then(tokenBlacklistService).shouldHaveNoInteractions();
+        then(roleAuthorityService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("예외 케이스: 로그아웃으로 블랙리스트에 등록된 토큰이면 연결을 거부한다")
+    void preSend_throws_whenTokenBlacklisted() {
+        // Given
+        Claims claims = mock(Claims.class);
+        given(claims.get("jti", String.class)).willReturn("blacklisted-jti");
+        given(jwtProvider.getClaimsIfValid("blacklisted-token")).willReturn(claims);
+        given(tokenBlacklistService.isBlacklisted("blacklisted-jti")).willReturn(true);
+        Message<byte[]> connectMessage = connectMessage("Bearer blacklisted-token");
+
+        // When & Then
+        assertThatThrownBy(() -> interceptor.preSend(connectMessage, channel))
+            .isInstanceOf(AccessDeniedException.class);
+        then(roleAuthorityService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("예외 케이스: Redis에서 폐기 여부를 확인할 수 없으면 연결을 거부한다")
+    void preSend_throws_whenBlacklistCheckFails() {
+        // Given
+        Claims claims = mock(Claims.class);
+        given(claims.get("jti", String.class)).willReturn("unverifiable-jti");
+        given(jwtProvider.getClaimsIfValid("unverifiable-token")).willReturn(claims);
+        given(tokenBlacklistService.isBlacklisted("unverifiable-jti"))
+            .willThrow(new RuntimeException("redis down"));
+        Message<byte[]> connectMessage = connectMessage("Bearer unverifiable-token");
+
+        // When & Then
+        assertThatThrownBy(() -> interceptor.preSend(connectMessage, channel))
+            .isInstanceOf(AccessDeniedException.class);
+        then(roleAuthorityService).shouldHaveNoInteractions();
     }
 
     @Test
@@ -108,6 +164,8 @@ class StompAuthChannelInterceptorTest {
         // Then
         assertThat(result).isSameAs(sendMessage);
         then(jwtProvider).shouldHaveNoInteractions();
+        then(tokenBlacklistService).shouldHaveNoInteractions();
+        then(roleAuthorityService).shouldHaveNoInteractions();
     }
 
     private Message<byte[]> connectMessage(String authorizationHeader) {
