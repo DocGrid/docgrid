@@ -4,7 +4,7 @@
 
 - 정확한 dashboard·RAG 목적지만 현재 권한 조건으로 구독할 수 있는지 확인한다.
 - SimpleBroker pattern 구독과 내부 queue 직접 접근이 interceptor에서 거부되는지 확인한다.
-- 모든 client SEND가 거부되고 서버 push는 계속 전달되는지 확인한다.
+- client `SEND`와 raw `MESSAGE`가 거부되고 서버 push는 계속 전달되는지 확인한다.
 - 기존 STOMP 연결 인증, HTTP 인증, dashboard push에 회귀가 없는지 확인한다.
 
 ## 2. 실행 환경
@@ -44,12 +44,28 @@ BUILD FAILED
 - pattern·내부 queue·알 수 없는 목적지·null 구독 9건
 - dashboard 이외 목적지와 null 목적지 client SEND 4건
 
-## 4. 수정 후 단위 테스트
+## 4. 수정 후 단위 테스트와 추가 우회 검토
 
 정확한 두 목적지의 허용 목록과 client SEND 전면 거부를 적용한 뒤 같은 테스트를 다시 실행했다.
 
 ```text
 19 tests completed, 0 failed
+BUILD SUCCESSFUL
+```
+
+최종 코드 검토에서 raw STOMP `MESSAGE` command가 Spring에서 inbound message로 처리되는 것을 확인했다.
+기존 `StompCommand.SEND` 조건에 우회가 있음을 단위 테스트로 먼저 재현했다.
+
+```text
+1 test completed, 1 failed
+BUILD FAILED
+```
+
+`SEND`와 `MESSAGE`가 공통으로 변환되는 `SimpMessageType.MESSAGE`를 차단하도록 고친 뒤 최종 단위
+테스트를 다시 실행했다.
+
+```text
+20 tests completed, 0 failed
 BUILD SUCCESSFUL
 ```
 
@@ -65,8 +81,8 @@ DB_PORT=55433 ./backend/gradlew -p backend test \
 결과:
 
 ```text
-4 tests completed, 0 failed
-BUILD SUCCESSFUL in 7s
+5 tests completed, 0 failed
+BUILD SUCCESSFUL in 8s
 ```
 
 | 시나리오 | 실제 결과 |
@@ -75,6 +91,7 @@ BUILD SUCCESSFUL in 7s
 | 일반 사용자가 `/topic/**` 구독 | 연결 오류로 거부 |
 | 일반 사용자가 `/queue/*` 구독 | 연결 오류로 거부 |
 | client가 `/user/{다른 사용자}/queue/rag-answer`로 SEND | 거부되고 대상에게 미전달 |
+| client가 `/user/{다른 사용자}/queue/rag-answer`로 raw `MESSAGE` | 거부되고 대상에게 미전달 |
 
 ## 6. 주요 회귀 테스트
 
@@ -92,16 +109,16 @@ DB_PORT=55433 ./backend/gradlew -p backend test \
 
 | 범위 | 건수 | 결과 |
 |---|---:|---|
-| 목적지 인가 단위 | 19 | PASS |
-| 목적지 인가 실제 WebSocket | 4 | PASS |
+| 목적지 인가 단위 | 20 | PASS |
+| 목적지 인가 실제 WebSocket | 5 | PASS |
 | STOMP 연결 인증 단위 | 9 | PASS |
 | STOMP 연결 인증 실제 WebSocket | 4 | PASS |
 | dashboard WebSocket | 4 | PASS |
 | HTTP JWT 인증 | 3 | PASS |
-| 합계 | 43 | PASS |
+| 합계 | 45 | PASS |
 
 ```text
-BUILD SUCCESSFUL in 11s
+BUILD SUCCESSFUL in 12s
 ```
 
 ## 7. 전체 Backend 검증
@@ -114,8 +131,8 @@ JWT_SECRET={test-only-secret} DB_PORT=55433 \
 Gradle XML test report 합산 결과:
 
 ```text
-1214 tests completed, 0 failed
-BUILD SUCCESSFUL in 55s
+1216 tests completed, 0 failed
+BUILD SUCCESSFUL in 51s
 ```
 
 패키징 검증:
@@ -131,8 +148,10 @@ BUILD SUCCESSFUL in 1s
 
 ## 8. 코드 재검토 결과
 
-- `SimpMessagingTemplate`의 서버 push는 `clientInboundChannel`을 지나지 않아 SEND 차단의 영향을 받지
-  않는다.
+- `SEND`와 raw `MESSAGE`는 모두 `SimpMessageType.MESSAGE`가 되므로 command 문자열 우회 없이
+  차단된다.
+- `SimpMessagingTemplate`의 서버 push는 `clientInboundChannel`을 지나지 않아 client message 차단의
+  영향을 받지 않는다.
 - 현재 프런트는 허용한 두 목적지만 정확히 구독하고 client SEND를 사용하지 않는다.
 - null 목적지, Principal 없음, 내부 queue, pattern과 알 수 없는 정확한 목적지도 모두 거부한다.
 - 연결 인증 interceptor가 먼저 등록돼 SUBSCRIBE 시점에는 검증된 Principal이 존재한다.

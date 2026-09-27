@@ -42,11 +42,15 @@ Spring 6.2.19의 `DefaultSubscriptionRegistry`는 구독 목적지를 `AntPathMa
 pattern 구독으로 받을 수 있었다. 답변 본문은 소유권을 검사하는 REST에서 다시 읽으므로 직접 노출되지는
 않지만, 사용자 queue 격리 계약은 깨진다.
 
-### 2.3 client SEND
+### 2.3 client message 발행
 
 기존 코드는 정확한 `/topic/dashboard`로 보내는 SEND만 거부했다. dashboard 이외 topic과 사용자
 queue로 보내는 client SEND는 inbound channel을 통과할 수 있었다. 현재 프런트에는 client SEND가
 없고 서버 push는 모두 `SimpMessagingTemplate`에서 시작하므로 이를 허용할 기능상 이유가 없다.
+
+추가 검토에서 raw STOMP frame의 command를 `MESSAGE`로 보내도 Spring이 inbound message로 처리하는
+경로를 확인했다. `SEND`와 `MESSAGE`는 모두 `SimpMessageType.MESSAGE`로 변환되므로 command 이름만
+검사하면 같은 발행 동작을 우회할 수 있다.
 
 ## 3. 목표와 비목표
 
@@ -55,7 +59,7 @@ queue로 보내는 client SEND는 inbound channel을 통과할 수 있었다. �
 - client가 구독할 수 있는 목적지를 현재 사용하는 두 개의 정확한 주소로 제한한다.
 - dashboard는 ADMIN, RAG 사용자 queue는 인증 사용자만 구독할 수 있게 한다.
 - pattern, broker 내부 queue, 알 수 없는 목적지와 목적지 없는 구독을 거부한다.
-- 모든 client SEND를 거부한다.
+- `SEND`와 raw `MESSAGE`를 포함한 모든 client message 발행을 거부한다.
 - 서버의 `SimpMessagingTemplate` push와 현재 프런트 동작을 유지한다.
 
 ### 비목표
@@ -71,7 +75,7 @@ queue로 보내는 client SEND는 inbound channel을 통과할 수 있었다. �
 | `SUBSCRIBE` | `/topic/dashboard` | 인증된 `ROLE_ADMIN` | 허용 |
 | `SUBSCRIBE` | `/user/queue/rag-answer` | 인증 사용자 | 허용 |
 | `SUBSCRIBE` | pattern·내부 queue·그 외·없음 | 무관 | 거부 |
-| `SEND` | 모든 목적지 | 무관 | 거부 |
+| `SEND`·`MESSAGE` | 모든 목적지 | 무관 | 거부 |
 | 그 외 | 해당 없음 | 기존 연결 정책 | 통과 |
 
 pattern 문자를 별도로 판별하지 않는다. 두 허용 목적지와 정확히 같은 경우만 허용하면 Spring matcher의
@@ -83,7 +87,7 @@ pattern 문자를 별도로 판별하지 않는다. 두 허용 목적지와 정�
 ### 5.1 책임 이동
 
 dashboard domain에 있던 `DashboardSubscriptionAuthorizationInterceptor`를 인증 domain의
-`StompDestinationAuthorizationInterceptor`로 이동한다. 정책이 dashboard, RAG, client SEND를 함께
+`StompDestinationAuthorizationInterceptor`로 이동한다. 정책이 dashboard, RAG, client message를 함께
 다루므로 이름과 package를 실제 책임에 맞춘다.
 
 ### 5.2 실행 순서
@@ -94,7 +98,7 @@ dashboard domain에 있던 `DashboardSubscriptionAuthorizationInterceptor`를 �
    → Authentication Principal 등록
 
 2. StompDestinationAuthorizationInterceptor
-   → SEND 전부 거부
+   → SimpMessageType.MESSAGE 전부 거부
    → SUBSCRIBE 목적지·Principal 인가
    → 그 외 command 통과
 ```
@@ -102,11 +106,12 @@ dashboard domain에 있던 `DashboardSubscriptionAuthorizationInterceptor`를 �
 `WebSocketConfig`는 이 순서로 두 interceptor를 등록한다. 목적지 interceptor가 먼저 실행되면 정상
 SUBSCRIBE 시점에 Principal이 없어 모두 거부되므로 순서를 바꾸면 안 된다.
 
-### 5.3 server push와 client SEND 분리
+### 5.3 server push와 client message 분리
 
 client frame만 `clientInboundChannel`을 통과한다. `DashboardWebSocketController`와
 `RagWebSocketController`가 사용하는 `SimpMessagingTemplate`은 이 interceptor를 통과하지 않으므로
-client SEND 전체 거부가 서버 push를 막지 않는다.
+client message 전체 거부가 서버 push를 막지 않는다. command 문자열 대신
+`SimpMessageType.MESSAGE`를 검사해 `SEND`와 raw `MESSAGE`를 같은 정책으로 차단한다.
 
 ### 5.4 실패 응답
 
@@ -118,7 +123,7 @@ client SEND 전체 거부가 서버 push를 막지 않는다.
 
 | 파일 | 변경 내용 |
 |---|---|
-| `StompDestinationAuthorizationInterceptor.java` | 정확한 목적지 허용 목록, 역할·인증 검사, SEND 거부 |
+| `StompDestinationAuthorizationInterceptor.java` | 정확한 목적지 허용 목록, 역할·인증 검사, client message 거부 |
 | `WebSocketConfig.java` | 이동한 interceptor 등록과 `/queue` 경계 설명 갱신 |
 | `SecurityConfig.java` | STOMP 3단계 보안 설명의 클래스 이름 갱신 |
 | `RagWebSocketController.java` | user destination과 inbound 허용 목록의 공동 격리 책임 설명 |
@@ -137,7 +142,7 @@ client SEND 전체 거부가 서버 push를 막지 않는다.
 - 인증 사용자 RAG 정확한 구독 허용
 - 일반 사용자 dashboard와 Principal 없는 RAG 구독 거부
 - pattern, 내부 queue, 알 수 없는 목적지, null 목적지 구독 거부
-- 목적지와 무관하게 모든 client SEND 거부
+- 목적지와 무관하게 client `SEND`와 raw `MESSAGE` 거부
 - DISCONNECT 같은 비대상 command 통과
 
 ### 통합 테스트
@@ -145,12 +150,13 @@ client SEND 전체 거부가 서버 push를 막지 않는다.
 - 두 사용자가 정확한 RAG 목적지를 구독해도 대상 사용자만 이벤트 수신
 - `/topic/**`, `/queue/*` pattern SUBSCRIBE 거부
 - 다른 사용자 RAG queue로 client SEND 시도 시 연결 거부 및 미전달
+- 다른 사용자 RAG queue로 raw `MESSAGE` 시도 시 연결 거부 및 미전달
 - 기존 dashboard 정확한 ADMIN 구독, 일반 사용자 거부, client SEND 거부 유지
 - #356의 CONNECT·STOMP 인증과 HTTP 인증 회귀 없음
 
 ## 8. 영향과 남은 범위
 
-- 거부된 SUBSCRIBE·SEND는 현재 STOMP 오류 처리에 따라 socket 전체가 닫힐 수 있다. 두 프런트는
+- 거부된 SUBSCRIBE·client message는 현재 STOMP 오류 처리에 따라 socket 전체가 닫힐 수 있다. 두 프런트는
   `onclose` 뒤 REST polling으로 전환하므로 기능은 유지된다.
 - 새 destination은 허용 목록을 명시적으로 확장하기 전까지 거부된다. 이는 누락된 인가 정책으로 새
   채널이 열리는 것을 막기 위한 의도된 기본값이다.
