@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@code websocket} Transport는 Upgrade 요청에 커스텀 헤더를 실을 수 없어 HTTP 레벨 인증이
  * Transport 종류에 따라 되다 안되다 하므로, 인증은 Transport와 무관하게 항상 커스텀 헤더를 실을
  * 수 있는 STOMP CONNECT 프레임으로 옮긴다. SUBSCRIBE 권한 검증은 {@link
- * com.opensource.docgrid.domain.dashboard.websocket.DashboardSubscriptionAuthorizationInterceptor}가
+ * com.opensource.docgrid.domain.auth.websocket.StompDestinationAuthorizationInterceptor}가
  * 별도로 담당한다.
  *
  * <p>토큰 파싱·서명·만료·{@code jti} 블랙리스트 검증은 {@code JwtAuthenticationFilter}의 HTTP

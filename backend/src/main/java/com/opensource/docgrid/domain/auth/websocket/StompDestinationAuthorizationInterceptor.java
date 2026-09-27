@@ -1,4 +1,4 @@
-package com.opensource.docgrid.domain.dashboard.websocket;
+package com.opensource.docgrid.domain.auth.websocket;
 
 import java.security.Principal;
 
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  * {@code MissingCsrfTokenException}으로 거부되므로, 그 DSL 대신 이 수동 Interceptor로 구현한다.
  */
 @Component
-public class DashboardSubscriptionAuthorizationInterceptor implements ChannelInterceptor {
+public class StompDestinationAuthorizationInterceptor implements ChannelInterceptor {
 
     private static final String DASHBOARD_TOPIC = "/topic/dashboard";
     private static final String ADMIN_AUTHORITY = "ROLE_ADMIN";
