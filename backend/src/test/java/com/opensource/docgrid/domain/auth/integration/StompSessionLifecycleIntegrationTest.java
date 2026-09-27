@@ -93,6 +93,9 @@ class StompSessionLifecycleIntegrationTest {
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("jwt.secret", () -> JWT_SECRET);
         registry.add("auth.stomp.session-revalidation.interval", () -> "100ms");
+        // 전체 테스트 실행에서 Spring context별 idle connection 누적이 PostgreSQL 한도를 잠식하지 않게 제한한다.
+        registry.add("spring.datasource.hikari.maximum-pool-size", () -> "2");
+        registry.add("spring.datasource.hikari.minimum-idle", () -> "0");
     }
 
     @BeforeEach
