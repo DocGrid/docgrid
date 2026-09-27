@@ -97,15 +97,23 @@ public class StompSessionRevalidationScheduler {
         // 2. Redis와 DB 중 하나라도 검증할 수 없으면 기존 연결도 신규 CONNECT와 같이 fail-closed한다.
         try {
             Set<String> blacklistedJtis = findBlacklistedJtis(candidates);
-            Map<Long, Set<String>> currentRoles = findCurrentRoles(candidates);
-
-            // 3. token 폐기와 역할 snapshot 변경을 같은 검사 주기에서 확정한다.
+            List<SessionSnapshot> roleCandidates = new ArrayList<>();
             for (SessionSnapshot session : candidates) {
-                StompSessionAuthorization authorization = session.authorization();
-                if (blacklistedJtis.contains(authorization.jti())) {
+                if (blacklistedJtis.contains(session.authorization().jti())) {
                     close(session, CloseReason.BLACKLISTED);
-                    continue;
+                } else {
+                    roleCandidates.add(session);
                 }
+            }
+            if (roleCandidates.isEmpty()) {
+                return;
+            }
+
+            Map<Long, Set<String>> currentRoles = findCurrentRoles(roleCandidates);
+
+            // 3. 폐기되지 않은 token만 DB의 현재 역할과 연결 당시 snapshot을 비교한다.
+            for (SessionSnapshot session : roleCandidates) {
+                StompSessionAuthorization authorization = session.authorization();
                 Set<String> roles = currentRoles.getOrDefault(authorization.userId(), Set.of());
                 if (!authorization.roles().equals(roles)) {
                     close(session, CloseReason.ROLES_CHANGED);

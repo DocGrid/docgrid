@@ -80,13 +80,12 @@ class StompSessionRevalidationSchedulerTest {
         // Given
         SessionSnapshot revoked = session("revoked", 1L, "jti-1", NOW.plusSeconds(60), "USER");
         SessionSnapshot valid = session("valid", 2L, "jti-2", NOW.plusSeconds(60), "USER");
-        UserRole firstRole = userRole(1L, "USER");
         UserRole secondRole = userRole(2L, "USER");
         given(stompSessionRegistry.authenticatedSessions()).willReturn(List.of(revoked, valid));
         given(tokenBlacklistService.findBlacklistedJtis(List.of("jti-1", "jti-2")))
             .willReturn(Set.of("jti-1"));
-        given(userRoleRepository.findAllWithRoleByUserIdIn(List.of(1L, 2L)))
-            .willReturn(List.of(firstRole, secondRole));
+        given(userRoleRepository.findAllWithRoleByUserIdIn(List.of(2L)))
+            .willReturn(List.of(secondRole));
         given(stompSessionRegistry.close("revoked")).willReturn(true);
 
         // When
@@ -95,6 +94,7 @@ class StompSessionRevalidationSchedulerTest {
         // Then
         then(stompSessionRegistry).should().close("revoked");
         then(stompSessionRegistry).should(org.mockito.Mockito.never()).close("valid");
+        then(userRoleRepository).should().findAllWithRoleByUserIdIn(List.of(2L));
         assertThat(closedCount("blacklisted")).isEqualTo(1.0);
     }
 
