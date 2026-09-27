@@ -1,0 +1,391 @@
+{
+  "evidence_sha256": "0a0b86eff71c4c24740a99ea0f334fca70e5c11e1a813c3a3bc646a825549794",
+  "snapshot": {
+    "admins": [
+      {
+        "effective_config": {
+          "connect_timeout": 10000,
+          "pools.docgrid.default_role": "primary",
+          "pools.docgrid.load_balancing_mode": "Random",
+          "pools.docgrid.pool_mode": "Transaction",
+          "pools.docgrid.prepared_statements_cache_size": 0,
+          "pools.docgrid.primary_reads_enabled": false,
+          "pools.docgrid.query_parser_enabled": true,
+          "pools.docgrid.query_parser_read_write_splitting": true,
+          "shutdown_timeout": 60000
+        },
+        "node": "node2",
+        "proxy": "proxy-a",
+        "servers": [],
+        "stats": [
+          {
+            "errors": 0,
+            "queries": 1068,
+            "role": "primary",
+            "transactions": 333
+          },
+          {
+            "errors": 0,
+            "queries": 44,
+            "role": "replica_0",
+            "transactions": 32
+          },
+          {
+            "errors": 0,
+            "queries": 60,
+            "role": "replica_1",
+            "transactions": 40
+          }
+        ]
+      },
+      {
+        "effective_config": {
+          "connect_timeout": 10000,
+          "pools.docgrid.default_role": "primary",
+          "pools.docgrid.load_balancing_mode": "Random",
+          "pools.docgrid.pool_mode": "Transaction",
+          "pools.docgrid.prepared_statements_cache_size": 0,
+          "pools.docgrid.primary_reads_enabled": false,
+          "pools.docgrid.query_parser_enabled": true,
+          "pools.docgrid.query_parser_read_write_splitting": true,
+          "shutdown_timeout": 60000
+        },
+        "node": "node3",
+        "proxy": "proxy-b",
+        "servers": [],
+        "stats": [
+          {
+            "errors": 0,
+            "queries": 1387,
+            "role": "primary",
+            "transactions": 469
+          },
+          {
+            "errors": 0,
+            "queries": 127,
+            "role": "replica_0",
+            "transactions": 87
+          },
+          {
+            "errors": 0,
+            "queries": 112,
+            "role": "replica_1",
+            "transactions": 94
+          }
+        ]
+      }
+    ],
+    "nodes": [
+      {
+        "container_time_zone": "UTC+0000",
+        "etcd": {
+          "configured_member_names": [
+            "node1",
+            "node2",
+            "node3"
+          ],
+          "explicit_timing": {
+            "election_timeout_ms": null,
+            "heartbeat_interval_ms": null
+          },
+          "initial_cluster_state": "new",
+          "live_member_names": [
+            "node1",
+            "node2",
+            "node3"
+          ],
+          "quorum": 2,
+          "running_timing": {
+            "election_timeout_ms": {
+              "source": "installed binary default",
+              "value": 1000
+            },
+            "heartbeat_interval_ms": {
+              "source": "installed binary default",
+              "value": 100
+            }
+          }
+        },
+        "node": "node1",
+        "os": {
+          "architecture": "x86_64",
+          "id": "rocky",
+          "version_id": "9.7"
+        },
+        "patroni_dynamic": {
+          "check_timeline": null,
+          "failsafe_mode": true,
+          "loop_wait": 10,
+          "maximum_lag_on_failover": 1048576,
+          "primary_start_timeout": null,
+          "primary_stop_timeout": null,
+          "retry_timeout": 10,
+          "synchronous_mode": null,
+          "synchronous_mode_strict": null,
+          "ttl": 30
+        },
+        "patroni_members": [
+          {
+            "node": "node1",
+            "role": "Leader",
+            "state": "running"
+          },
+          {
+            "node": "node2",
+            "role": "Replica",
+            "state": "streaming"
+          },
+          {
+            "node": "node3",
+            "role": "Replica",
+            "state": "streaming"
+          }
+        ],
+        "runtime": {
+          "container_restart_policy": "unless-stopped",
+          "host_bootstrap_unit": {
+            "ActiveState": "inactive",
+            "Restart": "on-failure",
+            "RestartUSec": "15s"
+          },
+          "host_time_zone": "UTC+0000",
+          "openproxy_live_process_count": 0,
+          "openproxy_parent_is_container_pid1": null
+        },
+        "schema_version": 1,
+        "versions": {
+          "etcd": "etcd Version: 3.6.5",
+          "openproxy": null,
+          "openproxy_revision": null,
+          "opensql": "v3.17.8.7",
+          "patroni": "patroni 4.0.5",
+          "postgres_server_binary": "postgres (PostgreSQL) 17.8",
+          "psql_client": "psql (PostgreSQL) 17.8"
+        }
+      },
+      {
+        "container_time_zone": "UTC+0000",
+        "etcd": {
+          "configured_member_names": [
+            "node1",
+            "node2",
+            "node3"
+          ],
+          "explicit_timing": {
+            "election_timeout_ms": null,
+            "heartbeat_interval_ms": null
+          },
+          "initial_cluster_state": "new",
+          "live_member_names": [
+            "node1",
+            "node2",
+            "node3"
+          ],
+          "quorum": 2,
+          "running_timing": {
+            "election_timeout_ms": {
+              "source": "installed binary default",
+              "value": 1000
+            },
+            "heartbeat_interval_ms": {
+              "source": "installed binary default",
+              "value": 100
+            }
+          }
+        },
+        "node": "node2",
+        "openproxy": {
+          "general": {
+            "connect_timeout": 10000,
+            "prepared_statements_cache_size": 1000
+          },
+          "pools.docgrid": {
+            "default_role": "primary",
+            "pool_mode": "transaction",
+            "query_parser_enabled": true,
+            "query_parser_read_write_splitting": true
+          },
+          "pools.docgrid.shards.0": {
+            "patroni_port": "8008",
+            "use_patroni": true
+          },
+          "pools.docgrid.users.0": {
+            "pool_size": 5
+          }
+        },
+        "openproxy_service_template": {
+          "Restart": "always",
+          "RestartSec": "1"
+        },
+        "os": {
+          "architecture": "x86_64",
+          "id": "rocky",
+          "version_id": "9.7"
+        },
+        "patroni_dynamic": {
+          "check_timeline": null,
+          "failsafe_mode": true,
+          "loop_wait": 10,
+          "maximum_lag_on_failover": 1048576,
+          "primary_start_timeout": null,
+          "primary_stop_timeout": null,
+          "retry_timeout": 10,
+          "synchronous_mode": null,
+          "synchronous_mode_strict": null,
+          "ttl": 30
+        },
+        "patroni_members": [
+          {
+            "node": "node1",
+            "role": "Leader",
+            "state": "running"
+          },
+          {
+            "node": "node2",
+            "role": "Replica",
+            "state": "streaming"
+          },
+          {
+            "node": "node3",
+            "role": "Replica",
+            "state": "streaming"
+          }
+        ],
+        "runtime": {
+          "container_restart_policy": "unless-stopped",
+          "host_bootstrap_unit": {
+            "ActiveState": "inactive",
+            "Restart": "on-failure",
+            "RestartUSec": "15s"
+          },
+          "host_time_zone": "UTC+0000",
+          "openproxy_live_process_count": 1,
+          "openproxy_parent_is_container_pid1": true
+        },
+        "schema_version": 1,
+        "versions": {
+          "etcd": "etcd Version: 3.6.5",
+          "openproxy": "openproxy 1.1.3",
+          "openproxy_revision": "revision number: 723",
+          "opensql": "v3.17.8.7",
+          "patroni": "patroni 4.0.5",
+          "postgres_server_binary": "postgres (PostgreSQL) 17.8",
+          "psql_client": "psql (PostgreSQL) 17.8"
+        }
+      },
+      {
+        "container_time_zone": "UTC+0000",
+        "etcd": {
+          "configured_member_names": [
+            "node1",
+            "node2",
+            "node3"
+          ],
+          "explicit_timing": {
+            "election_timeout_ms": null,
+            "heartbeat_interval_ms": null
+          },
+          "initial_cluster_state": "new",
+          "live_member_names": [
+            "node1",
+            "node2",
+            "node3"
+          ],
+          "quorum": 2,
+          "running_timing": {
+            "election_timeout_ms": {
+              "source": "installed binary default",
+              "value": 1000
+            },
+            "heartbeat_interval_ms": {
+              "source": "installed binary default",
+              "value": 100
+            }
+          }
+        },
+        "node": "node3",
+        "openproxy": {
+          "general": {
+            "connect_timeout": 10000,
+            "prepared_statements_cache_size": 1000
+          },
+          "pools.docgrid": {
+            "default_role": "primary",
+            "pool_mode": "transaction",
+            "query_parser_enabled": true,
+            "query_parser_read_write_splitting": true
+          },
+          "pools.docgrid.shards.0": {
+            "patroni_port": "8008",
+            "use_patroni": true
+          },
+          "pools.docgrid.users.0": {
+            "pool_size": 5
+          }
+        },
+        "openproxy_service_template": {
+          "Restart": "always",
+          "RestartSec": "1"
+        },
+        "os": {
+          "architecture": "x86_64",
+          "id": "rocky",
+          "version_id": "9.7"
+        },
+        "patroni_dynamic": {
+          "check_timeline": null,
+          "failsafe_mode": true,
+          "loop_wait": 10,
+          "maximum_lag_on_failover": 1048576,
+          "primary_start_timeout": null,
+          "primary_stop_timeout": null,
+          "retry_timeout": 10,
+          "synchronous_mode": null,
+          "synchronous_mode_strict": null,
+          "ttl": 30
+        },
+        "patroni_members": [
+          {
+            "node": "node1",
+            "role": "Leader",
+            "state": "running"
+          },
+          {
+            "node": "node2",
+            "role": "Replica",
+            "state": "streaming"
+          },
+          {
+            "node": "node3",
+            "role": "Replica",
+            "state": "streaming"
+          }
+        ],
+        "runtime": {
+          "container_restart_policy": "unless-stopped",
+          "host_bootstrap_unit": {
+            "ActiveState": "inactive",
+            "Restart": "on-failure",
+            "RestartUSec": "15s"
+          },
+          "host_time_zone": "UTC+0000",
+          "openproxy_live_process_count": 1,
+          "openproxy_parent_is_container_pid1": true
+        },
+        "schema_version": 1,
+        "versions": {
+          "etcd": "etcd Version: 3.6.5",
+          "openproxy": "openproxy 1.1.3",
+          "openproxy_revision": "revision number: 723",
+          "opensql": "v3.17.8.7",
+          "patroni": "patroni 4.0.5",
+          "postgres_server_binary": "postgres (PostgreSQL) 17.8",
+          "psql_client": "psql (PostgreSQL) 17.8"
+        }
+      }
+    ],
+    "schema_version": 1
+  },
+  "capture_started_at_utc": "2026-09-26T12:57:23Z",
+  "capture_finished_at_utc": "2026-09-26T12:58:14Z"
+}

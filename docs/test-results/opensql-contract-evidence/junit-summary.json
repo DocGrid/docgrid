@@ -1,0 +1,56 @@
+{
+  "cases": [
+    {
+      "name": "timestamp와 timestamptz의 한국 시간 자정 경계를 보존한다",
+      "status": "passed"
+    },
+    {
+      "name": "SQL-level PREPARE/EXECUTE를 pgJDBC 프로토콜 준비문과 구별한다",
+      "status": "passed"
+    },
+    {
+      "name": "기본·강제 server-side prepared statement를 여러 트랜잭션에서 반복한다",
+      "status": "passed"
+    },
+    {
+      "name": "자동 커밋 조회와 명시적 읽기·쓰기 트랜잭션의 DB 역할을 구분한다",
+      "status": "passed"
+    },
+    {
+      "name": "Worker의 FOR UPDATE SKIP LOCKED 조회는 standby에서 거부되지 않는다",
+      "status": "passed"
+    }
+  ],
+  "duration_seconds": 74.608,
+  "errors": 0,
+  "executed_at_utc": "2026-09-26T12:46:25.416Z",
+  "failures": 0,
+  "observations": [
+    "CONTRACT_TIMEZONE proxy=proxy-a jvm=Asia/Seoul db=Asia/Seoul boundary=pass",
+    "CONTRACT_SERVER proxy=proxy-a postgresql=17.8",
+    "CONTRACT_DRIVER proxy=proxy-a pgjdbc=42.7.11",
+    "CONTRACT_TIMEZONE proxy=proxy-b jvm=Asia/Seoul db=Asia/Seoul boundary=pass",
+    "CONTRACT_SERVER proxy=proxy-b postgresql=17.8",
+    "CONTRACT_DRIVER proxy=proxy-b pgjdbc=42.7.11",
+    "CONTRACT_SQL_PREPARE proxy=proxy-a result=same_transaction_pass",
+    "CONTRACT_SQL_PREPARE proxy=proxy-b result=same_transaction_pass",
+    "CONTRACT_PREPARED proxy=proxy-a threshold=5 executions=15 distinct_backends=1 prepared_on_last_backend=22",
+    "CONTRACT_PREPARED proxy=proxy-a threshold=1 executions=15 distinct_backends=1 prepared_on_last_backend=40",
+    "CONTRACT_PREPARED proxy=proxy-b threshold=5 executions=15 distinct_backends=1 prepared_on_last_backend=22",
+    "CONTRACT_PREPARED proxy=proxy-b threshold=1 executions=15 distinct_backends=1 prepared_on_last_backend=40",
+    "CONTRACT_ROUTE proxy=proxy-a operation=autocommit-select role=standby",
+    "CONTRACT_ROUTE proxy=proxy-a operation=read-write-transaction role=primary",
+    "CONTRACT_ROUTE proxy=proxy-a operation=read-only-transaction role=standby",
+    "CONTRACT_ROUTE proxy=proxy-b operation=autocommit-select role=standby",
+    "CONTRACT_ROUTE proxy=proxy-b operation=read-write-transaction role=primary",
+    "CONTRACT_ROUTE proxy=proxy-b operation=read-only-transaction role=standby",
+    "CONTRACT_LOCK proxy=proxy-a table=embedding_jobs route=primary",
+    "CONTRACT_LOCK proxy=proxy-a table=sync_outbox_events route=primary",
+    "CONTRACT_LOCK proxy=proxy-a table=rag_responses route=primary",
+    "CONTRACT_LOCK proxy=proxy-b table=embedding_jobs route=primary",
+    "CONTRACT_LOCK proxy=proxy-b table=sync_outbox_events route=primary",
+    "CONTRACT_LOCK proxy=proxy-b table=rag_responses route=primary"
+  ],
+  "skipped": 0,
+  "tests": 5
+}
