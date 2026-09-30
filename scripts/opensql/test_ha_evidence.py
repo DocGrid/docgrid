@@ -122,6 +122,17 @@ class HaEvidenceTest(unittest.TestCase):
             })())
         self.assertFalse(other.exists())
 
+    def test_external_run_id_matches_the_scenario_id(self):
+        """A caller-supplied ID keeps the fixture, run directory, and ledger joinable."""
+        other = Path(self.temporary.name) / "same-run"
+        self.assertEqual(0, EVIDENCE.main([
+            "init", "--run-dir", str(other), "--run-id", "scenario123",
+            "--scenario", "permission-replica-lag", "--config-sha256", "b" * 64,
+            "--opensql-version", "test", "--openproxy-version", "test",
+            "--patroni-version", "test", "--etcd-version", "test",
+        ]))
+        self.assertEqual("scenario123", json.loads((other / "manifest.json").read_text())["run_id"])
+
 
 if __name__ == "__main__":
     unittest.main()

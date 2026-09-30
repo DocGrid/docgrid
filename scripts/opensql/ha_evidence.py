@@ -219,6 +219,9 @@ def initialize(args):
         raise EvidenceError("redacted config의 SHA-256 64자리가 필요합니다")
     if not LABEL.fullmatch(args.scenario):
         raise EvidenceError("scenario는 100자 이내의 영문·숫자·점·하이픈·밑줄만 허용합니다")
+    run_id = getattr(args, "run_id", None) or str(uuid.uuid4())
+    if not LABEL.fullmatch(run_id):
+        raise EvidenceError("run_id는 100자 이내의 영문·숫자·점·하이픈·밑줄만 허용합니다")
     versions = (args.opensql_version, args.openproxy_version,
                 args.patroni_version, args.etcd_version)
     if any(not value.strip() or len(value) > 128 or "\n" in value for value in versions):
@@ -228,7 +231,7 @@ def initialize(args):
     directory = args.run_dir
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
     manifest = {
-        "schema_version": 1, "run_id": str(uuid.uuid4()),
+        "schema_version": 1, "run_id": run_id,
         "scenario": args.scenario, "started_at": utc_now(), "git_sha": git_sha,
         "config_sha256": args.config_sha256.lower(),
         "versions": {"opensql": args.opensql_version, "openproxy": args.openproxy_version,
@@ -267,6 +270,7 @@ def parser():
     sub = commands.add_subparsers(dest="command", required=True)
     init = sub.add_parser("init", help="새 실험과 환경 지문 생성")
     init.add_argument("--run-dir", type=Path, required=True)
+    init.add_argument("--run-id", help="외부 시험과 동일한 실행 ID를 사용할 때 지정")
     init.add_argument("--scenario", required=True)
     init.add_argument("--config-sha256", required=True, help="비밀 제거된 설정 스냅샷의 SHA-256")
     for name in ("opensql", "openproxy", "patroni", "etcd"):

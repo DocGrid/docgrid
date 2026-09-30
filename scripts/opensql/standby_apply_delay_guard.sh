@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run as root on a standby VM host; Patroni owns this recovery parameter.
+# Run as root on a standby VM host; Patroni owns recovery and failover tags.
 set -euo pipefail
 
 action="${1:?action required}"
@@ -23,7 +23,8 @@ if [[ "$mount_source" != /* ]] || [[ "$(basename "$mount_source")" != "$containe
   exit 1
 fi
 config="${mount_source}/opensql/etc/patroni/patroni.yml"
-backup_dir='/run/docgrid-permission-delay'
+# Persist the original bytes across a VM reboot; transient timers do not survive it.
+backup_dir='/var/lib/docgrid-permission-delay'
 backup="${backup_dir}/${container}-${run_id}.yml"
 psql_command='. /var/lib/docgrid/opensql/etc/credentials.env; export PGPASSWORD="${PG_SUPERUSER_PASSWORD}"; exec /var/lib/docgrid/opensql/bin/psql -h 127.0.0.1 -U postgres -d postgres -X -v ON_ERROR_STOP=1 -At -F , -c "$1"'
 
@@ -32,6 +33,47 @@ query() {
   /usr/bin/docker exec "$container" sh -c "$psql_command" sh "$1"
 }
 setting() { query "SELECT setting, source FROM pg_settings WHERE name = 'recovery_min_apply_delay'"; }
+failover_excluded() {
+  # Both the local REST state and the cluster view must observe the safety tag.
+  local local_state cluster_state
+  local_state="$(/usr/bin/docker exec "$container" curl --silent --show-error --fail \
+    --max-time 5 http://127.0.0.1:8008/patroni)"
+  cluster_state="$(/usr/bin/docker exec "$container" curl --silent --show-error --fail \
+    --max-time 5 http://127.0.0.1:8008/cluster)"
+  python3 - "$local_state" "$cluster_state" <<'PY'
+import json
+import sys
+
+local, cluster = (json.loads(value) for value in sys.argv[1:])
+name = local.get('patroni', {}).get('name')
+member = next((item for item in cluster.get('members', []) if item.get('name') == name), {})
+safe = (local.get('role') == 'replica'
+        and local.get('tags', {}).get('nofailover') is True
+        and member.get('role') == 'replica'
+        and member.get('tags', {}).get('nofailover') is True)
+print('true' if safe else 'false')
+PY
+}
+nofailover_cleared() {
+  local local_state cluster_state
+  local_state="$(/usr/bin/docker exec "$container" curl --silent --show-error --fail \
+    --max-time 5 http://127.0.0.1:8008/patroni)"
+  cluster_state="$(/usr/bin/docker exec "$container" curl --silent --show-error --fail \
+    --max-time 5 http://127.0.0.1:8008/cluster)"
+  python3 - "$local_state" "$cluster_state" <<'PY'
+import json
+import sys
+
+local, cluster = (json.loads(value) for value in sys.argv[1:])
+name = local.get('patroni', {}).get('name')
+member = next((item for item in cluster.get('members', []) if item.get('name') == name), {})
+safe = (local.get('role') == 'replica'
+        and local.get('tags', {}).get('nofailover') is not True
+        and member.get('role') == 'replica'
+        and member.get('tags', {}).get('nofailover') is not True)
+print('true' if safe else 'false')
+PY
+}
 is_standby() { [[ "$(query 'SELECT pg_is_in_recovery()')" == 't' ]]; }
 is_streaming() {
   [[ "$(query "SELECT COALESCE((SELECT status FROM pg_stat_wal_receiver LIMIT 1), 'none')")" == 'streaming' ]]
@@ -46,7 +88,7 @@ reload_patroni() {
 }
 
 edit_config() {
-  # 2. Insert/remove only a local recovery_conf block; preserve exact original bytes.
+  # 2. Change the local delay and nofailover tag together; preserve exact original bytes.
   python3 - "$1" "$config" "$backup" "$delay_seconds" <<'PY'
 import os
 import shutil
@@ -68,6 +110,20 @@ if any(line.lstrip().startswith(b'recovery_conf:') for line in lines[start[0] + 
 if b'recovery_min_apply_delay' in original:
     raise SystemExit('Pre-existing apply delay must not be overwritten')
 changed = b''.join(lines[:end]) + (f'  recovery_conf:\n    recovery_min_apply_delay: {seconds}s\n').encode() + b''.join(lines[end:])
+tag_lines = changed.splitlines(keepends=True)
+tag_start = [i for i, line in enumerate(tag_lines) if line == b'tags:\n']
+if len(tag_start) > 1 or any(line.startswith(b'tags:') and line != b'tags:\n' for line in tag_lines):
+    raise SystemExit('Unexpected Patroni tags block')
+if tag_start:
+    tag_end = next((i for i in range(tag_start[0] + 1, len(tag_lines))
+                    if tag_lines[i] and tag_lines[i][:1] not in (b' ', b'\t', b'\n', b'#')),
+                   len(tag_lines))
+    tags = tag_lines[tag_start[0] + 1:tag_end]
+    if any(line.lstrip().startswith((b'nofailover:', b'failover_priority:')) for line in tags):
+        raise SystemExit('Pre-existing failover policy must not be overwritten')
+    changed = b''.join(tag_lines[:tag_end]) + b'  nofailover: true\n' + b''.join(tag_lines[tag_end:])
+else:
+    changed += (b'' if changed.endswith(b'\n') else b'\n') + b'tags:\n  nofailover: true\n'
 expected, replacement = (original, changed) if action == 'apply' else (changed, original)
 if current == replacement:
     raise SystemExit(0)
@@ -91,13 +147,14 @@ PY
 
 restore_once() {
   if [[ ! -f "$backup" ]]; then
-    [[ "$(setting)" == '0,default' ]]
+    [[ "$(setting)" == '0,default' ]] && [[ "$(nofailover_cleared)" == 'true' ]]
     return
   fi
   edit_config restore || return 1
   reload_patroni || return 1
   for (( check = 0; check < 10; check++ )); do
-    [[ "$(setting)" == '0,default' ]] && return 0
+    [[ "$(setting)" == '0,default' ]] &&
+      [[ "$(nofailover_cleared)" == 'true' ]] && return 0
     sleep 1
   done
   return 1
@@ -119,6 +176,7 @@ case "$action" in
   arm)
     command -v systemd-run >/dev/null
     if ! is_standby || ! is_streaming || [[ "$(setting)" != '0,default' ]] ||
+       [[ "$(nofailover_cleared)" != 'true' ]] ||
        timer_pending || [[ ! -f "$config" ]] || [[ -L "$config" ]]; then
       echo 'Standby baseline, Patroni config, or timer precondition failed.' >&2
       exit 1
@@ -136,7 +194,8 @@ case "$action" in
   apply)
     timer_pending && [[ -f "$backup" ]] ||
       { echo 'Independent timer or backup missing.' >&2; exit 1; }
-    if ! is_standby || ! is_streaming || [[ "$(setting)" != '0,default' ]]; then
+    if ! is_standby || ! is_streaming || [[ "$(setting)" != '0,default' ]] ||
+       [[ "$(nofailover_cleared)" != 'true' ]]; then
       echo 'Standby baseline changed before apply.' >&2
       exit 1
     fi
@@ -151,7 +210,8 @@ case "$action" in
       exit 1
     fi
     for (( check = 0; check < 15; check++ )); do
-      if [[ "$(setting)" == "$(( delay_seconds * 1000 )),configuration file" ]]; then
+      if [[ "$(setting)" == "$(( delay_seconds * 1000 )),configuration file" ]] &&
+         [[ "$(failover_excluded)" == 'true' ]]; then
         timer_pending && echo 'delay-applied' && exit 0
         break
       fi
@@ -165,7 +225,8 @@ case "$action" in
     restore
     ;;
   cancel)
-    if ! is_standby || ! is_streaming || [[ "$(setting)" != '0,default' ]]; then
+    if ! is_standby || ! is_streaming || [[ "$(setting)" != '0,default' ]] ||
+       [[ "$(nofailover_cleared)" != 'true' ]]; then
       echo 'Do not cancel until default delay and streaming return.' >&2
       exit 1
     fi
@@ -175,9 +236,10 @@ case "$action" in
     ;;
   status)
     if timer_pending; then armed='true'; else armed='false'; fi
-    printf 'standby=%s streaming=%s armed=%s delay=%s backlog_bytes=%s free_kb=%s\n' \
+    printf 'standby=%s streaming=%s armed=%s delay=%s nofailover=%s nofailover_cleared=%s backlog_bytes=%s free_kb=%s\n' \
       "$(is_standby && echo true || echo false)" \
       "$(is_streaming && echo true || echo false)" "$armed" "$(setting)" \
+      "$(failover_excluded)" "$(nofailover_cleared)" \
       "$(query 'SELECT COALESCE(pg_wal_lsn_diff(pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn()), 0)::bigint')" \
       "$(/usr/bin/docker exec "$container" df -Pk /var/lib/docgrid/opensql/data/pgsql | awk 'NR == 2 {print $4}')"
     ;;

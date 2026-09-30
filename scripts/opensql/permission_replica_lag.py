@@ -34,6 +34,7 @@ STANDBYS = NODES[1:]
 LABEL = re.compile(r"[a-z0-9][a-z0-9-]{0,23}\Z")
 DELAY_SECONDS = 120
 GUARD_SECONDS = 240
+FIXTURE_GUARD_SECONDS = 900
 
 
 class InvalidExperiment(RuntimeError):
@@ -42,6 +43,19 @@ class InvalidExperiment(RuntimeError):
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def write_private(path: Path, contents: bytes) -> None:
+    # The private evidence must never be briefly created with a permissive umask.
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(descriptor, "wb") as output:
+        output.write(contents)
+        output.flush()
+        os.fsync(output.fileno())
+
+
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def required(name: str) -> str:
@@ -66,11 +80,20 @@ def remote(node: str, script: str, *args: str) -> str:
     for value in args:
         if not re.fullmatch(r"[a-z0-9-]+", value):
             raise InvalidExperiment("Unsafe remote argument")
+    remote_command = (f"sudo sha256sum /usr/local/sbin/{script}" if args == ("hash",) else
+                      f"sudo /usr/local/sbin/{script} {' '.join(args)}")
     return command(["gcloud", "compute", "ssh", node,
                     f"--zone={required('OPENSQL_GCP_ZONE')}",
                     f"--project={required('OPENSQL_EXPECTED_PROJECT')}",
                     f"--ssh-key-file={required('OPENSQL_SSH_KEY')}", "--quiet",
-                    f"--command=sudo /usr/local/sbin/{script} {' '.join(args)}"], timeout=35)
+                    f"--command={remote_command}"], timeout=35)
+
+
+def deployed_sha256(node: str, script: str) -> str:
+    value = remote(node, script, "hash").split()[0]
+    if not re.fullmatch(r"[0-9a-f]{64}", value):
+        raise InvalidExperiment("Remote helper fingerprint is malformed")
+    return value
 
 
 def check_target() -> None:
@@ -221,7 +244,8 @@ def restore_delay(run_id: str) -> None:
 
 
 def fixture(run_id: str, action: str) -> dict[str, int]:
-    output = remote(NODES[0], "docgrid-permission-fixture", action, NODES[0], run_id)
+    output = remote(NODES[0], "docgrid-permission-fixture", action, NODES[0], run_id,
+                    str(FIXTURE_GUARD_SECONDS))
     if action != "create":
         return {}
     ids = {}
@@ -233,6 +257,40 @@ def fixture(run_id: str, action: str) -> dict[str, int]:
     return ids
 
 
+def fixture_guard_status(run_id: str) -> str:
+    return remote(NODES[0], "docgrid-permission-fixture", "guard-status", NODES[0], run_id,
+                  str(FIXTURE_GUARD_SECONDS))
+
+
+def delayed_status_is_safe(values: dict[str, str]) -> bool:
+    required_fields = ("standby=true", "streaming=true", "armed=true",
+                       f"delay={DELAY_SECONDS * 1000},configuration file",
+                       "nofailover=true", "nofailover_cleared=false")
+    return set(values) == set(STANDBYS) and all(all(field in line for field in required_fields)
+               for line in values.values())
+
+
+def restored_status_is_safe(values: dict[str, str]) -> bool:
+    required_fields = ("standby=true", "streaming=true", "armed=false",
+                       "delay=0,default", "nofailover=false", "nofailover_cleared=true")
+    return set(values) == set(STANDBYS) and all(all(field in line for field in required_fields)
+               for line in values.values())
+
+
+def classify_result(m_http: int, m_admin_cached: bool, m_delta: dict[str, int],
+                    c1_http: int, c2_http: int) -> str:
+    # A 403 without an observed standby role lookup is not evidence of safe routing.
+    standby_lookup = (m_delta[NODES[0]] == 0 and
+                      m_delta[NODES[1]] + m_delta[NODES[2]] > 0)
+    if not standby_lookup or c1_http != 403 or c2_http != 403:
+        return "INVALID"
+    if m_http == 200 and m_admin_cached:
+        return "STALE_ADMIN_ALLOWED"
+    if m_http == 403 and not m_admin_cached:
+        return "DENIED"
+    return "INVALID"
+
+
 def require_status(actual: int, expected: int, label: str) -> None:
     if actual != expected:
         raise InvalidExperiment(f"{label}: expected HTTP {expected}, received {actual}")
@@ -241,6 +299,9 @@ def require_status(actual: int, expected: int, label: str) -> None:
 def run(args: argparse.Namespace) -> None:
     check_target()
     redis("PING")
+    if remote(NODES[0], "docgrid-permission-fixture", "stale-count", NODES[0],
+              "preflight", str(FIXTURE_GUARD_SECONDS)) != "0":
+        raise InvalidExperiment("Earlier run-scoped ADMIN fixtures require manual inspection")
     if not args.proxy_url.startswith("http://127.0.0.1:") or not args.primary_url.startswith("http://127.0.0.1:"):
         raise InvalidExperiment("Both test app instances must be on loopback")
     if args.proxy_url == args.primary_url:
@@ -250,35 +311,71 @@ def run(args: argparse.Namespace) -> None:
     run_id = uuid.uuid4().hex[:12]
     if not LABEL.fullmatch(run_id):
         raise InvalidExperiment("Invalid generated run ID")
+    health = {}
     for node in NODES:
         lines = remote(node, "docgrid-permission-node-probe", "health", node).splitlines()
         expected = "f,t,2,0" if node == NODES[0] else "t,t,0,1"
         if len(lines) != 2 or lines[0] != expected:
             raise InvalidExperiment("Expected one primary, two streaming standbys, "
                                     "and postgres-DB statistics extension on " + node)
+        health[node] = lines
     initial = status(run_id)
-    if any("streaming=true" not in line or "delay=0,default" not in line for line in initial.values()):
-        raise InvalidExperiment("Standby not streaming or already delayed")
+    if not restored_status_is_safe(initial):
+        raise InvalidExperiment("Standby not streaming, eligible, or at its original policy")
 
-    # 1. This manifest refers to the redacted contract snapshot; no URL or secret is stored.
-    config_hash = contract["evidence_sha256"]
+    # Exact source and installed-helper hashes make a dirty worktree traceable.
+    source_files = ("permission_replica_lag.py", "run_permission_replica_lag_local.py",
+                    "ha_evidence.py", "permission_fixture.sh",
+                    "standby_apply_delay_guard.sh", "permission_node_probe.sh")
+    source_hashes = {name: file_sha256(ROOT / "scripts/opensql" / name)
+                     for name in source_files}
+    installed_hashes = {
+        NODES[0]: {"permission_fixture.sh": deployed_sha256(NODES[0], "docgrid-permission-fixture")},
+        NODES[1]: {"standby_apply_delay_guard.sh": deployed_sha256(
+            NODES[1], "docgrid-standby-apply-delay-guard")},
+        NODES[2]: {"standby_apply_delay_guard.sh": deployed_sha256(
+            NODES[2], "docgrid-standby-apply-delay-guard")},
+    }
+    if any(digest != source_hashes[name] for installed in installed_hashes.values()
+           for name, digest in installed.items()):
+        raise InvalidExperiment("Installed VM helper differs from the checked-out source")
+
+    # 1. Hash the exact, secret-free live preflight used for this run.
+    live_preflight = {"health": health, "standbys": initial,
+                      "prior_contract_sha256": contract["evidence_sha256"],
+                      "app_jar_sha256": args.app_jar_sha256,
+                      "source_sha256": source_hashes, "installed_helper_sha256": installed_hashes,
+                      "proxy_jdbc_url_sha256": hashlib.sha256(
+                          required("OPENSQL_APP_JDBC_URL").encode()).hexdigest(),
+                      "primary_jdbc_url_sha256": hashlib.sha256(
+                          required("OPENSQL_APP_DIRECT_JDBC_URL").encode()).hexdigest()}
+    snapshot = json.dumps(live_preflight, ensure_ascii=False, sort_keys=True,
+                          separators=(",", ":")).encode() + b"\n"
+    config_hash = hashlib.sha256(snapshot).hexdigest()
     run_dir = args.output / f"permission-{run_id}"
     ledger(run_dir, "init", "--scenario", "permission-replica-lag",
+           "--run-id", run_id,
            "--config-sha256", config_hash,
            "--opensql-version", versions["opensql"],
            "--openproxy-version", "recorded-in-contract",
            "--patroni-version", versions["patroni"],
            "--etcd-version", versions["etcd"])
+    write_private(run_dir / "live-preflight.json", snapshot)
     evidence: dict[str, object] = {"run_id": run_id, "started_at": utc_now(),
-                                   "contract_sha256": config_hash,
+                                   "contract_sha256": contract["evidence_sha256"],
+                                   "live_preflight_sha256": config_hash,
+                                   "app_jar_sha256": args.app_jar_sha256,
                                    "initial_standbys": initial, "initial_lsn": lsn()}
     ids: dict[str, int] = {}
-    fixture_attempted = False
+    fixture_guard_attempted = False
     armed = False
     delayed = False
     fault_open = False
     try:
-        fixture_attempted = True
+        fixture(run_id, "arm")
+        fixture_guard_attempted = True
+        if fixture_guard_status(run_id) != "armed=true fixture_count=0":
+            raise InvalidExperiment("Independent fixture cleanup timer is not pending")
         ids = fixture(run_id, "create")
         jwt = {alias: token(user_id, run_id) for alias, user_id in ids.items()}
         for alias in ("admin", "m", "c1", "c2"):
@@ -317,9 +414,8 @@ def run(args: argparse.Namespace) -> None:
                                               str(DELAY_SECONDS)), STANDBYS))
         delayed = True
         before_revoke = status(run_id)
-        if any(f"delay={DELAY_SECONDS * 1000},configuration file" not in line
-               for line in before_revoke.values()):
-            raise InvalidExperiment("Both standbys did not retain the effective apply delay")
+        if not delayed_status_is_safe(before_revoke):
+            raise InvalidExperiment("Both standbys must be delayed and excluded from promotion")
         ledger(run_dir, "fault", "--name", "standby-apply-delay", "--phase", "start")
         fault_open = True
 
@@ -335,9 +431,8 @@ def run(args: argparse.Namespace) -> None:
         if cache(ids["m"])["present"] or cache(ids["c2"])["present"]:
             raise InvalidExperiment("Revoked users' Redis keys were not invalidated")
         evidence["after_revocation_lsn"] = lsn()
-        if any(f"delay={DELAY_SECONDS * 1000},configuration file" not in line
-               for line in status(run_id).values()):
-            raise InvalidExperiment("A standby lost its delay before stale-read observation")
+        if not delayed_status_is_safe(status(run_id)):
+            raise InvalidExperiment("A standby lost its delay or promotion exclusion")
 
         if time.monotonic() >= guard_deadline:
             raise InvalidExperiment("Independent rescue timer is near its deadline")
@@ -355,9 +450,8 @@ def run(args: argparse.Namespace) -> None:
                           "roles": c2_roles, "role_sql_delta": c2_delta}
         evidence["delayed_standbys"] = status(run_id)
         evidence["delayed_lsn"] = lsn()
-        if any(f"delay={DELAY_SECONDS * 1000},configuration file" not in line
-               for line in evidence["delayed_standbys"].values()):
-            raise InvalidExperiment("Standby apply delay ended during observation")
+        if not delayed_status_is_safe(evidence["delayed_standbys"]):
+            raise InvalidExperiment("Standby delay or promotion exclusion ended during observation")
 
         # 5. Restore the normal apply policy immediately after the stale-read observation.
         restore_delay(run_id)
@@ -384,10 +478,9 @@ def run(args: argparse.Namespace) -> None:
                           "roles": roles(ids["c1"])}
         if c2_delta[NODES[0]] == 0 or c2_delta[NODES[1]] + c2_delta[NODES[2]] != 0:
             raise InvalidExperiment("C2 did not prove direct-primary role lookup")
-        evidence["result"] = ("STALE_ADMIN_ALLOWED" if m_http == 200 and m_cache["admin"]
-                              and m_delta[NODES[1]] + m_delta[NODES[2]] > 0 and c1_http == 403
-                              and c2_http == 403 else "DENIED" if m_http == 403 and
-                              c1_http == 403 and c2_http == 403 else "INVALID")
+        evidence["result"] = classify_result(m_http, m_cache["admin"], m_delta,
+                                              c1_http, c2_http)
+        evidence["observation"] = evidence["result"]
     except Exception as error:
         evidence["result"] = "INVALID"
         evidence["stop_reason"] = str(error) if isinstance(error, InvalidExperiment) else type(error).__name__
@@ -405,28 +498,47 @@ def run(args: argparse.Namespace) -> None:
                     remote(node, "docgrid-standby-apply-delay-guard", "cancel", node, run_id)
             except Exception:
                 evidence["cleanup_warning"] = "Manual standby inspection required"
-        if fixture_attempted:
+        if fixture_guard_attempted:
             try:
+                cache_failed = False
                 for user_id in ids.values():
-                    redis("DEL", f"auth:roles:{user_id}")
+                    try:
+                        redis("DEL", f"auth:roles:{user_id}")
+                    except Exception:
+                        cache_failed = True
+                # Remove DB ADMIN rows even when the local Redis cleanup fails.
                 fixture(run_id, "remove")
+                if fixture_guard_status(run_id) != "armed=true fixture_count=0":
+                    raise InvalidExperiment("Run-scoped fixture removal is not visible")
+                fixture(run_id, "cancel")
+                if fixture_guard_status(run_id) != "armed=false fixture_count=0":
+                    raise InvalidExperiment("Fixture cleanup timer did not stop")
+                if cache_failed:
+                    raise InvalidExperiment("Local Redis keys require manual inspection")
             except Exception:
                 evidence["fixture_warning"] = "Manual fixture cleanup required"
         evidence["finished_at"] = utc_now()
         try:
             evidence["final_standbys"] = status(run_id)
             evidence["final_lsn"] = lsn()
+            if not restored_status_is_safe(evidence["final_standbys"]):
+                evidence["result"] = "INVALID"
+                evidence["cleanup_warning"] = "Standby policy or timer did not return to baseline"
         except Exception:
             evidence["final_standbys"] = "unverified; manual inspection required"
             evidence["result"] = "INVALID"
         if delayed:
             evidence["result"] = "INVALID"
             evidence["cleanup_warning"] = "Apply delay may still be active; inspect both standbys"
+        if "cleanup_warning" in evidence or "fixture_warning" in evidence:
+            evidence["result"] = "INVALID"
         path = run_dir / "permission-scenarios.json"
-        path.write_text(json.dumps(evidence, ensure_ascii=False, sort_keys=True, indent=2) + "\n")
-        path.chmod(0o600)
-        ledger(run_dir, "export" if fault_open else "finish")
+        write_private(path, (json.dumps(evidence, ensure_ascii=False, sort_keys=True,
+                                        indent=2) + "\n").encode())
+        ledger(run_dir, "export" if fault_open or evidence["result"] == "INVALID" else "finish")
         print(f"run_dir={run_dir} result={evidence['result']}")
+    if evidence["result"] == "INVALID":
+        raise InvalidExperiment("Run result or cleanup invalid; inspect private evidence")
 
 
 def main() -> int:
@@ -434,10 +546,13 @@ def main() -> int:
     parser.add_argument("--proxy-url", required=True)
     parser.add_argument("--primary-url", required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--app-jar-sha256", required=True)
     parser.add_argument("--apply-delay", action="store_true",
                         help="Apply a temporary standby delay after independent reset verification")
     args = parser.parse_args()
     try:
+        if not re.fullmatch(r"[0-9a-f]{64}", args.app_jar_sha256):
+            raise InvalidExperiment("A SHA-256 of the exact app JAR is required")
         run(args)
     except (InvalidExperiment, OSError, subprocess.TimeoutExpired, ValueError) as error:
         print(f"Experiment stopped: {error}", file=sys.stderr)
