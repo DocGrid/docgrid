@@ -37,6 +37,7 @@ M 단계에서는 두 standby 모두 `armed=true`, `nofailover=true`, `delay=120
 - 관리자 Security filter 전체 경로: 정상 ADMIN 200, 회수 후 403, primary 조회 불가 시 503, 일반 API 기존 동작을 테스트했다.
 - 역할 캐시: Redis epoch 변화 시 이전 DB 조회 결과가 캐시에 다시 쓰이지 않도록 단위 테스트와 격리 Redis Lua 실행으로 확인했다.
 - `python3 -m unittest discover -s scripts/opensql -p 'test_permission_replica_lag.py'`: 6개 통과. 관련 Java 단위·MVC 테스트도 Gradle `test`에서 통과했다.
+- 전체 `./backend/gradlew -p backend test` 실행은 1,188개 중 117개가 실패했다. 이 실행 환경에서 기본 테스트 프로필이 기대하는 로컬 PostgreSQL 포트에 서버가 없어 Flyway의 JDBC 연결이 거절됐고, 같은 Spring context의 후속 시험도 로딩 실패로 이어졌다. 전체 테스트 통과로 표기하지 않는다.
 - `OpenSqlProxyJpaIntegrationTest`는 별도 외부 클러스터 태그로 일반 Gradle `test`에서 제외된다. 이번 실제 경로 증거는 위 HTTP 실행과 노드별 SQL 계측이다.
 - 503 경로는 로컬 보안 체인 테스트로 검증했다. 실제 primary 장애를 일으키는 503 실험은 이번에 하지 않았다.
 - WebSocket CONNECT·SUBSCRIBE·기존 구독의 역할 수명, 일반 API의 standby 지연 후 캐시 최신성, Redis 무효화 실패나 DB failover 중 이미 성공 응답된 회수의 RPO는 이 실험으로 증명되지 않는다. 별도 검증이 필요하다.
