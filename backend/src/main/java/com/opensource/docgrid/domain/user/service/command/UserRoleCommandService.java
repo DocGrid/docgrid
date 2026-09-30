@@ -81,8 +81,8 @@ public class UserRoleCommandService {
         return UserRoleResponse.of(targetUser, roles);
     }
 
-    // DB 커밋 전에 캐시를 지우면, 커밋 직전 시점에 캐시 미스가 난 다른 요청이 아직 커밋 안 된(옛날) role을
-    // 다시 캐시에 채워 넣을 수 있다. 그래서 무효화는 반드시 트랜잭션 커밋 이후로 미룬다.
+    // DB 커밋 전에 캐시를 지우면, 다른 요청이 아직 커밋 안 된 역할을 다시 읽을 수 있다.
+    // 커밋 후 무효화하고, 조회·저장 사이에 끼어드는 요청은 Redis 세대 비교로 재캐시를 막는다.
     // 트랜잭션 밖에서 호출되는 경우(예: 단위 테스트)는 즉시 무효화한다.
     private void invalidateAfterCommit(Long userId) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
