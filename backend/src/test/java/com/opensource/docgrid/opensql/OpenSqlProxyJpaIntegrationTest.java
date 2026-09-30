@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
 
+import com.opensource.docgrid.domain.auth.service.query.PrimaryRoleQueryService;
 import com.opensource.docgrid.domain.failover.entity.FailoverEvent;
 import com.opensource.docgrid.domain.failover.enums.FailoverEventType;
 import com.opensource.docgrid.domain.failover.enums.FailoverStatus;
@@ -41,6 +42,9 @@ class OpenSqlProxyJpaIntegrationTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private PrimaryRoleQueryService primaryRoleQueryService;
+
     @Test
     @Timeout(30)
     @DisplayName("명시적 JPA 트랜잭션은 리더에서 UPDATE와 엔티티 INSERT를 실행하고 롤백한다")
@@ -65,5 +69,13 @@ class OpenSqlProxyJpaIntegrationTest {
         entityManager.persist(probe);
         entityManager.flush();
         assertThat(probe.getId()).isNotNull();
+    }
+
+    @Test
+    @Timeout(30)
+    @DisplayName("관리자 역할 조회의 독립 트랜잭션도 OpenProxy를 거쳐 primary에 도착한다")
+    void adminRoleQueryUsesPrimary() {
+        // 존재하지 않는 사용자만 조회해 운영 역할 데이터를 바꾸지 않는다.
+        assertThat(primaryRoleQueryService.findCurrentRoles(-1L)).isEmpty();
     }
 }

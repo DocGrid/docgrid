@@ -291,6 +291,17 @@ def classify_result(m_http: int, m_admin_cached: bool, m_delta: dict[str, int],
     return "INVALID"
 
 
+def classify_primary_result(m_http: int, m_admin_cached: bool, m_delta: dict[str, int],
+                            c1_http: int, c2_http: int) -> str:
+    # A denial without a measured primary role lookup does not prove the fix.
+    primary_lookup = (m_delta[NODES[0]] > 0 and
+                      m_delta[NODES[1]] + m_delta[NODES[2]] == 0)
+    if primary_lookup and m_http == 403 and not m_admin_cached and \
+            c1_http == 403 and c2_http == 403:
+        return "PRIMARY_AUTH_ENFORCED"
+    return "INVALID"
+
+
 def require_status(actual: int, expected: int, label: str) -> None:
     if actual != expected:
         raise InvalidExperiment(f"{label}: expected HTTP {expected}, received {actual}")
@@ -353,7 +364,8 @@ def run(args: argparse.Namespace) -> None:
                           separators=(",", ":")).encode() + b"\n"
     config_hash = hashlib.sha256(snapshot).hexdigest()
     run_dir = args.output / f"permission-{run_id}"
-    ledger(run_dir, "init", "--scenario", "permission-replica-lag",
+    ledger(run_dir, "init", "--scenario", ("permission-primary-consistency"
+                                          if args.expect_primary_admin else "permission-replica-lag"),
            "--run-id", run_id,
            "--config-sha256", config_hash,
            "--opensql-version", versions["opensql"],
@@ -362,6 +374,7 @@ def run(args: argparse.Namespace) -> None:
            "--etcd-version", versions["etcd"])
     write_private(run_dir / "live-preflight.json", snapshot)
     evidence: dict[str, object] = {"run_id": run_id, "started_at": utc_now(),
+                                   "expect_primary_admin": args.expect_primary_admin,
                                    "contract_sha256": contract["evidence_sha256"],
                                    "live_preflight_sha256": config_hash,
                                    "app_jar_sha256": args.app_jar_sha256,
@@ -393,8 +406,11 @@ def run(args: argparse.Namespace) -> None:
                                 f"routing-{index}"), 200, "routing baseline")
         route = deltas(baseline, role_stats())
         evidence["R"] = {"role_sql_delta": route, "cache": cache(ids["m"])}
-        if route[NODES[1]] + route[NODES[2]] == 0:
-            raise InvalidExperiment("Role SQL did not reach standby; replay pause is prohibited")
+        if args.expect_primary_admin:
+            if route[NODES[0]] == 0 or route[NODES[1]] + route[NODES[2]] != 0:
+                raise InvalidExperiment("Admin role SQL did not reach only primary in baseline")
+        elif route[NODES[1]] + route[NODES[2]] == 0:
+            raise InvalidExperiment("Role SQL did not reach standby; apply delay is prohibited")
         if not args.apply_delay:
             raise InvalidExperiment("R recorded; pass --apply-delay only after the independent "
                                     "reset timer and one-standby delay have been verified")
@@ -473,13 +489,18 @@ def run(args: argparse.Namespace) -> None:
             time.sleep(1)
         if any(roles(ids["c1"]).values()):
             raise InvalidExperiment("C1 did not replicate before its fresh-read check")
+        c1_before = role_stats()
         c1_http = http(run_dir, args.proxy_url, "/admin/workers", jwt["c1"], "fresh-C1")
+        c1_delta = deltas(c1_before, role_stats())
         evidence["C1"] = {"http_status": c1_http, "cache": cache(ids["c1"]),
-                          "roles": roles(ids["c1"])}
+                          "roles": roles(ids["c1"]), "role_sql_delta": c1_delta}
         if c2_delta[NODES[0]] == 0 or c2_delta[NODES[1]] + c2_delta[NODES[2]] != 0:
             raise InvalidExperiment("C2 did not prove direct-primary role lookup")
-        evidence["result"] = classify_result(m_http, m_cache["admin"], m_delta,
-                                              c1_http, c2_http)
+        if args.expect_primary_admin and (c1_delta[NODES[0]] == 0 or
+                                          c1_delta[NODES[1]] + c1_delta[NODES[2]] != 0):
+            raise InvalidExperiment("C1 did not prove primary-only role lookup")
+        classifier = classify_primary_result if args.expect_primary_admin else classify_result
+        evidence["result"] = classifier(m_http, m_cache["admin"], m_delta, c1_http, c2_http)
         evidence["observation"] = evidence["result"]
     except Exception as error:
         evidence["result"] = "INVALID"
@@ -549,6 +570,8 @@ def main() -> int:
     parser.add_argument("--app-jar-sha256", required=True)
     parser.add_argument("--apply-delay", action="store_true",
                         help="Apply a temporary standby delay after independent reset verification")
+    parser.add_argument("--expect-primary-admin", action="store_true",
+                        help="Require the fixed HTTP administrator path to read only primary")
     args = parser.parse_args()
     try:
         if not re.fullmatch(r"[0-9a-f]{64}", args.app_jar_sha256):

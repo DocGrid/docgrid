@@ -100,6 +100,8 @@ def main() -> int:
                         help="Port of a disposable, isolated loopback Redis instance")
     parser.add_argument("--apply-delay", action="store_true",
                         help="Run the guarded standby apply-delay phase after local apps start")
+    parser.add_argument("--expect-primary-admin", action="store_true",
+                        help="Require the fixed HTTP administrator path to read only primary")
     args = parser.parse_args()
     if args.output.exists() or any(port_listening(port) for port in (18080, 18081)):
         print("Output directory or test app port already exists", file=sys.stderr)
@@ -133,6 +135,8 @@ def main() -> int:
         ]
         if args.apply_delay:
             runner_args.append("--apply-delay")
+        if args.expect_primary_admin:
+            runner_args.append("--expect-primary-admin")
         result = subprocess.run(runner_args, cwd=ROOT, env=base_env, check=False)
         return result.returncode
     except (OSError, RuntimeError) as error:

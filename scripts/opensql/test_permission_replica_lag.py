@@ -38,6 +38,20 @@ class PermissionReplicaLagTest(unittest.TestCase):
         self.assertEqual("INVALID", EXPERIMENT.classify_result(
             200, True, standby_query, 200, 403))
 
+    def test_primary_mode_requires_denial_and_a_measured_primary_role_lookup(self):
+        """A 403 from authentication or a standby read is not a fixed-route proof."""
+        primary_query = {EXPERIMENT.NODES[0]: 1, EXPERIMENT.NODES[1]: 0,
+                         EXPERIMENT.NODES[2]: 0}
+        standby_query = primary_query | {EXPERIMENT.NODES[0]: 0, EXPERIMENT.NODES[1]: 1}
+        self.assertEqual("PRIMARY_AUTH_ENFORCED", EXPERIMENT.classify_primary_result(
+            403, False, primary_query, 403, 403))
+        self.assertEqual("INVALID", EXPERIMENT.classify_primary_result(
+            403, False, standby_query, 403, 403))
+        self.assertEqual("INVALID", EXPERIMENT.classify_primary_result(
+            200, True, primary_query, 403, 403))
+        self.assertEqual("INVALID", EXPERIMENT.classify_primary_result(
+            403, True, primary_query, 403, 403))
+
     def test_standby_status_requires_both_tag_and_timer(self):
         """A delay alone cannot authorize a revocation while replicas remain promotable."""
         delayed = ("standby=true streaming=true armed=true delay=120000,configuration file "
