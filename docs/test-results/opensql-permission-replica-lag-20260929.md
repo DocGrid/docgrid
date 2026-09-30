@@ -117,3 +117,8 @@ LSN 수집을 처음 추가한 실행은 사전 검사에서 `docgrid` DB에도
 primary로 보내는 것과, Redis cache resurrection 경쟁을 별도로 막는 것을
 함께 검토해야 한다. WebSocket 기존 구독, 실제 OpenProxy 프로세스 장애,
 Patroni failover, 앱 VM의 GCP 내부 부하 시험은 여기서 검증하지 않았다.
+
+이후 독립 계정 정리, standby 승격 제외, 엄격한 판정 및 실행 출처 연결을
+보강해 두 standby에서 재검증했다.
+[안전장치 보강 후 실행 결과](opensql-permission-replica-lag-safety-20261001.md)를
+참고한다. 위의 2026-09-29 관측값과 당시 `/run` 백업 설명은 역사적 결과로 유지한다.
