@@ -28,7 +28,7 @@
 A와 B 각각의 Spring SimpleBroker가 자기 JVM의 구독만 관리한다.
 ```
 
-이번에 만든 VM은 A의 기존 시험 VM과 별개인 B `e2-standard-2`, Redis `e2-small`, 전용 부하 `e2-standard-2`다. A도 `e2-standard-2`다. 네 VM 모두 실행 시 `Rocky Linux 9.8 (Blue Onyx) x86_64`로 확인했다. 사용자의 기존 OpenSQL DB 3노드 OS와 이 **백엔드·Redis·부하 VM의 OS 버전을 혼동하지 않는다**. 외부 주소나 프로젝트 식별자는 원본 기록 전에 제외했다.
+기존 백엔드 A와 기존 전용 부하 VM을 재사용하고, 이번에 새로 만든 VM은 백엔드 B `e2-standard-2`와 공용 Redis `e2-small`이다. 재사용한 A와 부하 VM도 각각 `e2-standard-2`다. 네 VM 모두 실행 시 `Rocky Linux 9.8 (Blue Onyx) x86_64`로 확인했다. 사용자의 기존 OpenSQL DB 3노드 OS와 이 **백엔드·Redis·부하 VM의 OS 버전을 혼동하지 않는다**. 외부 주소나 프로젝트 식별자는 원본 기록 전에 제외했다.
 
 ## 2. 부하 실행: 연결 수와 도착 백엔드
 
