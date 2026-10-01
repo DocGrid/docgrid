@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.opensource.docgrid.domain.auth.jwt.JwtProvider;
+import com.opensource.docgrid.domain.auth.websocket.StompSessionRegistry;
 import com.opensource.docgrid.domain.dashboard.controller.DashboardWebSocketController;
 import com.opensource.docgrid.domain.dashboard.dto.response.DashboardSummaryResponse;
 import com.opensource.docgrid.domain.dashboard.dto.response.DocumentsSummaryResponse;
@@ -30,8 +31,9 @@ import com.opensource.docgrid.domain.dashboard.dto.response.WorkersSummaryRespon
  * GCP의 실제 앱·Redis·OpenProxy·OpenSQL 경로로 합성 대시보드 메시지를 발행하는 시험 전용 fixture.
  *
  * <p>일반 테스트에서 제외된 전용 태그로만 실행한다. 두 비교 버전에 동일한 파일을 적용하며,
- * 시험 전용 계정·JWT는 실행 디렉터리에만 두고 종료 시 계정을 정리한다. 문서 집계 SQL과
- * 임베딩 부하는 만들지 않아 대시보드 전송/권한 판정 비용만 분리한다.
+ * 시험 전용 계정·JWT는 실행 디렉터리에만 두고 종료 시 계정을 정리한다. 각 JVM이 소유한
+ * 인증 완료 STOMP 세션 수만 함께 기록하며, 문서 집계 SQL과 임베딩 부하는 만들지 않는다.
+ * 일방향 발행 시험에서는 B의 발행만 끄되 동일한 백엔드와 구독 경로를 유지한다.
  */
 @Tag("dashboard-cloud-load")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -49,6 +51,9 @@ class DashboardCloudLoadTest {
     @Autowired
     private DashboardWebSocketController dashboardWebSocketController;
 
+    @Autowired
+    private StompSessionRegistry stompSessionRegistry;
+
     @Test
     void publishUntilStopped() throws Exception {
         String runId = System.getProperty("dashboard.load.runId", "");
@@ -60,6 +65,7 @@ class DashboardCloudLoadTest {
             throw new IllegalArgumentException("dashboard.load.outputDir를 지정해야 합니다.");
         }
         long maxSeconds = Long.parseLong(System.getProperty("dashboard.load.maxSeconds", "900"));
+        boolean publish = Boolean.parseBoolean(System.getProperty("dashboard.load.publish", "true"));
         if (maxSeconds < 1 || maxSeconds > 3600) {
             throw new IllegalArgumentException("dashboard.load.maxSeconds는 1~3600초여야 합니다.");
         }
@@ -85,7 +91,7 @@ class DashboardCloudLoadTest {
             long sequence = 0;
             try (PrintWriter events = new PrintWriter(Files.newBufferedWriter(output.resolve("publisher-events.tsv"),
                 StandardCharsets.UTF_8))) {
-                events.println("시각(KST)\t이벤트\t순번\t전송시간(ms)\t오류종류");
+                events.println("시각(KST)\t이벤트\t순번\t전송시간(ms)\t오류종류\t활성인증세션");
                 while (System.nanoTime() < deadline && !Files.exists(output.resolve("stop"))) {
                     long remainingNanos = nextTick - System.nanoTime();
                     if (remainingNanos > 0) {
@@ -93,14 +99,25 @@ class DashboardCloudLoadTest {
                     }
                     long sentEpochMillis = System.currentTimeMillis();
                     long start = System.nanoTime();
+                    if (!publish) {
+                        // 메시지 발생원이 없는 B도 연결을 유지해 브로커 간 전달 여부만 격리한다.
+                        events.printf("%s\t미발행\t0\t0.000\t-\t%d\n", OffsetDateTime.now(KST),
+                            stompSessionRegistry.authenticatedSessionCount());
+                        events.flush();
+                        nextTick += 300_000_000L;
+                        continue;
+                    }
                     try {
                         dashboardWebSocketController.sendDashboardUpdate(summary(++sequence, sentEpochMillis));
-                        events.printf("%s\t성공\t%d\t%.3f\t-\n", OffsetDateTime.now(KST), sequence,
-                            (System.nanoTime() - start) / 1_000_000.0);
+                        // 각 백엔드 로컬 registry를 읽어 LB 뒤의 실제 인증 세션 분포를 남긴다.
+                        events.printf("%s\t성공\t%d\t%.3f\t-\t%d\n", OffsetDateTime.now(KST), sequence,
+                            (System.nanoTime() - start) / 1_000_000.0,
+                            stompSessionRegistry.authenticatedSessionCount());
                     } catch (RuntimeException error) {
                         // 예외 메시지에는 내부 주소가 들어갈 수 있으므로 종류만 남긴다.
-                        events.printf("%s\t실패\t%d\t%.3f\t%s\n", OffsetDateTime.now(KST), sequence,
-                            (System.nanoTime() - start) / 1_000_000.0, error.getClass().getSimpleName());
+                        events.printf("%s\t실패\t%d\t%.3f\t%s\t%d\n", OffsetDateTime.now(KST), sequence,
+                            (System.nanoTime() - start) / 1_000_000.0, error.getClass().getSimpleName(),
+                            stompSessionRegistry.authenticatedSessionCount());
                     }
                     events.flush();
                     nextTick += 300_000_000L;

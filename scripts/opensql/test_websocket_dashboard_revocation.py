@@ -1,21 +1,25 @@
-"""Pin down the timing boundary used by the cloud revocation observation."""
+"""Check that dual-backend revocation evidence keeps routing and timing boundaries explicit."""
 
 import unittest
 
-from websocket_dashboard_revocation import classify, stomp_frames
+from websocket_dashboard_revocation import backend_for, classify, stomp_frames
 
 
-class RevocationTimingTest(unittest.TestCase):
-    """Separate a newly created push from pre-revocation in-flight delivery."""
+class DashboardAbRevocationTest(unittest.TestCase):
+    """Cover deterministic A/B assignment and response-boundary classification only."""
 
-    def test_new_decision_candidate_after_http_200(self):
-        self.assertEqual(classify(1003, 1008, 1001.0), "200_이후_새_판정_후보")
+    def test_assigns_the_requested_tail_to_b(self):
+        self.assertEqual([backend_for(index, 5, 2) for index in range(5)],
+                         ["A", "A", "A", "B", "B"])
 
-    def test_late_delivery_of_old_push(self):
-        self.assertEqual(classify(999, 1010, 1001.0), "200_전_발행_늦은_수신")
+    def test_single_backend_mode_remains_a(self):
+        self.assertEqual([backend_for(index, 3, 0) for index in range(3)],
+                         ["A", "A", "A"])
 
-    def test_clock_boundary_is_ambiguous(self):
-        self.assertEqual(classify(1001, 1002, 1001.0), "경계_시각_불명확")
+    def test_separates_new_decision_from_late_delivery(self):
+        self.assertEqual(classify(1002, 1005, 1000), "200_이후_새_판정_후보")
+        self.assertEqual(classify(998, 1005, 1000), "200_전_발행_늦은_수신")
+        self.assertEqual(classify(1000, 1005, 1000), "경계_시각_불명확")
 
     def test_split_coalesced_stomp_frames(self):
         self.assertEqual(stomp_frames("CONNECTED\n\n\0MESSAGE\nx:y\n\n{}\0"),

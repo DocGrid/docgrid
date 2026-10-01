@@ -176,7 +176,7 @@ def run(args: argparse.Namespace) -> int:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-id", required=True)
-    parser.add_argument("--variant", choices=("before", "after"), required=True)
+    parser.add_argument("--variant", choices=("before", "after", "ab"), required=True)
     parser.add_argument("--clients", type=int, required=True)
     parser.add_argument("--warmup-seconds", type=int, default=10)
     parser.add_argument("--measure-seconds", type=int, default=30)
