@@ -1,0 +1,36 @@
+{
+  "run_id": "b378-before-n50-03",
+  "clients_requested": 50,
+  "warmup_seconds": 10,
+  "measure_seconds": 30,
+  "metrics": {
+    "dashboard_connected": {
+      "rate": 1.1861653538729064,
+      "count": 50
+    },
+    "dashboard_received": {
+      "count": 634,
+      "rate": 15.040576687108455
+    },
+    "dashboard_errors": {
+      "count": 0,
+      "rate": 0
+    },
+    "dashboard_negative_clock": {
+      "count": 0,
+      "rate": 0
+    },
+    "dashboard_sequence_gaps": null,
+    "dashboard_duplicates": null,
+    "dashboard_latency_ms": {
+      "p(50)": 1182.5,
+      "p(95)": 2273.05,
+      "p(99)": 2365.34,
+      "count": 634,
+      "avg": 1198.7082018927445,
+      "min": 47,
+      "med": 1182.5,
+      "max": 2388
+    }
+  }
+}

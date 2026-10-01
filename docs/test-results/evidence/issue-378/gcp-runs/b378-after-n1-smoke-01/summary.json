@@ -1,0 +1,36 @@
+{
+  "run_id": "b378-after-n1-smoke-01",
+  "clients_requested": 1,
+  "warmup_seconds": 3,
+  "measure_seconds": 12,
+  "metrics": {
+    "dashboard_connected": {
+      "count": 1,
+      "rate": 0.057655413159640866
+    },
+    "dashboard_received": {
+      "count": 40,
+      "rate": 2.3062165263856347
+    },
+    "dashboard_errors": {
+      "count": 0,
+      "rate": 0
+    },
+    "dashboard_negative_clock": {
+      "count": 0,
+      "rate": 0
+    },
+    "dashboard_sequence_gaps": null,
+    "dashboard_duplicates": null,
+    "dashboard_latency_ms": {
+      "max": 27,
+      "p(50)": 19,
+      "p(95)": 23.14999999999999,
+      "p(99)": 26.61,
+      "count": 40,
+      "avg": 19.525,
+      "min": 14,
+      "med": 19
+    }
+  }
+}
