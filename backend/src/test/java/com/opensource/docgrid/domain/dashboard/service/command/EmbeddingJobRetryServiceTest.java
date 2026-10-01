@@ -57,6 +57,20 @@ class EmbeddingJobRetryServiceTest {
     }
 
     @Test
+    @DisplayName("재처리 커밋 뒤 primary 판정 실패는 대시보드만 차단하고 재처리 성공 응답을 유지한다")
+    void retryJob_keepsCommittedResult_whenDashboardAuthorizationFails() {
+        ManualRetriedIndexingJobResponse retryResponse = mock(ManualRetriedIndexingJobResponse.class);
+        DashboardSummaryResponse summary = mock(DashboardSummaryResponse.class);
+        given(embeddingJobManualRetryService.retry(42L)).willReturn(retryResponse);
+        given(dashboardQueryService.getSummary()).willReturn(summary);
+        willThrow(new IllegalStateException("primary unavailable"))
+            .given(dashboardWebSocketController).sendDashboardUpdate(summary);
+
+        assertThat(embeddingJobRetryService.retryJob(42L)).isSameAs(retryResponse);
+        then(dashboardWebSocketController).should().sendDashboardUpdate(summary);
+    }
+
+    @Test
     @DisplayName("정상 케이스: 대상 제외와 성공 건수를 분리하고 1건 이상 성공하면 push한다")
     void retryAllFailedJobs_separatesSkippedJobs_whenSomeJobsAreNotEligible() {
         // Given

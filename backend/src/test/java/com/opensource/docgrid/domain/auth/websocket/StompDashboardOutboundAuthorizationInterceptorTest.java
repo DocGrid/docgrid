@@ -6,7 +6,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
@@ -21,10 +21,8 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.support.MessageBuilder;
 
-import com.opensource.docgrid.domain.auth.jwt.RoleAuthorityService;
-
 /**
- * 브로커가 기존 구독자에게 보내는 대시보드 메시지의 전달 직전 권한 판단을 검증한다.
+ * 브로커가 수신자별로 복제한 대시보드 메시지를 push별 primary 판정과 대조한다.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("STOMP 대시보드 outbound 인가 단위 테스트")
@@ -34,20 +32,16 @@ class StompDashboardOutboundAuthorizationInterceptorTest {
     private StompSessionRegistry stompSessionRegistry;
 
     @Mock
-    private RoleAuthorityService roleAuthorityService;
-
-    @Mock
     private MessageChannel channel;
 
     @InjectMocks
     private StompDashboardOutboundAuthorizationInterceptor interceptor;
 
     @Test
-    @DisplayName("현재 primary에서도 ADMIN이면 기존 구독으로 보낸 메시지를 허용한다")
+    @DisplayName("push별 primary 판정에 ADMIN이면 기존 구독으로 보낸 메시지를 허용한다")
     void preSend_allowsDashboardMessage_whenStillAdmin() {
-        Message<byte[]> message = message("/topic/dashboard", "session-1");
+        Message<byte[]> message = message("/topic/dashboard", "session-1", snapshot(Set.of(1L)));
         given(stompSessionRegistry.authorizationFor("session-1")).willReturn(authorization());
-        given(roleAuthorityService.getRolesForAdmin(1L)).willReturn(List.of("ADMIN"));
 
         assertThat(interceptor.preSend(message, channel)).isSameAs(message);
         then(stompSessionRegistry).should(never()).close("session-1");
@@ -56,50 +50,76 @@ class StompDashboardOutboundAuthorizationInterceptorTest {
     @Test
     @DisplayName("회수 뒤에는 기존 구독 메시지를 버리고 물리 세션을 닫는다")
     void preSend_dropsDashboardMessage_whenAdminWasRevoked() {
-        Message<byte[]> message = message("/topic/dashboard", "session-1");
+        Message<byte[]> message = message("/topic/dashboard", "session-1", snapshot(Set.of()));
         given(stompSessionRegistry.authorizationFor("session-1")).willReturn(authorization());
-        given(roleAuthorityService.getRolesForAdmin(1L)).willReturn(List.of("USER"));
 
         assertThat(interceptor.preSend(message, channel)).isNull();
         then(stompSessionRegistry).should().close("session-1");
     }
 
     @Test
-    @DisplayName("primary 역할 확인 실패도 기존 권한으로 통과시키지 않는다")
-    void preSend_dropsDashboardMessage_whenPrimaryIsUnavailable() {
-        Message<byte[]> message = message("/topic/dashboard", "session-1");
+    @DisplayName("primary 판정 헤더가 없으면 이전 CONNECT 권한으로 통과시키지 않는다")
+    void preSend_dropsDashboardMessage_whenDecisionIsMissing() {
+        Message<byte[]> message = message("/topic/dashboard", "session-1", null);
         given(stompSessionRegistry.authorizationFor("session-1")).willReturn(authorization());
-        given(roleAuthorityService.getRolesForAdmin(1L)).willThrow(new IllegalStateException("primary unavailable"));
 
         assertThat(interceptor.preSend(message, channel)).isNull();
-        then(stompSessionRegistry).should().close("session-1");
+        then(stompSessionRegistry).should(never()).close("session-1");
+    }
+
+    @Test
+    @DisplayName("판정 수집 뒤 연결된 ADMIN 세션은 이번 메시지만 건너뛰고 연결을 유지한다")
+    void preSend_dropsLateSessionWithoutClosingIt() {
+        Message<byte[]> message = message("/topic/dashboard", "session-1",
+            new DashboardAuthorizationSnapshot(Map.of(), Set.of()));
+        given(stompSessionRegistry.authorizationFor("session-1")).willReturn(authorization());
+
+        assertThat(interceptor.preSend(message, channel)).isNull();
+        then(stompSessionRegistry).should(never()).close("session-1");
+    }
+
+    @Test
+    @DisplayName("같은 사용자라도 판정 뒤 새로 연결한 세션에는 이 push를 전달하지 않는다")
+    void preSend_dropsLateSessionOfAlreadyApprovedUser() {
+        Message<byte[]> message = message("/topic/dashboard", "session-late", snapshot(Set.of(1L)));
+        given(stompSessionRegistry.authorizationFor("session-late")).willReturn(authorization());
+
+        assertThat(interceptor.preSend(message, channel)).isNull();
+        then(stompSessionRegistry).should(never()).close("session-late");
     }
 
     @Test
     @DisplayName("추적되지 않은 세션과 sessionId 없는 대시보드 메시지는 전달하지 않는다")
     void preSend_dropsDashboardMessage_whenSessionIsUnknown() {
-        assertThat(interceptor.preSend(message("/topic/dashboard", "unknown"), channel)).isNull();
+        assertThat(interceptor.preSend(message("/topic/dashboard", "unknown", snapshot(Set.of(1L))), channel)).isNull();
         then(stompSessionRegistry).should().close("unknown");
 
-        assertThat(interceptor.preSend(message("/topic/dashboard", null), channel)).isNull();
+        assertThat(interceptor.preSend(message("/topic/dashboard", null, snapshot(Set.of(1L))), channel)).isNull();
     }
 
     @Test
     @DisplayName("대시보드 외 메시지는 추가 DB 조회 없이 통과한다")
     void preSend_passesOtherDestinations() {
-        Message<byte[]> message = message("/queue/rag-answer", "session-1");
+        Message<byte[]> message = message("/queue/rag-answer", "session-1", null);
 
         assertThat(interceptor.preSend(message, channel)).isSameAs(message);
-        then(roleAuthorityService).shouldHaveNoInteractions();
+        then(stompSessionRegistry).shouldHaveNoInteractions();
     }
 
     private StompSessionAuthorization authorization() {
         return new StompSessionAuthorization(1L, "jti-1", Instant.now().plusSeconds(60), Set.of("ADMIN"));
     }
 
-    private Message<byte[]> message(String destination, String sessionId) {
+    private DashboardAuthorizationSnapshot snapshot(Set<Long> admins) {
+        return new DashboardAuthorizationSnapshot(Map.of("session-1", 1L), admins);
+    }
+
+    private Message<byte[]> message(String destination, String sessionId, DashboardAuthorizationSnapshot snapshot) {
         SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
         accessor.setDestination(destination);
+        if (snapshot != null) {
+            accessor.setHeader(DashboardAuthorizationSnapshot.HEADER, snapshot);
+        }
         if (sessionId != null) {
             accessor.setSessionId(sessionId);
         }
