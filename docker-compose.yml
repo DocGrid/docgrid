@@ -86,11 +86,7 @@ services:
       - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
       - ./monitoring/prometheus/targets:/etc/prometheus/targets:ro
       - prometheus-data:/prometheus
-    depends_on:
-      alertmanager:
-        condition: service_healthy
-      embedding-server:
-        condition: service_healthy
+    # 감시 대상과 알림 경로가 장애여도 수집과 규칙 평가는 독립적으로 시작한다.
     networks:
       - docgrid-local
 
