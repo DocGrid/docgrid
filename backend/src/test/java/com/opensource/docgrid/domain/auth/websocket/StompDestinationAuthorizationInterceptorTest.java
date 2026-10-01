@@ -2,6 +2,7 @@ package com.opensource.docgrid.domain.auth.websocket;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 
 import java.security.Principal;
 import java.util.List;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
@@ -22,6 +24,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import com.opensource.docgrid.domain.auth.jwt.RoleAuthorityService;
 
 /**
  * STOMP client가 사용할 수 있는 정확한 구독 목적지와 발행 금지 정책을 단위 수준에서 검증한다.
@@ -36,14 +40,18 @@ class StompDestinationAuthorizationInterceptorTest {
     @Mock
     private MessageChannel channel;
 
-    private final StompDestinationAuthorizationInterceptor interceptor =
-        new StompDestinationAuthorizationInterceptor();
+    @Mock
+    private RoleAuthorityService roleAuthorityService;
+
+    @InjectMocks
+    private StompDestinationAuthorizationInterceptor interceptor;
 
     @Test
     @DisplayName("정상 케이스: ADMIN은 정확한 dashboard 목적지를 구독할 수 있다")
     void preSend_allowsDashboardSubscription_whenAdmin() {
         // Given
         Message<byte[]> message = message(StompCommand.SUBSCRIBE, DASHBOARD_TOPIC, admin());
+        given(roleAuthorityService.getRolesForAdmin(1L)).willReturn(List.of("ADMIN"));
 
         // When
         Message<?> result = interceptor.preSend(message, channel);
@@ -72,6 +80,26 @@ class StompDestinationAuthorizationInterceptorTest {
         Message<byte[]> message = message(StompCommand.SUBSCRIBE, DASHBOARD_TOPIC, user());
 
         // When & Then
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+            .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @DisplayName("예외 케이스: 연결 당시 ADMIN이어도 현재 primary에서 회수되었으면 새 구독을 거부한다")
+    void preSend_rejectsDashboardSubscription_whenAdminWasRevoked() {
+        Message<byte[]> message = message(StompCommand.SUBSCRIBE, DASHBOARD_TOPIC, admin());
+        given(roleAuthorityService.getRolesForAdmin(1L)).willReturn(List.of("USER"));
+
+        assertThatThrownBy(() -> interceptor.preSend(message, channel))
+            .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @DisplayName("예외 케이스: primary 역할을 확인할 수 없으면 이전 ADMIN 권한으로 구독하지 않는다")
+    void preSend_rejectsDashboardSubscription_whenPrimaryIsUnavailable() {
+        Message<byte[]> message = message(StompCommand.SUBSCRIBE, DASHBOARD_TOPIC, admin());
+        given(roleAuthorityService.getRolesForAdmin(1L)).willThrow(new IllegalStateException("primary unavailable"));
+
         assertThatThrownBy(() -> interceptor.preSend(message, channel))
             .isInstanceOf(AccessDeniedException.class);
     }
@@ -172,10 +200,12 @@ class StompDestinationAuthorizationInterceptorTest {
     }
 
     private Principal authentication(String email, String authority) {
-        return new UsernamePasswordAuthenticationToken(
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
             email,
             null,
             List.of(new SimpleGrantedAuthority(authority))
         );
+        authentication.setDetails(1L);
+        return authentication;
     }
 }
