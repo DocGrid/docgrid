@@ -1,0 +1,5 @@
+시작_KST=2026-10-02T05:25:21+0900
+run_id=b380-infra-03
+기준=OpenSQL_3노드_OpenProxy_2대_공용_Redis
+종료_KST=2026-10-02T05:46:28+0900
+Gradle_종료코드=0
