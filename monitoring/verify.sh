@@ -72,7 +72,21 @@ DRILL_TMP_DIR="$SECRET_DIR" docker compose \
 
 # 5. 사용자가 실행할 두 Compose 형태가 모두 정상 렌더링되는지 확인한다.
 docker compose -f "$ROOT_DIR/docker-compose.yml" config --quiet
-docker compose -f "$ROOT_DIR/docker-compose.yml" --profile monitoring config --quiet
+MONITORING_COMPOSE_CONFIG="$SECRET_DIR/monitoring-compose.json"
+docker compose -f "$ROOT_DIR/docker-compose.yml" --profile monitoring \
+  config --format json > "$MONITORING_COMPOSE_CONFIG"
+python3 - "$MONITORING_COMPOSE_CONFIG" <<'PY'
+import json
+import pathlib
+import sys
+
+config = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+prometheus_dependencies = config["services"]["prometheus"].get("depends_on", {})
+monitored_dependencies = {"alertmanager", "embedding-server"} & set(prometheus_dependencies)
+if monitored_dependencies:
+    names = ", ".join(sorted(monitored_dependencies))
+    raise SystemExit(f"Prometheus must start independently from monitored services: {names}")
+PY
 
 if [ "${1:-}" = "--e2e" ]; then
   "$ROOT_DIR/monitoring/alertmanager/tests/run-e2e.sh"
