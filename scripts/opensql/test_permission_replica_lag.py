@@ -13,10 +13,26 @@ if SPEC is None or SPEC.loader is None:
     raise RuntimeError("Permission experiment module cannot be loaded")
 EXPERIMENT = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(EXPERIMENT)
+WRAPPER_SPEC = importlib.util.spec_from_file_location(
+    "run_permission_replica_lag_local", SCRIPT.with_name("run_permission_replica_lag_local.py"))
+if WRAPPER_SPEC is None or WRAPPER_SPEC.loader is None:
+    raise RuntimeError("Local experiment wrapper cannot be loaded")
+WRAPPER = importlib.util.module_from_spec(WRAPPER_SPEC)
+WRAPPER_SPEC.loader.exec_module(WRAPPER)
 
 
 class PermissionReplicaLagTest(unittest.TestCase):
     """Keep a denied HTTP response distinct from a proven standby denial."""
+
+    def test_remote_credentials_are_mapped_in_memory(self):
+        """The SSH stream supplies only DB passwords and does not become evidence."""
+        credentials = WRAPPER.parse_env("DOCGRID_APP_PASSWORD=app-secret\n"
+                                        "DOCGRID_MIGRATION_PASSWORD=migration-secret\n")
+        merged = WRAPPER.merge_credentials({"JWT_SECRET": "local"}, credentials)
+        self.assertEqual("app-secret", merged["OPENSQL_APP_PASSWORD"])
+        self.assertEqual("migration-secret", merged["OPENSQL_MIGRATION_PASSWORD"])
+        self.assertEqual("local", merged["JWT_SECRET"])
+        self.assertNotIn("DOCGRID_APP_PASSWORD", merged)
 
     def test_403_without_standby_query_is_invalid(self):
         """An authentication failure or primary read must not appear as a safe denial."""
@@ -37,6 +53,20 @@ class PermissionReplicaLagTest(unittest.TestCase):
             403, True, standby_query, 403, 403))
         self.assertEqual("INVALID", EXPERIMENT.classify_result(
             200, True, standby_query, 200, 403))
+
+    def test_primary_mode_requires_denial_and_a_measured_primary_role_lookup(self):
+        """A 403 from authentication or a standby read is not a fixed-route proof."""
+        primary_query = {EXPERIMENT.NODES[0]: 1, EXPERIMENT.NODES[1]: 0,
+                         EXPERIMENT.NODES[2]: 0}
+        standby_query = primary_query | {EXPERIMENT.NODES[0]: 0, EXPERIMENT.NODES[1]: 1}
+        self.assertEqual("PRIMARY_AUTH_ENFORCED", EXPERIMENT.classify_primary_result(
+            403, False, primary_query, 403, 403))
+        self.assertEqual("INVALID", EXPERIMENT.classify_primary_result(
+            403, False, standby_query, 403, 403))
+        self.assertEqual("INVALID", EXPERIMENT.classify_primary_result(
+            200, True, primary_query, 403, 403))
+        self.assertEqual("INVALID", EXPERIMENT.classify_primary_result(
+            403, True, primary_query, 403, 403))
 
     def test_standby_status_requires_both_tag_and_timer(self):
         """A delay alone cannot authorize a revocation while replicas remain promotable."""

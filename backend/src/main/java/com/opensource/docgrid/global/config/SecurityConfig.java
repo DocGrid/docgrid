@@ -10,9 +10,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opensource.docgrid.domain.auth.jwt.JwtAuthenticationFilter;
 import com.opensource.docgrid.domain.auth.jwt.JwtProvider;
 import com.opensource.docgrid.domain.auth.jwt.RoleAuthorityService;
@@ -42,6 +45,7 @@ public class SecurityConfig {
     private final McpAccessTokenCommandService mcpAccessTokenCommandService;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
+    private final ObjectMapper objectMapper;
 
     /**
      * MCP({@code /mcp})와 웹 API({@code /mcp/tokens} 포함)를 포함한 전체 보안 필터 체인을 구성한다.
@@ -54,6 +58,8 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        // 인가 규칙과 JWT 필터가 동일한 관리자 경로 판정을 사용해야 캐시 우회 틈이 없다.
+        RequestMatcher adminRequests = PathPatternRequestMatcher.withDefaults().matcher("/admin/**");
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(AbstractHttpConfigurer::disable)
@@ -69,7 +75,7 @@ public class SecurityConfig {
                 // 2. STOMP CONNECT — StompAuthChannelInterceptor가 JWT 검증
                 // 3. STOMP SUBSCRIBE·SEND — StompDestinationAuthorizationInterceptor가 목적지별 권한 검증
                 .requestMatchers("/ws/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers(adminRequests).hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             // 인증 실패와 권한 부족을 상태 코드로 구분하고, 본문 없는 기본 응답 대신 공통 ErrorResponse를 준다.
@@ -82,7 +88,8 @@ public class SecurityConfig {
              * "A를 B보다 앞자리에 꽂아라"는 뜻이라 위치 기준점(앵커)으로만 재사용한다 — 이 필터 앞에 꽂아야
              * 두 인증 필터가 authorizeHttpRequests의 최종 인가 판정보다 먼저 실행돼 SecurityContext를 채울 수 있다.
              */
-            .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenBlacklistService, roleAuthorityService), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenBlacklistService,
+                roleAuthorityService, objectMapper, adminRequests), UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(new McpApiKeyAuthFilter(mcpAccessTokenCommandService), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

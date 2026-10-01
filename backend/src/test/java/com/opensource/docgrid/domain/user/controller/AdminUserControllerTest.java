@@ -1,6 +1,7 @@
 package com.opensource.docgrid.domain.user.controller;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -39,6 +40,8 @@ import com.opensource.docgrid.global.exception.RestAccessDeniedHandler;
 import com.opensource.docgrid.global.exception.RestAuthenticationEntryPoint;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+
+import io.jsonwebtoken.Claims;
 
 /**
  * 관리자 사용자 목록 API의 필터·Pagination·민감 정보 비노출과 ADMIN Security 계약을 검증한다.
@@ -100,6 +103,50 @@ class AdminUserControllerTest {
         mockMvc.perform(get(USERS_URL).with(user("user").roles("USER")))
                 .andExpect(status().isForbidden());
         mockMvc.perform(get(USERS_URL)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("JWT의 관리자는 primary에서 ADMIN이 회수됐다면 캐시와 관계없이 403이다")
+    void getUsers_returnsForbidden_whenCurrentPrimaryRoleIsNotAdmin() throws Exception {
+        mockAdminJwt();
+        given(roleAuthorityService.getRolesForAdmin(10L)).willReturn(List.of("USER"));
+
+        mockMvc.perform(get(USERS_URL).header("Authorization", "Bearer current-token"))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("ROLE-002"));
+    }
+
+    @Test
+    @DisplayName("JWT의 ADMIN이 primary에 남아 있으면 관리자 요청을 허용한다")
+    void getUsers_allowsAdmin_whenCurrentPrimaryRoleIsAdmin() throws Exception {
+        mockAdminJwt();
+        given(roleAuthorityService.getRolesForAdmin(10L)).willReturn(List.of("ADMIN"));
+        given(adminUserQueryService.getUsers(null, null, null, 0, 20))
+            .willReturn(new PageResponse<>(List.of(), 0, 20, 0, 0, true, true));
+
+        mockMvc.perform(get(USERS_URL).header("Authorization", "Bearer current-token"))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("primary 권한 확인에 실패하면 JWT 관리자 요청은 503이다")
+    void getUsers_returnsUnavailable_whenPrimaryCannotVerifyRole() throws Exception {
+        mockAdminJwt();
+        given(roleAuthorityService.getRolesForAdmin(10L))
+            .willThrow(new IllegalStateException("primary unavailable"));
+
+        mockMvc.perform(get(USERS_URL).header("Authorization", "Bearer current-token"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.code").value("ROLE-005"));
+    }
+
+    private void mockAdminJwt() {
+        Claims claims = mock(Claims.class);
+        given(jwtProvider.getClaimsIfValid("current-token")).willReturn(claims);
+        given(claims.get("jti", String.class)).willReturn("current-jti");
+        given(claims.get("userId", Long.class)).willReturn(10L);
+        given(claims.getSubject()).willReturn("admin@example.com");
+        given(tokenBlacklistService.isBlacklisted("current-jti")).willReturn(false);
     }
 
     @Test

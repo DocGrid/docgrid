@@ -22,9 +22,9 @@ ROOT = Path(__file__).resolve().parents[2]
 RUNNER = ROOT / "scripts/opensql/permission_replica_lag.py"
 
 
-def load_env(path: Path) -> dict[str, str]:
+def parse_env(contents: str) -> dict[str, str]:
     values = {}
-    for line in path.read_text().splitlines():
+    for line in contents.splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
@@ -33,6 +33,18 @@ def load_env(path: Path) -> dict[str, str]:
             raise ValueError("Invalid key in private env file")
         values[key] = value.strip().strip('"').strip("'")
     return values
+
+
+def load_env(path: Path) -> dict[str, str]:
+    return parse_env(path.read_text())
+
+
+def merge_credentials(values: dict[str, str], credentials: dict[str, str]) -> dict[str, str]:
+    # Map only the two approved DB passwords; no remote metadata enters app logs.
+    return values | {
+        "OPENSQL_APP_PASSWORD": credentials["DOCGRID_APP_PASSWORD"],
+        "OPENSQL_MIGRATION_PASSWORD": credentials["DOCGRID_MIGRATION_PASSWORD"],
+    }
 
 
 def port_listening(port: int) -> bool:
@@ -94,18 +106,29 @@ def stop_app(process: subprocess.Popen) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--env-file", type=Path, required=True)
+    parser.add_argument("--credentials-stdin", action="store_true",
+                        help="Read remote DocGrid credentials through an encrypted SSH pipe")
     parser.add_argument("--jar", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--redis-port", type=int, default=16379,
                         help="Port of a disposable, isolated loopback Redis instance")
     parser.add_argument("--apply-delay", action="store_true",
                         help="Run the guarded standby apply-delay phase after local apps start")
+    parser.add_argument("--expect-primary-admin", action="store_true",
+                        help="Require the fixed HTTP administrator path to read only primary")
     args = parser.parse_args()
     if args.output.exists() or any(port_listening(port) for port in (18080, 18081)):
         print("Output directory or test app port already exists", file=sys.stderr)
         return 2
     # Non-secret route overrides may come from the process; the private file wins on conflicts.
     values = os.environ | load_env(args.env_file)
+    if args.credentials_stdin:
+        # 1. The SSH pipe is consumed once and never copied to the evidence directory.
+        try:
+            values = merge_credentials(values, parse_env(sys.stdin.read()))
+        except (KeyError, ValueError):
+            print("Remote credential stream is incomplete", file=sys.stderr)
+            return 2
     required = ("OPENSQL_APP_JDBC_URL", "OPENSQL_APP_DIRECT_JDBC_URL",
                 "OPENSQL_APP_USER", "OPENSQL_APP_PASSWORD", "JWT_SECRET")
     if any(not values.get(key) for key in required):
@@ -133,6 +156,8 @@ def main() -> int:
         ]
         if args.apply_delay:
             runner_args.append("--apply-delay")
+        if args.expect_primary_admin:
+            runner_args.append("--expect-primary-admin")
         result = subprocess.run(runner_args, cwd=ROOT, env=base_env, check=False)
         return result.returncode
     except (OSError, RuntimeError) as error:
