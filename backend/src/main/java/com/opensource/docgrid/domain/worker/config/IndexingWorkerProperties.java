@@ -73,7 +73,7 @@ public class IndexingWorkerProperties {
     @NotNull
     private Duration retryMaxDelay = Duration.ofMinutes(5);
 
-    // 같은 시각에 실패한 Job의 다음 Claim이 다시 몰리지 않도록 지수 Backoff를 양방향으로 분산한다.
+    // 지수 Backoff는 양방향, Provider 최소 지연은 이후 방향으로 분산할 때 사용할 비율이다.
     @DecimalMin("0.0")
     @DecimalMax("1.0")
     private double retryJitterRatio = 0.2;

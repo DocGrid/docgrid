@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
  * 인덱싱 Job의 지수 Backoff, Jitter와 Provider 최소 지연을 하나의 재예약 지연으로 계산한다.
  *
  * <p>Job 상태 변경이나 시각 저장은 수행하지 않는다. 설정 최대 지연은 애플리케이션 Backoff에만
- * 적용하며 외부 `Retry-After`는 Provider가 요청한 최소 재호출 시각으로 보존한다.
+ * 적용하며 외부 `Retry-After`는 최소 재호출 시각 이후의 제한된 구간으로 분산한다.
  */
 @Component
 @RequiredArgsConstructor
@@ -31,22 +31,36 @@ public class IndexingRetryDelayPolicy {
      * @return Jitter와 Provider 최소 대기 시간을 모두 만족하는 지연
      */
     public Duration calculate(int currentRetryCount, Duration minimumRetryDelay) {
+        return calculate(
+            currentRetryCount,
+            minimumRetryDelay,
+            ThreadLocalRandom.current().nextDouble()
+        );
+    }
+
+    /**
+     * 난수 경계에 따른 Retry 지연을 결정적으로 검증할 수 있도록 Jitter 단위값을 직접 받는다.
+     */
+    Duration calculate(
+        int currentRetryCount,
+        Duration minimumRetryDelay,
+        double jitterUnit
+    ) {
         // 1. 잘못된 Retry 상태가 예약 시각 계산으로 전파되지 않도록 입력을 검증한다.
         if (currentRetryCount < 0
             || minimumRetryDelay == null
             || minimumRetryDelay.isNegative()) {
             throw new DocGridException(ErrorCode.DOCUMENT_INDEXING_FAILURE_INCONSISTENT);
         }
+        if (Double.isNaN(jitterUnit) || jitterUnit < 0.0 || jitterUnit >= 1.0) {
+            throw new IllegalArgumentException("jitterUnit은 0 이상 1 미만이어야 합니다.");
+        }
 
-        // 2. Retry 횟수에 따른 지수 지연을 설정 상한 안에서 계산한다.
+        // 2. 지수 지연을 설정 상한 안에서 계산한 뒤 유효 Jitter 구간 선택에 사용한다.
         Duration maxDelay = workerProperties.getRetryMaxDelay();
         Duration exponentialDelay = calculateExponentialDelay(currentRetryCount, maxDelay);
-        // 3. 동일 시각 재시도 집중을 피하도록 Jitter를 적용하되 설정 상한을 유지한다.
-        Duration jitteredDelay = applyJitter(exponentialDelay, maxDelay);
-        // 4. Provider 최소 지연이 더 크면 상한보다 우선해 허용 시각 전 재호출을 막는다.
-        return jitteredDelay.compareTo(minimumRetryDelay) >= 0
-            ? jitteredDelay
-            : minimumRetryDelay;
+        // 3. 상한과 Provider 최소 지연을 함께 반영해 경계 시각 집중을 피한다.
+        return applyJitter(exponentialDelay, maxDelay, minimumRetryDelay, jitterUnit);
     }
 
     /**
@@ -68,24 +82,59 @@ public class IndexingRetryDelayPolicy {
     }
 
     /**
-     * 동일 Retry 단계의 Job이 한 시점에 몰리지 않도록 설정 비율 범위의 무작위 변동을 적용한다.
+     * 동일 Retry 단계의 Job이 상한이나 Provider 최소 시각에 몰리지 않도록 유효 구간을 선택한다.
      */
-    private Duration applyJitter(Duration delay, Duration maxDelay) {
+    private Duration applyJitter(
+        Duration delay,
+        Duration maxDelay,
+        Duration minimumRetryDelay,
+        double jitterUnit
+    ) {
         // 1. Jitter가 비활성화된 환경에서는 입력 지연을 그대로 보존한다.
         double jitterRatio = workerProperties.getRetryJitterRatio();
         if (jitterRatio == 0.0) {
-            return delay;
+            return delay.compareTo(minimumRetryDelay) >= 0 ? delay : minimumRetryDelay;
         }
 
-        // 2. 상·하한을 모두 포함하는 비율을 선택해 기본 지연을 분산시킨다.
-        double factor = ThreadLocalRandom.current().nextDouble(
-            1.0 - jitterRatio,
-            Math.nextUp(1.0 + jitterRatio)
+        // 2. 최대 지연으로 자르기 전에 유효한 Jitter 하한과 상한을 먼저 고정한다.
+        long delayMillis = delay.toMillis();
+        long lowerMillis = Math.max(
+            1L,
+            Math.round(delayMillis * (1.0 - jitterRatio))
         );
+        long upperMillis = Math.min(
+            maxDelay.toMillis(),
+            Math.max(lowerMillis, Math.round(delayMillis * (1.0 + jitterRatio)))
+        );
+        Duration lowerDelay = Duration.ofMillis(lowerMillis);
+        Duration upperDelay = Duration.ofMillis(upperMillis);
 
-        // 3. 0ms 재시도와 설정 최대 지연 초과를 모두 방지한다.
-        long jitteredMillis = Math.max(1L, Math.round(delay.toMillis() * factor));
-        Duration jitteredDelay = Duration.ofMillis(jitteredMillis);
-        return jitteredDelay.compareTo(maxDelay) > 0 ? maxDelay : jitteredDelay;
+        // 3. Provider 최소 지연이 애플리케이션 구간 안에 있으면 금지 구간만 잘라내고 다시 선택한다.
+        if (minimumRetryDelay.compareTo(upperDelay) < 0) {
+            Duration effectiveLower = minimumRetryDelay.compareTo(lowerDelay) > 0
+                ? minimumRetryDelay
+                : lowerDelay;
+            return randomBetween(effectiveLower, upperDelay, jitterUnit);
+        }
+
+        // 4. 최소 지연이 구간 끝에 닿거나 넘으면 그 이후 방향으로만 제한된 Jitter를 적용한다.
+        Duration spreadBase = minimumRetryDelay.compareTo(workerProperties.getRetryInitialDelay()) < 0
+            ? minimumRetryDelay
+            : workerProperties.getRetryInitialDelay();
+        long spreadMillis = Math.max(
+            1L,
+            Math.round(spreadBase.toMillis() * jitterRatio)
+        );
+        long offsetMillis = Math.round(spreadMillis * jitterUnit);
+        return minimumRetryDelay.plusMillis(offsetMillis);
+    }
+
+    /**
+     * 두 Duration 경계를 포함하는 밀리초 구간에서 Jitter 단위값에 해당하는 지연을 선택한다.
+     */
+    private Duration randomBetween(Duration lowerDelay, Duration upperDelay, double jitterUnit) {
+        long lowerMillis = lowerDelay.toMillis();
+        long rangeMillis = upperDelay.toMillis() - lowerMillis;
+        return Duration.ofMillis(lowerMillis + Math.round(rangeMillis * jitterUnit));
     }
 }
