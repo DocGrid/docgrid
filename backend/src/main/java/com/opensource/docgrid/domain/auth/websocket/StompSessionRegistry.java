@@ -16,7 +16,8 @@ import lombok.extern.slf4j.Slf4j;
  * 현재 Backend 인스턴스가 소유한 물리 WebSocket 연결과 STOMP 인증 snapshot을 함께 관리한다.
  *
  * <p>물리 연결은 WebSocket decorator가 먼저 등록하고, CONNECT 인증이 끝난 뒤 같은 sessionId에
- * 인증 snapshot을 결합한다. 주기 검사는 인증 완료 세션만 읽으며, 종료와 인증이 경합해도 하나의
+ * 인증 snapshot을 결합한다. 주기 검사와 outbound 인가는 인증 완료 세션만 읽으며,
+ * 종료와 인증이 경합해도 하나의
  * ConcurrentMap entry를 기준으로 정리해 닫힌 연결이 다시 등록되는 것을 막는다.
  *
  * <p>이 registry는 로컬 전송 자원만 관리한다. 여러 Backend 인스턴스는 각자 자신의 registry를
@@ -67,6 +68,15 @@ public class StompSessionRegistry {
         return (int) sessions.values().stream()
             .filter(state -> state.session().isOpen() && state.authorization() != null)
             .count();
+    }
+
+    /** outbound 전송 대상의 열린 물리 세션에 결합된 CONNECT 인증 snapshot을 조회한다. */
+    public StompSessionAuthorization authorizationFor(String sessionId) {
+        if (sessionId == null) {
+            return null;
+        }
+        SessionState state = sessions.get(sessionId);
+        return state != null && state.session().isOpen() ? state.authorization() : null;
     }
 
     public boolean close(String sessionId) {
