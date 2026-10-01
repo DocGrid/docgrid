@@ -1,7 +1,9 @@
 # 관리자 역할 회수 후 WebSocket 대시보드 접근 차단 — 로컬 검증
 
-관련 이슈: [#371](https://github.com/DocGrid/docgrid/issues/371)  
-선행 재현: [#366 결과](gimin-%23365-stomp-dashboard-role-revocation-boundary.md)  
+관련 이슈: [#371](https://github.com/DocGrid/docgrid/issues/371)
+
+선행 재현: [#366 결과](gimin-%23365-stomp-dashboard-role-revocation-boundary.md)
+
 검증일: 2026-10-01
 
 ## 문제와 판정 경계
