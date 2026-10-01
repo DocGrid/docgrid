@@ -66,7 +66,7 @@
 50개 구독에서 각 실행의 p95 중앙값은 **기준선 8.5 ms → PR 버전 2,443.7 ms(약 288배)**다. 30초 전체 수신 프레임의 중앙값은 **5,000 → 588(약 8.5배 감소)**다. 이를 구독자당 환산하면 약 **3.33건/초 → 0.39건/초**다. 이는 3회 반복의 실측값이며, 다른 하드웨어·장기 운영으로 일반화한 보장값은 아니다.
 
 ```text
-그림 1 — 50개 구독의 실제 팬아웃 경로
+50개 구독의 실제 팬아웃 경로
 
 시험 publisher: 약 300 ms마다 /topic/dashboard 발행을 시도
         │
@@ -90,7 +90,7 @@ SimpleBrokerMessageHandler.sendMessageToSubscribers
 이 흐름은 JVM 스레드 덤프의 `DashboardBenchmarkPublisher.publish → SimpMessagingTemplate.convertAndSend → SimpleBrokerMessageHandler.sendMessageToSubscribers → StompDashboardOutboundAuthorizationInterceptor.preSend → PrimaryRoleQueryService.findCurrentRoles → PgPreparedStatement.executeQuery` 경로로 확인했다. 따라서 “브로커 큐가 쌓여 느려졌다”는 해석은 틀리다. 반복 실행 2·3회차의 `brokerChannelExecutor`와 `clientOutboundChannelExecutor` 큐 최대값은 모두 **0**이었다. 실제로는 **호출 스레드가 순차 DB 조회에서 막혀 publisher 자체가 느려졌다**.
 
 ```text
-그림 2 — 한 번의 합성 push가 차지한 시간(설명용 축, 값은 관측치 근사)
+한 번의 합성 push가 차지한 시간(설명용 축, 값은 관측치 근사)
 
 기준선, 구독 50개:
   시작 ├─ 브로커 팬아웃·전송 ─┤ 종료
@@ -120,7 +120,7 @@ N=5·20·50의 수신 p95/N: 약 44·48·48 ms
 | DB 역할 | primary 1·standby 2 | primary 1·standby 2 | 이번 시험은 장애 전환 시험이 아니며 역할 변화 없음 |
 
 ```text
-그림 3 — 관측으로 좁힌 병목 위치
+관측으로 좁힌 병목 위치
 
 50개 세션에서 p95 ≈ 2.4초
        │
@@ -158,7 +158,7 @@ N=5·20·50의 수신 p95/N: 약 44·48·48 ms
 - **정리:** 시험 앱을 중지하고, 정확히 일치하는 일회용 ADMIN 계정 3개와 그 `user_roles` 연결만 삭제했다. DB 재조회로 사용자 잔여 0건을 확인했다. 승인받은 임시 VM 2대와 `autoDelete=True` 부팅 디스크는 삭제 후 GCP 목록에서 잔여 0건을 확인했다. 로컬 임시 DB/JWT 설정·시험 JWT·SSH 개인 키도 삭제했다. 기존 OpenSQL 3노드는 모두 `RUNNING` 상태로 남겨 두었다.
 
 ```text
-그림 4 — 안전성·성능을 함께 보는 다음 설계 판단(아직 미구현)
+안전성·성능을 함께 보는 다음 설계 판단(아직 미구현)
 
 권한 회수 요청 → DB 커밋 → 권한 변경 신호
                          │
@@ -173,7 +173,7 @@ N=5·20·50의 수신 p95/N: 약 44·48·48 ms
 ```
 
 ```text
-그림 5 — 이번 증거 PR과 후속 성능 수정의 경계
+이번 증거 PR과 후속 성능 수정의 경계
 
 2026-10-01 실행된 클라우드 시험
   ├─ 버전별·부하별 클라이언트 결과 12개 → runs/<버전>-n<구독자>-<회차>.json
