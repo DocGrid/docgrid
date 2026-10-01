@@ -61,8 +61,23 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'benchmark', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'opensql-ha-connection', 'opensql-ha-contract'
+		excludeTags 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'opensql-ha-connection', 'opensql-ha-contract'
 	}
+}
+
+tasks.register('dashboardCloudLoadTest', Test) {
+	group = 'verification'
+	description = 'GCP 내부에서 실제 WebSocket 대시보드 팬아웃을 발행하는 격리 시험을 실행합니다.'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'dashboard-cloud-load'
+	}
+	systemProperties System.properties.findAll { key, value ->
+		key.toString().startsWith('dashboard.load.')
+	}
+	maxParallelForks = 1
+	outputs.upToDateWhen { false }
 }
 
 tasks.named('bootRun') {
