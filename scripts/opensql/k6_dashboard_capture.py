@@ -32,7 +32,10 @@ def safe_point(line: bytes) -> dict | None:
         value = float(source["data"]["value"])
         if not math.isfinite(value):
             return None
-        at = datetime.fromisoformat(source["data"]["time"].replace("Z", "+00:00"))
+        timestamp = source["data"]["time"].replace("Z", "+00:00")
+        # Rocky Linux 9의 Python 3.9는 k6 나노초 시각을 파싱하지 못해 마이크로초까지만 보존한다.
+        timestamp = re.sub(r"(\.\d{6})\d+(?=[+-]\d{2}:\d{2}\Z)", r"\1", timestamp)
+        at = datetime.fromisoformat(timestamp)
         return {
             "시각_KST": at.astimezone(KST).isoformat(),
             "지표": source["metric"],
@@ -40,6 +43,19 @@ def safe_point(line: bytes) -> dict | None:
         }
     except (KeyError, TypeError, ValueError, json.JSONDecodeError):
         return None
+
+
+def discard_reason(line: bytes) -> str:
+    """Classify a rejected record without preserving tags, URLs, or raw content."""
+    try:
+        source = json.loads(line)
+    except (TypeError, ValueError):
+        return "invalid_json"
+    if source.get("type") != "Point":
+        return "metric_definition"
+    if source.get("metric") not in ALLOWED_METRICS:
+        return "unlisted_metric"
+    return "invalid_allowed_point"
 
 
 def run(args: argparse.Namespace) -> int:
@@ -90,6 +106,7 @@ def run(args: argparse.Namespace) -> int:
         return 1
     points = 0
     discarded = 0
+    discard_counts: dict[str, int] = {}
     buffer = b""
     try:
         # The FIFO never stores raw k6 tags/URLs. Read into memory, allowlist, then write.
@@ -106,6 +123,8 @@ def run(args: argparse.Namespace) -> int:
                         record = safe_point(line)
                         if record is None:
                             discarded += 1
+                            reason = discard_reason(line)
+                            discard_counts[reason] = discard_counts.get(reason, 0) + 1
                         else:
                             output.write(json.dumps(record, ensure_ascii=False) + "\n")
                             output.flush()
@@ -123,6 +142,8 @@ def run(args: argparse.Namespace) -> int:
                     record = safe_point(line)
                     if record is None:
                         discarded += 1
+                        reason = discard_reason(line)
+                        discard_counts[reason] = discard_counts.get(reason, 0) + 1
                     else:
                         output.write(json.dumps(record, ensure_ascii=False) + "\n")
                         points += 1
@@ -143,6 +164,7 @@ def run(args: argparse.Namespace) -> int:
         "k6_종료코드": process.wait(),
         "허용목록_샘플수": points,
         "제외한_원시행수": discarded,
+        "제외_사유별_행수": discard_counts,
         "요약파일_생성": summary.exists(),
     })
     (root / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")

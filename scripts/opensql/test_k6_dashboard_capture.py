@@ -37,6 +37,18 @@ class SafePointTest(unittest.TestCase):
 
         self.assertIsNone(safe_point(json.dumps(source).encode()))
 
+    def test_accepts_k6_nanosecond_timestamp_on_python_39(self):
+        source = {"type": "Point", "metric": "dashboard_received",
+                  "data": {"time": "2026-10-01T15:00:00.123456789+00:00", "value": 1}}
+
+        result = safe_point(json.dumps(source).encode())
+
+        self.assertEqual(result, {
+            "시각_KST": "2026-10-02T00:00:00.123456+09:00",
+            "지표": "dashboard_received",
+            "값": 1.0,
+        })
+
     def test_discards_invalid_numeric_sample(self):
         source = {"type": "Point", "metric": "dashboard_latency_ms",
                   "data": {"time": "2026-10-01T15:00:00Z", "value": "NaN"}}
