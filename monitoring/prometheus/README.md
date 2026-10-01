@@ -15,12 +15,16 @@ Management endpoint는 기본적으로 Host의 `8081` 포트에서 열린다. �
 실행한다.
 
 ```bash
-docker compose --profile monitoring up -d prometheus
+docker compose --profile monitoring up -d prometheus alertmanager
 ```
 
 Prometheus는 컨테이너에서 `host.docker.internal:8081`을 수집하고 firing·resolved 경보를 같은
 profile의 Alertmanager로 전달한다. Compose의 `extra_hosts`가 Linux의 host gateway를 같은 이름으로
 연결하며 Docker Desktop도 같은 주소를 지원한다.
+
+두 monitoring 서비스를 명시하는 이유는 Prometheus가 Alertmanager와 Embedding Provider의 health
+상태에 의존하지 않고 시작하기 때문이다. Embedding Provider가 아직 준비되지 않았거나 중단됐어도
+Prometheus는 먼저 기동하고 해당 target을 `DOWN`으로 기록해 장애 경보를 평가한다.
 
 - Target 상태: <http://localhost:9090/targets>
 - Alert 상태: <http://localhost:9090/alerts>

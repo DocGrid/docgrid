@@ -127,8 +127,11 @@ npm --prefix frontend run dev
 Backend와 Embedding Provider의 운영 메트릭을 함께 수집하려면 선택형 monitoring profile을 실행합니다.
 
 ```bash
-docker compose --profile monitoring up -d prometheus
+docker compose --profile monitoring up -d prometheus alertmanager
 ```
+
+Prometheus는 감시 대상이나 Alertmanager의 health 상태를 시작 조건으로 사용하지 않는다. 따라서
+Embedding Provider가 준비되지 않아도 먼저 기동해 수집 실패와 경보를 기록한다.
 
 - Prometheus Target: `http://localhost:9090/targets`
 - 설정과 기존 Prometheus 연결: [monitoring/prometheus/README.md](monitoring/prometheus/README.md)
