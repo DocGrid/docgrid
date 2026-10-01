@@ -7,27 +7,24 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
 
-import com.opensource.docgrid.domain.auth.jwt.RoleAuthorityService;
-
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
- * 기존 대시보드 구독에 대한 실제 outbound MESSAGE 전송을 현재 primary 역할로 제한한다.
+ * 기존 대시보드 구독에 대한 실제 outbound MESSAGE 전송을 push별 primary 판정으로 제한한다.
  *
  * <p>SUBSCRIBE 이후 역할이 회수되어도 브로커에는 구독이 남을 수 있다. 이 경계는 각 물리 세션에
- * 전달할 때 다시 확인하며, 역할 조회가 불가능하거나 ADMIN이 아니면 메시지를 버리고 세션을 닫는다.
+ * 전달할 때 실제 물리 세션과 서버 내부의 불변 판정 결과를 대조한다. 판정 결과가 없거나 ADMIN이
+ * 아니면 메시지를 버린다. 판정 수집 뒤 연결된 세션은 닫지 않고, 후보였지만 ADMIN이 회수된
+ * 세션만 닫는다.
  * RAG 개인 알림과 연결 제어 프레임은 이 검사 대상이 아니다.
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class StompDashboardOutboundAuthorizationInterceptor implements ChannelInterceptor {
 
     private static final String DASHBOARD_TOPIC = "/topic/dashboard";
 
     private final StompSessionRegistry stompSessionRegistry;
-    private final RoleAuthorityService roleAuthorityService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -47,17 +44,19 @@ public class StompDashboardOutboundAuthorizationInterceptor implements ChannelIn
             return null;
         }
 
-        // 3. 현재 primary의 역할을 확인한다. 조회 실패도 이전 ADMIN snapshot으로 우회하지 않는다.
-        try {
-            if (roleAuthorityService.getRolesForAdmin(authorization.userId()).contains("ADMIN")) {
-                return message;
-            }
-        } catch (RuntimeException exception) {
-            log.warn("STOMP 대시보드 전송의 최신 역할을 확인할 수 없어 차단합니다: {}", exception.getMessage());
+        // 3. 이 push의 primary 판정이 없으면 이전 CONNECT 역할로 폴백하지 않고 차단한다.
+        Object decision = message.getHeaders().get(DashboardAuthorizationSnapshot.HEADER);
+        if (!(decision instanceof DashboardAuthorizationSnapshot snapshot)) {
+            return null;
         }
 
-        // 4. 회수되었거나 확인할 수 없는 세션은 메시지를 버리고 다음 전송도 받지 않도록 닫는다.
-        stompSessionRegistry.close(sessionId);
+        // 4. 늦게 연결된 세션은 이번 push만 건너뛰고, 확인된 비ADMIN 후보는 연결도 닫는다.
+        if (snapshot.allows(sessionId, authorization.userId())) {
+            return message;
+        }
+        if (snapshot.wasCandidate(sessionId, authorization.userId())) {
+            stompSessionRegistry.close(sessionId);
+        }
         return null;
     }
 }

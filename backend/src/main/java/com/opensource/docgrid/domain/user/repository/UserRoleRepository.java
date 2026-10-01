@@ -30,6 +30,10 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
     @Query("SELECT ur.role.code FROM UserRole ur WHERE ur.user.id = :userId")
     List<String> findRoleCodesByUserId(@Param("userId") Long userId);
 
+    /** 한 대시보드 push의 후보 사용자 중 현재 ADMIN인 ID만 primary 트랜잭션에 반환한다. */
+    @Query("SELECT DISTINCT ur.user.id FROM UserRole ur WHERE ur.user.id IN :userIds AND ur.role.code = 'ADMIN'")
+    List<Long> findAdminUserIdsByUserIdIn(@Param("userIds") List<Long> userIds);
+
     boolean existsByUserIdAndRoleCode(Long userId, String roleCode);
 
     Optional<UserRole> findByUserIdAndRoleCode(Long userId, String roleCode);

@@ -18,7 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 관리자 재처리 버튼 클릭을 A 담당자의 {@link EmbeddingJobManualRetryService}로 위임하고,
- * 성공 시 최신 대시보드 집계를 WebSocket으로 push하는 Command Service.
+ * 성공 시 최신 대시보드 집계를 WebSocket으로 push하는 Command Service. 알림 인가 조회가
+ * 실패해도 이미 커밋된 재처리 결과를 HTTP 실패로 잘못 보고하지 않는다.
  *
  * <p>{@code embedding_jobs}를 직접 update하지 않는다 — 상태 전환은 전부 A의 Service를 경유한다.
  * FAILED 목록 조회만 {@link EmbeddingJobRepository}를 직접 읽는다(쓰기가 아니므로 A/B 경계 위반이
@@ -49,7 +50,7 @@ public class EmbeddingJobRetryService {
         // 1. 상태 전환은 A Service에 위임한다 — 여기서 예외가 나면(404/409) 그대로 전파시킨다.
         ManualRetriedIndexingJobResponse response = embeddingJobManualRetryService.retry(jobId);
         // 2. 재처리 성공 후에만 최신 집계를 다시 계산해서 push한다.
-        dashboardWebSocketController.sendDashboardUpdate(dashboardQueryService.getSummary());
+        pushDashboardUpdateAfterRetry();
         return response;
     }
 
@@ -82,7 +83,7 @@ public class EmbeddingJobRetryService {
 
         // 3. 실제로 바뀐 게 있을 때만(1건 이상 성공) push한다 — 전부 실패하면 push할 변경사항이 없다.
         if (retriedCount > 0) {
-            dashboardWebSocketController.sendDashboardUpdate(dashboardQueryService.getSummary());
+            pushDashboardUpdateAfterRetry();
         }
 
         return new RetryAllJobsResponse(
@@ -92,5 +93,15 @@ public class EmbeddingJobRetryService {
             failedCount,
             RETRY_ALL_MESSAGE_FORMAT.formatted(retriedCount, skippedCount, failedCount)
         );
+    }
+
+    private void pushDashboardUpdateAfterRetry() {
+        try {
+            // 재처리는 이미 커밋됐다. 대시보드 알림만 실패하면 운영 결과를 실패로 뒤집지 않는다.
+            dashboardWebSocketController.sendDashboardUpdate(dashboardQueryService.getSummary());
+        } catch (RuntimeException exception) {
+            log.warn("재처리는 완료됐으나 대시보드 알림을 보내지 못했습니다. cause={}",
+                exception.getClass().getSimpleName());
+        }
     }
 }
