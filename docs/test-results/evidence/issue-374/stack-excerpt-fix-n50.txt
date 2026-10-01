@@ -1,0 +1,20 @@
+2026-10-01 12:30:28 UTC
+Source: jcmd <benchmark JVM PID> Thread.print -l during the first 50-subscriber fix run.
+Selected frames in their original order; JVM addresses, thread IDs, and unrelated frames omitted.
+
+"MessageBroker-2"
+  java.lang.Thread.State: RUNNABLE
+  at sun.nio.ch.Net.poll(Native Method)
+  at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2343)
+  at org.postgresql.jdbc.PgPreparedStatement.executeQuery(PgPreparedStatement.java:139)
+  ... Hibernate query frames omitted ...
+  at com.opensource.docgrid.domain.auth.service.query.PrimaryRoleQueryService.findCurrentRoles(PrimaryRoleQueryService.java:31)
+  ... Spring transaction/proxy frames omitted ...
+  at com.opensource.docgrid.domain.auth.jwt.RoleAuthorityService.getRolesForAdmin(RoleAuthorityService.java:72)
+  at com.opensource.docgrid.domain.auth.websocket.StompDashboardOutboundAuthorizationInterceptor.preSend(StompDashboardOutboundAuthorizationInterceptor.java:52)
+  ... message channel frames omitted ...
+  at org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler.sendMessageToSubscribers(SimpleBrokerMessageHandler.java:406)
+  ... broker dispatch frames omitted ...
+  at com.opensource.docgrid.domain.dashboard.benchmark.DashboardBenchmarkPublisher.publish(DashboardBenchmarkPublisher.java:41)
+
+Interpretation: the broker's subscriber fan-out call reached the primary-role query and was waiting for a PostgreSQL response. This one snapshot does not measure query duration or prove every subscriber took the same time.
