@@ -18,5 +18,5 @@
 | --- | --- | --- |
 | Gradle 테스트 작업 | 테스트 2개가 컨텍스트 로딩에서 실패, 경합 본문 실행 0건 | 테스트 결과로 경합을 판정할 수 없음 |
 | 첫 원인 | Flyway `V32__convert_vector_columns_to_pgvector.sql`: PostgreSQL `vector` 타입 없음 | 새 격리 DB에 pgvector 확장을 활성화하지 않은 환경 준비 오류 |
-| 재시도 계획 | 이 실행만을 위한 격리 DB에 `CREATE EXTENSION IF NOT EXISTS vector` 후 별도 실행 ID로 재시험 | 기존 로컬 DB·Redis와 GCP 3노드는 변경하지 않음 |
-| 정리 상태 | 격리 컨테이너는 재시도 2~4 이후 정확한 두 이름으로 중지했고 자동 삭제 잔여 0개 확인 | 기존 로컬 DB·Redis 및 GCP 노드 무변경 |
+| 재시도 계획 | 이 실행만을 위한 격리 DB에 `CREATE EXTENSION IF NOT EXISTS vector` 후 별도 실행 ID로 재시험 | 기존 로컬 DB·Redis의 데이터·설정과 GCP 3노드는 변경하지 않음 |
+| 정리 상태 | 격리 컨테이너는 재시도 2~4 이후 정확한 두 이름으로 중지했고 자동 삭제 잔여 0개 확인 | Docker Desktop 시작 시 기존 Redis 컨테이너는 자동 기동됐으며 그대로 둠 |
