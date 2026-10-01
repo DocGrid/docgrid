@@ -90,6 +90,17 @@ class IndexingRetryDelayPolicyTest {
     }
 
     @Test
+    @DisplayName("밀리초 사이의 Provider 최소 지연을 다음 밀리초로 올려 허용 시각을 위반하지 않는다")
+    void calculate_roundsProviderMinimumUpToMillis() {
+        Duration minimumRetryDelay = Duration.ofSeconds(11).plusNanos(1L);
+
+        Duration delay = policy.calculate(0, minimumRetryDelay, 0.0);
+
+        assertThat(delay).isEqualTo(Duration.ofMillis(11_001));
+        assertThat(delay).isGreaterThanOrEqualTo(minimumRetryDelay);
+    }
+
+    @Test
     @DisplayName("Provider 최소 지연이 Jitter 상한보다 길면 최소 지연 이후 2초 안에 분산한다")
     void calculate_addsBoundedPositiveJitterAfterProviderMinimum() {
         Duration minimumRetryDelay = Duration.ofSeconds(15);
