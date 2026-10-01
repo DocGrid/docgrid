@@ -1,0 +1,16 @@
+{
+  "clients_requested": 20,
+  "clients_connected": 20,
+  "duration_seconds": 30,
+  "warmup_seconds": 10,
+  "frames_received": 599,
+  "interior_sequence_gaps": 0,
+  "client_errors": [],
+  "latency_ms": {
+    "p50": 514.308,
+    "p95": 969.252,
+    "p99": 1019.031,
+    "max": 1029.222,
+    "min": 9.662
+  }
+}
