@@ -133,8 +133,17 @@ public class IndexingRetryDelayPolicy {
      * 두 Duration 경계를 포함하는 밀리초 구간에서 Jitter 단위값에 해당하는 지연을 선택한다.
      */
     private Duration randomBetween(Duration lowerDelay, Duration upperDelay, double jitterUnit) {
-        long lowerMillis = lowerDelay.toMillis();
+        // Provider 최소 지연의 나노초를 내림하면 허용 시각보다 일찍 실행될 수 있어 하한만 올림한다.
+        long lowerMillis = ceilToMillis(lowerDelay);
         long rangeMillis = upperDelay.toMillis() - lowerMillis;
         return Duration.ofMillis(lowerMillis + Math.round(rangeMillis * jitterUnit));
+    }
+
+    /**
+     * Duration을 밀리초로 줄이면서 원래 시각보다 이른 값이 되지 않도록 올림한다.
+     */
+    private long ceilToMillis(Duration duration) {
+        long millis = duration.toMillis();
+        return duration.equals(Duration.ofMillis(millis)) ? millis : millis + 1L;
     }
 }
