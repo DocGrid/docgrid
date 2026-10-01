@@ -14,12 +14,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import com.opensource.docgrid.domain.auth.jwt.RoleAuthorityService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * STOMP client의 SUBSCRIBE·SEND 목적지를 명시적인 허용 목록으로 제한한다.
  *
- * <p>{@code StompAuthChannelInterceptor}가 CONNECT 시점에 세션에 부착한 Principal을 재사용해
- * 목적지 접근 시점에 다시 검증한다. {@code /topic/dashboard}는 ADMIN만, 사용자별 RAG 완료 알림인
- * {@code /user/queue/rag-answer}는 인증된 사용자만 구독할 수 있다. 그 외 정확한 목적지와 pattern,
+ * <p>{@code StompAuthChannelInterceptor}가 CONNECT 시점에 세션에 부착한 Principal을 확인하고,
+ * 관리자 구독은 현재 primary의 역할도 다시 조회한다. {@code /topic/dashboard}는 ADMIN만,
+ * 사용자별 RAG 완료 알림인 {@code /user/queue/rag-answer}는 인증된 사용자만 구독할 수 있다.
+ * 그 외 정확한 목적지와 pattern,
  * Spring이 내부에서 만드는 실제 {@code /queue} 목적지는 모두 거부한다.
  *
  * <p>애플리케이션에는 client가 호출할 {@code @MessageMapping}이 없고 실제 push는 서버의
@@ -32,6 +38,8 @@ import org.springframework.stereotype.Component;
  * {@code MissingCsrfTokenException}으로 거부되므로, 그 DSL 대신 이 수동 Interceptor로 구현한다.
  */
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class StompDestinationAuthorizationInterceptor implements ChannelInterceptor {
 
     private static final String DASHBOARD_TOPIC = "/topic/dashboard";
@@ -39,6 +47,8 @@ public class StompDestinationAuthorizationInterceptor implements ChannelIntercep
     private static final String ADMIN_AUTHORITY = "ROLE_ADMIN";
     private static final String SUBSCRIPTION_DENIED_MESSAGE = "구독 권한이 없습니다.";
     private static final String SEND_DENIED_MESSAGE = "메시지를 보낼 권한이 없습니다.";
+
+    private final RoleAuthorityService roleAuthorityService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -59,7 +69,7 @@ public class StompDestinationAuthorizationInterceptor implements ChannelIntercep
 
         // 3. 넓은 pattern 대신 프런트가 실제 사용하는 두 목적지만 정확히 일치할 때 허용한다.
         String destination = accessor.getDestination();
-        if (DASHBOARD_TOPIC.equals(destination) && isAdmin(accessor.getUser())) {
+        if (DASHBOARD_TOPIC.equals(destination) && isCurrentAdmin(accessor.getUser())) {
             return message;
         }
         if (RAG_ANSWER_QUEUE.equals(destination) && isAuthenticated(accessor.getUser())) {
@@ -70,13 +80,24 @@ public class StompDestinationAuthorizationInterceptor implements ChannelIntercep
         throw new AccessDeniedException(SUBSCRIPTION_DENIED_MESSAGE);
     }
 
-    private boolean isAdmin(Principal user) {
+    private boolean isCurrentAdmin(Principal user) {
         if (!(user instanceof Authentication authentication)) {
             return false;
         }
-        return authentication.isAuthenticated() && authentication.getAuthorities().stream()
+        // CONNECT 때의 ADMIN snapshot만으로는 역할 회수 뒤 새 구독을 허용할 수 없다.
+        boolean wasAdmin = authentication.isAuthenticated() && authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .anyMatch(ADMIN_AUTHORITY::equals);
+        if (!wasAdmin || !(authentication.getDetails() instanceof Long userId)) {
+            return false;
+        }
+        try {
+            return roleAuthorityService.getRolesForAdmin(userId).contains("ADMIN");
+        } catch (RuntimeException exception) {
+            // primary 상태를 확인하지 못하면 저장된 권한으로 폴백하지 않는다.
+            log.warn("STOMP 관리자 구독의 최신 역할을 확인할 수 없어 거부합니다: {}", exception.getMessage());
+            return false;
+        }
     }
 
     private boolean isAuthenticated(Principal user) {

@@ -48,6 +48,7 @@ class StompSessionRegistryTest {
         assertThat(registry.authenticatedSessions())
             .containsExactly(new StompSessionRegistry.SessionSnapshot(SESSION_ID, authorization));
         assertThat(registry.authenticatedSessionCount()).isEqualTo(1);
+        assertThat(registry.authorizationFor(SESSION_ID)).isEqualTo(authorization);
     }
 
     @Test
@@ -55,6 +56,8 @@ class StompSessionRegistryTest {
     void authenticate_returnsFalse_whenTransportMissing() {
         assertThat(registry.authenticate(SESSION_ID, authorization())).isFalse();
         assertThat(registry.authenticatedSessions()).isEmpty();
+        assertThat(registry.authorizationFor(SESSION_ID)).isNull();
+        assertThat(registry.authorizationFor(null)).isNull();
     }
 
     @Test
@@ -73,6 +76,7 @@ class StompSessionRegistryTest {
         assertThat(closed).isTrue();
         then(session).should().close(CloseStatus.POLICY_VIOLATION);
         assertThat(registry.authenticatedSessions()).isEmpty();
+        assertThat(registry.authorizationFor(SESSION_ID)).isNull();
     }
 
     @Test

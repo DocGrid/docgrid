@@ -2,9 +2,7 @@ package com.opensource.docgrid.domain.auth.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.mock;
 
 import java.lang.reflect.Type;
 import java.time.Duration;
@@ -40,23 +38,18 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import com.opensource.docgrid.domain.auth.jwt.JwtProvider;
 import com.opensource.docgrid.domain.auth.jwt.RoleAuthorityService;
-import com.opensource.docgrid.domain.auth.websocket.StompSessionRevalidationScheduler;
 import com.opensource.docgrid.domain.dashboard.controller.DashboardWebSocketController;
 import com.opensource.docgrid.domain.dashboard.dto.response.DashboardSummaryResponse;
 import com.opensource.docgrid.domain.dashboard.dto.response.DocumentsSummaryResponse;
 import com.opensource.docgrid.domain.dashboard.dto.response.JobsSummaryResponse;
 import com.opensource.docgrid.domain.dashboard.dto.response.SearchSummaryResponse;
 import com.opensource.docgrid.domain.dashboard.dto.response.WorkersSummaryResponse;
-import com.opensource.docgrid.domain.user.entity.Role;
-import com.opensource.docgrid.domain.user.entity.User;
-import com.opensource.docgrid.domain.user.entity.UserRole;
-import com.opensource.docgrid.domain.user.repository.UserRoleRepository;
 
 /**
  * 실제 WebSocket의 관리자 권한 회수 전후 경계를 신규 연결·새 구독·기존 구독으로 나눠 검증한다.
  *
- * <p>주기 검사를 자동 실행하지 않고 직접 호출해 검사 전 허용 창과 검사 후 물리 세션 종료를
- * 결정적으로 구분한다. 이 테스트는 즉시 회수를 구현하지 않으며 현재 제품 계약을 기록한다.
+ * <p>주기 검사를 늦춘 상태에서 새 구독과 기존 구독 push를 각각 검사해,
+ * 회수 직후의 관리자 데이터 차단이 scheduler 없이도 동작하는지 확인한다.
  */
 @Tag("integration")
 @ActiveProfiles("test")
@@ -79,16 +72,10 @@ class StompDashboardRoleRevocationIntegrationTest {
     private SimpUserRegistry simpUserRegistry;
 
     @Autowired
-    private StompSessionRevalidationScheduler revalidationScheduler;
-
-    @Autowired
     private DashboardWebSocketController dashboardWebSocketController;
 
     @MockitoBean
     private RoleAuthorityService roleAuthorityService;
-
-    @MockitoBean
-    private UserRoleRepository userRoleRepository;
 
     private final AtomicReference<List<String>> currentRoles = new AtomicReference<>();
     private WebSocketStompClient stompClient;
@@ -107,9 +94,7 @@ class StompDashboardRoleRevocationIntegrationTest {
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         currentRoles.set(List.of("ADMIN"));
         given(roleAuthorityService.getRoles(USER_ID)).willAnswer(ignored -> currentRoles.get());
-        given(userRoleRepository.findAllWithRoleByUserIdIn(anyList())).willAnswer(ignored -> currentRoles.get().stream()
-            .map(roleCode -> userRole(roleCode))
-            .toList());
+        given(roleAuthorityService.getRolesForAdmin(USER_ID)).willAnswer(ignored -> currentRoles.get());
     }
 
     @AfterEach
@@ -139,23 +124,18 @@ class StompDashboardRoleRevocationIntegrationTest {
     }
 
     @Test
-    @DisplayName("기존 ADMIN 연결의 새 구독은 재검증 전 허용되고 재검증 후 세션이 종료된다")
-    void closesOldSession_afterNewSubscriptionInRevalidationWindow() throws Exception {
+    @DisplayName("기존 ADMIN 연결의 새 구독은 주기 재검증 전에도 거부된다")
+    void rejectsNewSubscription_onOldSessionBeforeScheduledRevalidation() throws Exception {
         String email = "dashboard-old-new-subscribe@example.com";
-        StompSession session = connect(email, new LinkedBlockingQueue<>());
+        BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
+        StompSession session = connect(email, failures);
         try {
-            // 1. CONNECT 당시 저장된 ADMIN Principal을 유지한 채 DB 역할만 회수한다.
+            // 1. CONNECT 당시 ADMIN Principal은 유지되지만 현재 역할은 회수한다.
             currentRoles.set(List.of("USER"));
 
-            // 2. 주기 검사가 아직 실행되지 않은 창의 실제 SUBSCRIBE 결과를 기록한다.
+            // 2. 새 SUBSCRIBE는 snapshot이 아니라 현재 역할을 확인해 브로커 등록 전에 거부한다.
             session.subscribe(DASHBOARD_TOPIC, dashboardFrames(new LinkedBlockingQueue<>()));
-            await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
-                .until(() -> hasDashboardSubscription(email));
-
-            // 3. 재검증 후에는 물리 연결과 브로커 구독이 모두 제거되어야 한다.
-            revalidationScheduler.revalidate();
-            awaitSessionRemoval(email);
-            assertThat(session.isConnected()).isFalse();
+            assertThat(failures.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isNotNull();
             assertThat(hasDashboardSubscription(email)).isFalse();
         } finally {
             disconnect(session);
@@ -163,8 +143,8 @@ class StompDashboardRoleRevocationIntegrationTest {
     }
 
     @Test
-    @DisplayName("기존 관리자 구독은 재검증 전 push를 받지만 재검증 후에는 받지 않는다")
-    void stopsDashboardPush_afterExistingSubscriptionIsRevalidated() throws Exception {
+    @DisplayName("기존 관리자 구독에도 회수 뒤 새 push는 주기 재검증 없이 전달되지 않는다")
+    void stopsDashboardPush_withoutScheduledRevalidation() throws Exception {
         String email = "dashboard-old-subscription@example.com";
         StompSession session = connect(email, new LinkedBlockingQueue<>());
         BlockingQueue<DashboardSummaryResponse> received = new LinkedBlockingQueue<>();
@@ -174,15 +154,14 @@ class StompDashboardRoleRevocationIntegrationTest {
             await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
                 .until(() -> hasDashboardSubscription(email));
 
-            // 2. 검사 전에는 저장된 Principal 때문에 기존 구독으로 push가 도달한다.
-            currentRoles.set(List.of("USER"));
+            // 2. 회수 전에는 실제 push가 도달함을 먼저 확인한다.
             dashboardWebSocketController.sendDashboardUpdate(sampleSummary(1L));
             assertThat(received.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isNotNull();
 
-            // 3. 재검증으로 연결을 닫은 뒤 보낸 새 push는 같은 세션에 도달하지 않는다.
-            revalidationScheduler.revalidate();
-            awaitSessionRemoval(email);
+            // 3. 회수 뒤 새 push는 outbound 검사가 버리고 기존 연결도 닫는다.
+            currentRoles.set(List.of("USER"));
             dashboardWebSocketController.sendDashboardUpdate(sampleSummary(2L));
+            awaitSessionRemoval(email);
             assertThat(received.poll(NO_DELIVERY_MILLIS, TimeUnit.MILLISECONDS)).isNull();
         } finally {
             disconnect(session);
@@ -246,17 +225,6 @@ class StompDashboardRoleRevocationIntegrationTest {
             new WorkersSummaryResponse(0L, 0L),
             new SearchSummaryResponse(0L)
         );
-    }
-
-    private UserRole userRole(String roleCode) {
-        User user = mock(User.class);
-        Role role = mock(Role.class);
-        UserRole userRole = mock(UserRole.class);
-        given(user.getId()).willReturn(USER_ID);
-        given(role.getCode()).willReturn(roleCode);
-        given(userRole.getUser()).willReturn(user);
-        given(userRole.getRole()).willReturn(role);
-        return userRole;
     }
 
     private void disconnect(StompSession session) {
