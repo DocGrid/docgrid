@@ -16,7 +16,7 @@
 | 지연 측정 | publisher가 넣은 시각부터 부하 VM 수신까지. 두 VM을 동일 Google metadata NTP 기준으로 재동기화한 뒤의 결과만 유효하게 사용. 시험 종료 표본의 시간 오차는 각각 약 ±0.6 ms |
 | 환경 범위 | 임시 앱·부하 VM은 Rocky Linux 9.8 x86_64, 각 2 vCPU. 기존 DB 3노드는 Rocky Linux 9.7 x86_64. 임시 VM 1대의 백엔드만 측정했으며 2백엔드 로드밸런싱은 이 시험에 포함하지 않음 |
 
-원본 결과는 [`evidence/issue-374/runs/`](evidence/issue-374/runs/)에 **조건·회차별 JSON 12개**, 앱 자원 지표는 [`evidence/issue-374/metrics/`](evidence/issue-374/metrics/)에 **JSONL 10개**로 나눠 보존했다. 단일 구독 스모크 2회에는 앱 메트릭 파일이 없다. 파일명·출처·누락 범위는 [증거 목록](evidence/issue-374/README.md), 공개 전 검사 결과는 [증거 검증 로그](evidence/issue-374/artifact-validation-20261001.md)에 적었다. 원본 DB snapshot에는 내부 주소가 있어 공개하지 않고 아래 비식별 집계만 인용한다. JVM 덤프 전체는 로컬에 남아 있지만 JVM 식별자를 포함하므로 공개하지 않고 [호출 스택 발췌](evidence/issue-374/stack-excerpt-fix-n50.txt)만 보존했다. 독자는 발췌된 호출 순서는 확인할 수 있지만 전체 덤프를 재대조할 수 없다는 한계가 있다.
+원본 결과는 [`evidence/issue-374/runs/`](evidence/issue-374/runs/)에 **조건·회차별 JSON 12개**, 앱 자원 지표는 [`evidence/issue-374/metrics/`](evidence/issue-374/metrics/)에 **JSONL 10개**로 나눠 보존했다. 단일 구독 스모크 2회에는 앱 메트릭 파일이 없다. 파일명·출처·누락 범위는 [증거 목록](evidence/issue-374/README.md), 공개 전 검사 결과는 [증거 검증 로그](evidence/issue-374/artifact-validation-20261001.md)에 적었다. 원본 DB snapshot의 내부 IP 필드를 제거한 [전후 스냅샷 4개](evidence/issue-374/db/)와 JVM 주소·ID를 가리고 끝 공백을 정리한 [전체 스레드 덤프 1개](evidence/issue-374/jvm-thread-dump-fix-n50-redacted.txt)도 공개했다. 중요한 수치·로그·한계는 [핵심 근거 로그](evidence/issue-374/key-evidence-logs-20261001.md)에 모았다. 앱 journal의 전체 원본은 임시 VM 삭제 후 복원할 수 없어 아래 선별 로그만 남아 있다.
 
 ## 먼저 읽을 결론: 구독자가 늘어날수록 동기 조회 비용이 커졌다
 
@@ -50,7 +50,7 @@
   → ADMIN이면 해당 세션으로 전송
 ```
 
-50개 구독 중 캡처한 [JVM 스택 발췌](evidence/issue-374/stack-excerpt-fix-n50.txt)에서 `MessageBroker` 스레드가 `SimpleBrokerMessageHandler.sendMessageToSubscribers`의 구독자 반복문 안에서 위 역할 조회를 실행하며 PostgreSQL 응답을 기다리는 모습을 확인했다. 이는 **동기 DB 확인이 브로커 전송 경로에 있다**는 직접 증거다. [수신자별 차단 코드](https://github.com/DocGrid/docgrid/blob/b425c3535194be6719b75ef79cf5100d9a86be97/backend/src/main/java/com/opensource/docgrid/domain/auth/websocket/StompDashboardOutboundAuthorizationInterceptor.java#L32-L62)는 캐시를 거치지 않는 [primary 역할 조회](https://github.com/DocGrid/docgrid/blob/b425c3535194be6719b75ef79cf5100d9a86be97/backend/src/main/java/com/opensource/docgrid/domain/auth/service/query/PrimaryRoleQueryService.java#L27-L38)를 매 수신자에게 실행한다. 이 한 시점의 덤프만으로 개별 쿼리 지연이나 모든 수신자의 동일한 실행 시간을 증명하지는 않는다.
+50개 구독 시험 중 수집한 [전체 JVM 덤프 비식별본](evidence/issue-374/jvm-thread-dump-fix-n50-redacted.txt)과 [핵심 스택 발췌](evidence/issue-374/stack-excerpt-fix-n50.txt)에서 `MessageBroker` 스레드가 `SimpleBrokerMessageHandler.sendMessageToSubscribers`의 구독자 반복문 안에서 위 역할 조회를 실행하며 PostgreSQL 응답을 기다리는 모습을 확인했다. 이는 **동기 DB 확인이 브로커 전송 경로에 있다**는 직접 증거다. [수신자별 차단 코드](https://github.com/DocGrid/docgrid/blob/b425c3535194be6719b75ef79cf5100d9a86be97/backend/src/main/java/com/opensource/docgrid/domain/auth/websocket/StompDashboardOutboundAuthorizationInterceptor.java#L32-L62)는 캐시를 거치지 않는 [primary 역할 조회](https://github.com/DocGrid/docgrid/blob/b425c3535194be6719b75ef79cf5100d9a86be97/backend/src/main/java/com/opensource/docgrid/domain/auth/service/query/PrimaryRoleQueryService.java#L27-L38)를 매 수신자에게 실행한다. 이 한 시점의 덤프만으로 개별 쿼리 지연이나 모든 수신자의 동일한 실행 시간을 증명하지는 않는다.
 
 ## 50개 동시 구독: 전후 3회 반복 결과
 
@@ -179,11 +179,11 @@ N=5·20·50의 수신 p95/N: 약 44·48·48 ms
   ├─ 버전별·부하별 클라이언트 결과 12개 → runs/<버전>-n<구독자>-<회차>.json
   ├─ 앱 지표 시계열 10개         → metrics/<같은 실행>-metrics.jsonl
   ├─ 앱 journal 선별 기록        → 이 보고서의 한국어 중요 로그 표
-  ├─ DB snapshot 원본            → 내부 주소 포함: 비공개, 비식별 집계만 기록
-  └─ JVM 덤프 전체               → 로컬 보존·비공개, 핵심 호출 스택만 발췌 공개
+  ├─ DB snapshot 원본            → 내부 IP 제거 후 전후 4개 파일 공개
+  └─ JVM 덤프 전체 내용          → PID·스레드 ID·JVM 주소 제거, 끝 공백 정리 후 1116줄 공개
                │
                ▼
-  이번 #374 PR: 측정 코드 사본 + 원본 수치 + 해석 + 누락 범위 공개
+  이번 #375 PR: 측정 코드 사본 + 원본 수치 + 해석 + 누락 범위 공개
                │
                ▼
   별도 성능 Fix: 권한 회수 뒤 새 메시지 노출 0건을 유지하는 설계 구현

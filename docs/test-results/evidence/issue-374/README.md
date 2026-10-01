@@ -2,7 +2,7 @@
 
 관련 이슈: [#374](https://github.com/DocGrid/docgrid/issues/374) · [해석 보고서](../../gimin-374-stomp-dashboard-outbound-load-20261001.md)
 
-2026-10-01 GCP 내부 시험에서 수집한 클라이언트 결과 JSON 12개와 앱 메트릭 JSONL 10개를 **시험 목적·버전·구독자 수·회차별 별도 파일**로 보존한다. `base`는 보안 수정 전 커밋 `f6213bbdb6f487af00727be156da0710d619cc6a`, `fix`는 #373의 커밋 `b425c3535194be6719b75ef79cf5100d9a86be97`이다. 접미사 없는 50개 파일이 1회차이며 `r2`, `r3`가 2·3회차다.
+2026-10-01 GCP 내부 시험에서 수집한 클라이언트 결과 JSON 12개와 앱 메트릭 JSONL 10개를 **시험 목적·버전·구독자 수·회차별 별도 파일**로 보존한다. [핵심 근거 로그](key-evidence-logs-20261001.md)에서 전후 수치, 앱 journal 선별 행, JVM 스택을 함께 읽을 수 있다. `base`는 보안 수정 전 커밋 `f6213bbdb6f487af00727be156da0710d619cc6a`, `fix`는 #373의 커밋 `b425c3535194be6719b75ef79cf5100d9a86be97`이다. 접미사 없는 50개 파일이 1회차이며 `r2`, `r3`가 2·3회차다.
 
 | 목적·회차 | 수신 결과 | 앱 메트릭 | 관측 창 | 수신 건수 | p95 |
 | --- | --- | --- | ---: | ---: | ---: |
@@ -25,9 +25,9 @@
 - `latency_ms`는 임시 publisher의 `sentEpochMillis`와 부하 VM 수신 시각의 차이다. 두 VM을 같은 NTP 기준으로 동기화한 후의 결과만 이 디렉터리에 넣었다. 앞선 시간 동기화 전 음수 지연 2회는 제외했다.
 - 메트릭 JSONL의 `at`은 UTC다. 보고서의 사람이 읽는 로그 시각은 KST다. 앱 지표 채집 창은 클라이언트 관측 창보다 길어 백그라운드 작업도 포함한다. 메트릭에서 메시지당 SQL 수를 직접 계산하지 않는다.
 - 클라이언트 결과 JSON에는 절대 실행 시각이나 UUID run ID가 없다. **파일명과 이 목록**으로 회차를 매핑한다. 1명 스모크에는 앱 메트릭 파일이 없고, 1·5·20명은 반복 실행이 없어 신뢰구간을 주장하지 않는다.
-- DB snapshot 원본에는 내부 주소가 포함되어 공개하지 않는다. JVM 덤프 전체는 로컬에 남아 있지만 JVM 식별자를 포함하므로 공개하지 않고 [`stack-excerpt-fix-n50.txt`](stack-excerpt-fix-n50.txt)에 핵심 호출 순서만 발췌했다. 전체 스택의 다른 프레임과 DB 원본은 공개 자료만으로 독립 재검증할 수 없다.
+- DB snapshot 원본에는 내부 주소가 있어 `server_ip`를 제거한 [전후 4개 파일](db/)만 공개한다. JVM 덤프는 PID·tid·nid·16진 주소를 가리고 끝의 빈 줄·공백을 정리한 [1116줄 전체 내용](jvm-thread-dump-fix-n50-redacted.txt)과 [핵심 발췌](stack-excerpt-fix-n50.txt)를 공개한다. 두 증거 모두 개인정보·내부 주소를 뺀 변형본이므로 원래 바이트와 같지는 않다.
 - [`websocket_dashboard_load.py`](../../../../scripts/opensql/websocket_dashboard_load.py)와 [`websocket_dashboard_metrics.py`](../../../../scripts/opensql/websocket_dashboard_metrics.py)는 실행 당시 스크립트의 측정 로직을 보존하되, 추후 실패 시 예외 문자열에 내부 URL이 기록되지 않도록 **예외 클래스명만 저장하는 비식별 수정**을 했다. 임시 Java `wsbench` publisher·시험용 ADMIN fixture는 저장소에 포함하지 않으므로 이 두 스크립트만으로 당시 합성 부하를 끝까지 재현할 수는 없다.
 
 ## 공개 범위
 
-원본 JSON/JSONL에는 토큰·암호·계정·내부 IP·프로젝트 ID를 넣지 않았다. 별도 journal에서 필요한 기동·경고·종료 항목은 보고서에 기록 전에 비식별화된 한국어 표로만 옮겼다. 공개 GitHub에 보관하는 것은 이 선별 결과이며, 원래 VM의 모든 로그를 보존했다는 뜻은 아니다.
+원본 JSON/JSONL에는 토큰·암호·계정·내부 IP·프로젝트 ID를 넣지 않았다. DB·JVM 파일은 위 필드를 제거한 뒤에만 공개본으로 기록했다. 별도 journal에서 필요한 기동·경고·종료 항목은 보고서에 기록 전에 비식별화된 한국어 표로만 옮겼다. 공개 GitHub에 보관하는 것은 이 선별 결과이며, 원래 VM의 **전체 앱 journal**을 보존했다는 뜻은 아니다.

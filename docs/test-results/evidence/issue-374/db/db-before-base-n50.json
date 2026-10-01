@@ -1,0 +1,44 @@
+[
+  {
+    "sampled_at": "2026-10-01T12:39:23.933737+00:00",
+    "standby": false,
+    "numbackends": 6,
+    "xact_commit": 48062,
+    "xact_rollback": 46,
+    "tup_returned": 17079923,
+    "tup_fetched": 359804,
+    "tup_inserted": 5073,
+    "tup_updated": 1058,
+    "tup_deleted": 163,
+    "blks_hit": 1383319,
+    "blks_read": 102
+  },
+  {
+    "sampled_at": "2026-10-01T12:39:24.000597+00:00",
+    "standby": true,
+    "numbackends": 3,
+    "xact_commit": 2586,
+    "xact_rollback": 6,
+    "tup_returned": 144406,
+    "tup_fetched": 61015,
+    "tup_inserted": 0,
+    "tup_updated": 0,
+    "tup_deleted": 0,
+    "blks_hit": 102491,
+    "blks_read": 0
+  },
+  {
+    "sampled_at": "2026-10-01T12:39:24.075189+00:00",
+    "standby": true,
+    "numbackends": 4,
+    "xact_commit": 2737,
+    "xact_rollback": 13,
+    "tup_returned": 156016,
+    "tup_fetched": 63589,
+    "tup_inserted": 0,
+    "tup_updated": 0,
+    "tup_deleted": 0,
+    "blks_hit": 105394,
+    "blks_read": 0
+  }
+]
