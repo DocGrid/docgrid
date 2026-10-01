@@ -2,14 +2,22 @@ package com.opensource.docgrid.domain.auth.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.anyList;
 
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,12 +28,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -36,12 +48,15 @@ import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import com.opensource.docgrid.domain.auth.jwt.JwtProvider;
+import com.opensource.docgrid.domain.auth.websocket.DashboardAuthorizationSnapshot;
+import com.opensource.docgrid.domain.auth.websocket.StompDashboardOutboundAuthorizationInterceptor;
 import com.opensource.docgrid.domain.dashboard.controller.DashboardWebSocketController;
 import com.opensource.docgrid.domain.dashboard.dto.response.DashboardSummaryResponse;
 import com.opensource.docgrid.domain.dashboard.dto.response.DocumentsSummaryResponse;
@@ -59,7 +74,9 @@ import com.opensource.docgrid.domain.user.repository.UserRoleRepository;
  * 실제 HTTP 역할 회수, PostgreSQL 커밋, Redis 캐시 무효화와 STOMP 전송 인가를 연결한다.
  *
  * <p>테스트 전용 사용자만 생성·삭제하며, 자동 재검증을 늦춘 채 회수 직후의
- * 새 구독과 기존 구독 push가 차단되는지 확인한다. GCP 복제본 라우팅은 범위 밖이다.
+ * 새 구독과 기존 구독 push가 차단되는지 확인한다. 권한 확인을 마친 전송을 멈춰
+ * 회수 응답 뒤에 도착할 수 있는 기존 진행 중 메시지도 별도로 재현한다.
+ * GCP 복제본 라우팅은 범위 밖이다.
  */
 @Tag("integration")
 @ActiveProfiles("test")
@@ -80,7 +97,7 @@ class StompDashboardRealRoleRevocationIntegrationTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
+    @MockitoSpyBean
     private StringRedisTemplate redisTemplate;
 
     @Autowired
@@ -97,6 +114,9 @@ class StompDashboardRealRoleRevocationIntegrationTest {
 
     @Autowired
     private DashboardWebSocketController dashboardWebSocketController;
+
+    @MockitoSpyBean
+    private StompDashboardOutboundAuthorizationInterceptor outboundAuthorizationInterceptor;
 
     private WebSocketStompClient stompClient;
     private User adminCaller;
@@ -209,6 +229,165 @@ class StompDashboardRealRoleRevocationIntegrationTest {
         await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
             .until(() -> !newSession.isConnected());
         assertThat(redisTemplate.opsForValue().get(cacheKey)).isEqualTo("ADMIN");
+    }
+
+    @Test
+    @DisplayName("권한 확인을 마친 진행 중 메시지는 회수 응답 뒤에도 도착할 수 있다")
+    void inFlightMessage_canArriveAfterRevocationResponse_whenAuthorizationFinishedFirst() throws Exception {
+        // 1. 실제 DB 역할과 WebSocket 구독을 준비하고, 전송 직전의 대기 지점만 테스트용 spy로 제어한다.
+        Role adminRole = roleRepository.findByCode("ADMIN").orElseThrow();
+        adminCaller = createTestUser("race-caller");
+        targetUser = createTestUser("race-target");
+        grantAdmin(adminCaller, adminRole);
+        grantAdmin(targetUser, adminRole);
+        BlockingQueue<DashboardSummaryResponse> received = new LinkedBlockingQueue<>();
+        oldSession = connect(
+            jwtProvider.generateToken(targetUser.getId(), targetUser.getEmail()),
+            new LinkedBlockingQueue<>()
+        );
+        oldSession.subscribe(DASHBOARD_TOPIC, dashboardFrames(received));
+        await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
+            .until(() -> hasDashboardSubscription(targetUser.getEmail()));
+
+        CountDownLatch authorizationFinished = new CountDownLatch(1);
+        CountDownLatch allowDelivery = new CountDownLatch(1);
+        AtomicBoolean holdOneMessage = new AtomicBoolean(true);
+        doAnswer(invocation -> {
+            Message<?> authorized = (Message<?>) invocation.callRealMethod();
+            if (authorized != null
+                && SimpMessageType.MESSAGE.equals(SimpMessageHeaderAccessor.getMessageType(authorized.getHeaders()))
+                && DASHBOARD_TOPIC.equals(SimpMessageHeaderAccessor.getDestination(authorized.getHeaders()))
+                && holdOneMessage.compareAndSet(true, false)) {
+                authorizationFinished.countDown();
+                if (!allowDelivery.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                    throw new IllegalStateException("테스트 전송 대기 시간이 초과됐습니다.");
+                }
+            }
+            return authorized;
+        }).when(outboundAuthorizationInterceptor).preSend(any(), any());
+
+        CompletableFuture<Void> dispatch = CompletableFuture.runAsync(
+            () -> dashboardWebSocketController.sendDashboardUpdate(sampleSummary(42L))
+        );
+        try {
+            assertThat(authorizationFinished.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isTrue();
+            assertThat(received.poll(NO_DELIVERY_MILLIS, TimeUnit.MILLISECONDS)).isNull();
+
+            // 2. 이미 ADMIN으로 허용된 메시지를 붙잡은 동안 실제 HTTP 회수·DB 커밋을 완료한다.
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(jwtProvider.generateToken(adminCaller.getId(), adminCaller.getEmail()));
+            ResponseEntity<String> response = restTemplate.exchange(
+                "/admin/users/" + targetUser.getId() + "/roles/ADMIN",
+                HttpMethod.DELETE,
+                new HttpEntity<>(null, headers),
+                String.class
+            );
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(userRoleRepository.existsByUserIdAndRoleCode(targetUser.getId(), "ADMIN")).isFalse();
+            assertThat(received.poll(NO_DELIVERY_MILLIS, TimeUnit.MILLISECONDS)).isNull();
+
+            // 3. 회수 응답 뒤에 전송을 풀어, 새로 허용된 전송과 기존 진행 중 전송을 구별한다.
+            allowDelivery.countDown();
+            dispatch.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            DashboardSummaryResponse inFlightMessage = received.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            assertThat(inFlightMessage).isNotNull();
+            assertThat(inFlightMessage.documents().total()).isEqualTo(42L);
+        } finally {
+            allowDelivery.countDown();
+            dispatch.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        }
+    }
+
+    @Test
+    @DisplayName("Redis 무효화 실패로 낡은 ADMIN 캐시가 남아도 새 대시보드 push를 차단한다")
+    @SuppressWarnings("unchecked")
+    void redisInvalidationFailure_doesNotAuthorizeRevokedDashboardSession() throws Exception {
+        // 1. 실제 구독과 캐시를 만들고 역할 무효화 Lua 호출만 시험에서 실패시킨다.
+        Role adminRole = roleRepository.findByCode("ADMIN").orElseThrow();
+        adminCaller = createTestUser("redis-failure-caller");
+        targetUser = createTestUser("redis-failure-target");
+        grantAdmin(adminCaller, adminRole);
+        grantAdmin(targetUser, adminRole);
+        BlockingQueue<DashboardSummaryResponse> received = new LinkedBlockingQueue<>();
+        oldSession = connect(
+            jwtProvider.generateToken(targetUser.getId(), targetUser.getEmail()),
+            new LinkedBlockingQueue<>()
+        );
+        oldSession.subscribe(DASHBOARD_TOPIC, dashboardFrames(received));
+        await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
+            .until(() -> hasDashboardSubscription(targetUser.getEmail()));
+        redisTemplate.opsForValue().set(roleCacheKey(targetUser.getId()), "ADMIN", Duration.ofSeconds(30));
+        doThrow(new IllegalStateException("simulated Redis invalidate failure"))
+            .when(redisTemplate).execute(any(RedisScript.class), anyList());
+
+        // 2. DB 커밋과 HTTP 200은 완료되지만 Redis의 이전 ADMIN 캐시는 그대로 남는다.
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtProvider.generateToken(adminCaller.getId(), adminCaller.getEmail()));
+        ResponseEntity<String> response = restTemplate.exchange(
+            "/admin/users/" + targetUser.getId() + "/roles/ADMIN",
+            HttpMethod.DELETE,
+            new HttpEntity<>(null, headers),
+            String.class
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(userRoleRepository.existsByUserIdAndRoleCode(targetUser.getId(), "ADMIN")).isFalse();
+        assertThat(redisTemplate.opsForValue().get(roleCacheKey(targetUser.getId()))).isEqualTo("ADMIN");
+
+        // 3. 다음 push는 Redis가 아닌 primary 일괄 조회를 사용하므로 메시지를 버린다.
+        dashboardWebSocketController.sendDashboardUpdate(sampleSummary(43L));
+        assertThat(received.poll(NO_DELIVERY_MILLIS, TimeUnit.MILLISECONDS)).isNull();
+        await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS)).until(() -> !oldSession.isConnected());
+    }
+
+    @Test
+    @DisplayName("실제 발행 코드의 primary 판정은 outbound에 남고 STOMP 클라이언트에는 노출되지 않는다")
+    void serverOnlyHeader_reachesOutboundButNotClient() throws Exception {
+        // 1. 실제 구독을 만들고 수신자의 프레임 헤더와 서버 outbound 헤더를 따로 관측한다.
+        Role adminRole = roleRepository.findByCode("ADMIN").orElseThrow();
+        targetUser = createTestUser("internal-header");
+        grantAdmin(targetUser, adminRole);
+        BlockingQueue<StompHeaders> clientHeaders = new LinkedBlockingQueue<>();
+        BlockingQueue<DashboardSummaryResponse> received = new LinkedBlockingQueue<>();
+        oldSession = connect(
+            jwtProvider.generateToken(targetUser.getId(), targetUser.getEmail()),
+            new LinkedBlockingQueue<>()
+        );
+        oldSession.subscribe(DASHBOARD_TOPIC, new StompFrameHandler() {
+            @Override
+            public Type getPayloadType(StompHeaders headers) {
+                return DashboardSummaryResponse.class;
+            }
+
+            @Override
+            public void handleFrame(StompHeaders headers, Object payload) {
+                clientHeaders.add(headers);
+                received.add((DashboardSummaryResponse) payload);
+            }
+        });
+        await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
+            .until(() -> hasDashboardSubscription(targetUser.getEmail()));
+
+        AtomicReference<Object> outboundHeader = new AtomicReference<>();
+        doAnswer(invocation -> {
+            Message<?> message = invocation.getArgument(0);
+            if (DASHBOARD_TOPIC.equals(SimpMessageHeaderAccessor.getDestination(message.getHeaders()))) {
+                outboundHeader.set(message.getHeaders().get(DashboardAuthorizationSnapshot.HEADER));
+            }
+            return invocation.callRealMethod();
+        }).when(outboundAuthorizationInterceptor).preSend(any(), any());
+
+        // 2. 실제 발행 경로가 내부 판정을 만들고 브로커의 수신자별 MESSAGE까지 전파한다.
+        dashboardWebSocketController.sendDashboardUpdate(sampleSummary(3L));
+
+        // 3. outbound까지 전달됐더라도 클라이언트 프레임에서는 보이지 않아야 한다.
+        assertThat(received.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isNotNull();
+        assertThat(outboundHeader.get()).isInstanceOf(DashboardAuthorizationSnapshot.class);
+        DashboardAuthorizationSnapshot snapshot = (DashboardAuthorizationSnapshot) outboundHeader.get();
+        assertThat(snapshot.adminUserIds()).contains(targetUser.getId());
+        assertThat(snapshot.candidateSessions()).containsValue(targetUser.getId());
+        StompHeaders frame = clientHeaders.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(frame).isNotNull();
+        assertThat(frame.getFirst(DashboardAuthorizationSnapshot.HEADER)).isNull();
     }
 
     private User createTestUser(String kind) {

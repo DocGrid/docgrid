@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,7 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import com.opensource.docgrid.domain.auth.jwt.JwtProvider;
 import com.opensource.docgrid.domain.auth.jwt.RoleAuthorityService;
+import com.opensource.docgrid.domain.auth.service.query.PrimaryRoleQueryService;
 import com.opensource.docgrid.domain.dashboard.controller.DashboardWebSocketController;
 import com.opensource.docgrid.domain.dashboard.dto.response.DashboardSummaryResponse;
 import com.opensource.docgrid.domain.dashboard.dto.response.DocumentsSummaryResponse;
@@ -50,6 +52,7 @@ import com.opensource.docgrid.domain.dashboard.dto.response.WorkersSummaryRespon
  *
  * <p>주기 검사를 늦춘 상태에서 새 구독과 기존 구독 push를 각각 검사해,
  * 회수 직후의 관리자 데이터 차단이 scheduler 없이도 동작하는지 확인한다.
+ * CONNECT·SUBSCRIBE 역할과 push별 primary 일괄 판정을 같은 가변 시험 상태로 제어한다.
  */
 @Tag("integration")
 @ActiveProfiles("test")
@@ -77,6 +80,9 @@ class StompDashboardRoleRevocationIntegrationTest {
     @MockitoBean
     private RoleAuthorityService roleAuthorityService;
 
+    @MockitoBean
+    private PrimaryRoleQueryService primaryRoleQueryService;
+
     private final AtomicReference<List<String>> currentRoles = new AtomicReference<>();
     private WebSocketStompClient stompClient;
 
@@ -95,6 +101,8 @@ class StompDashboardRoleRevocationIntegrationTest {
         currentRoles.set(List.of("ADMIN"));
         given(roleAuthorityService.getRoles(USER_ID)).willAnswer(ignored -> currentRoles.get());
         given(roleAuthorityService.getRolesForAdmin(USER_ID)).willAnswer(ignored -> currentRoles.get());
+        given(primaryRoleQueryService.findCurrentAdminUserIds(List.of(USER_ID)))
+            .willAnswer(ignored -> currentRoles.get().contains("ADMIN") ? Set.of(USER_ID) : Set.of());
     }
 
     @AfterEach

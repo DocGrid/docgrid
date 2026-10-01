@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.mock;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,6 +67,20 @@ class DashboardPushSchedulerTest {
         assertThatThrownBy(() -> scheduler.pushIfDirty())
             .isInstanceOf(RuntimeException.class)
             .hasMessage("집계 실패");
+        then(dashboardUpdateFlag).should().markDirty();
+    }
+
+    @Test
+    @DisplayName("primary 판정 실패로 push하지 못하면 dirty 신호를 복구해 다음 주기에 재시도한다")
+    void pushIfDirty_restoresDirtyFlag_whenAuthorizationFails() {
+        DashboardSummaryResponse summary = mock(DashboardSummaryResponse.class);
+        given(dashboardUpdateFlag.consumeIfDirty()).willReturn(true);
+        given(dashboardQueryService.getSummary()).willReturn(summary);
+        willThrow(new IllegalStateException("primary unavailable"))
+            .given(dashboardWebSocketController).sendDashboardUpdate(summary);
+
+        assertThatThrownBy(scheduler::pushIfDirty)
+            .isInstanceOf(IllegalStateException.class);
         then(dashboardUpdateFlag).should().markDirty();
     }
 }
