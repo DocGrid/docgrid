@@ -1,0 +1,36 @@
+{
+  "run_id": "ab380-lb-n20-r1",
+  "clients_requested": 20,
+  "warmup_seconds": 10,
+  "measure_seconds": 30,
+  "metrics": {
+    "dashboard_connected": {
+      "count": 20,
+      "rate": 0.47568710737795505
+    },
+    "dashboard_received": {
+      "count": 2000,
+      "rate": 47.568710737795506
+    },
+    "dashboard_errors": {
+      "rate": 0,
+      "count": 0
+    },
+    "dashboard_negative_clock": {
+      "count": 0,
+      "rate": 0
+    },
+    "dashboard_sequence_gaps": null,
+    "dashboard_duplicates": null,
+    "dashboard_latency_ms": {
+      "count": 2000,
+      "avg": 13.2005,
+      "min": 8,
+      "med": 12,
+      "max": 55,
+      "p(50)": 12,
+      "p(95)": 16,
+      "p(99)": 52.00999999999999
+    }
+  }
+}

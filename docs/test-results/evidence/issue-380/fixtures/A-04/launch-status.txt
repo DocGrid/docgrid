@@ -1,0 +1,6 @@
+시작_KST=2026-10-02T05:51:50+0900
+run_id=a380-fanout-04
+기준=OpenSQL_3노드_OpenProxy_2대_공용_Redis
+발행=true
+종료_KST=2026-10-02T05:55:34+0900
+Gradle_종료코드=0
