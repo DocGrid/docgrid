@@ -113,7 +113,7 @@ APP: JWT 사용자 확인
 | `gcp387-pdf-a-r3`, A 업로드 | GCP 내부 시험 VM, HTTP 하네스 | 업로드 201, 다운로드 200×3, 해시 3/3; 626바이트 | A→GCS·DB 저장 후 양쪽 앱에서 읽기 성공 |
 | `gcp387-pdf-b-r1`, B 업로드 | GCP 내부 시험 VM, 동일 하네스 | 업로드 201, 다운로드 200×3, 해시 3/3; 626바이트 | B→GCS·DB 저장 후 양쪽 앱에서 읽기 성공 |
 | `gcp387-pdf-lb-r1`, LB 업로드 | GCP 내부 시험 VM, 동일 하네스 | 업로드 201, 다운로드 200×3, 해시 3/3; 627바이트 | LB 경유 정상 경로 성공; 어느 앱이 받았는지는 별도 계측 안 함 |
-| `gcp387-db-gcs-r1/r2`, 저장 원장 대조 | 로컬에서 OpenSQL primary 읽기 + GCS 객체 바이트 직접 읽기, `verify_gcp_app_gcs_objects.py` | r2 DB 3행/GCS 3객체/해시 3일치, 모두 `UPLOADED` | HTTP 응답뿐 아니라 실제 객체와 DB 저장 위치 일치. 공개 스크립트는 비공개 자격증명 파일 경로를 실행 인자로 받도록 변경한 뒤 r2 재검증 |
+| `gcp387-db-gcs-r1/r2/r3`, 저장 원장 대조 | 로컬에서 OpenSQL primary 읽기 + GCS 객체 바이트 직접 읽기, `verify_gcp_app_gcs_objects.py` | 최종 r3 DB 3행/GCS 3객체/해시 3일치, 모두 `UPLOADED` | HTTP 응답뿐 아니라 실제 객체와 DB 저장 위치 일치. 공개 스크립트는 비공개 자격증명 파일 경로와 확인된 DB 컨테이너를 실행 인자로 받도록 변경 후 r3 재검증 |
 | `gcp387-connectivity-r1`, 연결·상태 | GCP A/B, Redis `AUTH+PING`; 설정 키 수·Actuator·LB health 확인 | A/B Redis 2/2, 두 프록시 주소 2/2, 앱 health UP 2/2, LB HEALTHY 2/2, `.env` mode 0600 | 공용 Redis·설정·기동의 정상 상태 확인 |
 | `gcp387-iam-r1`, 권한·동일성 | GCP VM scope, 버킷 IAM, JAR SHA 읽기 | A/B 동일 계정, cloud-platform scope 2/2, 버킷 objectUser 바인딩 1개, JAR 해시 동일 | JSON 키 없는 VM 신원으로 GCS 접근 |
 
