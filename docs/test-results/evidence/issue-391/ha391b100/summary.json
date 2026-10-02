@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "fault_events": [],
+  "finished_at": "2026-10-02T11:47:02.162Z",
+  "open_faults": [],
+  "outcome_counts": {
+    "ACKNOWLEDGED": 6000,
+    "FAILED": 0,
+    "UNKNOWN": 0
+  },
+  "request_count": 6000,
+  "run_id": "ha391b100",
+  "schema_version": 1,
+  "started_at": "2026-10-02T11:40:25.393Z"
+}
