@@ -85,11 +85,11 @@ GCP 시험은 실제 대시보드 메시지의 수신과 관리자 HTTP 응답�
 | `fix384-gcp-redis-r2` / GCP 내부 관측 VM | B 구독 5개를 유지하며 공용 Redis를 8초 중지·재시작 | 중단 전후 수신 490건, 연결 종료·오류 5건, B 앱 JVM은 생존 | Redis 단절은 클라이언트 소켓을 끊었다. 490건은 복구 후 지속 수신이 아니다. |
 | `fix384-gcp-redis-client-r1` / 로컬→GCP B | 최초 제어기로 Redis 중지·재시작 | 초기 LIVE 후 180초 내 재연결 0회, 새 메시지 0회, exit 1 | **FAIL**. STOMP `ERROR`를 영구 중단한 결함을 발견. |
 | `fix384-gcp-redis-client-r2` / 로컬→GCP B | 수정 제어기로 같은 8초 중지·재시작 | HTTP 재확인 200, LIVE 2회, 새 메시지 1회, 복구 6,942ms, exit 0 | **PASS**. Redis 장애 후 재구독과 snapshot 회복 확인. |
-| `fix384-final-unit-r1` / 로컬 | `node --experimental-strip-types --test tests/dashboard-socket-reconnect.test.ts` | 9/9 통과 | 결정적 재연결·인증 경계 회귀 시험 통과. |
-| `fix384-final-suite-r1` / 로컬 | `npm test` | 빌드 성공, 프런트엔드 48/48 통과 | 기존 프런트엔드 회귀 시험과 동시 통과. |
-| `fix384-final-lint-r1` / 로컬 | `npm run lint` | 종료 코드 0 | 정적 스타일 검사 통과. |
-| `fix384-final-type-r1` / 로컬 | 변경 소스만 `npx tsc --noEmit --skipLibCheck --strict ...` | 종료 코드 0 | 변경된 연결 제어기·훅의 strict 타입 검사 통과. |
-| `fix384-typecheck-r1` / 로컬 | 전체 `npx tsc --noEmit` | 종료 코드 2, 기존 Cloudflare 타입 및 테스트 `.ts` import 관련 12개 오류 | **전체 타입 검사 미통과**. 변경 소스의 개별 검사와 구분한다. |
+| `fix384-final-unit-r2` / 로컬 | `node --experimental-strip-types --test tests/dashboard-socket-reconnect.test.ts` | 9/9 통과 | 결정적 재연결·인증 경계 회귀 시험 통과. |
+| `fix384-final-suite-r2` / 로컬 | `npm test` | 빌드 성공, 프런트엔드 48/48 통과 | 기존 프런트엔드 회귀 시험과 동시 통과. |
+| `fix384-final-lint-r2` / 로컬 | `npm run lint` | 종료 코드 0 | 정적 스타일 검사 통과. |
+| `fix384-final-type-r2` / 로컬 | 변경 소스만 `npx tsc --noEmit --skipLibCheck --strict ...` | 종료 코드 0 | 변경된 연결 제어기·훅의 strict 타입 검사 통과. |
+| `fix384-full-typecheck-r2` / 로컬 | 전체 `npx tsc --noEmit` | 종료 코드 2, Cloudflare 타입 및 테스트 `.ts` import 설정 관련 12개 오류 | **전체 타입 검사 미통과**. 새 테스트도 기존과 같은 import 설정 오류 유형에 포함된다. |
 
 ```text
 그림 4 — Redis 단절에서 드러난 실패와 수정 검증
