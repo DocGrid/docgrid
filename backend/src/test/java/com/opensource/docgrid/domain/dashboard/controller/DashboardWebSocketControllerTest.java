@@ -28,6 +28,7 @@ import com.opensource.docgrid.domain.auth.websocket.StompSessionAuthorization;
 import com.opensource.docgrid.domain.auth.websocket.StompSessionRegistry;
 import com.opensource.docgrid.domain.auth.websocket.StompSessionRegistry.SessionSnapshot;
 import com.opensource.docgrid.domain.dashboard.dto.response.DashboardSummaryResponse;
+import com.opensource.docgrid.domain.dashboard.event.DashboardCrossNodeSignal;
 
 /**
  * 대시보드 발행 직전에 로컬 후보를 중복 제거하고 push별 primary 판정만 전달하는 경계를 검증한다.
@@ -40,6 +41,7 @@ class DashboardWebSocketControllerTest {
     @Mock private SimpMessagingTemplate messagingTemplate;
     @Mock private StompSessionRegistry stompSessionRegistry;
     @Mock private PrimaryRoleQueryService primaryRoleQueryService;
+    @Mock private DashboardCrossNodeSignal dashboardCrossNodeSignal;
 
     @Test
     @DisplayName("같은 사용자의 여러 세션은 primary에서 한 번만 확인하고 내부 헤더에만 판정을 넣는다")
@@ -64,6 +66,7 @@ class DashboardWebSocketControllerTest {
         assertThat(snapshot.candidateSessions()).isEqualTo(Map.of("session-1", 1L, "session-2", 1L));
         assertThat(snapshot.adminUserIds()).isEqualTo(Set.of(1L));
         assertThat(headers.getValue()).doesNotContainKey("nativeHeaders");
+        then(dashboardCrossNodeSignal).should().publish();
     }
 
     @Test
@@ -76,6 +79,7 @@ class DashboardWebSocketControllerTest {
 
         then(primaryRoleQueryService).shouldHaveNoInteractions();
         then(messagingTemplate).should().convertAndSend(eq("/topic/dashboard"), same(summary), any(Map.class));
+        then(dashboardCrossNodeSignal).should().publish();
     }
 
     @Test
@@ -89,6 +93,19 @@ class DashboardWebSocketControllerTest {
         assertThatThrownBy(() -> controller.sendDashboardUpdate(summary))
             .isInstanceOf(IllegalStateException.class);
         then(messagingTemplate).shouldHaveNoInteractions();
+        then(dashboardCrossNodeSignal).should().publish();
+    }
+
+    @Test
+    @DisplayName("원격 갱신은 로컬 관리자에게만 보내고 Redis로 다시 발행하지 않는다")
+    void sendLocalDashboardUpdate_doesNotRepublish() {
+        DashboardSummaryResponse summary = org.mockito.Mockito.mock(DashboardSummaryResponse.class);
+        given(stompSessionRegistry.authenticatedSessions()).willReturn(List.of());
+
+        controller.sendLocalDashboardUpdate(summary);
+
+        then(messagingTemplate).should().convertAndSend(eq("/topic/dashboard"), same(summary), any(Map.class));
+        then(dashboardCrossNodeSignal).shouldHaveNoInteractions();
     }
 
     private SessionSnapshot session(String sessionId, Long userId, String role) {

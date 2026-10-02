@@ -38,9 +38,28 @@ def classify(sent_ms: int, received_ms: float, http_200_ms: float | None) -> str
     return "경계_시각_불명확"
 
 
+def classify_count_only(received_ms: float, http_200_ms: float | None) -> str:
+    """Separate post-response arrivals without claiming when the server authorized them."""
+    if http_200_ms is None or received_ms < http_200_ms:
+        return "회수_전"
+    if received_ms <= http_200_ms + 1000:
+        return "200_후_1초_이내_수신_발행시각미확인"
+    return "200_후_1초_초과_수신_발행시각미확인"
+
+
 def backend_for(index: int, clients: int, clients_b: int) -> str:
     """Assign a deterministic subset to B without recording either private endpoint."""
     return "B" if index >= clients - clients_b else "A"
+
+
+def parse_dashboard_frame(frame: str, count_only: bool) -> tuple[int | None, int | None]:
+    """Validate a dashboard frame without treating a real DB count as a synthetic send clock."""
+    body = json.loads(frame.partition("\n\n")[2])
+    if not isinstance(body, dict) or not isinstance(body.get("documents"), dict):
+        raise ValueError("대시보드 문서 집계가 없습니다.")
+    if count_only:
+        return None, None
+    return int(body["documents"]["total"]), int(body["documents"]["searchable"])
 
 
 def revoke(http_url: str, subscriber_id: str, operator_token: str) -> tuple[int, float]:
@@ -92,21 +111,28 @@ async def client(index: int, backend: str, url: str, token: str, ready: asyncio.
                     if not frame.startswith("MESSAGE\n"):
                         continue
                     try:
-                        body = json.loads(frame.partition("\n\n")[2])
-                        sequence = int(body["documents"]["total"])
-                        sent_ms = int(body["documents"]["searchable"])
+                        sequence, sent_ms = parse_dashboard_frame(frame, state["count_only"])
                     except (ValueError, KeyError, TypeError, json.JSONDecodeError):
                         write_event({"이벤트": "프레임_형식_오류", "백엔드": backend, "구독번호": index,
                                      "수신_KST": safe_time(received_ms)})
                         continue
-                    classification = ("관측_중" if state["observe_only"] else
-                                      classify(sent_ms, received_ms, state.get("http_200_ms")))
+                    if state["observe_only"]:
+                        classification = "관측_중"
+                    elif state["count_only"]:
+                        # B는 자기 DB 요약을 다시 생성하므로 발행 시각이 프레임에 없다.
+                        # 수신 시각은 전송 승인 시각의 대체 증거가 아니다.
+                        classification = classify_count_only(received_ms, state.get("http_200_ms"))
+                    else:
+                        classification = classify(sent_ms, received_ms, state.get("http_200_ms"))
                     if classification in ("회수_전", "관측_중"):
                         state["pre_messages_by_backend"][backend] += 1
-                    write_event({"이벤트": "MESSAGE", "백엔드": backend, "구독번호": index,
-                                 "순번": sequence, "발행_KST": safe_time(sent_ms),
-                                 "수신_KST": safe_time(received_ms),
-                                 "구분": classification})
+                    elif state["count_only"]:
+                        state["post_messages_by_backend"][backend] += 1
+                    event = {"이벤트": "MESSAGE", "백엔드": backend, "구독번호": index,
+                             "수신_KST": safe_time(received_ms), "구분": classification}
+                    if not state["count_only"]:
+                        event.update({"순번": sequence, "발행_KST": safe_time(sent_ms)})
+                    write_event(event)
     except Exception as error:
         # Exception text can include an internal endpoint. Keep only its type.
         write_event({"이벤트": "연결_종료_또는_오류", "백엔드": backend, "구독번호": index,
@@ -124,7 +150,9 @@ async def run(args: argparse.Namespace) -> dict:
         raise ValueError("시험 구독자 ID 파일 형식이 올바르지 않습니다.")
     state = {"ready": 0, "ready_by_backend": {"A": 0, "B": 0},
              "pre_messages_by_backend": {"A": 0, "B": 0},
+             "post_messages_by_backend": {"A": 0, "B": 0},
              "clients": args.clients, "observe_only": args.observe_only,
+             "count_only": args.count_only,
              "stop": asyncio.Event()}
     counts = {}
     output = Path(args.output)
@@ -173,6 +201,7 @@ async def run(args: argparse.Namespace) -> dict:
     return {"run_id": args.run_id, "준비된_구독": state["ready"],
             "준비된_구독_백엔드별": state["ready_by_backend"],
             message_label: state["pre_messages_by_backend"],
+            "200_후_수신_발행시각미확인_백엔드별": state["post_messages_by_backend"],
             "회수_HTTP_200": state.get("http_200_ms") is not None,
             "이벤트_건수": counts}
 
@@ -191,6 +220,8 @@ def main() -> None:
     parser.add_argument("--before-seconds", type=int, default=3)
     parser.add_argument("--after-seconds", type=int, default=8)
     parser.add_argument("--observe-only", action="store_true")
+    parser.add_argument("--count-only", action="store_true",
+                        help="실제 DB 요약의 수신만 세며 회수 시에는 발행 시각을 모른다고 명시합니다.")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     if args.clients < 1 or args.before_seconds < 1 or args.after_seconds < 1:

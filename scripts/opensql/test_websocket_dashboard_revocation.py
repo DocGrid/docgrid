@@ -2,7 +2,8 @@
 
 import unittest
 
-from websocket_dashboard_revocation import backend_for, classify, stomp_frames
+from websocket_dashboard_revocation import (backend_for, classify, classify_count_only,
+                                            parse_dashboard_frame, stomp_frames)
 
 
 class DashboardAbRevocationTest(unittest.TestCase):
@@ -24,6 +25,19 @@ class DashboardAbRevocationTest(unittest.TestCase):
     def test_split_coalesced_stomp_frames(self):
         self.assertEqual(stomp_frames("CONNECTED\n\n\0MESSAGE\nx:y\n\n{}\0"),
                          ["CONNECTED\n\n", "MESSAGE\nx:y\n\n{}"])
+
+    def test_count_only_does_not_misread_real_summary_as_send_timestamp(self):
+        frame = 'MESSAGE\n\n{"documents":{"total":12,"searchable":8}}'
+        self.assertEqual(parse_dashboard_frame(frame, True), (None, None))
+        self.assertEqual(parse_dashboard_frame(frame, False), (12, 8))
+
+    def test_count_only_labels_receipt_without_claiming_authorization_time(self):
+        self.assertEqual(classify_count_only(900, None), "회수_전")
+        self.assertEqual(classify_count_only(900, 1000), "회수_전")
+        self.assertEqual(classify_count_only(1500, 1000),
+                         "200_후_1초_이내_수신_발행시각미확인")
+        self.assertEqual(classify_count_only(2001, 1000),
+                         "200_후_1초_초과_수신_발행시각미확인")
 
 
 if __name__ == "__main__":

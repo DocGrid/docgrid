@@ -9,12 +9,12 @@ import com.opensource.docgrid.domain.dashboard.service.query.DashboardQueryServi
 import lombok.RequiredArgsConstructor;
 
 /**
- * 짧은 주기로 {@link DashboardUpdateFlag}를 확인해서, 그 사이 상태 전이가 있었을 때만 대시보드
+ * 짧은 주기로 {@link DashboardUpdateFlag}의 로컬 변경·원격 갱신 신호를 확인해서 대시보드
  * 집계를 다시 계산해 push하는 debounce 스케줄러.
  *
  * <p>이벤트가 몇 번 들어왔든 한 주기(기본 300ms)당 최대 1번만 {@code getSummary()}(집계 쿼리 약
  * 9개)와 push를 실행한다. Burst 상황(전체 재처리, 시스템 장애로 다건 실패)에서 이벤트 개수만큼
- * DB를 두드리는 걸 막는 게 이 클래스의 유일한 목적이다.
+ * DB를 두드리는 걸 막는다. 원격 신호만 소비한 push는 다시 Redis로 발행하지 않아 순환을 막는다.
  *
  * <p>이 클래스는 새 로직을 거의 안 만들고, 이미 있는 세 부품을 "언제 조합해서 실행할지"만
  * 정한다: "바뀌었는지 확인"은 {@link DashboardUpdateFlag}, "최신 집계 계산"은
@@ -37,18 +37,30 @@ public class DashboardPushScheduler {
      */
     @Scheduled(fixedDelayString = "${dashboard.push.debounce-interval-ms}")
     public void pushIfDirty() {
-        // 1. 그 사이 상태 전이가 있었는지 확인하면서 동시에 플래그를 내린다(원자적).
-        if (dashboardUpdateFlag.consumeIfDirty()) {
-            // 2. 있었을 때만 최신 집계를 처음부터 다시 계산해서 push한다. 없었으면 이 블록 자체가
-            //    실행되지 않으므로 DB 조회도 push도 전혀 일어나지 않는다.
-            try {
-                dashboardWebSocketController.sendDashboardUpdate(dashboardQueryService.getSummary());
-            } catch (RuntimeException exception) {
-                // 집계나 push가 실패하면 이미 소비해버린 dirty 신호를 되살린다 — 안 그러면 다음
-                // 상태 전이가 안 들어오는 한 대시보드가 갱신 신호를 영영 잃어버린 채로 남는다.
-                dashboardUpdateFlag.markDirty();
-                throw exception;
+        // 1. 로컬 변경과 다른 백엔드의 변경을 따로 소비한다. 같은 주기에 겹치면 push는 한 번만 한다.
+        boolean localDirty = dashboardUpdateFlag.consumeIfDirty();
+        boolean remoteDirty = dashboardUpdateFlag.consumeRemoteIfDirty();
+        if (!localDirty && !remoteDirty) {
+            return;
+        }
+
+        // 2. 두 신호 모두 요약은 새로 계산한다. 원격 신호만 받은 경우에는 재발행하지 않는다.
+        try {
+            var summary = dashboardQueryService.getSummary();
+            if (localDirty) {
+                dashboardWebSocketController.sendDashboardUpdate(summary);
+            } else {
+                dashboardWebSocketController.sendLocalDashboardUpdate(summary);
             }
+        } catch (RuntimeException exception) {
+            // 3. 실패한 신호의 종류를 보존해 다음 주기에 재시도한다.
+            if (localDirty) {
+                dashboardUpdateFlag.markDirty();
+            }
+            if (remoteDirty) {
+                dashboardUpdateFlag.markRemoteDirty();
+            }
+            throw exception;
         }
     }
 }

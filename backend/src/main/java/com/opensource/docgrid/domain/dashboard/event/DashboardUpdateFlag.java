@@ -5,14 +5,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.stereotype.Component;
 
 /**
- * "대시보드 집계가 최신이 아니다"라는 사실만 기억하는 스레드 안전한 플래그.
+ * "대시보드 집계가 최신이 아니다"라는 사실을 로컬·원격 원인별로 기억하는 스레드 안전한 플래그.
  *
  * <p>여러 Worker Thread가 동시에 {@link #markDirty()}를 호출해도 안전하며, DB 조회나 WebSocket
  * push 같은 무거운 작업은 전혀 하지 않는다. 실제 집계 재계산과 push는 이 플래그를 주기적으로
  * 확인하는 스케줄러({@code DashboardPushScheduler})가 전담한다. 짧은 시간에 여러 상태 전이가
  * 몰려도(burst) 플래그는 계속 true로만 유지되므로, 스케줄러 입장에서는 몇 번 세워졌는지와 무관하게
  * "그 사이 뭔가 바뀌었다"는 사실 하나만 확인하면 된다 — 이 방식으로 이벤트 개수만큼 집계 쿼리가
- * 늘어나는 걸 막는다.
+ * 늘어나는 걸 막는다. 원격 신호는 별도 플래그로 유지해 다시 Redis에 발행하지 않는다.
  *
  * <p>실제 흐름 예시:
  * <pre>
@@ -35,6 +35,9 @@ public class DashboardUpdateFlag {
     // 앱이 막 시작된 시점엔 아직 어떤 Job도 상태가 안 바뀌었으므로 "최신 상태"인 false로 시작한다.
     private final AtomicBoolean dirty = new AtomicBoolean(false);
 
+    // 다른 백엔드에서 온 신호는 로컬 갱신과 구분해 다시 Redis로 발행하지 않는다.
+    private final AtomicBoolean remoteDirty = new AtomicBoolean(false);
+
     /**
      * "화면이 최신이 아니다"는 표시등을 켠다. {@code EmbeddingJobStatusChangedEventListener}가
      * Job 상태가 바뀔 때마다 호출한다. 이미 켜져 있는 상태에서 또 호출해도 결과는 그대로 켜진
@@ -54,5 +57,15 @@ public class DashboardUpdateFlag {
      */
     public boolean consumeIfDirty() {
         return dirty.compareAndSet(true, false);
+    }
+
+    /** 다른 백엔드의 갱신 신호를 다음 debounce 주기까지 합친다. */
+    public void markRemoteDirty() {
+        remoteDirty.set(true);
+    }
+
+    /** 원격 신호를 소비하되 로컬 변경 플래그와 섞지 않는다. */
+    public boolean consumeRemoteIfDirty() {
+        return remoteDirty.compareAndSet(true, false);
     }
 }
