@@ -63,6 +63,7 @@ case "$action" in
       echo 'PROXY_GUARD_PROCESS_COUNT_UNEXPECTED' >&2; exit 1;
     }
     /usr/bin/docker exec "$container" sh -c 'kill -KILL "$1"' sh "$pids"
+    printf 'proxy_kill_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
     for (( attempt=1; attempt<=10; attempt++ )); do
       if [[ -z "$(live_pids)" ]] && ! ready; then echo 'proxy_fault=active'; exit 0; fi
       sleep 1
@@ -83,6 +84,7 @@ case "$action" in
     fi
     for (( attempt=1; attempt<=20; attempt++ )); do
       if [[ "$(live_pids | wc -l | tr -d ' ')" == 1 ]] && ready; then
+        printf 'proxy_ready_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
         echo 'proxy_recovery=ready'
         exit 0
       fi
