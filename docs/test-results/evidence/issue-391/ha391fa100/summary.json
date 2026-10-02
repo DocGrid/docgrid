@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "fault_events": [
+    {
+      "at": "2026-10-02T16:30:36.453Z",
+      "name": "proxy-a-process-down",
+      "phase": "start"
+    },
+    {
+      "at": "2026-10-02T16:31:39.108Z",
+      "name": "proxy-a-process-down",
+      "phase": "end"
+    }
+  ],
+  "finished_at": "2026-10-02T16:33:25.818Z",
+  "open_faults": [],
+  "outcome_counts": {
+    "ACKNOWLEDGED": 13001,
+    "FAILED": 0,
+    "UNKNOWN": 0
+  },
+  "request_count": 13001,
+  "run_id": "ha391fa100",
+  "schema_version": 1,
+  "started_at": "2026-10-02T16:29:33.711Z"
+}

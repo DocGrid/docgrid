@@ -1,0 +1,12 @@
+{
+  "run_id": "ha391fb20001",
+  "iterations": 13001,
+  "http_requests": 13001,
+  "dropped_iterations": 0,
+  "failed_rate": 0.0006153372817475579,
+  "duration_ms": {
+    "p50": 11.876968,
+    "p95": 53.206126,
+    "p99": 57.478879
+  }
+}
