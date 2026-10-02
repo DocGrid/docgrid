@@ -1,8 +1,8 @@
 # 두 백엔드 대시보드 갱신 신호 검증 (2026-10-02 KST)
 
 - 관련 이슈: [#382](https://github.com/DocGrid/docgrid/issues/382)
-- 시험 코드 기준: `fix/382`의 프로덕션 커밋 `d751836`, 테스트 커밋 `80488ac`
-- 로컬 판정: Java 선택 회귀 24/24, Python 계측 5/5 통과.
+- 시험 코드 기준: `fix/382`의 프로덕션 커밋 `d751836`, 기본 테스트 커밋 `80488ac`, 두 앱 STOMP 테스트 커밋 `3279ae9`
+- 로컬 판정: Java 선택 회귀 **25/25**, Python 계측 5/5 통과. 두 독립 Spring 앱의 실제 A→B·B→A STOMP 수신도 포함한다.
 - GCP 판정: **미실행**. A/B VM과 공용 Redis는 실행 중임을 읽기 전용으로 확인했으나, 앱 fixture는 종료돼 있고 시험 비밀 복사본도 삭제된 상태다. 보호된 자격증명을 안전하게 다시 공급받기 전에는 실제 A→B 수신을 주장하지 않는다.
 
 ## 원래 문제와 변경 경계
@@ -36,6 +36,7 @@ Redis Pub/Sub 자체는 내구성 있는 큐가 아니다. B 구독이 끊겨 �
 | Redis 신호 | `backend/src/main/java/com/opensource/docgrid/domain/dashboard/event/DashboardCrossNodeSignal.java` | 식별자만 발행하고 자기 echo를 무시하며 재구독 시 새로고침한다. |
 | 설정 | `backend/src/main/java/com/opensource/docgrid/global/config/DashboardCrossNodeSignalConfig.java`, `backend/src/main/resources/application.yml`, `.env.example` | 설정을 명시적으로 켠 경우에만 Redis 리스너를 생성한다. |
 | 계측 | `scripts/opensql/websocket_dashboard_revocation.py` | 실제 B 요약을 합성 발행 시각으로 오인하지 않고 수신 프레임 수만 세는 `--count-only`를 추가한다. |
+| 두 앱 통합 | `backend/src/test/java/com/opensource/docgrid/domain/dashboard/event/DashboardCrossNodeWebSocketIntegrationTest.java` | 두 Spring context·두 SimpleBroker·공용 DB/Redis를 띄우고 양방향 실제 STOMP 수신 및 독립 DB 재계산을 확인한다. |
 
 ## 실행 결과와 각 run의 정제 기록
 
@@ -51,8 +52,14 @@ Redis Pub/Sub 자체는 내구성 있는 큐가 아니다. B 구독이 끊겨 �
 | `fix382-websocket-r6` | 로컬/확장 준비 후 재실행 | 4/4 통과 | [기록](evidence/issue-382/fix382-websocket-r6.md) |
 | `fix382-regression-r7` | 로컬/최종 Java 선택 회귀 | 24/24 통과, skip 0 | [기록](evidence/issue-382/fix382-regression-r7.md) |
 | `fix382-harness-r8` | 로컬/Python 계측 | 5/5 통과 | [기록](evidence/issue-382/fix382-harness-r8.md) |
+| `fix382-ab-r9` | 로컬/두 Spring 앱 시험 초안 | Java `connectAsync` 오버로드 모호성으로 컴파일 실패, 실행 0건 | [기록](evidence/issue-382/fix382-ab-r9.md) |
+| `fix382-ab-r10` | 로컬/컴파일 수정 후 | test와 local 프로필이 함께 활성화돼 JPA 스키마 검증 실패 | [기록](evidence/issue-382/fix382-ab-r10.md) |
+| `fix382-ab-r11` | 로컬/명시적 test 프로필 | A→B STOMP 수신·독립 DB 요약 **1/1 통과** | [기록](evidence/issue-382/fix382-ab-r11.md) |
+| `fix382-ab-r12` | 로컬/양방향 확장 | A→B와 B→A STOMP 수신·독립 DB 요약 **1/1 통과** | [기록](evidence/issue-382/fix382-ab-r12.md) |
+| `fix382-regression-r13` | 로컬/양방향 시험 포함 첫 종합 회귀 | **25/25 통과**, 실패 0, skip 0 | [기록](evidence/issue-382/fix382-regression-r13.md) |
+| `fix382-regression-r14` | 로컬/초기 수신이 없는 조용한 기준선 추가 후 재실행 | **25/25 통과**, 실패 0, skip 0 | [기록](evidence/issue-382/fix382-regression-r14.md) |
 
-로컬 통합 시험은 실제 Redis Pub/Sub에서 독립된 두 연결의 A→B·B→A 전달, 자기 echo 무시, B 구독 중단·재시작 뒤 snapshot 재계산 신호를 확인했다. 기존 WebSocket 통합 시험은 실제 PostgreSQL·pgvector에서 4건을 통과했다. **두 GCP JVM에서 실제 B 구독자가 수신했다는 증거는 아직 없다.**
+로컬 통합 시험은 실제 Redis Pub/Sub에서 독립된 두 연결의 A→B·B→A 전달, 자기 echo 무시, B 구독 중단·재시작 뒤 snapshot 재계산 신호를 확인했다. 한 단계 더 나아가 **서로 다른 Spring context 두 개와 각자의 SimpleBroker, 실제 PostgreSQL·Redis, STOMP 관리자 구독자**로 A와 B 양방향 수신을 확인했다. 반대편이 받은 것은 발행 측 합성 요약이 아니라 자신의 DB 재계산 값이었다. 기존 WebSocket 통합 시험 4건도 통과했다. **두 GCP VM의 JVM에서 실제 B 구독자가 수신했다는 증거는 아직 없다.**
 
 ## GCP 검증의 남은 조건
 
