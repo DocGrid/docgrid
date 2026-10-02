@@ -55,7 +55,7 @@ document:
 storage:
   # 별도 설정이 없으면 외부 Object Storage 없이 실행할 수 있는 Local Filesystem을 사용한다.
   type: ${STORAGE_TYPE:local}
-  # MinIO/S3에서는 Bucket, Local Filesystem에서는 DB에 기록할 논리 Namespace다.
+  # MinIO/S3/GCS에서는 Bucket, Local Filesystem에서는 DB에 기록할 논리 Namespace다.
   # Local만 docgrid 기본 Namespace를 사용하며 외부 저장소는 STORAGE_BUCKET을 반드시 명시한다.
   bucket: ${STORAGE_BUCKET:}
   local:

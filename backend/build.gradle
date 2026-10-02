@@ -34,6 +34,8 @@ dependencies {
 	implementation 'org.springframework.ai:spring-ai-starter-mcp-server-webmvc'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
 	implementation 'io.minio:minio:8.5.17'
+	implementation platform('com.google.cloud:libraries-bom:26.86.0')
+	implementation 'com.google.cloud:google-cloud-storage'
 	implementation platform('software.amazon.awssdk:bom:2.49.6')
 	implementation 'software.amazon.awssdk:s3'
 	implementation 'org.apache.pdfbox:pdfbox:3.0.8'
