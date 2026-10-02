@@ -1,0 +1,12 @@
+{
+  "run_id": "ha389r075",
+  "iterations": 4501,
+  "http_requests": 4501,
+  "dropped_iterations": 0,
+  "failed_rate": 0,
+  "duration_ms": {
+    "p50": 12.509552,
+    "p95": 53.431398,
+    "p99": 55.049792
+  }
+}

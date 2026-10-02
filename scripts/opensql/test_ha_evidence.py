@@ -6,6 +6,8 @@ import csv
 import concurrent.futures
 import importlib.util
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -132,6 +134,97 @@ class HaEvidenceTest(unittest.TestCase):
             "--patroni-version", "test", "--etcd-version", "test",
         ]))
         self.assertEqual("scenario123", json.loads((other / "manifest.json").read_text())["run_id"])
+
+    def test_bulk_k6_import_and_db_reconciliation(self):
+        """One batch import preserves outcomes and detects a committed duplicate."""
+        run_id = json.loads((self.directory / "manifest.json").read_text())["run_id"]
+        events = [
+            {"event_id": f"e-{index}", "run_id": run_id,
+             "at": "2026-10-02T00:00:00.000Z", "kind": kind,
+             "request_id": request_id, **fields}
+            for index, (kind, request_id, fields) in enumerate([
+                ("sent", f"{run_id}-one", {"operation": "ha_probe_write"}),
+                ("acknowledged", f"{run_id}-one", {"http_status": 201}),
+                ("sent", f"{run_id}-two", {"operation": "ha_probe_write"}),
+                ("unknown", f"{run_id}-two", {"reason": "timeout"}),
+            ])
+        ]
+        source = Path(self.temporary.name) / "k6.jsonl"
+        source.write_text("".join(json.dumps(event) + "\n" for event in events))
+        self.assertEqual(4, EVIDENCE.import_k6(self.directory, source))
+        EVIDENCE.append_event(self.directory, "finished")
+        EVIDENCE.export(self.directory)
+        (self.directory / "k6-summary.json").write_text(json.dumps({
+            "run_id": run_id, "iterations": 2, "http_requests": 2,
+            "dropped_iterations": 0, "failed_rate": 0,
+        }))
+        db_csv = Path(self.temporary.name) / "db.csv"
+        db_csv.write_text(f"request_id,row_count\n{run_id}-one,2\n{run_id}-two,1\n")
+        command = [sys.executable, str(SCRIPT.with_name("reconcile_ha_probe.py")),
+                   "--run-dir", str(self.directory), "--db-csv", str(db_csv)]
+        result = subprocess.run(command, capture_output=True, text=True)
+        self.assertEqual(2, result.returncode)
+        report = json.loads((self.directory / "reconciliation.json").read_text())
+        self.assertEqual(1, report["acknowledged_duplicate_count"])
+        self.assertEqual(1, report["unknown_persisted_count"])
+
+    def test_bulk_k6_import_rejects_unredacted_extra_field(self):
+        """Reject a raw event carrying data outside the safe allowlist before writing."""
+        run_id = json.loads((self.directory / "manifest.json").read_text())["run_id"]
+        source = Path(self.temporary.name) / "unsafe.jsonl"
+        source.write_text(json.dumps({
+            "event_id": "one", "run_id": run_id, "at": "2026-10-02T00:00:00Z",
+            "kind": "sent", "request_id": "safe", "operation": "write",
+            "authorization": "omitted-by-test",
+        }) + "\n")
+        with self.assertRaisesRegex(EVIDENCE.EvidenceError, "허용되지 않은"):
+            EVIDENCE.import_k6(self.directory, source)
+        self.assertEqual("", (self.directory / "events.jsonl").read_text())
+
+    def test_one_acknowledged_row_passes_reconciliation(self):
+        """A healthy baseline needs a single durable row for every HTTP success."""
+        run_id = json.loads((self.directory / "manifest.json").read_text())["run_id"]
+        request_id = f"{run_id}-one"
+        EVIDENCE.append_event(self.directory, "sent", request_id=request_id, operation="ha_probe_write")
+        EVIDENCE.append_event(self.directory, "acknowledged", request_id=request_id, http_status=201)
+        EVIDENCE.append_event(self.directory, "finished")
+        EVIDENCE.export(self.directory)
+        (self.directory / "k6-summary.json").write_text(json.dumps({
+            "run_id": run_id, "iterations": 1, "http_requests": 1,
+            "dropped_iterations": 0, "failed_rate": 0,
+        }))
+        db_csv = Path(self.temporary.name) / "db-clean.csv"
+        db_csv.write_text(f"request_id,row_count\n{request_id},1\n")
+        result = subprocess.run([sys.executable, str(SCRIPT.with_name("reconcile_ha_probe.py")),
+                                 "--run-dir", str(self.directory), "--db-csv", str(db_csv)],
+                                capture_output=True, text=True)
+        self.assertEqual(0, result.returncode)
+        report = json.loads((self.directory / "reconciliation.json").read_text())
+        self.assertTrue(report["normal_baseline_pass"])
+        self.assertEqual(0, report["acknowledged_missing_count"])
+
+    def test_dropped_iterations_fail_baseline_without_losing_acknowledged_data(self):
+        """Issued writes can be durable while the offered-load schedule fails."""
+        run_id = json.loads((self.directory / "manifest.json").read_text())["run_id"]
+        request_id = f"{run_id}-one"
+        EVIDENCE.append_event(self.directory, "sent", request_id=request_id, operation="ha_probe_write")
+        EVIDENCE.append_event(self.directory, "acknowledged", request_id=request_id, http_status=201)
+        EVIDENCE.append_event(self.directory, "finished")
+        EVIDENCE.export(self.directory)
+        (self.directory / "k6-summary.json").write_text(json.dumps({
+            "run_id": run_id, "iterations": 1, "http_requests": 1,
+            "dropped_iterations": 2, "failed_rate": 0,
+        }))
+        db_csv = Path(self.temporary.name) / "db-dropped.csv"
+        db_csv.write_text(f"request_id,row_count\n{request_id},1\n")
+        result = subprocess.run([sys.executable, str(SCRIPT.with_name("reconcile_ha_probe.py")),
+                                 "--run-dir", str(self.directory), "--db-csv", str(db_csv)],
+                                capture_output=True, text=True)
+        self.assertEqual(2, result.returncode)
+        report = json.loads((self.directory / "reconciliation.json").read_text())
+        self.assertTrue(report["durable_write_pass"])
+        self.assertFalse(report["load_schedule_pass"])
+        self.assertFalse(report["normal_baseline_pass"])
 
 
 if __name__ == "__main__":

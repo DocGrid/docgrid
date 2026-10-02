@@ -1,0 +1,11 @@
+{
+  "run_id": "ha389r200",
+  "purpose": "150 req/s 통과와 250 req/s 포화 사이의 200 req/s 재시험",
+  "target": "internal-lb (address omitted)",
+  "rate_per_second": 200,
+  "duration_seconds": 60,
+  "preallocated_vus": 40,
+  "max_vus": 160,
+  "client_timeout_seconds": 10,
+  "probe_jar_sha256": "c0180191121208d105f422cb64c57e325efc63a1c568c4c81a73d70cc7b8d1aa"
+}

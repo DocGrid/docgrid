@@ -76,6 +76,8 @@ public class SecurityConfig {
                 // 3. STOMP SUBSCRIBE·SEND — StompDestinationAuthorizationInterceptor가 목적지별 권한 검증
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers(adminRequests).hasRole("ADMIN")
+                // The profile-gated HA probe must never become available to an ordinary signed-in user.
+                .requestMatchers("/api/ha-probe/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             // 인증 실패와 권한 부족을 상태 코드로 구분하고, 본문 없는 기본 응답 대신 공통 ErrorResponse를 준다.
