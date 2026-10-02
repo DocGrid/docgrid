@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
+import re
 import shlex
 import subprocess
 from datetime import datetime
@@ -37,7 +38,7 @@ def log(stage: str, **values: object) -> None:
 
 
 def fetch_rows(node: str, zone: str, ssh_key: str, digests: list[str],
-               credential_env: str, psql_bin: str) -> list[list[str]]:
+               credential_env: str, psql_bin: str, container: str) -> list[list[str]]:
     quoted = ",".join(f"'{digest}'" for digest in digests)
     sql = (
         "SELECT f.file_hash, f.file_size, f.storage_provider, f.bucket_name, "
@@ -53,10 +54,10 @@ def fetch_rows(node: str, zone: str, ssh_key: str, digests: list[str],
         f'exec {shlex.quote(psql_bin)} -h 127.0.0.1 -U postgres '
         '-d docgrid -X -v ON_ERROR_STOP=1 -At -F "|" -f -'
     )
+    # Select the confirmed DB container explicitly; the first Docker container may be unrelated.
     remote = (
-        'container=$(sudo docker ps --format "{{.ID}}" | head -1); '
         f'printf %s {shlex.quote(encoded)} | base64 -d | '
-        f'sudo docker exec -i --user root "$container" sh -c {shlex.quote(psql)}'
+        f'sudo docker exec -i --user root {shlex.quote(container)} sh -c {shlex.quote(psql)}'
     )
     output = run(
         "gcloud", "compute", "ssh", node, f"--zone={zone}",
@@ -74,8 +75,11 @@ def main() -> int:
     parser.add_argument("--ssh-key", required=True)
     parser.add_argument("--credential-env", required=True)
     parser.add_argument("--psql-bin", required=True)
+    parser.add_argument("--container", required=True)
     parser.add_argument("--sha256", action="append", required=True)
     args = parser.parse_args()
+    if not re.fullmatch(r"[0-9a-f]{12,64}", args.container):
+        raise VerificationFailure("INVALID_CONTAINER_ID")
     digests = args.sha256
     if len(set(digests)) != len(digests) or any(
         len(value) != 64 or any(character not in "0123456789abcdef" for character in value)
@@ -84,7 +88,7 @@ def main() -> int:
         raise VerificationFailure("INVALID_DIGEST_LIST")
     log("시작", run_id=args.run_id, expected_files=len(digests))
     rows = fetch_rows(args.node, args.zone, args.ssh_key, digests,
-                      args.credential_env, args.psql_bin)
+                      args.credential_env, args.psql_bin, args.container)
     if len(rows) != len(digests):
         raise VerificationFailure("DB_ROW_COUNT_MISMATCH")
     seen: set[str] = set()
