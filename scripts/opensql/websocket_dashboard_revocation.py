@@ -38,6 +38,15 @@ def classify(sent_ms: int, received_ms: float, http_200_ms: float | None) -> str
     return "경계_시각_불명확"
 
 
+def classify_count_only(received_ms: float, http_200_ms: float | None) -> str:
+    """Separate post-response arrivals without claiming when the server authorized them."""
+    if http_200_ms is None:
+        return "회수_전"
+    if received_ms <= http_200_ms + 1000:
+        return "200_후_1초_이내_수신_발행시각미확인"
+    return "200_후_1초_초과_수신_발행시각미확인"
+
+
 def backend_for(index: int, clients: int, clients_b: int) -> str:
     """Assign a deterministic subset to B without recording either private endpoint."""
     return "B" if index >= clients - clients_b else "A"
@@ -107,10 +116,18 @@ async def client(index: int, backend: str, url: str, token: str, ready: asyncio.
                         write_event({"이벤트": "프레임_형식_오류", "백엔드": backend, "구독번호": index,
                                      "수신_KST": safe_time(received_ms)})
                         continue
-                    classification = ("관측_중" if state["observe_only"] else
-                                      classify(sent_ms, received_ms, state.get("http_200_ms")))
+                    if state["observe_only"]:
+                        classification = "관측_중"
+                    elif state["count_only"]:
+                        # B는 자기 DB 요약을 다시 생성하므로 발행 시각이 프레임에 없다.
+                        # 수신 시각은 전송 승인 시각의 대체 증거가 아니다.
+                        classification = classify_count_only(received_ms, state.get("http_200_ms"))
+                    else:
+                        classification = classify(sent_ms, received_ms, state.get("http_200_ms"))
                     if classification in ("회수_전", "관측_중"):
                         state["pre_messages_by_backend"][backend] += 1
+                    elif state["count_only"]:
+                        state["post_messages_by_backend"][backend] += 1
                     event = {"이벤트": "MESSAGE", "백엔드": backend, "구독번호": index,
                              "수신_KST": safe_time(received_ms), "구분": classification}
                     if not state["count_only"]:
@@ -133,6 +150,7 @@ async def run(args: argparse.Namespace) -> dict:
         raise ValueError("시험 구독자 ID 파일 형식이 올바르지 않습니다.")
     state = {"ready": 0, "ready_by_backend": {"A": 0, "B": 0},
              "pre_messages_by_backend": {"A": 0, "B": 0},
+             "post_messages_by_backend": {"A": 0, "B": 0},
              "clients": args.clients, "observe_only": args.observe_only,
              "count_only": args.count_only,
              "stop": asyncio.Event()}
@@ -183,6 +201,7 @@ async def run(args: argparse.Namespace) -> dict:
     return {"run_id": args.run_id, "준비된_구독": state["ready"],
             "준비된_구독_백엔드별": state["ready_by_backend"],
             message_label: state["pre_messages_by_backend"],
+            "200_후_수신_발행시각미확인_백엔드별": state["post_messages_by_backend"],
             "회수_HTTP_200": state.get("http_200_ms") is not None,
             "이벤트_건수": counts}
 
@@ -202,15 +221,13 @@ def main() -> None:
     parser.add_argument("--after-seconds", type=int, default=8)
     parser.add_argument("--observe-only", action="store_true")
     parser.add_argument("--count-only", action="store_true",
-                        help="실제 DB 요약 프레임은 수신만 세고 합성 발행 시각으로 해석하지 않습니다.")
+                        help="실제 DB 요약의 수신만 세며 회수 시에는 발행 시각을 모른다고 명시합니다.")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     if args.clients < 1 or args.before_seconds < 1 or args.after_seconds < 1:
         parser.error("구독 수와 전후 관측 시간은 1 이상이어야 합니다.")
     if args.clients_b < 0 or args.clients_b > args.clients or (args.clients_b and not args.websocket_url_b):
         parser.error("B 구독 수는 전체 구독 수 이하이며 B 주소가 함께 필요합니다.")
-    if args.count_only and not args.observe_only:
-        parser.error("--count-only는 --observe-only 시험에서만 사용할 수 있습니다.")
     if not args.observe_only and not all((args.http_url, args.operator_token_file, args.subscriber_id_file)):
         parser.error("권한 회수 시험에는 관리자 API·토큰·사용자 ID가 필요합니다.")
     result = asyncio.run(run(args))
