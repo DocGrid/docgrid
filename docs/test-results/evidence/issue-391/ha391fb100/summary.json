@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "fault_events": [
+    {
+      "at": "2026-10-02T16:36:02.466Z",
+      "name": "proxy-b-process-down",
+      "phase": "start"
+    },
+    {
+      "at": "2026-10-02T16:37:02.351Z",
+      "name": "proxy-b-process-down",
+      "phase": "end"
+    }
+  ],
+  "finished_at": "2026-10-02T16:59:50.096Z",
+  "open_faults": [],
+  "outcome_counts": {
+    "ACKNOWLEDGED": 12991,
+    "FAILED": 10,
+    "UNKNOWN": 0
+  },
+  "request_count": 13001,
+  "run_id": "ha391fb100",
+  "schema_version": 1,
+  "started_at": "2026-10-02T16:34:36.635Z"
+}

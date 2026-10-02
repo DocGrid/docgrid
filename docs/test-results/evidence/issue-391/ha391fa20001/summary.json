@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "fault_events": [
+    {
+      "at": "2026-10-02T17:17:32.891Z",
+      "name": "proxy-a",
+      "phase": "start"
+    },
+    {
+      "at": "2026-10-02T17:18:29.239Z",
+      "name": "proxy-a",
+      "phase": "end"
+    }
+  ],
+  "finished_at": "2026-10-02T17:20:17.669Z",
+  "open_faults": [],
+  "outcome_counts": {
+    "ACKNOWLEDGED": 12997,
+    "FAILED": 3,
+    "UNKNOWN": 0
+  },
+  "request_count": 13000,
+  "run_id": "ha391fa20001",
+  "schema_version": 1,
+  "started_at": "2026-10-02T17:13:31.903Z"
+}

@@ -1,0 +1,14 @@
+{
+  "run_id": "ha391fb20001",
+  "purpose": "OpenProxy B 지속 장애 중 앱 A/B 신규 TCP 연결 이동과 HTTP 회복 시점 계측",
+  "target": "internal-app-lb (address omitted)",
+  "rate_per_second": 100,
+  "duration_seconds": 130,
+  "fault_target": "proxy-b",
+  "fault_duration_target_seconds": 50,
+  "recovery_guard_seconds": 100,
+  "client_timeout_seconds": 10,
+  "connection_sample_interval_ms": 500,
+  "app_jar_sha256": "c0180191121208d105f422cb64c57e325efc63a1c568c4c81a73d70cc7b8d1aa",
+  "app_source_revision": "61a0689711bc6b0e5891faac12e958943225aba2"
+}

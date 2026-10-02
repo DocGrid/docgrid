@@ -1,0 +1,78 @@
+{
+  "apps": {
+    "app-a": {
+      "baseline_established": {
+        "proxy_a": 2,
+        "proxy_b": 3
+      },
+      "end_established": {
+        "proxy_a": 0,
+        "proxy_b": 5
+      },
+      "end_new_connection_cumulative": {
+        "proxy_a": 0,
+        "proxy_b": 2
+      },
+      "first_new_recovered_proxy_connection_after_ready": null,
+      "first_new_survivor_connection": {
+        "first_observed_at": "2026-10-02T17:17:21.336Z",
+        "since_kill_lower_bound_ms": 36.0,
+        "since_kill_upper_bound_ms": 536.0
+      },
+      "max_hikari_pending": 0.0,
+      "missing_metrics_count": 0,
+      "sample_count": 330,
+      "survivor_pool_stable_three_samples": {
+        "confirmed_at": "2026-10-02T17:17:22.337Z",
+        "confirmed_since_kill_ms": 1537.0,
+        "first_observed_at": "2026-10-02T17:17:21.336Z",
+        "since_kill_lower_bound_ms": 36.0,
+        "since_kill_upper_bound_ms": 536.0
+      }
+    },
+    "app-b": {
+      "baseline_established": {
+        "proxy_a": 1,
+        "proxy_b": 4
+      },
+      "end_established": {
+        "proxy_a": 0,
+        "proxy_b": 5
+      },
+      "end_new_connection_cumulative": {
+        "proxy_a": 0,
+        "proxy_b": 1
+      },
+      "first_new_recovered_proxy_connection_after_ready": null,
+      "first_new_survivor_connection": {
+        "first_observed_at": "2026-10-02T17:17:21.346Z",
+        "since_kill_lower_bound_ms": 45.0,
+        "since_kill_upper_bound_ms": 546.0
+      },
+      "max_hikari_pending": 0.0,
+      "missing_metrics_count": 0,
+      "sample_count": 330,
+      "survivor_pool_stable_three_samples": {
+        "confirmed_at": "2026-10-02T17:17:22.345Z",
+        "confirmed_since_kill_ms": 1545.0,
+        "first_observed_at": "2026-10-02T17:17:21.346Z",
+        "since_kill_lower_bound_ms": 45.0,
+        "since_kill_upper_bound_ms": 546.0
+      }
+    }
+  },
+  "fault_marker_to_ready_ms": 59747.0,
+  "fault_target": "proxy_a",
+  "http": {
+    "failed_count": 3,
+    "first_failed_at": "2026-10-02T17:17:20.894Z",
+    "first_newly_started_success_after_last_failure_at": "2026-10-02T17:17:20.944Z",
+    "kill_to_new_success_ms": 144.0,
+    "last_failed_at": "2026-10-02T17:17:20.922Z",
+    "last_failure_to_new_success_ms": 22.0
+  },
+  "kill_command_returned_at_utc": "2026-10-02T17:17:20.800Z",
+  "measurement_limit": "TCP 연결·풀 수렴은 500ms 표본 구간이며 KILL 마커는 명령 반환 시각이지 물리적 종료 순간이 아닙니다.",
+  "proxy_ready_observed_at_utc": "2026-10-02T17:18:20.547Z",
+  "run_id": "ha391fa20001"
+}
