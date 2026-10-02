@@ -1,0 +1,14 @@
+{
+  "config_sha256": "7267c73b97d2d2be02df0741fedc5f2640d509503bf4898f76772bdfe3d508be",
+  "git_sha": "c20add62bf5854abd0aa179715ecf35359b85f1e",
+  "run_id": "ha389s01",
+  "scenario": "baseline-smoke",
+  "schema_version": 1,
+  "started_at": "2026-10-02T10:12:43Z",
+  "versions": {
+    "etcd": "3.6.5",
+    "openproxy": "1.1.3-r723",
+    "opensql": "v3.17.8.7",
+    "patroni": "4.0.5"
+  }
+}

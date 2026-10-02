@@ -1,0 +1,5 @@
+# Keep full per-request evidence locally; publish deterministic compressed copies.
+*/k6-events.jsonl
+*/events.jsonl
+*/requests.csv
+*/db-counts.csv

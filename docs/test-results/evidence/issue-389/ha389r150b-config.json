@@ -1,0 +1,11 @@
+{
+  "run_id": "ha389r150b",
+  "purpose": "200 req/s 반복 드롭 후 150 req/s 안정성 반복 2/3",
+  "target": "internal-lb (address omitted)",
+  "rate_per_second": 150,
+  "duration_seconds": 60,
+  "preallocated_vus": 40,
+  "max_vus": 160,
+  "client_timeout_seconds": 10,
+  "probe_jar_sha256": "c0180191121208d105f422cb64c57e325efc63a1c568c4c81a73d70cc7b8d1aa"
+}

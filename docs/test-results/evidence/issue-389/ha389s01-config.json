@@ -1,0 +1,15 @@
+{
+  "run_id": "ha389s01",
+  "purpose": "GCP 내부 LB 인증 HTTP 쓰기 smoke",
+  "target": "internal-lb (address omitted)",
+  "rate_per_second": 2,
+  "duration_seconds": 10,
+  "preallocated_vus": 40,
+  "max_vus": 160,
+  "client_timeout_seconds": 10,
+  "app_nodes": 2,
+  "db_nodes": 3,
+  "redis_nodes": 1,
+  "load_nodes": 1,
+  "probe_jar_sha256": "c0180191121208d105f422cb64c57e325efc63a1c568c4c81a73d70cc7b8d1aa"
+}
