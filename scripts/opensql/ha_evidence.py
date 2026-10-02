@@ -213,6 +213,31 @@ def append_event(directory, kind, **attributes):
     return event
 
 
+def import_k6(directory, source):
+    """Import a pre-redacted k6 event stream in one validated, durable append."""
+    manifest = read_manifest(directory)
+    try:
+        with source.open(encoding="utf-8") as input_file:
+            incoming = [json.loads(line) for line in input_file]
+    except (OSError, json.JSONDecodeError) as error:
+        raise EvidenceError("k6 JSONL을 읽을 수 없습니다") from error
+    allowed = {"event_id", "run_id", "at", "kind", "request_id", "operation", "http_status", "reason"}
+    for event in incoming:
+        if not isinstance(event, dict) or set(event) - allowed or event.get("kind") not in {
+            "sent", "acknowledged", "failed", "unknown"
+        }:
+            raise EvidenceError("k6 이벤트에 허용되지 않은 필드 또는 종류가 있습니다")
+    with locked_events(directory) as output:
+        previous = read_events(output)
+        replay(manifest, previous + incoming)
+        output.seek(0, os.SEEK_END)
+        for event in incoming:
+            output.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
+        output.flush()
+        os.fsync(output.fileno())
+    return len(incoming)
+
+
 def initialize(args):
     """Start a fresh run without copying configuration contents or credentials."""
     if not SHA256.fullmatch(args.config_sha256):
@@ -275,9 +300,11 @@ def parser():
     init.add_argument("--config-sha256", required=True, help="비밀 제거된 설정 스냅샷의 SHA-256")
     for name in ("opensql", "openproxy", "patroni", "etcd"):
         init.add_argument(f"--{name}-version", required=True)
-    for name in ("sent", "ack", "fail", "unknown", "fault", "finish", "export", "verify"):
+    for name in ("sent", "ack", "fail", "unknown", "fault", "finish", "export", "verify", "import-k6"):
         command = sub.add_parser(name)
         command.add_argument("--run-dir", type=Path, required=True)
+        if name == "import-k6":
+            command.add_argument("--source", type=Path, required=True)
         if name == "sent":
             command.add_argument("--operation", required=True)
             command.add_argument("--request-id", default=None)
@@ -313,6 +340,8 @@ def main(argv=None):
             append_event(args.run_dir, kind, **attributes)
         elif args.command == "fault":
             append_event(args.run_dir, "fault", name=args.name, phase=args.phase)
+        elif args.command == "import-k6":
+            print(f"가져온 이벤트: {import_k6(args.run_dir, args.source)}건")
         elif args.command == "finish":
             append_event(args.run_dir, "finished")
             print(json_text(export(args.run_dir)), end="")
