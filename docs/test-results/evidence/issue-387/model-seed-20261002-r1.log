@@ -1,0 +1,7 @@
+실행ID=model-seed-20261002-r1 목적=PDF 업로드 선행 활성 임베딩 모델 확인·기존 seed 적용 위치=GCP OpenSQL primary 성공조건=활성 모델 정확히 1건
+2026-10-02 Asia/Seoul 첫 업로드 500의 APP-A journal 비식별 오류코드=EMBEDDING-MODEL-001
+2026-10-02 Asia/Seoul 최초 읽기: pg_is_in_recovery=false, embedding_models 전체=0건, 활성·검색가능=0건
+2026-10-02 Asia/Seoul 첫 INSERT 명령: 셸 인용 오류로 SQL syntax error, 종료코드=1, 변경 없음
+2026-10-02 Asia/Seoul 재실행: 저장소 R__seed_bge_m3_embedding_model.sql 원본 적용, UPDATE=0건, INSERT=1건, 종료코드=0
+2026-10-02 Asia/Seoul 후속 읽기: 전체=1건, 활성·검색가능=1건
+판정=통과. BGE-M3 모델 메타데이터만 등록했으며 임베딩 서버와 Worker는 실행하지 않음.

@@ -1,0 +1,5 @@
+실행ID=app-a-start-20261002-r1 목적=APP-A 실제 OpenSQL/GCS 설정 앱 기동 위치=GCP APP-A 성공조건=systemd active+readiness 200
+readiness=200 poll=13
+service=active
+readiness_final=200
+SSH 종료코드=0

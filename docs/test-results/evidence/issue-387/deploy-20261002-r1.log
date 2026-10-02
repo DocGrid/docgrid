@@ -1,0 +1,5 @@
+실행ID=deploy-20261002-r1 목적=동일 JAR A/B 배치 위치=GCP 앱 VM 성공조건=두 SHA 일치+unit 설치
+APP-A JAR 전송=완료
+APP-A JAR SHA-256=일치 unit=설치완료
+APP-B JAR 전송=완료
+APP-B JAR SHA-256=일치 unit=설치완료

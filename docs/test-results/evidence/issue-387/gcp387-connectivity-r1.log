@@ -1,0 +1,7 @@
+실행ID=gcp387-connectivity-r1 목적=A/B 공용 Redis·OpenProxy 설정·서비스·LB 상태 확인 위치=GCP APP-A/B와 내부 LB 성공조건=Redis AUTH+PING 각 1회 통과, 두 프록시 설정, A/B health UP, LB 2/2 HEALTHY
+2026-10-02T18:22:28+09:00 단계=시작 결과=실행
+APP-A redis_auth_ping=PASS app_proxy_targets=2 migration_db_targets=3 storage=gcs worker=false config_match=true service=active startup=enabled env_mode=600 actuator_health=UP 종료코드=0
+APP-B redis_auth_ping=PASS app_proxy_targets=2 migration_db_targets=3 storage=gcs worker=false config_match=true service=active startup=enabled env_mode=600 actuator_health=UP 종료코드=0
+내부LB healthy=2 unhealthy=0
+판정=통과. Redis 비밀번호·DB URL·호스트명·사설 IP·버킷 이름은 수집 전에 출력 대상에서 제외함.
+한계=설정의 두 OpenProxy 주소와 앱 DB 동작을 확인했으나, 개별 SQL마다 어느 프록시로 흘렀는지 분산 비율은 측정하지 않음.

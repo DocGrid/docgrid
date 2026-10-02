@@ -1,0 +1,7 @@
+실행ID=gcp387-db-gcs-r2 목적=비공개 DB 파일 경로를 매개변수로 받는 공개 스크립트의 DB↔GCS 바이트 대조 재검증 위치=GCP OpenSQL primary+GCS API 성공조건=DB 3행+GCS 3객체+SHA-256 3건 일치
+2026-10-02T18:26:15.372+09:00 단계=시작 결과=실행 expected_files=3
+2026-10-02T18:26:23.282+09:00 단계=DB-GCS대조 결과=통과 file_hash_prefix=843428c336d0 db_rows=1 gcs_objects=1 bytes=627 document_status=UPLOADED version_status=UPLOADED
+2026-10-02T18:26:24.581+09:00 단계=DB-GCS대조 결과=통과 file_hash_prefix=9ac6e6cd770c db_rows=1 gcs_objects=1 bytes=626 document_status=UPLOADED version_status=UPLOADED
+2026-10-02T18:26:25.859+09:00 단계=DB-GCS대조 결과=통과 file_hash_prefix=b9eee814187d db_rows=1 gcs_objects=1 bytes=626 document_status=UPLOADED version_status=UPLOADED
+2026-10-02T18:26:25.859+09:00 단계=종료 결과=통과 db_rows=3 gcs_objects=3 hash_matches=3 종료코드=0
+비공개 DB 자격증명 파일 경로·psql 실행 경로·GCS bucket/key는 로그에 출력하지 않음.

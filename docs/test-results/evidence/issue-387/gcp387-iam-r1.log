@@ -1,0 +1,7 @@
+실행ID=gcp387-iam-r1 목적=A/B GCS 권한·배포 파일 일치 확인 위치=GCP VM 메타데이터·버킷 IAM·APP-A/B 성공조건=동일 전용 계정+cloud-platform scope 2/2+버킷 objectUser 1개+동일 JAR SHA
+2026-10-02 Asia/Seoul APP-A cloud-platform OAuth scope=있음, APP-B cloud-platform OAuth scope=있음
+2026-10-02 Asia/Seoul A/B 서비스 계정=동일, 해당 버킷 objectUser 바인딩=1개
+2026-10-02 Asia/Seoul APP-A JAR SHA-256=60c9359d6a1e54ecea1b38c923cff20fb49e1611c8508c13ad9fb5f2b9f75d04
+2026-10-02 Asia/Seoul APP-B JAR SHA-256=60c9359d6a1e54ecea1b38c923cff20fb49e1611c8508c13ad9fb5f2b9f75d04
+판정=통과. 서비스 계정 이메일·버킷·프로젝트 식별자는 출력하지 않음.
+첫 SHA 읽기 시도는 비로그인 계정의 파일 읽기 권한 부족으로 값이 비었고, sudo 읽기 전용으로 재확인함.

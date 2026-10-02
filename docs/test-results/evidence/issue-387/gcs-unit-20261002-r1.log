@@ -1,0 +1,10 @@
+실행ID=gcs-unit-20261002-r1 목적=GCS 저장·설정·업로드 코드 회귀 위치=로컬 worktree 명령=Gradle 3개 클래스 성공조건=모든 테스트 통과
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources
+> Task :testClasses
+> Task :test
+BUILD SUCCESSFUL in 11s
+단위시험 판정=통과 종료코드=0
