@@ -7,5 +7,6 @@ package com.opensource.docgrid.domain.document.config;
 public enum FileStorageType {
     LOCAL,
     MINIO,
-    S3
+    S3,
+    GCS
 }

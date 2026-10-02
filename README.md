@@ -165,6 +165,13 @@ brew services stop ollama
 | `local` | 별도 Object Storage 없는 단일 실행 환경 | `STORAGE_LOCAL_ROOT`, `STORAGE_BUCKET` |
 | `minio` | 기본 Docker 개발 환경 | `MINIO_ENDPOINT`, Credential, `STORAGE_BUCKET` |
 | `s3` | 공용 개발·배포 환경 | `AWS_REGION`, AWS Credential, `STORAGE_BUCKET` |
+| `gcs` | Google Cloud Storage 환경 | ADC 인증, `STORAGE_BUCKET` |
+
+GCS를 선택할 때는 실행 주체에 대상 Bucket의 Object 생성·조회·삭제 권한을 부여하고
+`STORAGE_TYPE=gcs`, `STORAGE_BUCKET`을 설정합니다. 로컬에서는 Application Default Credentials를,
+Google Cloud 실행 환경에서는 연결된 Service Account를 사용합니다. 서비스 계정 키는 `.env`에 넣지 않습니다.
+기존 MinIO/S3 파일의 DB 위치는 GCS로 자동 이전되지 않으므로, 기존 파일이 있는 환경은 파일과 DB 위치를
+이전하기 전까지 저장소 설정만 바꾸지 않아야 합니다.
 
 OpenSQL 개발 DB는 SSH Tunnel을 통해 사용할 수 있습니다. 공급사 설치 파일, License, DB Credential과
 SSH Key는 저장소에 포함하지 않습니다. 환경별 설정은 [.env.example](.env.example),

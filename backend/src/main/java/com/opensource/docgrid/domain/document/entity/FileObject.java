@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
  * 파일 오브젝트(실제 바이너리 위치) 테이블.
  *
  * <p>역할: 업로드된 파일 바이너리의 저장 위치와 해시를 기록한다.
- * 이유: 실제 파일 바이너리는 DB에 저장하지 않고 Local/MinIO/S3 등 외부 파일 저장소에 저장하므로,
+ * 이유: 실제 파일 바이너리는 DB에 저장하지 않고 Local/MinIO/S3/GCS 등 외부 파일 저장소에 저장하므로,
  * 그 논리 위치(bucket/objectKey)와 무결성 검증용 해시만 이 테이블에 보관한다.
  * 관계: document_versions.file_object_id가 이 테이블을 참조한다(하나의 파일이 여러 버전에서 재사용될 수 있음).
  * unique 제약: 동일 storage_provider/bucket/objectKey 조합과 file_hash/file_size 조합은 각각 유일해야 한다.

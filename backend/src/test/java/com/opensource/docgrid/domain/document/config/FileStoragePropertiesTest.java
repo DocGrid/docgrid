@@ -51,6 +51,18 @@ class FileStoragePropertiesTest {
             });
     }
 
+    @Test
+    @DisplayName("GCS Adapter가 구현되면 gcs 설정이 바인딩된다")
+    void storageType_bindsGcsAdapter() {
+        contextRunner.withPropertyValues("storage.type=gcs")
+            .run(context -> {
+                assertThat(context).hasNotFailed();
+                FileStorageProperties properties = context.getBean(FileStorageProperties.class);
+                assertThat(properties.getType()).isEqualTo(FileStorageType.GCS);
+                assertThat(properties.getBucket()).isNull();
+            });
+    }
+
     /**
      * 테스트 대상 ConfigurationProperties만 등록해 설정 바인딩 경계를 격리한다.
      */

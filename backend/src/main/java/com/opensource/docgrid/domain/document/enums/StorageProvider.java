@@ -6,5 +6,6 @@ package com.opensource.docgrid.domain.document.enums;
 public enum StorageProvider {
     MINIO,
     S3,
-    LOCAL
+    LOCAL,
+    GCS
 }
