@@ -42,6 +42,8 @@ dashboard:
   push:
     # 짧은 시간에 몰리는 Job 상태 전이 이벤트를 이 주기로 모아서 한 번만 집계·push한다(debounce).
     debounce-interval-ms: ${DASHBOARD_PUSH_DEBOUNCE_INTERVAL_MS:300}
+    # A/B가 공용 Redis를 사용할 때만 활성화한다. 비활성 상태에서는 기존 로컬 SimpleBroker 동작을 유지한다.
+    cross-node-enabled: ${DASHBOARD_CROSS_NODE_ENABLED:false}
 
 document:
   upload:
