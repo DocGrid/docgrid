@@ -8,6 +8,13 @@ rate="${2:?requests per second required}"
 duration="${3:?duration such as 60s required}"
 target="${4:?internal probe URL required}"
 token_file="${5:?token file required}"
+purpose_code="${6:-baseline-write}"
+case "$purpose_code" in
+  baseline-write) purpose='HA probe 정상 쓰기 기준선' ;;
+  proxy-a-fault) purpose='OpenProxy A 지속 장애 중 쓰기' ;;
+  proxy-b-fault) purpose='OpenProxy B 지속 장애 중 쓰기' ;;
+  *) echo '시험 목적 코드가 잘못되었습니다' >&2; exit 2 ;;
+esac
 if [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
    [[ ! "$rate" =~ ^[0-9]+$ ]] || (( rate < 1 || rate > 500 )) ||
    [[ ! "$duration" =~ ^[0-9]+s$ ]] ||
@@ -20,8 +27,8 @@ fi
 run_dir="/home/giminkim/ha389-runs/$run_id"
 mkdir -m 0700 -p /home/giminkim/ha389-runs
 mkdir -m 0700 "$run_dir"
-printf '실행 ID=%s\n위치=GCP 내부 부하 VM\n목적=HA probe 정상 쓰기 기준선\n시작 UTC=%s\n요청 속도=%s req/s\n계획 시간=%s\n성공 기준=HTTP 201, dropped_iterations 0, DB 대조 누락·중복 0\n' \
-  "$run_id" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$rate" "$duration" > "$run_dir/실행-기록.txt"
+printf '실행 ID=%s\n위치=GCP 내부 부하 VM\n목적=%s\n시작 UTC=%s\n요청 속도=%s req/s\n계획 시간=%s\n성공 기준=HTTP 201, dropped_iterations 0, DB 대조 누락·중복 0\n' \
+  "$run_id" "$purpose" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$rate" "$duration" > "$run_dir/실행-기록.txt"
 
 export HA_RUN_ID="$run_id" HA_RATE="$rate" HA_DURATION="$duration"
 export HA_TARGET_URL="$target" HA_JWT="$(< "$token_file")"
