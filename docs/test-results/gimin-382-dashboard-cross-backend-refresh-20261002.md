@@ -3,7 +3,7 @@
 - 관련 이슈: [#382](https://github.com/DocGrid/docgrid/issues/382)
 - 시험 코드 기준: `fix/382`의 프로덕션 커밋 `d751836`, 기본 테스트 커밋 `80488ac`, 두 앱 STOMP 테스트 커밋 `3279ae9`
 - 로컬 판정: Java 선택 회귀 **25/25**, Python 계측 5/5 통과. 두 독립 Spring 앱의 실제 A→B·B→A STOMP 수신도 포함한다.
-- GCP 판정: **미실행**. A/B VM과 공용 Redis는 실행 중임을 읽기 전용으로 확인했으나, 앱 fixture는 종료돼 있고 시험 비밀 복사본도 삭제된 상태다. 보호된 자격증명을 안전하게 다시 공급받기 전에는 실제 A→B 수신을 주장하지 않는다.
+- GCP 판정: **A→B·B→A 실제 STOMP 수신 확인**. A/B 각 25개 구독의 양방향 전달, 실제 ADMIN 회수 응답 전후 수신, 짧은 Redis 재시작 후 수신을 분리된 run으로 측정했다. 아래 수치는 이 시험 조건에서의 관측이며 내구성 있는 메시지 전달이나 모든 장애 경합의 보장을 뜻하지 않는다.
 
 ## 원래 문제와 변경 경계
 
@@ -58,11 +58,27 @@ Redis Pub/Sub 자체는 내구성 있는 큐가 아니다. B 구독이 끊겨 �
 | `fix382-ab-r12` | 로컬/양방향 확장 | A→B와 B→A STOMP 수신·독립 DB 요약 **1/1 통과** | [기록](evidence/issue-382/fix382-ab-r12.md) |
 | `fix382-regression-r13` | 로컬/양방향 시험 포함 첫 종합 회귀 | **25/25 통과**, 실패 0, skip 0 | [기록](evidence/issue-382/fix382-regression-r13.md) |
 | `fix382-regression-r14` | 로컬/초기 수신이 없는 조용한 기준선 추가 후 재실행 | **25/25 통과**, 실패 0, skip 0 | [기록](evidence/issue-382/fix382-regression-r14.md) |
+| `ab382-compile-r1` | GCP/A·B 격리 checkout 컴파일 | 두 VM `compileTestJava` 종료 코드 각각 0 | [기록](evidence/issue-382/gcp-compile-r1.md) |
+| `ab382-harness-r1` | 로컬/회수 계측 분류 추가 | Python 단위 시험 **6/6 통과** | [기록](evidence/issue-382/gcp-harness-r1.md) |
+| `ab382-a2b-r1` | GCP/첫 fixture 준비 | 출력 상위 디렉터리 누락으로 앱·샘플 **0건**; 새 run으로 재시도 | [기록](evidence/issue-382/gcp-a2b-r1.md) |
+| `ab382-a2b-r2` | GCP/A만 발행 | A/B 각 25개 구독, A 1,700건·B **1,275건** 수신; B 합성 발행 0회 | [기록·원본](evidence/issue-382/gcp-a2b-r2/run.md) |
+| `ab382-b2a` | GCP/B만 발행 | A/B 각 25개 구독, A **1,250건**·B 1,700건 수신; A 합성 발행 0회 | [기록·원본](evidence/issue-382/gcp-b2a/run.md) |
+| `ab382-rev-a2b` | GCP/양쪽 구독 중 실제 ADMIN 회수 | HTTP 200 전 A 450건·B 300건; 응답 뒤 추가 수신 양쪽 **0건**, 연결 종료 50건 | [기록·원본](evidence/issue-382/gcp-revocation/run.md) |
+| `ab382-redis-restart` | GCP/짧은 Redis 재시작 | 재시작 이후 A **550건**·B **400건** 추가 수신, Redis `active` | [기록·원본](evidence/issue-382/gcp-redis-restart/run.md) |
 
-로컬 통합 시험은 실제 Redis Pub/Sub에서 독립된 두 연결의 A→B·B→A 전달, 자기 echo 무시, B 구독 중단·재시작 뒤 snapshot 재계산 신호를 확인했다. 한 단계 더 나아가 **서로 다른 Spring context 두 개와 각자의 SimpleBroker, 실제 PostgreSQL·Redis, STOMP 관리자 구독자**로 A와 B 양방향 수신을 확인했다. 반대편이 받은 것은 발행 측 합성 요약이 아니라 자신의 DB 재계산 값이었다. 기존 WebSocket 통합 시험 4건도 통과했다. **두 GCP VM의 JVM에서 실제 B 구독자가 수신했다는 증거는 아직 없다.**
+로컬 통합 시험은 실제 Redis Pub/Sub에서 독립된 두 연결의 A→B·B→A 전달, 자기 echo 무시, B 구독 중단·재시작 뒤 snapshot 재계산 신호를 확인했다. 한 단계 더 나아가 **서로 다른 Spring context 두 개와 각자의 SimpleBroker, 실제 PostgreSQL·Redis, STOMP 관리자 구독자**로 A와 B 양방향 수신을 확인했다. 반대편이 받은 것은 발행 측 합성 요약이 아니라 자신의 DB 재계산 값이었다. 기존 WebSocket 통합 시험 4건도 통과했다. GCP에서는 **별도 두 VM의 JVM**에서 같은 커밋 `9cd1c10b8d1d14fdc70184ee08e974905e5c8880`을 컴파일·실행해 양방향 수신을 다시 확인했다.
 
-## GCP 검증의 남은 조건
+## GCP 실행 환경·판정 범위
 
-기존 시험용 백엔드 A/B·공용 Redis·부하 VM과 OpenSQL 3노드는 모두 `RUNNING`으로 조회됐다. 기존 A/B checkout에는 시험 파일의 미커밋 변경이 있어 보존한다. 자격증명이 안전하게 공급되면 `fix/382`를 별도 checkout에 배치하고 두 앱에서 `DASHBOARD_CROSS_NODE_ENABLED=true`를 설정한다. A만 합성 발행, B는 발행을 끈 상태에서 A/B 각각 25개 구독의 실제 STOMP 프레임을 `--observe-only --count-only`로 센다. B 수신이 0보다 크고, 두 서버의 인증 완료 세션과 primary 인가 경로가 확인돼야 클라우드 완료로 판정한다. Redis 단절·재구독과 역할 회수 중 전송은 별도 run으로 분리하며, 결과가 나오기 전에는 수치나 성공을 예측해 쓰지 않는다.
+| 역할 | 실행 자원 | 실제 시험에서 한 일 |
+| --- | --- | --- |
+| 백엔드 A/B | GCP VM 2대, JVM 2개, 각 독립 SimpleBroker | 동일 앱 커밋, `DASHBOARD_CROSS_NODE_ENABLED=true`; 한쪽만 합성 발행하고 반대쪽은 미발행 |
+| Redis | 별도 GCP VM 1대 | 역할 캐시와 갱신 신호용 공용 Redis; 한 run에서 서비스 재시작 |
+| DB | OpenSQL 3노드 GCP VM 3대, OpenProxy 2개 | 앱의 실제 DB 연결. Flyway는 이번 fixture에서 비활성 |
+| 부하 발생기 | 별도 GCP VM 1대 | 각 백엔드에 직접 25개씩 STOMP 연결, 프레임·HTTP 응답 시각 기록 |
 
-현재 자동 보안 검토가 원격 컨테이너 환경 변수 전체를 읽어 자격증명 위치를 찾는 명령을 거부했다. 이 경로를 우회하지 않는다. 보호된 파일 등 승인된 방식으로 필요한 시험 비밀을 공급받거나, 비밀 없이 가능한 로컬 검증까지만 완료된 것으로 표시한다.
+총 **7대 VM**은 시험 후에도 요청에 따라 `RUNNING`으로 확인했고, Redis 서비스도 `active`였다. A/B의 기존 미커밋 checkout은 건드리지 않고 각각 별도 격리 checkout을 사용했다. DB 원본 자격 증명 파일과 Redis 원본 비밀번호 파일은 보존했다. 시험에만 사용한 A/B 임시 앱·Redis·JWT 파일, 부하 VM의 JWT·시험 사용자 ID 사본은 삭제됐고, 네 run 모두 시험 계정이 각 백엔드에서 2개씩 정리됐으며 fixture 종료 코드 0을 확인했다.
+
+DB 최초 계정 발급 때 만든 root 전용 `0600` 파일에서 **앱 암호 키의 존재만** 출력 없이 확인한 후 암호화된 SSH 파이프로 필요한 값만 전달했다. 공개 로그에는 비밀값과 내부 호스트·IP·프로젝트 ID를 기록하지 않았고 사전·사후 패턴 검사를 통과했다. 원격 컨테이너 환경 변수 전체를 읽는 거부된 경로는 사용하지 않았다.
+
+**한계:** 클라이언트 수신은 실제로 확인했지만 GCP 원본 로그에 모든 SQL의 도착 DB 역할을 개별 기록하지는 않았다. 권한 회수 run의 B 프레임은 실제 DB 요약이어서 발행 시각이 없다. 따라서 응답 후 수신 0건은 해당 관측 창의 결과이지 모든 타이밍에서 `200 이후 새 승인 0건`이라는 증명은 아니다. Redis 재시작도 초 단위로 끝난 짧은 장애여서 긴 단절 중 놓친 Pub/Sub 신호의 재동기화와 정확한 복구 시간은 아직 미측정이다. 이 세 가지는 후속 장애 시험에서 별도 판정해야 한다.
