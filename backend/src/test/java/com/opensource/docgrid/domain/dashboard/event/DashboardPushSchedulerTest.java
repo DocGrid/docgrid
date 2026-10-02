@@ -83,4 +83,46 @@ class DashboardPushSchedulerTest {
             .isInstanceOf(IllegalStateException.class);
         then(dashboardUpdateFlag).should().markDirty();
     }
+
+    @Test
+    @DisplayName("원격 신호만 있으면 자기 구독자에게 push하고 Redis로 재발행하지 않는다")
+    void pushIfDirty_sendsLocallyWithoutRepublishing_whenRemoteDirty() {
+        DashboardSummaryResponse summary = mock(DashboardSummaryResponse.class);
+        given(dashboardUpdateFlag.consumeRemoteIfDirty()).willReturn(true);
+        given(dashboardQueryService.getSummary()).willReturn(summary);
+
+        scheduler.pushIfDirty();
+
+        then(dashboardWebSocketController).should().sendLocalDashboardUpdate(summary);
+        then(dashboardWebSocketController).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("로컬과 원격 신호가 겹치면 한 번 계산하고 로컬 push 경로로 한 번 보낸다")
+    void pushIfDirty_coalescesLocalAndRemoteDirty() {
+        DashboardSummaryResponse summary = mock(DashboardSummaryResponse.class);
+        given(dashboardUpdateFlag.consumeIfDirty()).willReturn(true);
+        given(dashboardUpdateFlag.consumeRemoteIfDirty()).willReturn(true);
+        given(dashboardQueryService.getSummary()).willReturn(summary);
+
+        scheduler.pushIfDirty();
+
+        then(dashboardQueryService).should().getSummary();
+        then(dashboardWebSocketController).should().sendDashboardUpdate(summary);
+        then(dashboardWebSocketController).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("원격 push가 실패하면 원격 신호를 복구하고 다음 주기에 재시도한다")
+    void pushIfDirty_restoresRemoteDirty_whenRemoteSendFails() {
+        DashboardSummaryResponse summary = mock(DashboardSummaryResponse.class);
+        given(dashboardUpdateFlag.consumeRemoteIfDirty()).willReturn(true);
+        given(dashboardQueryService.getSummary()).willReturn(summary);
+        willThrow(new IllegalStateException("primary unavailable"))
+            .given(dashboardWebSocketController).sendLocalDashboardUpdate(summary);
+
+        assertThatThrownBy(scheduler::pushIfDirty)
+            .isInstanceOf(IllegalStateException.class);
+        then(dashboardUpdateFlag).should().markRemoteDirty();
+    }
 }

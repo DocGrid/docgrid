@@ -43,6 +43,16 @@ def backend_for(index: int, clients: int, clients_b: int) -> str:
     return "B" if index >= clients - clients_b else "A"
 
 
+def parse_dashboard_frame(frame: str, count_only: bool) -> tuple[int | None, int | None]:
+    """Validate a dashboard frame without treating a real DB count as a synthetic send clock."""
+    body = json.loads(frame.partition("\n\n")[2])
+    if not isinstance(body, dict) or not isinstance(body.get("documents"), dict):
+        raise ValueError("대시보드 문서 집계가 없습니다.")
+    if count_only:
+        return None, None
+    return int(body["documents"]["total"]), int(body["documents"]["searchable"])
+
+
 def revoke(http_url: str, subscriber_id: str, operator_token: str) -> tuple[int, float]:
     """Issue the real admin API call without logging its URL, ID, token, or body."""
     request = Request(
@@ -92,9 +102,7 @@ async def client(index: int, backend: str, url: str, token: str, ready: asyncio.
                     if not frame.startswith("MESSAGE\n"):
                         continue
                     try:
-                        body = json.loads(frame.partition("\n\n")[2])
-                        sequence = int(body["documents"]["total"])
-                        sent_ms = int(body["documents"]["searchable"])
+                        sequence, sent_ms = parse_dashboard_frame(frame, state["count_only"])
                     except (ValueError, KeyError, TypeError, json.JSONDecodeError):
                         write_event({"이벤트": "프레임_형식_오류", "백엔드": backend, "구독번호": index,
                                      "수신_KST": safe_time(received_ms)})
@@ -103,10 +111,11 @@ async def client(index: int, backend: str, url: str, token: str, ready: asyncio.
                                       classify(sent_ms, received_ms, state.get("http_200_ms")))
                     if classification in ("회수_전", "관측_중"):
                         state["pre_messages_by_backend"][backend] += 1
-                    write_event({"이벤트": "MESSAGE", "백엔드": backend, "구독번호": index,
-                                 "순번": sequence, "발행_KST": safe_time(sent_ms),
-                                 "수신_KST": safe_time(received_ms),
-                                 "구분": classification})
+                    event = {"이벤트": "MESSAGE", "백엔드": backend, "구독번호": index,
+                             "수신_KST": safe_time(received_ms), "구분": classification}
+                    if not state["count_only"]:
+                        event.update({"순번": sequence, "발행_KST": safe_time(sent_ms)})
+                    write_event(event)
     except Exception as error:
         # Exception text can include an internal endpoint. Keep only its type.
         write_event({"이벤트": "연결_종료_또는_오류", "백엔드": backend, "구독번호": index,
@@ -125,6 +134,7 @@ async def run(args: argparse.Namespace) -> dict:
     state = {"ready": 0, "ready_by_backend": {"A": 0, "B": 0},
              "pre_messages_by_backend": {"A": 0, "B": 0},
              "clients": args.clients, "observe_only": args.observe_only,
+             "count_only": args.count_only,
              "stop": asyncio.Event()}
     counts = {}
     output = Path(args.output)
@@ -191,12 +201,16 @@ def main() -> None:
     parser.add_argument("--before-seconds", type=int, default=3)
     parser.add_argument("--after-seconds", type=int, default=8)
     parser.add_argument("--observe-only", action="store_true")
+    parser.add_argument("--count-only", action="store_true",
+                        help="실제 DB 요약 프레임은 수신만 세고 합성 발행 시각으로 해석하지 않습니다.")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     if args.clients < 1 or args.before_seconds < 1 or args.after_seconds < 1:
         parser.error("구독 수와 전후 관측 시간은 1 이상이어야 합니다.")
     if args.clients_b < 0 or args.clients_b > args.clients or (args.clients_b and not args.websocket_url_b):
         parser.error("B 구독 수는 전체 구독 수 이하이며 B 주소가 함께 필요합니다.")
+    if args.count_only and not args.observe_only:
+        parser.error("--count-only는 --observe-only 시험에서만 사용할 수 있습니다.")
     if not args.observe_only and not all((args.http_url, args.operator_token_file, args.subscriber_id_file)):
         parser.error("권한 회수 시험에는 관리자 API·토큰·사용자 ID가 필요합니다.")
     result = asyncio.run(run(args))

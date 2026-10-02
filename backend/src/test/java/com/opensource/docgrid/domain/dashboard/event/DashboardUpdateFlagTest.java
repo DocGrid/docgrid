@@ -43,4 +43,16 @@ class DashboardUpdateFlagTest {
         // When & Then
         assertThat(flag.consumeIfDirty()).isFalse();
     }
+
+    @Test
+    @DisplayName("원격 신호는 burst를 합치고 로컬 변경과 독립적으로 소비된다")
+    void consumeRemoteIfDirty_coalescesWithoutChangingLocalFlag() {
+        DashboardUpdateFlag flag = new DashboardUpdateFlag();
+        flag.markRemoteDirty();
+        flag.markRemoteDirty();
+
+        assertThat(flag.consumeIfDirty()).isFalse();
+        assertThat(flag.consumeRemoteIfDirty()).isTrue();
+        assertThat(flag.consumeRemoteIfDirty()).isFalse();
+    }
 }
