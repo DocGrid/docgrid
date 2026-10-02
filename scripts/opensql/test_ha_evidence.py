@@ -154,6 +154,10 @@ class HaEvidenceTest(unittest.TestCase):
         self.assertEqual(4, EVIDENCE.import_k6(self.directory, source))
         EVIDENCE.append_event(self.directory, "finished")
         EVIDENCE.export(self.directory)
+        (self.directory / "k6-summary.json").write_text(json.dumps({
+            "run_id": run_id, "iterations": 2, "http_requests": 2,
+            "dropped_iterations": 0, "failed_rate": 0,
+        }))
         db_csv = Path(self.temporary.name) / "db.csv"
         db_csv.write_text(f"request_id,row_count\n{run_id}-one,2\n{run_id}-two,1\n")
         command = [sys.executable, str(SCRIPT.with_name("reconcile_ha_probe.py")),
@@ -185,6 +189,10 @@ class HaEvidenceTest(unittest.TestCase):
         EVIDENCE.append_event(self.directory, "acknowledged", request_id=request_id, http_status=201)
         EVIDENCE.append_event(self.directory, "finished")
         EVIDENCE.export(self.directory)
+        (self.directory / "k6-summary.json").write_text(json.dumps({
+            "run_id": run_id, "iterations": 1, "http_requests": 1,
+            "dropped_iterations": 0, "failed_rate": 0,
+        }))
         db_csv = Path(self.temporary.name) / "db-clean.csv"
         db_csv.write_text(f"request_id,row_count\n{request_id},1\n")
         result = subprocess.run([sys.executable, str(SCRIPT.with_name("reconcile_ha_probe.py")),
@@ -194,6 +202,29 @@ class HaEvidenceTest(unittest.TestCase):
         report = json.loads((self.directory / "reconciliation.json").read_text())
         self.assertTrue(report["normal_baseline_pass"])
         self.assertEqual(0, report["acknowledged_missing_count"])
+
+    def test_dropped_iterations_fail_baseline_without_losing_acknowledged_data(self):
+        """Issued writes can be durable while the offered-load schedule fails."""
+        run_id = json.loads((self.directory / "manifest.json").read_text())["run_id"]
+        request_id = f"{run_id}-one"
+        EVIDENCE.append_event(self.directory, "sent", request_id=request_id, operation="ha_probe_write")
+        EVIDENCE.append_event(self.directory, "acknowledged", request_id=request_id, http_status=201)
+        EVIDENCE.append_event(self.directory, "finished")
+        EVIDENCE.export(self.directory)
+        (self.directory / "k6-summary.json").write_text(json.dumps({
+            "run_id": run_id, "iterations": 1, "http_requests": 1,
+            "dropped_iterations": 2, "failed_rate": 0,
+        }))
+        db_csv = Path(self.temporary.name) / "db-dropped.csv"
+        db_csv.write_text(f"request_id,row_count\n{request_id},1\n")
+        result = subprocess.run([sys.executable, str(SCRIPT.with_name("reconcile_ha_probe.py")),
+                                 "--run-dir", str(self.directory), "--db-csv", str(db_csv)],
+                                capture_output=True, text=True)
+        self.assertEqual(2, result.returncode)
+        report = json.loads((self.directory / "reconciliation.json").read_text())
+        self.assertTrue(report["durable_write_pass"])
+        self.assertFalse(report["load_schedule_pass"])
+        self.assertFalse(report["normal_baseline_pass"])
 
 
 if __name__ == "__main__":

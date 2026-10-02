@@ -19,6 +19,12 @@ def reconcile(run_dir: Path, db_csv: Path):
     ledger_summary = verify(run_dir)
     if not ledger_summary["complete"]:
         raise EvidenceError("외부 원장이 종료·검증되지 않았습니다")
+    try:
+        k6_summary = json.loads((run_dir / "k6-summary.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise EvidenceError("k6-summary.json을 읽을 수 없습니다") from error
+    if k6_summary.get("run_id") != manifest["run_id"]:
+        raise EvidenceError("k6 실행 ID가 원장과 다릅니다")
     with (run_dir / "requests.csv").open(newline="", encoding="utf-8") as source:
         client_rows = {row["request_id"]: row for row in csv.DictReader(source)}
     db_counts = {}
@@ -55,7 +61,7 @@ def reconcile(run_dir: Path, db_csv: Path):
         "failed_persisted_count": sum(db_counts.get(row["request_id"], 0) > 0 for row in failed),
         "orphan_db_request_count": sum(request_id not in client_rows for request_id in db_counts),
     }
-    result["normal_baseline_pass"] = (
+    result["durable_write_pass"] = (
         result["acknowledged_missing_count"] == 0
         and result["acknowledged_duplicate_count"] == 0
         and result["db_duplicate_request_count"] == 0
@@ -65,6 +71,13 @@ def reconcile(run_dir: Path, db_csv: Path):
         and result["unknown_persisted_count"] == 0
         and result["failed_persisted_count"] == 0
     )
+    result["load_schedule_pass"] = (
+        k6_summary.get("iterations") == len(client_rows)
+        and k6_summary.get("http_requests") == len(client_rows)
+        and k6_summary.get("dropped_iterations") == 0
+        and k6_summary.get("failed_rate") == 0
+    )
+    result["normal_baseline_pass"] = result["durable_write_pass"] and result["load_schedule_pass"]
     replace_private(run_dir / "reconciliation.json", json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     return result
 
