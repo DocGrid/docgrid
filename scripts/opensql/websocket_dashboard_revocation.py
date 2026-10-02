@@ -40,7 +40,7 @@ def classify(sent_ms: int, received_ms: float, http_200_ms: float | None) -> str
 
 def classify_count_only(received_ms: float, http_200_ms: float | None) -> str:
     """Separate post-response arrivals without claiming when the server authorized them."""
-    if http_200_ms is None:
+    if http_200_ms is None or received_ms < http_200_ms:
         return "회수_전"
     if received_ms <= http_200_ms + 1000:
         return "200_후_1초_이내_수신_발행시각미확인"

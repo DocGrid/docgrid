@@ -33,6 +33,7 @@ class DashboardAbRevocationTest(unittest.TestCase):
 
     def test_count_only_labels_receipt_without_claiming_authorization_time(self):
         self.assertEqual(classify_count_only(900, None), "회수_전")
+        self.assertEqual(classify_count_only(900, 1000), "회수_전")
         self.assertEqual(classify_count_only(1500, 1000),
                          "200_후_1초_이내_수신_발행시각미확인")
         self.assertEqual(classify_count_only(2001, 1000),
