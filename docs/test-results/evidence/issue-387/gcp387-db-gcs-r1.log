@@ -1,0 +1,7 @@
+실행ID=gcp387-db-gcs-r1 목적=성공 PDF 세 건의 DB 파일 기록과 GCS 실제 바이트 대조 위치=GCP OpenSQL primary+GCS API 성공조건=각 해시별 DB 1건+GCS 1건+바이트 SHA-256 일치
+2026-10-02T18:15:52.136+09:00 단계=시작 결과=실행 expected_files=3
+2026-10-02T18:15:58.243+09:00 단계=DB-GCS대조 결과=통과 file_hash_prefix=843428c336d0 db_rows=1 gcs_objects=1 bytes=627 document_status=UPLOADED version_status=UPLOADED
+2026-10-02T18:15:59.638+09:00 단계=DB-GCS대조 결과=통과 file_hash_prefix=9ac6e6cd770c db_rows=1 gcs_objects=1 bytes=626 document_status=UPLOADED version_status=UPLOADED
+2026-10-02T18:16:00.937+09:00 단계=DB-GCS대조 결과=통과 file_hash_prefix=b9eee814187d db_rows=1 gcs_objects=1 bytes=626 document_status=UPLOADED version_status=UPLOADED
+2026-10-02T18:16:00.937+09:00 단계=종료 결과=통과 db_rows=3 gcs_objects=3 hash_matches=3 종료코드=0
+해석=HTTP 다운로드 외에 DB file_objects.storage_provider=GCS를 확인하고, 비공개 object_key로 직접 읽은 GCS 실제 바이트를 재해시함.

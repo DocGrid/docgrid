@@ -1,0 +1,12 @@
+실행ID=gcp387-pdf-a-r3 목적=APP-A 업로드→APP-A/B/LB 다운로드 해시 대조 위치=GCP 내부 시험 VM 성공조건=업로드201+다운로드200x3+해시3개 일치
+2026-10-02T18:13:38.659+09:00 단계=시작 결과=실행 pdf_bytes=626 pdf_sha256=9ac6e6cd770ccbc8c6f8a9db2dd3e8684835514a45307a9f5a8a4c8a83b8f8d2
+2026-10-02T18:13:38.842+09:00 단계=회원가입-LB 결과=통과 http_status=201 elapsed_ms=182.8
+2026-10-02T18:13:39.010+09:00 단계=로그인-LB 결과=통과 http_status=200 elapsed_ms=167.7
+2026-10-02T18:13:39.086+09:00 단계=인증공유-A 결과=통과 http_status=200 elapsed_ms=76.3
+2026-10-02T18:13:39.177+09:00 단계=인증공유-B 결과=통과 http_status=200 elapsed_ms=90.4
+2026-10-02T18:13:39.483+09:00 단계=PDF업로드-A 결과=통과 http_status=201 elapsed_ms=306.3
+2026-10-02T18:13:39.605+09:00 단계=PDF다운로드-A 결과=통과 http_status=200 elapsed_ms=121.8 해시=일치 bytes=626
+2026-10-02T18:13:39.695+09:00 단계=PDF다운로드-B 결과=통과 http_status=200 elapsed_ms=89.6 해시=일치 bytes=626
+2026-10-02T18:13:39.771+09:00 단계=PDF다운로드-LB 결과=통과 http_status=200 elapsed_ms=75.4 해시=일치 bytes=626
+2026-10-02T18:13:39.771+09:00 단계=종료 결과=통과 uploads=1 downloads=3 hash_matches=3 종료코드=0
+정리=시험 계정·문서·GCS 객체는 후속 대조를 위해 유지

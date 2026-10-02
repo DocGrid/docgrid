@@ -1,0 +1,4 @@
+실행ID=gcs-unit-20261002-r2 목적=보고서 단위시험 명령 재확인 위치=로컬 worktree 성공조건=14개 시험 실제 재실행
+2026-10-02 Asia/Seoul 명령=Gradle test --tests GcsStorageServiceTest --tests FileStoragePropertiesTest --tests DocumentUploadServiceTest --offline --no-daemon
+결과=BUILD SUCCESSFUL, 그러나 :test UP-TO-DATE. Gradle 캐시 때문에 테스트는 재실행되지 않음.
+판정=검증 증거에서 제외. --rerun-tasks를 넣은 gcs-unit-20261002-r3으로 재실행함.

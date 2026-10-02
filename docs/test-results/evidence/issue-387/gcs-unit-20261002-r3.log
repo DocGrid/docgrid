@@ -1,0 +1,5 @@
+실행ID=gcs-unit-20261002-r3 목적=GCS·파일 설정·문서 업로드 단위시험 캐시 배제 재실행 위치=로컬 worktree 성공조건=14개 시험 실제 실행·실패 0
+2026-10-02T18:25:21+09:00 명령=Gradle test --tests GcsStorageServiceTest --tests FileStoragePropertiesTest --tests DocumentUploadServiceTest --offline --no-daemon --rerun-tasks
+Gradle 결과=BUILD SUCCESSFUL in 10s, 5 actionable tasks: 5 executed, 종료코드=0
+JUnit XML GcsStorageServiceTest=7/7 통과, FileStoragePropertiesTest=4/4 통과, DocumentUploadServiceTest=3/3 통과
+합계=14건 실행, 0건 건너뜀, 실패=0, 오류=0. 판정=통과.

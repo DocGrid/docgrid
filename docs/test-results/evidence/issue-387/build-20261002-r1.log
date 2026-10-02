@@ -1,0 +1,8 @@
+실행ID=build-20261002-r1 목적=머지 커밋 4ee00fe 배포 JAR 생성 위치=로컬 worktree 명령=./backend/gradlew -p backend bootJar --offline --no-daemon 성공조건=종료코드0+JAR생성
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :resolveMainClassName
+> Task :bootJar
+BUILD SUCCESSFUL in 7s
+빌드 판정=통과 JAR개수=1

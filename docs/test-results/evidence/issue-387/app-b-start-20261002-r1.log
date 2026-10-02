@@ -1,0 +1,5 @@
+실행ID=app-b-start-20261002-r1 목적=APP-B 동일 JAR/설정 앱 기동 위치=GCP APP-B 성공조건=systemd active+readiness 200
+readiness=200 poll=15
+service=active
+readiness_final=200
+SSH 종료코드=0
