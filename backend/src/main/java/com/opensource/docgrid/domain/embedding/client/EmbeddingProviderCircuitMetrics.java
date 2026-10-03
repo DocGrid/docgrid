@@ -9,7 +9,8 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 
 /**
- * Embedding Provider Circuit의 현재 보호 활성 여부와 상태 전환 횟수를 Micrometer에 기록한다.
+ * Embedding Provider Circuit의 현재 보호 활성 여부, 상태 전환과 Probe 결과를 Micrometer에
+ * 기록한다.
  *
  * <p>Circuit 상태 결정은 하지 않고 {@link EmbeddingProviderCircuitBreaker}가 확정한 전이만 반영한다.
  * 상태 label은 고정된 세 값만 사용해 시계열 Cardinality가 입력 데이터에 따라 증가하지 않게 한다.
@@ -18,13 +19,16 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class EmbeddingProviderCircuitMetrics {
 
     private static final String TRANSITIONS = "docgrid.embedding.provider.circuit.transitions";
+    private static final String PROBES = "docgrid.embedding.provider.circuit.probe";
 
     private final AtomicInteger open = new AtomicInteger();
     private final Counter openTransitions;
     private final Counter halfOpenTransitions;
     private final Counter closedTransitions;
+    private final Counter successfulProbes;
+    private final Counter failedProbes;
 
-    /** Circuit Gauge와 상태별 전환 Counter를 애플리케이션 시작 시 한 번 등록한다. */
+    /** Circuit Gauge와 상태 전환·Probe 결과 Counter를 애플리케이션 시작 시 한 번 등록한다. */
     public EmbeddingProviderCircuitMetrics(MeterRegistry meterRegistry) {
         Gauge.builder("docgrid.embedding.provider.circuit.open", open, AtomicInteger::get)
             .description("Whether the Embedding Provider circuit is open or half-open")
@@ -32,6 +36,9 @@ public class EmbeddingProviderCircuitMetrics {
         openTransitions = transitionCounter(meterRegistry, "open");
         halfOpenTransitions = transitionCounter(meterRegistry, "half_open");
         closedTransitions = transitionCounter(meterRegistry, "closed");
+        // Counter를 0에서 미리 등록해 첫 Probe 결과도 Prometheus increase()가 관측할 수 있게 한다.
+        successfulProbes = probeCounter(meterRegistry, "success");
+        failedProbes = probeCounter(meterRegistry, "failed");
     }
 
     /** Circuit OPEN 전이를 기록하고 현재 차단 상태를 게시한다. */
@@ -52,10 +59,27 @@ public class EmbeddingProviderCircuitMetrics {
         closedTransitions.increment();
     }
 
+    /** Half-open Probe가 Provider 회복을 확인한 횟수를 기록한다. */
+    void recordProbeSuccess() {
+        successfulProbes.increment();
+    }
+
+    /** Half-open Probe에서 Retry 가능한 Provider 장애가 재확인된 횟수를 기록한다. */
+    void recordProbeFailure() {
+        failedProbes.increment();
+    }
+
     private Counter transitionCounter(MeterRegistry meterRegistry, String state) {
         return Counter.builder(TRANSITIONS)
             .description("Embedding Provider circuit transitions by destination state")
             .tag("state", state)
+            .register(meterRegistry);
+    }
+
+    private Counter probeCounter(MeterRegistry meterRegistry, String outcome) {
+        return Counter.builder(PROBES)
+            .description("Embedding Provider half-open probe results by outcome")
+            .tag("outcome", outcome)
             .register(meterRegistry);
     }
 }

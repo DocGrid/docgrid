@@ -88,6 +88,8 @@ public class EmbeddingProviderCircuitBreaker {
             return;
         }
         if (permission.halfOpenProbe() && state == CircuitState.HALF_OPEN) {
+            // Circuit 닫힘과 함께 회복을 확인한 Probe 결과를 한 번만 기록한다.
+            metrics.recordProbeSuccess();
             closeCircuit();
             return;
         }
@@ -126,6 +128,8 @@ public class EmbeddingProviderCircuitBreaker {
             return Duration.ZERO;
         }
         if (permission.halfOpenProbe() && state == CircuitState.HALF_OPEN) {
+            // 최초 OPEN과 구분해 장애 지속을 입증하는 Probe 실패를 별도로 기록한다.
+            metrics.recordProbeFailure();
             return openCircuit();
         }
         if (state != CircuitState.CLOSED) {
