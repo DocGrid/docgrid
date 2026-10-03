@@ -40,7 +40,13 @@ export default function () {
   let response;
   try {
     response = http.post(target, JSON.stringify({ runId, requestId }), {
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      // The profile-gated app diagnostic joins sanitized failure logs to this external ledger.
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-Ha-Run-Id': runId,
+        'X-Ha-Request-Id': requestId,
+      },
       timeout: __ENV.HA_TIMEOUT || '10s',
     });
   } catch (_) {

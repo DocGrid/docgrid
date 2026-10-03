@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.opensource.docgrid.domain.failover.dto.request.HaProbeWriteRequest;
 import com.opensource.docgrid.domain.failover.service.command.HaProbeWriteService;
+import com.opensource.docgrid.global.diagnostics.HaProbeDiagnosticContext;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,9 @@ public class HaProbeWriteController {
     @PostMapping
     public ResponseEntity<Void> write(@Valid @RequestBody HaProbeWriteRequest request) {
         // 1. The shared SecurityFilterChain authenticates this non-/test path before invoking us.
-        // 2. The service transaction commits before a 201 response is constructed.
+        // 2. Transaction acquisition happens before the service body, so mark that boundary here.
+        HaProbeDiagnosticContext.phase("TX_BEGIN");
+        // 3. The service transaction commits before a 201 response is constructed.
         service.write(request.runId(), request.requestId());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
