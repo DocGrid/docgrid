@@ -2,6 +2,7 @@
 # Run one GCP-internal k6 experiment with a live, allowlisted per-request log.
 set -euo pipefail
 umask 077
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 run_id="${1:?run ID required}"
 rate="${2:?requests per second required}"
@@ -30,7 +31,7 @@ if [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
   echo '실행 입력 또는 토큰 파일 권한이 잘못되었습니다' >&2
   exit 2
 fi
-if [[ ! -r /home/giminkim/ha_load_telemetry.py ]]; then
+if [[ ! -r "$script_dir/ha_load_telemetry.py" ]]; then
   echo 'VM 계측기가 배치되지 않았습니다' >&2
   exit 2
 fi
@@ -56,9 +57,9 @@ trap cleanup_children EXIT
 set +e
 k6 run --quiet --log-format=raw --console-output="$run_dir/k6-events.jsonl" \
   --out "json=$run_dir/k6-metrics.jsonl" \
-  /home/giminkim/ha_probe_load_389.js >/dev/null 2>/dev/null &
+  "$script_dir/ha_probe_load.js" >/dev/null 2>/dev/null &
 k6_pid=$!
-env -u HA_JWT -u HA_TARGET_URL python3 /home/giminkim/ha_load_telemetry.py sample --pid "$k6_pid" \
+env -u HA_JWT -u HA_TARGET_URL python3 "$script_dir/ha_load_telemetry.py" sample --pid "$k6_pid" \
   --out "$run_dir/host-samples.csv" >/dev/null 2>/dev/null &
 sampler_pid=$!
 wait "$k6_pid"
@@ -72,7 +73,7 @@ set -e
 unset HA_JWT
 # 2. Reject a missing sample or unequal per-second and whole-run counts.
 telemetry_exit=0
-python3 /home/giminkim/ha_load_telemetry.py summarize \
+python3 "$script_dir/ha_load_telemetry.py" summarize \
   --metrics "$run_dir/k6-metrics.jsonl" --host "$run_dir/host-samples.csv" \
   --summary "$run_dir/k6-summary.json" --out "$run_dir/계측-1초.csv" \
   > "$run_dir/계측-요약.json" 2>/dev/null || telemetry_exit=$?
