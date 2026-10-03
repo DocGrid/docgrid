@@ -82,10 +82,11 @@ class OperationalMetricsSnapshotQueryServiceTest {
     }
 
     @Test
-    @DisplayName("미래 backoff를 제외하고 Queue별 수·나이와 유효 Worker를 집계한다")
-    void load_excludesFutureBackoffAndCountsOperationalState() {
+    @DisplayName("즉시 실행과 미래 backoff를 분리하고 Queue별 수·나이와 유효 Worker를 집계한다")
+    void load_separatesFutureBackoffAndCountsOperationalState() {
         insertEmbeddingJob("PENDING", NOW.minusMinutes(1), null);
         insertEmbeddingJob("PENDING", NOW.minusDays(2), NOW.minusMinutes(2));
+        insertEmbeddingJob("PENDING", NOW.minusDays(1), NOW);
         insertEmbeddingJob("PENDING", NOW.minusDays(3), NOW.plusMinutes(5));
         insertEmbeddingJob("PROCESSING", NOW.minusMinutes(3), null);
         insertWorker("fresh-active", "ACTIVE", NOW.minusSeconds(10));
@@ -101,7 +102,8 @@ class OperationalMetricsSnapshotQueryServiceTest {
 
         OperationalMetricsSnapshot snapshot = queryService.load(NOW);
 
-        assertThat(snapshot.embeddingClaimableJobs()).isEqualTo(2);
+        assertThat(snapshot.embeddingClaimableJobs()).isEqualTo(3);
+        assertThat(snapshot.embeddingDelayedRetryJobs()).isEqualTo(1);
         assertThat(snapshot.embeddingProcessingJobs()).isEqualTo(1);
         assertThat(snapshot.embeddingOldestClaimableAt()).isEqualTo(NOW.minusMinutes(2));
         assertThat(snapshot.embeddingActiveWorkers()).isEqualTo(1);
@@ -118,6 +120,7 @@ class OperationalMetricsSnapshotQueryServiceTest {
         OperationalMetricsSnapshot snapshot = queryService.load(NOW);
 
         assertThat(snapshot.embeddingClaimableJobs()).isZero();
+        assertThat(snapshot.embeddingDelayedRetryJobs()).isZero();
         assertThat(snapshot.embeddingProcessingJobs()).isZero();
         assertThat(snapshot.embeddingOldestClaimableAt()).isNull();
         assertThat(snapshot.embeddingActiveWorkers()).isZero();

@@ -37,6 +37,7 @@ import org.springframework.web.client.RestClient;
 import com.opensource.docgrid.domain.document.enums.DocumentVersionStatus;
 import com.opensource.docgrid.domain.embedding.client.EmbeddingClient;
 import com.opensource.docgrid.domain.embedding.client.EmbeddingProviderCircuitBreaker;
+import com.opensource.docgrid.domain.embedding.client.EmbeddingProviderCircuitMetrics;
 import com.opensource.docgrid.domain.embedding.config.EmbeddingProviderCircuitBreakerProperties;
 import com.opensource.docgrid.domain.embedding.dto.request.CreateDocumentEmbeddingsRequest;
 import com.opensource.docgrid.domain.embedding.dto.response.EmbedBatchItemResponse;
@@ -45,6 +46,8 @@ import com.opensource.docgrid.domain.embedding.service.DocumentEmbeddingService;
 import com.opensource.docgrid.domain.embedding.service.DocumentEmbeddingService.EmbeddingResult;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
  * 실제 OpenSQL에서 Chunk Embedding의 Vector 저장, 실패 원자성과 동시 Transaction 수렴을 검증한다.
@@ -365,7 +368,11 @@ class DocumentEmbeddingIntegrationTest {
             EmbeddingProviderCircuitBreakerProperties properties =
                 new EmbeddingProviderCircuitBreakerProperties();
             properties.setEnabled(false);
-            return new EmbeddingProviderCircuitBreaker(properties, Clock.systemUTC());
+            return new EmbeddingProviderCircuitBreaker(
+                properties,
+                Clock.systemUTC(),
+                new EmbeddingProviderCircuitMetrics(new SimpleMeterRegistry())
+            );
         }
 
         @Override

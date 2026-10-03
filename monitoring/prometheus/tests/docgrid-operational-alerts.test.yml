@@ -4,6 +4,34 @@ rule_files:
 evaluation_interval: 15s
 
 tests:
+  - name: embedding provider circuit alerts after one minute and resolves when closed
+    interval: 15s
+    input_series:
+      - series: 'docgrid_embedding_provider_circuit_open{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '1x4 0x3'
+      - series: 'docgrid_embedding_provider_circuit_open{instance="backend-b:8081",environment="production",cluster="docgrid-production"}'
+        values: '0x8'
+    alert_rule_test:
+      - eval_time: 45s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts: []
+      - eval_time: 1m
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingProviderCircuitOpen
+              cluster: docgrid-production
+              dependency: embedding-provider
+              environment: production
+              service: embedding-worker
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding provider circuit remains open
+              description: The Embedding Provider circuit has blocked normal traffic or admitted only a half-open probe for one minute.
+      - eval_time: 1m15s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts: []
+
   - name: claimable embedding work without workers alerts once per cluster
     interval: 15s
     input_series:

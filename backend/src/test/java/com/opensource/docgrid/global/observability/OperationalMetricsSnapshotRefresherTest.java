@@ -38,7 +38,7 @@ class OperationalMetricsSnapshotRefresherTest {
     void refreshesSnapshotAndServesScrapesFromMemory() {
         LocalDateTime observedAt = LocalDateTime.now(CLOCK);
         OperationalMetricsSnapshot snapshot = new OperationalMetricsSnapshot(
-            2, 1, observedAt.minusSeconds(30), 1, 0, null, 0, 0, null
+            2, 3, 1, observedAt.minusSeconds(30), 1, 0, null, 0, 0, null
         );
         given(queryService.load(observedAt)).willReturn(snapshot);
 
@@ -46,7 +46,7 @@ class OperationalMetricsSnapshotRefresherTest {
         reset(queryService);
 
         assertThat(meterRegistry.get("docgrid.embedding.claimable.jobs").gauge().value()).isEqualTo(2.0);
-        assertThat(meterRegistry.get("docgrid.embedding.claimable.jobs").gauge().value()).isEqualTo(2.0);
+        assertThat(meterRegistry.get("docgrid.embedding.delayed.retry.jobs").gauge().value()).isEqualTo(3.0);
         verifyNoInteractions(queryService);
     }
 

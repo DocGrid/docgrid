@@ -2,6 +2,8 @@ package com.opensource.docgrid.global.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Clock;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -13,9 +15,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import com.opensource.docgrid.domain.embedding.client.EmbeddingProviderCircuitMetrics;
+import com.opensource.docgrid.global.observability.OperationalMetrics;
 
 /**
  * 별도 Management 서버의 공개 범위, health group, Prometheus 출력을 실제 HTTP 경계에서 검증한다.
@@ -42,7 +48,11 @@ import org.springframework.http.ResponseEntity;
         "spring.data.redis.timeout=100ms"
     }
 )
-@Import(ManagementEndpointSecurityConfig.class)
+@Import({
+    ManagementEndpointSecurityConfig.class,
+    EmbeddingProviderCircuitMetrics.class,
+    OperationalMetrics.class
+})
 class ManagementEndpointIntegrationTest {
 
     @Autowired
@@ -96,7 +106,10 @@ class ManagementEndpointIntegrationTest {
         assertThat(metrics)
             .contains("jvm_memory_used_bytes")
             .contains("http_server_requests_seconds_count")
-            .contains("hikaricp_connections");
+            .contains("hikaricp_connections")
+            .contains("docgrid_embedding_provider_circuit_open")
+            .contains("docgrid_embedding_provider_circuit_transitions_total")
+            .contains("docgrid_embedding_delayed_retry_jobs");
     }
 
     private ResponseEntity<String> getManagement(String path) {
@@ -109,5 +122,11 @@ class ManagementEndpointIntegrationTest {
     @SpringBootConfiguration
     @EnableAutoConfiguration
     static class TestApplication {
+
+        /** 운영 Metric의 시간 계산 의존성을 외부 인프라 없이 제공한다. */
+        @Bean
+        Clock clock() {
+            return Clock.systemUTC();
+        }
     }
 }
