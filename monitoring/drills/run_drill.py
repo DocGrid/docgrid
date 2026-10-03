@@ -153,6 +153,8 @@ class DrillEnvironment:
         self.project_name = f"docgrid-drill-{scenario.replace('_', '-')}-{os.getpid()}"
         self.compose_env = os.environ.copy()
         self.compose_env["DRILL_TMP_DIR"] = str(self.temp_dir)
+        # Keep the Provider address stable across stop/start so the real Backend can recover in place.
+        self.compose_env["DRILL_EMBEDDING_PORT"] = str(free_port())
         self.backend_processes = []
         self.backend_logs = []
         self.postgres_port = None
@@ -766,7 +768,6 @@ def run_provider_outage(output_dir):
 def run_circuit_recovery(output_dir, jar_path):
     """Drive one real Job through Circuit protection, failed Probe, and successful recovery."""
     environment = DrillEnvironment("circuit-recovery", output_dir)
-    provider_paused = False
     try:
         # 1. Create a real Job while the Provider is healthy, but keep all Workers disabled.
         environment.start_core(include_provider=True)
@@ -802,11 +803,10 @@ def run_circuit_recovery(output_dir, jar_path):
             f"WHERE id={job_id}"
         )
 
-        # 2. Pause the existing container so Backend and Prometheus see an outage without changing its port.
-        print("Pausing the real Embedding Provider container...", flush=True)
-        provider_paused_at = utc_now()
-        environment.compose("pause", "embedding-server", capture=False)
-        provider_paused = True
+        # 2. Stop the existing container so clients fail cleanly while its configured port stays stable.
+        print("Stopping the real Embedding Provider container...", flush=True)
+        provider_stopped_at = utc_now()
+        environment.compose("stop", "embedding-server", capture=False)
         worker = environment.start_backend(
             jar_path,
             "circuit-worker",
@@ -856,25 +856,30 @@ def run_circuit_recovery(output_dir, jar_path):
         delayed_retry_observed_at = utc_now()
 
         # 4. Wait for the real failed Probe and freeze only this Job while the production for-clause matures.
+        def freeze_after_failed_probe():
+            """Atomically move the target Retry beyond the alert window after its failed Probe."""
+            snapshot = circuit_metric_snapshot(worker)
+            if not (
+                snapshot["failedProbes"] >= 1
+                and snapshot["probeFailed"] == 1
+                and snapshot["openTransitions"] >= 2
+            ):
+                return None
+            updated = environment.psql(
+                "UPDATE embedding_jobs "
+                "SET next_retry_at=CURRENT_TIMESTAMP + INTERVAL '10 minutes', "
+                "updated_at=CURRENT_TIMESTAMP "
+                f"WHERE id={job_id} AND status='PENDING' RETURNING id"
+            )
+            return snapshot if str(job_id) in updated.splitlines() else None
+
         failed_probe_snapshot = wait_for(
-            "a failed Half-open Probe and Retry persistence",
-            lambda: (
-                snapshot if (
-                    (snapshot := circuit_metric_snapshot(worker))["failedProbes"] >= 1
-                    and snapshot["probeFailed"] == 1
-                    and snapshot["openTransitions"] >= 2
-                    and environment.psql(
-                        f"SELECT status FROM embedding_jobs WHERE id={job_id}"
-                    ) == "PENDING"
-                ) else None
-            ),
+            "a failed Half-open Probe and atomic Retry freeze",
+            freeze_after_failed_probe,
             120,
+            0.2,
         )
         failed_probe_at = utc_now()
-        environment.psql(
-            "UPDATE embedding_jobs SET next_retry_at=CURRENT_TIMESTAMP + INTERVAL '10 minutes', "
-            f"updated_at=CURRENT_TIMESTAMP WHERE id={job_id} AND status='PENDING'"
-        )
         wait_for(
             "the frozen Job to remain visible as delayed Retry",
             lambda: circuit_metric_snapshot(worker)["delayedRetryJobs"] >= 1,
@@ -931,13 +936,14 @@ def run_circuit_recovery(output_dir, jar_path):
             35,
         )
 
-        # 6. Resume the same Provider, release the frozen Retry, and require a successful Probe closure.
-        print("Unpausing the real Embedding Provider container...", flush=True)
+        # 6. Restart the same Provider, release the frozen Retry, and require a successful Probe closure.
+        print("Restarting the real Embedding Provider container...", flush=True)
         recovery_started_at = utc_now()
-        environment.compose("unpause", "embedding-server", capture=False)
-        provider_paused = False
+        environment.compose("start", "embedding-server", capture=False)
+        if environment.service_port("embedding-server", 8000) != environment.embedding_port:
+            raise AssertionError("Embedding Provider host port changed across stop/start")
         wait_for(
-            "Embedding Provider readiness after unpause",
+            "Embedding Provider readiness after restart",
             lambda: request(
                 f"http://127.0.0.1:{environment.embedding_port}/health/ready",
                 timeout=5,
@@ -1016,7 +1022,7 @@ def run_circuit_recovery(output_dir, jar_path):
         resolved_received_at = datetime.fromisoformat(provider_down_resolved["receivedAt"])
         result = base_result("circuit-recovery")
         result["conditions"] = {
-            "providerFailureMode": "docker-pause",
+            "providerFailureMode": "docker-stop",
             "circuitFailureThreshold": 3,
             "circuitOpenDuration": "30s",
             "retryJitterRatio": 0,
@@ -1031,7 +1037,7 @@ def run_circuit_recovery(output_dir, jar_path):
             "productionGroupInterval": "5m",
         }
         result["timestamps"] = {
-            "providerPausedAt": iso(provider_paused_at),
+            "providerStoppedAt": iso(provider_stopped_at),
             "providerDownConditionAt": iso(provider_down_condition_at),
             "circuitOpenedAt": iso(circuit_opened_at),
             "delayedRetryObservedAt": iso(delayed_retry_observed_at),
@@ -1049,14 +1055,14 @@ def run_circuit_recovery(output_dir, jar_path):
             "providerDownResolvedWebhookAt": iso(resolved_received_at),
         }
         result["measurements"] = {
-            "pauseToProviderDownConditionSeconds": round(
-                (provider_down_condition_at - provider_paused_at).total_seconds(), 3
+            "stopToProviderDownConditionSeconds": round(
+                (provider_down_condition_at - provider_stopped_at).total_seconds(), 3
             ),
-            "pauseToCircuitOpenSeconds": round(
-                (circuit_opened_at - provider_paused_at).total_seconds(), 3
+            "stopToCircuitOpenSeconds": round(
+                (circuit_opened_at - provider_stopped_at).total_seconds(), 3
             ),
-            "pauseToFailedProbeSeconds": round(
-                (failed_probe_at - provider_paused_at).total_seconds(), 3
+            "stopToFailedProbeSeconds": round(
+                (failed_probe_at - provider_stopped_at).total_seconds(), 3
             ),
             "failedProbeToCircuitFiringSeconds": round(
                 (circuit_alert_firing_at - failed_probe_at).total_seconds(), 3
@@ -1091,8 +1097,6 @@ def run_circuit_recovery(output_dir, jar_path):
         }
         return result
     finally:
-        if provider_paused:
-            environment.compose("unpause", "embedding-server", check=False)
         environment.close()
 
 
