@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "fault_events": [
+    {
+      "at": "2026-10-03T14:04:41.406Z",
+      "name": "primary-switchover",
+      "phase": "start"
+    },
+    {
+      "at": "2026-10-03T14:05:32.687Z",
+      "name": "primary-switchover",
+      "phase": "end"
+    }
+  ],
+  "finished_at": "2026-10-03T14:08:50.146Z",
+  "open_faults": [],
+  "outcome_counts": {
+    "ACKNOWLEDGED": 12367,
+    "FAILED": 67,
+    "UNKNOWN": 0
+  },
+  "request_count": 12434,
+  "run_id": "ha405sw003",
+  "schema_version": 1,
+  "started_at": "2026-10-03T14:02:11.578Z"
+}
