@@ -10,6 +10,8 @@ duration="${3:?duration such as 60s required}"
 target="${4:?internal probe URL required}"
 token_file="${5:?token file required}"
 purpose_code="${6:-baseline-write}"
+# Keep prior runs at 40 VUs; an explicit seventh argument isolates preallocation in comparison runs.
+initial_vus="${7:-40}"
 case "$purpose_code" in
   baseline-write) purpose='HA probe 정상 쓰기 기준선' ;;
   proxy-a-fault) purpose='OpenProxy A 지속 장애 중 쓰기' ;;
@@ -27,6 +29,7 @@ if [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
    [[ ! "$rate" =~ ^[0-9]+$ ]] || (( rate < 1 || rate > 500 )) ||
    [[ ! "$duration" =~ ^[0-9]+s$ ]] ||
    [[ ! "$target" =~ ^http://[0-9.]+/api/ha-probe/writes$ ]] ||
+   [[ ! "$initial_vus" =~ ^[0-9]+$ ]] || (( initial_vus < 1 || initial_vus > max_vus )) ||
    [[ ! -f "$token_file" ]] || [[ "$(stat -c '%a' "$token_file")" != 600 ]]; then
   echo '실행 입력 또는 토큰 파일 권한이 잘못되었습니다' >&2
   exit 2
@@ -45,7 +48,7 @@ printf '실행 ID=%s\n위치=GCP 내부 부하 VM\n목적=%s\n시작 UTC=%s\n요
 export HA_RUN_ID="$run_id" HA_RATE="$rate" HA_DURATION="$duration"
 export HA_TARGET_URL="$target" HA_JWT="$(< "$token_file")"
 export HA_SUMMARY_FILE="$run_dir/k6-summary.json"
-export HA_VUS=40 HA_MAX_VUS="$max_vus" HA_TIMEOUT=10s
+export HA_VUS="$initial_vus" HA_MAX_VUS="$max_vus" HA_TIMEOUT=10s
 printf '초기 VU=%s\n설정 최대 VU=%s\n계측 간격=1초\n지표 태그=모두 비활성\n' \
   "$HA_VUS" "$HA_MAX_VUS" >> "$run_dir/실행-기록.txt"
 # 1. Stream tag-free k6 points and numeric /proc samples into this run alone.

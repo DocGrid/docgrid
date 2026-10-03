@@ -41,9 +41,13 @@ def utc_now():
 
 
 def utc_second(value):
-    """Align k6 nanosecond timestamps and host samples, rejecting missing zones."""
-    # 1. Python 3.9 accepts at most six fractional digits; k6 emits nine.
-    normalized = re.sub(r"(\.\d{6})\d+(?=(?:Z|[+-]\d{2}:\d{2})$)", r"\1", value)
+    """Align k6 variable-width fractional timestamps with host UTC samples."""
+    # 1. Python 3.9 needs six fractional digits; k6 emits one to nine.
+    normalized = re.sub(
+        r"\.(\d+)(?=(?:Z|[+-]\d{2}:\d{2})$)",
+        lambda match: "." + (match.group(1) + "000000")[:6],
+        value,
+    )
     # 2. Keep the original offset so the second is joined on UTC, not local time.
     instant = datetime.fromisoformat(normalized.replace("Z", "+00:00"))
     if instant.tzinfo is None:

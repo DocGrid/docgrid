@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-03T17:01:57.087Z",
+  "scenario": "issue-412-planned-switchover-vu-preallocation-comparison",
+  "environment": "GCP internal test-only",
+  "db_nodes": {
+    "running": 3,
+    "leader": 1,
+    "streaming_replicas": 2,
+    "replica_lag_mb": [
+      0,
+      0
+    ],
+    "timeline": 9
+  },
+  "etcd": {
+    "healthy": 3,
+    "members": 3
+  },
+  "app_lb": {
+    "healthy": 2,
+    "backends": 2
+  },
+  "ready_disk_snapshot_coverage": 3,
+  "patroni_dynamic": {
+    "ttl_seconds": 30,
+    "loop_wait_seconds": 10,
+    "maximum_lag_on_failover_bytes": 1048576,
+    "failsafe_mode": true
+  },
+  "versions": {
+    "opensql": "v3.17.8.7",
+    "openproxy": "1.1.3",
+    "patroni": "4.0.5",
+    "etcd": "3.6.5"
+  },
+  "load": {
+    "target_rate_per_second": 70,
+    "switchover_duration_seconds": 180,
+    "initial_vus": 280,
+    "switchover_max_vus": 800,
+    "client_timeout_seconds": 10
+  },
+  "comparison": {
+    "reference_run_id": "ha412sw070a",
+    "changed_load_parameter": "initial_vus",
+    "reference_value": 40,
+    "new_value": 280
+  },
+  "notes": [
+    "The planned handoff direction reverses between runs and is a comparison limitation.",
+    "Current live DB, etcd and LB health were checked before this run; complete cluster restore is not proven."
+  ]
+}

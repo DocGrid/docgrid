@@ -109,6 +109,13 @@ class HaLoadTelemetryTest(unittest.TestCase):
         self.assertEqual("2026-10-03T15:38:26Z", TELEMETRY.utc_second(
             "2026-10-03T17:38:26.066870512+02:00"))
 
+    def test_k6_short_fractional_timestamp_joins_to_utc_second(self):
+        """A real k6 run can emit five digits, which Python 3.9 also rejects."""
+        self.assertEqual("2026-10-03T16:36:57Z", TELEMETRY.utc_second(
+            "2026-10-03T16:36:57.24579Z"))
+        self.assertEqual("2026-10-03T16:36:57Z", TELEMETRY.utc_second(
+            "2026-10-03T18:36:57.2+02:00"))
+
 
 if __name__ == "__main__":
     unittest.main()

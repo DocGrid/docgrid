@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "fault_events": [
+    {
+      "at": "2026-10-03T17:14:28.689Z",
+      "name": "planned-switchover",
+      "phase": "start"
+    },
+    {
+      "at": "2026-10-03T17:15:19.657Z",
+      "name": "planned-switchover",
+      "phase": "end"
+    }
+  ],
+  "finished_at": "2026-10-03T17:22:50.394Z",
+  "open_faults": [],
+  "outcome_counts": {
+    "ACKNOWLEDGED": 12516,
+    "FAILED": 85,
+    "UNKNOWN": 0
+  },
+  "request_count": 12601,
+  "run_id": "ha412sw400c",
+  "schema_version": 1,
+  "started_at": "2026-10-03T17:13:12.440Z"
+}
