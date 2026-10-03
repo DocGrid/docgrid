@@ -13,6 +13,9 @@ case "$purpose_code" in
   baseline-write) purpose='HA probe 정상 쓰기 기준선' ;;
   proxy-a-fault) purpose='OpenProxy A 지속 장애 중 쓰기' ;;
   proxy-b-fault) purpose='OpenProxy B 지속 장애 중 쓰기' ;;
+  primary-switchover) purpose='OpenSQL 계획 역할 이전 중 쓰기' ;;
+  primary-process-fault) purpose='OpenSQL primary PostgreSQL 종료 중 쓰기' ;;
+  primary-vm-fault) purpose='OpenSQL primary VM 상실 중 쓰기' ;;
   *) echo '시험 목적 코드가 잘못되었습니다' >&2; exit 2 ;;
 esac
 if [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
