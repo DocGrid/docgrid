@@ -1,0 +1,205 @@
+Unable to find image 'prom/prometheus:v3.5.5' locally
+v3.5.5: Pulling from prom/prometheus
+a03b0fa940b1: Pulling fs layer
+7a21057f59f5: Pulling fs layer
+905e8aa01b13: Pulling fs layer
+aa2b3c16fb92: Pulling fs layer
+788b085682b4: Pulling fs layer
+66d02544ade1: Pulling fs layer
+55493eaebe55: Pulling fs layer
+b718c71eb0d8: Pulling fs layer
+d7a574078986: Pulling fs layer
+3d49b2164575: Pulling fs layer
+a03b0fa940b1: Download complete
+905e8aa01b13: Download complete
+3d49b2164575: Download complete
+aa2b3c16fb92: Download complete
+55493eaebe55: Download complete
+7a21057f59f5: Download complete
+788b085682b4: Download complete
+d7a574078986: Download complete
+905e8aa01b13: Pull complete
+7a21057f59f5: Pull complete
+66d02544ade1: Download complete
+66d02544ade1: Pull complete
+b718c71eb0d8: Download complete
+a03b0fa940b1: Pull complete
+3d49b2164575: Pull complete
+aa2b3c16fb92: Pull complete
+55493eaebe55: Pull complete
+788b085682b4: Pull complete
+d7a574078986: Pull complete
+b718c71eb0d8: Pull complete
+Digest: sha256:332c2f43e7e389d74d3893b55bb02fbbd684208e681eeb604641d5d769c0fe2a
+Status: Downloaded newer image for prom/prometheus:v3.5.5
+Checking /etc/prometheus/prometheus.yml
+  SUCCESS: 3 rule files found
+ SUCCESS: /etc/prometheus/prometheus.yml is valid prometheus config file syntax
+
+Checking /etc/prometheus/rules/docgrid-backend-alerts.yml
+  SUCCESS: 3 rules found
+
+Checking /etc/prometheus/rules/docgrid-pipeline-alerts.yml
+  SUCCESS: 9 rules found
+
+Checking /etc/prometheus/rules/embedding-provider-alerts.yml
+  SUCCESS: 7 rules found
+
+Checking /etc/prometheus/rules/embedding-provider-alerts.yml
+  SUCCESS: 7 rules found
+
+Checking /etc/prometheus/rules/docgrid-backend-alerts.yml
+  SUCCESS: 3 rules found
+
+Checking /etc/prometheus/rules/docgrid-pipeline-alerts.yml
+  SUCCESS: 9 rules found
+
+  SUCCESS
+
+  SUCCESS
+
+  SUCCESS
+
+Checking /test/rules-firing.yml
+  SUCCESS: 3 rules found
+
+Checking /test/rules-resolved.yml
+  SUCCESS: 3 rules found
+
+Unable to find image 'quay.io/prometheus/alertmanager:v0.33.1' locally
+v0.33.1: Pulling from prometheus/alertmanager
+4f4fb700ef54: Pulling fs layer
+bc568a425d6c: Pulling fs layer
+b206c4e2f56d: Pulling fs layer
+91b78d9e43f9: Pulling fs layer
+b90af14651b3: Pulling fs layer
+4f4fb700ef54: Already exists
+b90af14651b3: Download complete
+91b78d9e43f9: Download complete
+bc568a425d6c: Download complete
+bc568a425d6c: Pull complete
+b206c4e2f56d: Download complete
+4f4fb700ef54: Pull complete
+b90af14651b3: Pull complete
+91b78d9e43f9: Pull complete
+b206c4e2f56d: Pull complete
+Digest: sha256:9e082985f56f4c8c9f724e18f2288c6708f472e56a5286b8863d080434ea065d
+Status: Downloaded newer image for quay.io/prometheus/alertmanager:v0.33.1
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 1 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+ webhook-receiver Pulling 
+ 6db16a24faac Pulling fs layer 
+ 4617d3b35936 Pulling fs layer 
+ 02bd2e91174a Pulling fs layer 
+ 02bd2e91174a Downloading [==================================================>]  419.1kB/419.1kB
+ 02bd2e91174a Download complete 
+ 02bd2e91174a Pull complete 
+ 6db16a24faac Download complete 
+ 4617d3b35936 Downloading [======>                                            ]  2.097MB/15.65MB
+ 4617d3b35936 Downloading [==========================>                        ]  8.389MB/15.65MB
+ 4617d3b35936 Downloading [===========================================>       ]  13.63MB/15.65MB
+ 4617d3b35936 Download complete 
+ 4617d3b35936 Extracting 1 s
+ 4617d3b35936 Extracting 1 s
+ 4617d3b35936 Extracting 1 s
+ 4617d3b35936 Extracting 1 s
+ 6db16a24faac Pull complete 
+ 4617d3b35936 Pull complete 
+ webhook-receiver Pulled 
+ Network docgrid-alertmanager-e2e-431_default  Creating
+ Network docgrid-alertmanager-e2e-431_default  Created
+ Container docgrid-alertmanager-e2e-431-webhook-receiver-1  Creating
+ Container docgrid-alertmanager-e2e-431-webhook-receiver-1  Created
+ Container docgrid-alertmanager-e2e-431-alertmanager-1  Creating
+ Container docgrid-alertmanager-e2e-431-alertmanager-1  Created
+ Container docgrid-alertmanager-e2e-431-prometheus-1  Creating
+ Container docgrid-alertmanager-e2e-431-prometheus-1  Created
+ Container docgrid-alertmanager-e2e-431-webhook-receiver-1  Starting
+ Container docgrid-alertmanager-e2e-431-webhook-receiver-1  Started
+ Container docgrid-alertmanager-e2e-431-webhook-receiver-1  Waiting
+ Container docgrid-alertmanager-e2e-431-webhook-receiver-1  Healthy
+ Container docgrid-alertmanager-e2e-431-alertmanager-1  Starting
+ Container docgrid-alertmanager-e2e-431-alertmanager-1  Started
+ Container docgrid-alertmanager-e2e-431-alertmanager-1  Waiting
+ Container docgrid-alertmanager-e2e-431-alertmanager-1  Healthy
+ Container docgrid-alertmanager-e2e-431-prometheus-1  Starting
+ Container docgrid-alertmanager-e2e-431-prometheus-1  Started
+ Container docgrid-alertmanager-e2e-431-webhook-receiver-1  Waiting
+ Container docgrid-alertmanager-e2e-431-alertmanager-1  Waiting
+ Container docgrid-alertmanager-e2e-431-prometheus-1  Waiting
+ Container docgrid-alertmanager-e2e-431-alertmanager-1  Healthy
+ Container docgrid-alertmanager-e2e-431-webhook-receiver-1  Healthy
+ Container docgrid-alertmanager-e2e-431-prometheus-1  Healthy
+Alertmanager routing E2E: SUCCESS (firing 2s, resolved 2s)
+Monitoring configuration validation: SUCCESS
+verify exit=0
