@@ -15,7 +15,7 @@ Job이 누적돼도 `claimable_jobs=0`으로 보일 수 있다.
 - JVM별 Circuit 보호 활성 상태와 상태 전환·Half-open Probe 결과를 Micrometer로 노출한다.
 - 즉시 Claim 가능한 Job과 미래 재시도 Job을 같은 관측 시각에서 분리 집계한다.
 - Half-open Probe 실패로 Provider 장애 지속이 확인된 뒤 Circuit이 1분간 닫히지 않으면
-  Prometheus가 Cluster별 경보를 한 건 생성한다.
+  Prometheus가 Cluster별 경보를 한 건 생성하고, 새로운 실패 증거가 없으면 유한 시간 안에 해제한다.
 
 ### 비목표
 
@@ -42,9 +42,10 @@ Gauge가 HALF_OPEN에서도 `1`을 유지하는 이유는 Probe 성공 전까지
 Probe 시작 순간 Gauge를 `0`으로 바꾸면 Provider가 계속 실패하더라도 Prometheus의 `for: 1m` 시간이
 초기화될 수 있다. 실제 상태 전이는 Counter로 별도 확인한다.
 
-`probe_failed` Gauge는 실패 Probe에서 `1`이 되고 성공 Probe에서 `0`이 된다. 최근 시간 창의
-`increase(probe_total{outcome="failed"})`를 경보에 직접 쓰지 않는다. 그 방식은 이전 Circuit 주기의
-실패가 시간 창에 남은 동안 새로운 최초 OPEN을 장애 지속으로 잘못 판정할 수 있다.
+`probe_failed` Gauge는 실패 Probe에서 `1`이 되고 성공 Probe에서 `0`이 된다. 경보는 이 Gauge와
+최근 6분의 `increase(probe_total{outcome="failed"})`를 함께 사용한다. Gauge가 현재 보호 주기를
+구분하므로 이전 Circuit 주기의 실패가 새로운 최초 OPEN에 섞이지 않고, Counter 시간 창이 트래픽
+중단 뒤 오래된 실패 증거를 무기한 유지하지 않게 한다.
 
 ## 4. 수집 흐름
 
@@ -74,21 +75,37 @@ Circuit 전이와 Metric 갱신은 같은 `synchronized` 경계에서 수행한�
 
 ## 5. 경보
 
-`DocGridEmbeddingProviderCircuitOpen`은 같은 Backend JVM에서 Circuit 보호가 활성화돼 있고
-Half-open Probe 실패가 확인된 경우에만 Pending을 시작한다. 최초 OPEN 후 트래픽이 없어
-Probe가 실행되지 않은 JVM은 Provider 장애 지속의 증거가 없으므로 경보하지 않는다. 실패
-Probe 후에도 Circuit이 1분간 닫히지 않을 때 경보한다.
+`DocGridEmbeddingProviderCircuitOpen`은 같은 Backend JVM에서 Circuit 보호가 활성화돼 있고,
+현재 보호 주기의 Half-open Probe 실패가 확인됐으며, 최근 6분 안에 실제 실패 Counter 증가가 있는
+경우에만 Pending을 시작한다. 최초 OPEN 후 트래픽이 없어 Probe가 실행되지 않은 JVM은 Provider 장애
+지속의 증거가 없으므로 경보하지 않는다. 이 조건이 1분간 유지될 때 경보한다.
 
 ```promql
 max by (cluster, environment) (
-  (docgrid_embedding_provider_circuit_open == 1)
+  (
+    (docgrid_embedding_provider_circuit_open == 1)
+    and on (instance, cluster, environment)
+    (docgrid_embedding_provider_circuit_probe_failed == 1)
+  )
   and on (instance, cluster, environment)
-  (docgrid_embedding_provider_circuit_probe_failed == 1)
+  (
+    increase(docgrid_embedding_provider_circuit_probe_total{
+      outcome="failed"
+    }[6m]) > 0
+  )
 ) == 1
 ```
 
-Gauge 두 개는 `instance`, `cluster`, `environment`로 일치시켜 다른 JVM의 OPEN과 Probe 실패가
+세 시계열은 `instance`, `cluster`, `environment`로 일치시켜 다른 JVM의 OPEN·Probe 실패·Counter가
 결합되지 않게 한다. 여러 Backend가 독립 Circuit을 가지므로 `sum`으로 인스턴스 수를 세지 않는다.
+
+6분 시간 창은 기본 `INDEXING_WORKER_RETRY_MAX_DELAY=5m`보다 길다. Worker만 Embedding 호출을
+만드는 환경에서도 약 5분 간격의 다음 Probe 실패를 놓치지 않으면서, 단일 실패 뒤 호출이 끊긴 JVM의
+경보는 무기한 유지하지 않는다. 운영에서 Retry 최대 지연을 5분보다 늘리면 이 시간 창도 그보다 길게
+조정해야 한다. 트래픽이 끊긴 상태에서 6분 뒤 경보가 해제되는 것은 Provider 회복을 확인했다는 뜻이
+아니라 최근 실패 증거가 만료됐다는 뜻이다. 성공 Probe가 발생하면 두 Gauge가 즉시 0이 되어 시간 창을
+기다리지 않고 해제된다.
+
 delayed retry Gauge는 정상 재시도 중에도 증가할 수 있어 이번 범위에서는 단독 경보 조건으로 사용하지
 않는다.
 
@@ -100,4 +117,5 @@ delayed retry Gauge는 정상 재시도 중에도 증가할 수 있어 이번 �
 - Probe 실패 시 `outcome=failed` Counter와 `state=open` Counter 재증가, 두 Gauge `1` 유지
 - 같은 관측 시각의 즉시 실행 Job 3건과 미래 재시도 Job 1건 분리 집계. 경계와 같은 시각은 즉시 실행에 포함
 - Prometheus rule test에서 최초 OPEN은 무경보, Probe 실패 1분 후 발생, CLOSED 전환 시 즉시 해제
+- 단일 실패 뒤 호출이 끊기면 최근 실패 시간 창 만료 후 해제
 - 5분 간격으로 Probe가 계속 실패해도 경보 유지, 이전 보호 주기의 Probe 실패는 새 OPEN에 미전파

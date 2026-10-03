@@ -79,7 +79,7 @@ HTTP 오류율에서는 Streamable HTTP 특성이 다른 `/mcp`를 제외한다.
 | 경보 | 조건 | 지속 시간 |
 |---|---|---:|
 | `DocGridEmbeddingRetryableFailureRatioHigh` | 10분간 10회 이상 실행되고 retryable 실패가 10% 초과 | 5분 |
-| `DocGridEmbeddingProviderCircuitOpen` | Half-open Probe 실패 후 Circuit이 닫히지 않음 | 1분 |
+| `DocGridEmbeddingProviderCircuitOpen` | 최근 6분 내 Half-open Probe 실패 후 Circuit이 닫히지 않음 | 1분 |
 | `DocGridRagProviderFallbackSpike` | 10분간 provider fallback 3회 이상 | 1분 |
 | `DocGridRagTimeoutSweepSpike` | 10분간 timeout 강제 종료 3회 이상 | 1분 |
 | `DocGridSyncOutboxTerminalFailure` | 15분간 새로운 최종 실패 1회 이상 | 즉시 |
@@ -126,7 +126,13 @@ OPEN과 단일 Probe만 허용하는 HALF_OPEN에서 `1`이고, Probe 성공으�
 `docgrid_embedding_provider_circuit_transitions_total{state}`는 `open`, `half_open`, `closed` 전환 횟수를
 제한된 label로 제공한다. Probe 결과 Counter와 실패 Gauge는 최초 OPEN 이후 실제 회복 Probe가
 실패한 경우만 구분한다. 트래픽이 없어 Probe가 실행되지 않으면 Circuit 경보는 발생하지 않고,
-성공 Probe가 Circuit을 닫으면 경보 조건이 즉시 해제된다.
+성공 Probe가 Circuit을 닫으면 경보 조건이 즉시 해제된다. Probe 실패 뒤 트래픽이 끊기면 성공 여부를
+확인할 수 없으므로, 최근 실패 Counter 증가가 6분 시간 창에서 빠질 때 경보를 해제한다. 이 해제는
+Provider 회복 확인이 아니라 오래된 실패 증거의 만료를 의미한다.
+
+6분 시간 창은 기본 `INDEXING_WORKER_RETRY_MAX_DELAY=5m`보다 길어, Worker의 Probe가 최대 재시도
+간격으로 반복돼도 지속 장애 경보가 끊기지 않게 한다. 이 환경 변수를 5분보다 늘리면
+`DocGridEmbeddingProviderCircuitOpen` 규칙의 Counter 시간 창도 더 긴 값으로 함께 조정해야 한다.
 
 여러 Backend가 같은 DB를 수집하면 동일 Gauge가 인스턴스 수만큼 노출된다. 번들 규칙은 이 값을
 합산하지 않고 `max by (cluster, environment)`로 평가해 backlog를 중복 계산하지 않는다. 갱신 실패는
