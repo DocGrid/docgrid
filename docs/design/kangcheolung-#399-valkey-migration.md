@@ -214,6 +214,7 @@ Valkey는 Redis 7.2.4에서 갈라져 나온 포크로 같은 Redis 프로토콜
 | drill compose의 `valkey` 단독 기동 | healthy, `docker compose port valkey 6379`로 동적 포트 조회 성공 (`run_drill.py`가 쓰는 방식) |
 | 이미지 확인 | Docker Hub에 `valkey/valkey:9.1-alpine` 태그 존재(마지막 갱신 2026-09-21), `valkey-server --version` = 9.1.2, 이미지에 `valkey-cli`와 호환용 `redis-cli`가 모두 포함(healthcheck·스크립트는 `valkey-cli` 사용) |
 | `INFO server` 응답 | `redis_version:7.2.4`(호환용), `valkey_version:9.1.2`, `server_name:valkey` |
+| 로그아웃 차단 키 등록·조회 (실제 PostgreSQL·Valkey) | `AuthLogoutIntegrationTest`(`로그아웃 PostgreSQL·Redis 통합 테스트`) 통과. 로그인한 토큰은 로그아웃 전 `isBlacklisted=false`, `AuthCommandService.logout()` 뒤 `true`로 Valkey에 `auth:blacklist:<jti>`가 저장·조회된다. 전체 테스트 결과표에 포함되어 있다. 서비스 계층에서 확인한 것이며, 앱을 직접 띄워 HTTP로 호출하는 수동 확인은 하지 않았다 |
 | `docker compose config -q` (루트·drill) | 통과 |
 | `bash -n scripts/local-services.sh`, `py_compile run_drill.py` | 통과 |
 | `./monitoring/verify.sh --e2e` (CI와 동일) | 통과 (`Monitoring configuration validation: SUCCESS`, Alertmanager routing E2E 성공) |
@@ -239,19 +240,48 @@ Valkey는 Redis 7.2.4에서 갈라져 나온 포크로 같은 Redis 프로토콜
 | 8/27 제출 SBOM | Redis 항목의 표기·버전·라이선스가 실제(7.4.x, RSALv2/SSPLv1)와 다르게 적혀 있다면 정정본을 레포에 올린다 | SBOM 제출 담당 |
 | 운영규정 원문 | 평가 기준이 정말 OSI 승인인지, 이름에 Redis가 들어간 구성요소(클라이언트 라이브러리, 환경변수)가 문제가 되지 않는지 확인한다. 불확실하면 운영사무국에 문의한다 | 팀 |
 | 서비스명 변경 공지 | `docker compose up -d redis`를 쓰던 팀원은 `valkey`로 바꿔야 한다 | 팀 전체 |
+| 공용·운영 성격 서버 교체·롤백 시 로그아웃 차단 키 | 서버나 볼륨을 바꾸면 `auth:blacklist:*` 키가 넘어가지 않는다. 아래 "서버 교체·롤백 시 로그아웃 차단 키" 참고 | 인프라 담당 팀원 |
+
+---
+
+## 서버 교체·롤백 시 로그아웃 차단 키(`auth:blacklist:*`)
+
+서버나 볼륨을 바꾸면 이 키가 새 서버로 넘어가지 않는다는 점을 알고 진행해야 한다.
+
+- 로그아웃하면 `AuthCommandService.logout()`이 토큰의 `jti`를 `auth:blacklist:<jti>` 키로 저장한다. 키의 TTL은 토큰의 **남은 만료 시간**이다.
+- 인증 필터는 이 키가 있으면 토큰을 거부하고, **없으면 허용**한다. 그래서 키가 사라지면 로그아웃한 토큰이 만료되기 전까지 HTTP·STOMP 인증을 다시 통과할 수 있다.
+- 같은 서버 안의 역할 캐시는 키가 사라져도 DB에서 다시 채워지지만, **차단 키는 어디에서도 복구되지 않는다.**
+- 영향 범위는 교체 시점 직전 `JWT_EXPIRATION`(기본 3600초) 안에 로그아웃한 토큰뿐이다. 그 시간이 지나면 토큰 자체가 만료되어 위험이 사라진다.
+- 롤백도 대칭이다. Valkey를 쓰는 동안 생긴 차단 키는 Redis로 자동 이전되지 않는다.
+
+| 환경 | 영향 | 대응 |
+|---|---|---|
+| 로컬 개발 | 미미함. 개발 PC의 로그아웃 토큰은 보안 경계가 아니다 | 별도 조치 불필요 |
+| GCP A/B 공용 서버 등 공용·운영 성격 환경 | 교체·롤백 직전 만료 시간 안에 로그아웃한 토큰이 다시 유효해질 수 있다 | 아래 셋 중 하나 |
+
+공용·운영 성격 환경의 대응 (하나를 선택):
+1. 마지막 로그아웃으로부터 토큰 만료 시간(기본 1시간)이 지난 뒤에 교체·롤백한다.
+2. 차단 키를 남은 TTL과 함께 새 서버로 옮긴다. 이전 중에 생기는 로그아웃은 놓치지 않도록 쓰기를 막은 상태에서 옮기고, 롤백 때는 교체 이후에 생긴 키도 되돌려야 한다.
+3. JWT 서명 키(`JWT_SECRET`)를 교체해 기존 토큰을 모두 무효화한다. 모든 사용자가 다시 로그인해야 한다.
 
 ---
 
 ## 팀원 로컬 전환 방법
 
+기존 `docgrid-redis` 컨테이너가 6379 포트를 잡고 있으면 새 `valkey`가 뜨지 못하므로, **기존 컨테이너를 먼저 제거**한 뒤 시작한다.
+
 ```bash
-# 이전 redis 서비스를 대체합니다
+# 1) 기존 Redis 컨테이너 제거 (없으면 무시)
+docker rm -f docgrid-redis
+
+# 2) Valkey 시작 (이전 redis 서비스를 대체합니다)
 docker compose up -d --wait valkey
 
-# 선택: 더 이상 쓰지 않는 기존 컨테이너·볼륨 정리 (블랙리스트·역할 캐시만 있어 지워도 됩니다)
-docker rm docgrid-redis
+# 3) 선택: 더 이상 쓰지 않는 기존 볼륨 정리 (이름은 `docker volume ls | grep redis-data`로 확인)
 docker volume rm docgrid_redis-data
 ```
+
+볼륨을 지우면 그 안의 로그아웃 차단 키도 사라지지만, 로컬 개발 환경에서는 영향이 미미하다(위 표 참고).
 
 6379 포트를 Homebrew `redis-server`가 쓰고 있다면 먼저 `brew services stop redis`로 멈추거나 `REDIS_PORT`를 다른 값으로 지정합니다.
 
@@ -284,4 +314,7 @@ docker exec docgrid-valkey valkey-cli INFO commandstats
 
 ## 롤백
 
-이미지 태그와 이름을 되돌리면 된다(`git revert`). Valkey 볼륨(`valkey-data`)과 기존 Redis 볼륨(`redis-data`)에는 로그아웃 토큰 블랙리스트와 역할 캐시만 있어 데이터 손실 영향이 없다. 두 값 모두 만료되거나 DB에서 다시 채워진다.
+이미지 태그와 이름을 되돌리면 된다(`git revert`). 두 볼륨(`valkey-data`, `redis-data`)에는 로그아웃 차단 키와 역할 캐시뿐이다.
+
+- **역할 캐시**: 사라져도 DB에서 다시 채워지므로 영향이 없다.
+- **로그아웃 차단 키**: Valkey 볼륨의 데이터는 기존 Redis 볼륨으로 자동 이전되지 않고, 복구 수단도 없다. 롤백하면 Valkey를 쓰는 동안 생긴 차단 키가 Redis에 없어, 롤백 직전 토큰 만료 시간(기본 3600초) 안에 로그아웃한 토큰이 다시 유효해질 수 있다. 로컬 개발 환경에서는 영향이 미미하고, 공용·운영 성격 환경에서는 위 "서버 교체·롤백 시 로그아웃 차단 키"의 대응을 따른다.

@@ -1,11 +1,22 @@
+"""Gradle 테스트 결과 XML을 클래스별로 집계한다.
+
+사용법: python3 summarize.py <build/test-results/test 디렉터리>
+"""
 import glob
 import sys
 import xml.etree.ElementTree as ET
 
-directory = sys.argv[1] if len(sys.argv) > 1 else "/Users/kangcheolung/cotato/docgrid/backend/build/test-results/test"
+if len(sys.argv) != 2:
+    sys.exit("사용법: python3 summarize.py <build/test-results/test 디렉터리>")
+
+directory = sys.argv[1]
+paths = sorted(glob.glob(directory + "/*.xml"))
+if not paths:
+    sys.exit(f"테스트 결과 XML이 없습니다: {directory}")
+
 totals = [0, 0, 0, 0]
 rows = []
-for path in sorted(glob.glob(directory + "/*.xml")):
+for path in paths:
     root = ET.parse(path).getroot()
     counts = [int(root.get(key, 0)) for key in ("tests", "failures", "errors", "skipped")]
     totals = [a + b for a, b in zip(totals, counts)]
