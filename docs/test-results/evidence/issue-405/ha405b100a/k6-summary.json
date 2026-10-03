@@ -1,0 +1,12 @@
+{
+  "run_id": "ha405b100a",
+  "iterations": 6001,
+  "http_requests": 6001,
+  "dropped_iterations": 0,
+  "failed_rate": 0,
+  "duration_ms": {
+    "p50": 11.799401,
+    "p95": 52.944816,
+    "p99": 55.581986
+  }
+}

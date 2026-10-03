@@ -15,6 +15,8 @@ if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$/.test(runId || '') || !target || !token 
 
 export const options = {
   discardResponseBodies: true,
+  // 1. Do not emit URL, error text or other infrastructure identifiers as metric tags.
+  systemTags: [],
   summaryTrendStats: ['med', 'p(95)', 'p(99)'],
   scenarios: {
     writes: {
@@ -39,7 +41,7 @@ export default function () {
   try {
     response = http.post(target, JSON.stringify({ runId, requestId }), {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      timeout: __ENV.HA_TIMEOUT || '10s', tags: { name: 'ha_probe_write' },
+      timeout: __ENV.HA_TIMEOUT || '10s',
     });
   } catch (_) {
     event(requestId, 'unknown', { reason: 'other' });
