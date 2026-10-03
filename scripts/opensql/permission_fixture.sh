@@ -48,10 +48,14 @@ emails="('ha-${run_id}-admin@invalid.example', 'ha-${run_id}-m@invalid.example',
 case "$action" in
   role)
     # Report only the local database role; the cluster runner refuses multiple primaries.
-    if [[ "$(query 'SELECT pg_is_in_recovery()')" == 'f' ]]; then
+    local_role="$(query 'SELECT pg_is_in_recovery()')" || exit 1
+    if [[ "$local_role" == 'f' ]]; then
       echo primary
-    else
+    elif [[ "$local_role" == 't' ]]; then
       echo replica
+    else
+      echo 'Local database role is unknown.' >&2
+      exit 1
     fi
     ;;
   stale-count)
@@ -120,9 +124,14 @@ case "$action" in
     echo 'fixture-cancelled'
     ;;
   guard-status)
+    # A failed DB query is not an empty fixture; fail instead of reporting a partial status.
+    fixture_count="$(query "SELECT count(*) FROM users WHERE email IN $emails")" || exit 1
+    if [[ ! "$fixture_count" =~ ^[0-9]+$ ]]; then
+      echo 'Fixture count is invalid.' >&2
+      exit 1
+    fi
     if timer_pending; then armed=true; else armed=false; fi
-    printf 'armed=%s fixture_count=%s\n' "$armed" \
-      "$(query "SELECT count(*) FROM users WHERE email IN $emails")"
+    printf 'armed=%s fixture_count=%s\n' "$armed" "$fixture_count"
     ;;
   *)
     echo 'Unknown fixture action.' >&2
