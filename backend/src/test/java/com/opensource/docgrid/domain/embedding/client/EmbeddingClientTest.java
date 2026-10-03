@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.List;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,7 @@ class EmbeddingClientTest {
 
         assertThat(result).containsExactly(vector);
         verify(queryRestClient).post();
+        verify(requestBodyUriSpec).contentType(MediaType.APPLICATION_JSON);
         verify(documentRestClient, never()).post();
         verify(circuitBreaker).recordSuccess(permission);
     }
@@ -247,6 +249,7 @@ class EmbeddingClientTest {
             .extracting(EmbedBatchItemResponse::index)
             .containsExactly(0, 1);
         verify(documentRestClient).post();
+        verify(requestBodyUriSpec).contentType(MediaType.APPLICATION_JSON);
         verify(queryRestClient, never()).post();
     }
 
