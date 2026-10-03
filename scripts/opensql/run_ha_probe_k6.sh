@@ -24,7 +24,9 @@ esac
 # A leader handoff can hold many requests until the 10 s client timeout.
 # Raising this budget may reduce drops; each run still checks dropped_iterations.
 max_vus=160
-if [[ "$purpose_code" == primary-switchover ]]; then max_vus=800; fi
+if [[ "$purpose_code" == primary-switchover ||
+      "$purpose_code" == primary-process-fault ||
+      "$purpose_code" == primary-vm-fault ]]; then max_vus=800; fi
 if [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
    [[ ! "$rate" =~ ^[0-9]+$ ]] || (( rate < 1 || rate > 500 )) ||
    [[ ! "$duration" =~ ^[0-9]+s$ ]] ||
