@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CyclicBarrier;
@@ -38,13 +39,15 @@ import com.opensource.docgrid.domain.embedding.service.command.DocumentIndexingC
 import com.opensource.docgrid.domain.embedding.service.command.DocumentIndexingFailureService;
 import com.opensource.docgrid.domain.search.dto.VectorSearchCandidate;
 import com.opensource.docgrid.domain.search.service.query.VectorSearchQueryService;
+import com.opensource.docgrid.domain.worker.config.IndexingWorkerProperties;
 import com.opensource.docgrid.global.exception.DocGridException;
 
 /**
  * 실제 PostgreSQL에서 인덱싱 실패의 예약 Queue, 최종 검색 상태, 멱등성과 완료 경쟁을 검증한다.
  *
  * <p>격리 Schema에 각 실행 상태를 직접 구성한 뒤 실제 Service Transaction과 PostgreSQL 행 잠금을
- * 사용해 Retry 또는 최종 실패가 부분 상태 없이 원자 커밋되는지 확인한다.
+ * 사용해 Retry 또는 최종 실패가 부분 상태 없이 원자 커밋되는지 확인한다. 여러 Job의 Provider
+ * 경계 Retry는 실제 저장된 예약 시각에서 지연 분포를 확인한다.
  */
 @Tag("integration")
 @ActiveProfiles("test")
@@ -68,6 +71,7 @@ class DocumentIndexingFailureIntegrationTest {
     @Autowired private DocumentIndexingFailureService failureService;
     @Autowired private DocumentIndexingCompletionService completionService;
     @Autowired private VectorSearchQueryService vectorSearchQueryService;
+    @Autowired private IndexingWorkerProperties workerProperties;
 
     @DynamicPropertySource
     static void configureDatabase(DynamicPropertyRegistry registry) {
@@ -161,6 +165,86 @@ class DocumentIndexingFailureIntegrationTest {
             "SELECT COUNT(*) FROM embedding_job_attempts WHERE embedding_job_id = ?",
             context.jobId()
         )).isOne();
+    }
+
+    @Test
+    @DisplayName("Provider 상한 직전 하한을 받은 여러 Job의 저장 지연을 1초 구간에 분산한다")
+    void overloadedJobs_distributePersistedRetryDelaysAcrossPollingWindows() {
+        Duration minimumRetryDelay = Duration.ofMillis(11_950);
+        double originalJitterRatio = workerProperties.getRetryJitterRatio();
+        List<Duration> storedDelays = new ArrayList<>();
+        workerProperties.setRetryJitterRatio(0.2);
+
+        try {
+            // 1. 동일한 Provider 하한으로 40개 Job을 실제 실패 처리하고 DB 예약 시각을 읽는다.
+            for (int index = 0; index < 40; index++) {
+                ExecutionContext context = insertFirstVersionExecution("EMBEDDING", false);
+                DocumentIndexingFailureResponse response = failureService.fail(
+                    context.jobId(),
+                    context.attemptId(),
+                    failureRequest(
+                        context.workerId(),
+                        IndexingFailureType.EMBEDDING_PROVIDER_OVERLOADED,
+                        "Embedding provider overloaded"
+                    ),
+                    minimumRetryDelay
+                );
+                LocalDateTime nextRetryAt = queryDateTime(
+                    "SELECT next_retry_at FROM embedding_jobs WHERE id = ?",
+                    context.jobId()
+                );
+                Duration storedDelay = Duration.between(response.failedAt(), nextRetryAt);
+                assertThat(storedDelay).isBetween(minimumRetryDelay, Duration.ofMillis(13_950));
+                storedDelays.add(storedDelay);
+            }
+
+            // 2. 실패 시각에 정렬된 1초 조회 모델에서 저장된 예약 지연의 분포를 기록한다.
+            long tick12 = storedDelays.stream().filter(delay -> firstAlignedPollTick(delay) == 12).count();
+            long tick13 = storedDelays.stream().filter(delay -> firstAlignedPollTick(delay) == 13).count();
+            long tick14 = storedDelays.stream().filter(delay -> firstAlignedPollTick(delay) == 14).count();
+            long distinct = storedDelays.stream().distinct().count();
+            assertThat(tick12 + tick13 + tick14).isEqualTo(40L);
+            assertThat(distinct).isGreaterThan(1L);
+            System.out.printf(
+                "JITTER_METRIC jobs=40 distinct=%d tick12=%d tick13=%d tick14=%d provider_violations=0%n",
+                distinct, tick12, tick13, tick14
+            );
+        } finally {
+            workerProperties.setRetryJitterRatio(originalJitterRatio);
+        }
+    }
+
+    @Test
+    @DisplayName("상한 +1ns Provider 하한은 PostgreSQL에 저장한 뒤에도 지킨다")
+    void overloadedJob_preservesNanosecondProviderMinimumAfterPersistence() {
+        Duration minimumRetryDelay = Duration.ofSeconds(12).plusNanos(1);
+        double originalJitterRatio = workerProperties.getRetryJitterRatio();
+        workerProperties.setRetryJitterRatio(0.2);
+
+        try {
+            // 1. 밀리초 경계를 넘는 Provider 하한으로 실제 Job을 실패 처리한다.
+            ExecutionContext context = insertFirstVersionExecution("EMBEDDING", false);
+            DocumentIndexingFailureResponse response = failureService.fail(
+                context.jobId(),
+                context.attemptId(),
+                failureRequest(
+                    context.workerId(),
+                    IndexingFailureType.EMBEDDING_PROVIDER_OVERLOADED,
+                    "Embedding provider overloaded"
+                ),
+                minimumRetryDelay
+            );
+
+            // 2. DB에서 다시 읽은 예약 시각이 원래 나노초 하한보다 이르지 않은지 확인한다.
+            LocalDateTime nextRetryAt = queryDateTime(
+                "SELECT next_retry_at FROM embedding_jobs WHERE id = ?",
+                context.jobId()
+            );
+            assertThat(Duration.between(response.failedAt(), nextRetryAt))
+                .isGreaterThanOrEqualTo(minimumRetryDelay);
+        } finally {
+            workerProperties.setRetryJitterRatio(originalJitterRatio);
+        }
     }
 
     @Test
@@ -533,6 +617,14 @@ class DocumentIndexingFailureIntegrationTest {
             .findNextPendingForUpdate(claimedAt)
             .map(EmbeddingJob::getId)
             .orElse(null));
+    }
+
+    /**
+     * 실패 시각과 조회 시각이 정렬됐다고 가정한 1초 Polling 모델의 첫 실행 가능 구간을 반환한다.
+     */
+    private long firstAlignedPollTick(Duration delay) {
+        long oneSecondNanos = Duration.ofSeconds(1).toNanos();
+        return (delay.toNanos() + oneSecondNanos - 1) / oneSecondNanos;
     }
 
     private List<VectorSearchCandidate> search(ExecutionContext context) {
