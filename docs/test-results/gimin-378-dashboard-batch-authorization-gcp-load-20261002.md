@@ -88,7 +88,7 @@ fixture: summary 생성 → sendDashboardUpdate(summary)
 
 ## 회차별 원본 측정값
 
-각 행은 별도 run ID·`manifest.json`·`summary.json`·`samples.jsonl`을 가진다. `samples.jsonl`은 k6 원시 JSON을 메모리에서 **허용한 지표·시각·숫자만** 추려 작성했다. JWT·URL·태그는 저장 전에 버렸다. [회차별 증거](evidence/issue-378/gcp-runs/)와 [앱 발행·권한 회수 로그](evidence/issue-378/gcp-app/)를 참조한다.
+각 행은 별도 run ID·`manifest.json`·`summary.json`·`samples.jsonl`을 가진다. 단, 50명 변경 후 실행 3개의 표본은 [무손실 압축 검증](evidence/issue-410/compression-manifest.csv)을 거쳐 `samples.jsonl.gz`로 보관한다. 표본은 k6 원시 JSON을 메모리에서 **허용한 지표·시각·숫자만** 추려 작성했다. JWT·URL·태그는 저장 전에 버렸다. [회차별 증거](evidence/issue-378/gcp-runs/)와 [앱 발행·권한 회수 로그](evidence/issue-378/gcp-app/)를 참조한다.
 
 | 버전 / run ID | 구독 | 관측 | 수신 | p50 / p95 / p99 (ms) | 오류 / 음수 / 순번 누락·중복 | 비식별 표본 | 결과 |
 | --- | ---: | ---: | ---: | --- | --- | ---: | --- |
@@ -170,7 +170,7 @@ fixture: summary 생성 → sendDashboardUpdate(summary)
 k6 내부 원시 Point (URL·태그가 포함될 수 있음)
   → 메모리 FIFO 수신
   → 허용 metric 이름·숫자·KST 시각만 복사
-  → 회차별 samples.jsonl / summary.json / manifest.json
+  → 회차별 samples.jsonl(일부 .gz) / summary.json / manifest.json
   → 공개 전 주소·토큰·계정 패턴 검사
 
 Spring fixture 내부 JWT/DB 암호
