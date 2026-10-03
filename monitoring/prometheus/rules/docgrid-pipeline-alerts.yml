@@ -34,16 +34,22 @@ groups:
       - alert: DocGridEmbeddingProviderCircuitOpen
         expr: |
           max by (cluster, environment) (
-            docgrid_embedding_provider_circuit_open
+            (
+              docgrid_embedding_provider_circuit_open == 1
+            )
+            and on (instance, cluster, environment)
+            (
+              docgrid_embedding_provider_circuit_probe_failed == 1
+            )
           ) == 1
         for: 1m
         labels:
           severity: warning
-          service: embedding-worker
+          service: docgrid-backend
           dependency: embedding-provider
         annotations:
-          summary: DocGrid embedding provider circuit remains open
-          description: The Embedding Provider circuit has blocked normal traffic or admitted only a half-open probe for one minute.
+          summary: DocGrid embedding provider recovery probe keeps failing
+          description: A half-open probe failed and the circuit remained unclosed for one minute.
 
       - alert: DocGridRagProviderFallbackSpike
         expr: |
