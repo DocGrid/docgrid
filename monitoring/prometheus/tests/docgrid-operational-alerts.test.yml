@@ -4,18 +4,36 @@ rule_files:
 evaluation_interval: 15s
 
 tests:
-  - name: embedding provider circuit alerts after one minute and resolves when closed
+  - name: initial circuit open without a failed probe stays silent per instance
     interval: 15s
     input_series:
       - series: 'docgrid_embedding_provider_circuit_open{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
-        values: '1x4 0x3'
+        values: '1x8'
+      - series: 'docgrid_embedding_provider_circuit_probe_failed{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '0x8'
       - series: 'docgrid_embedding_provider_circuit_open{instance="backend-b:8081",environment="production",cluster="docgrid-production"}'
         values: '0x8'
+      - series: 'docgrid_embedding_provider_circuit_probe_failed{instance="backend-b:8081",environment="production",cluster="docgrid-production"}'
+        values: '1x8'
     alert_rule_test:
-      - eval_time: 45s
+      - eval_time: 2m
         alertname: DocGridEmbeddingProviderCircuitOpen
         exp_alerts: []
-      - eval_time: 1m
+
+  - name: failed recovery probe alerts after one minute and resolves immediately when closed
+    interval: 15s
+    input_series:
+      - series: 'docgrid_embedding_provider_circuit_open{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '1x7 0x3'
+      - series: 'docgrid_embedding_provider_circuit_probe_failed{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '0x1 1x5 0x3'
+      - series: 'docgrid_embedding_provider_circuit_probe_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="failed"}'
+        values: '0x1 1x9'
+    alert_rule_test:
+      - eval_time: 1m15s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts: []
+      - eval_time: 1m30s
         alertname: DocGridEmbeddingProviderCircuitOpen
         exp_alerts:
           - exp_labels:
@@ -23,12 +41,50 @@ tests:
               cluster: docgrid-production
               dependency: embedding-provider
               environment: production
-              service: embedding-worker
+              service: docgrid-backend
               severity: warning
             exp_annotations:
-              summary: DocGrid embedding provider circuit remains open
-              description: The Embedding Provider circuit has blocked normal traffic or admitted only a half-open probe for one minute.
-      - eval_time: 1m15s
+              summary: DocGrid embedding provider recovery probe keeps failing
+              description: A half-open probe failed and the circuit remained unclosed for one minute.
+      - eval_time: 2m
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts: []
+
+  - name: circuit alert stays active when failed probes are five minutes apart
+    interval: 15s
+    input_series:
+      - series: 'docgrid_embedding_provider_circuit_open{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '1x26'
+      - series: 'docgrid_embedding_provider_circuit_probe_failed{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '0x1 1x25'
+      - series: 'docgrid_embedding_provider_circuit_probe_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="failed"}'
+        values: '0x1 1x19 2x5'
+    alert_rule_test:
+      - eval_time: 5m30s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingProviderCircuitOpen
+              cluster: docgrid-production
+              dependency: embedding-provider
+              environment: production
+              service: docgrid-backend
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding provider recovery probe keeps failing
+              description: A half-open probe failed and the circuit remained unclosed for one minute.
+
+  - name: previous probe failure does not affect a new initial circuit open
+    interval: 15s
+    input_series:
+      - series: 'docgrid_embedding_provider_circuit_open{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '1x3 0x3 1x8'
+      - series: 'docgrid_embedding_provider_circuit_probe_failed{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '1x3 0x12'
+      - series: 'docgrid_embedding_provider_circuit_probe_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="failed"}'
+        values: '0 1x15'
+    alert_rule_test:
+      - eval_time: 3m15s
         alertname: DocGridEmbeddingProviderCircuitOpen
         exp_alerts: []
 
