@@ -1,0 +1,88 @@
+{"at": "2026-10-03T18:49:44.285Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v125-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "JpaSystemException"}
+{"at": "2026-10-03T18:49:44.289Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v120-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "JpaSystemException"}
+{"at": "2026-10-03T18:49:44.296Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v129-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "JpaSystemException"}
+{"at": "2026-10-03T18:49:44.302Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v124-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "JpaSystemException"}
+{"at": "2026-10-03T18:49:44.349Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v124-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:44.351Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v129-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:44.352Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v120-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:44.353Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v125-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.319Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v135-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.320Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v135-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.327Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v130-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.328Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v130-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.347Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v141-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.348Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v141-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.361Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v137-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.363Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v137-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.405Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v139-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.406Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v139-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.434Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v143-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.436Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v143-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.476Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v145-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.477Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v145-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.491Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v153-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.493Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v153-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.535Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v152-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.536Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v152-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.565Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v151-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.566Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v151-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.578Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v157-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.579Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v157-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.621Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v155-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.623Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v155-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.634Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v156-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.635Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v156-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.662Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v158-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.663Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v158-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.675Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v168-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.677Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v168-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.737Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v163-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.738Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v163-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.748Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v165-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.749Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v165-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.776Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v162-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.777Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v162-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.805Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v173-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.807Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v173-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.840Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v169-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.840Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v169-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.862Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v177-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.863Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v177-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.892Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v176-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.893Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v176-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.934Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v179-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.936Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v179-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.948Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v171-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.949Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v171-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:49.978Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v181-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:49.978Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v181-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.007Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v184-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.008Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v184-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.019Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v187-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.020Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v187-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.063Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v190-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.064Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v190-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.078Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v191-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.079Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v191-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.122Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v195-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.122Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v195-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.149Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v194-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.150Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v194-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.193Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v196-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.194Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v196-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.206Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v199-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.207Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v199-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.248Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v203-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.249Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v203-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.292Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v205-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.293Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v205-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.304Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v133-i16", "run_id": "ha418sw00001", "sqlstate": "25006", "status": 500, "type": "GenericJDBCException"}
+{"at": "2026-10-03T18:49:50.305Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418sw00001-v133-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.306Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v207-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.307Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v207-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:50.992Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v254-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:50.992Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v254-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:51.463Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v288-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:51.464Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v288-i16", "run_id": "ha418sw00001", "status": 500}
+{"at": "2026-10-03T18:49:51.504Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v289-i16", "run_id": "ha418sw00001", "sqlstate": "none", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-03T18:49:51.506Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha418sw00001-v289-i16", "run_id": "ha418sw00001", "status": 500}

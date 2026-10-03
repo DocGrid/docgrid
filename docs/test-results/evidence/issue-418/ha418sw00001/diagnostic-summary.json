@@ -1,0 +1,33 @@
+{
+  "run_id": "ha418sw00001",
+  "client_http_500": 89,
+  "matched_exception_500": 89,
+  "matched_result_500": 89,
+  "matched_throw_500": 0,
+  "client_500_without_app_diagnostic": 0,
+  "app_diagnostic_without_client_500": 0,
+  "per_app_event_count": {
+    "app_1": 88,
+    "app_2": 90
+  },
+  "error_classes": [
+    {
+      "phase": "SQL_EXECUTE",
+      "type": "GenericJDBCException",
+      "sqlstate": "25006",
+      "count": 3
+    },
+    {
+      "phase": "SQL_EXECUTE",
+      "type": "JpaSystemException",
+      "sqlstate": "none",
+      "count": 7
+    },
+    {
+      "phase": "TX_BEGIN",
+      "type": "CannotCreateTransactionException",
+      "sqlstate": "none",
+      "count": 79
+    }
+  ]
+}

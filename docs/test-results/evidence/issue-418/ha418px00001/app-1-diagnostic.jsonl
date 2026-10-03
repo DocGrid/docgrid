@@ -1,0 +1,2 @@
+{"at": "2026-10-03T18:57:07.344Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v16-i152", "run_id": "ha418px00001", "sqlstate": "none", "status": 500, "type": "JpaSystemException"}
+{"at": "2026-10-03T18:57:07.344Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v16-i152", "run_id": "ha418px00001", "status": 500}
