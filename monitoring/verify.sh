@@ -58,7 +58,14 @@ for config_file in "$ROOT_DIR"/monitoring/alertmanager/examples/*.yml; do
     "$ALERTMANAGER_IMAGE" check-config /etc/alertmanager/alertmanager.yml
 done
 
-# 4. 장시간 실험을 다시 실행하지 않고도 Drill 실행기 문법과 격리 Compose를 검증한다.
+# 4. Grafana Dashboard 불변식과 격리 E2E Compose를 검증한다.
+python3 "$ROOT_DIR/monitoring/grafana/validate_dashboard.py" \
+  "$ROOT_DIR/monitoring/grafana/dashboards/docgrid-operations.json"
+sh -n "$ROOT_DIR/monitoring/grafana/tests/run-e2e.sh"
+GRAFANA_TEST_PORT=13000 docker compose \
+  -f "$ROOT_DIR/monitoring/grafana/tests/docker-compose.yml" config --quiet
+
+# 5. 장시간 실험을 다시 실행하지 않고도 Drill 실행기 문법과 격리 Compose를 검증한다.
 python3 - "$ROOT_DIR/monitoring/drills/run_drill.py" <<'PY'
 import ast
 import pathlib
@@ -70,7 +77,7 @@ sh -n "$ROOT_DIR/monitoring/drills/run.sh"
 DRILL_TMP_DIR="$SECRET_DIR" docker compose \
   -f "$ROOT_DIR/monitoring/drills/docker-compose.yml" config --quiet
 
-# 5. 사용자가 실행할 두 Compose 형태가 모두 정상 렌더링되는지 확인한다.
+# 6. 사용자가 실행할 두 Compose 형태가 모두 정상 렌더링되는지 확인한다.
 docker compose -f "$ROOT_DIR/docker-compose.yml" config --quiet
 MONITORING_COMPOSE_CONFIG="$SECRET_DIR/monitoring-compose.json"
 docker compose -f "$ROOT_DIR/docker-compose.yml" --profile monitoring \
@@ -86,10 +93,21 @@ monitored_dependencies = {"alertmanager", "embedding-server"} & set(prometheus_d
 if monitored_dependencies:
     names = ", ".join(sorted(monitored_dependencies))
     raise SystemExit(f"Prometheus must start independently from monitored services: {names}")
+
+grafana = config["services"]["grafana"]
+if grafana.get("depends_on"):
+    raise SystemExit("Grafana must start independently and reconnect to Prometheus")
+published = grafana["ports"][0]
+if published.get("host_ip") != "127.0.0.1":
+    raise SystemExit("Bundled Grafana must only publish to the loopback interface")
+environment = grafana.get("environment", {})
+if environment.get("GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION") != "true":
+    raise SystemExit("Bundled Grafana must not create a default admin account")
 PY
 
 if [ "${1:-}" = "--e2e" ]; then
   "$ROOT_DIR/monitoring/alertmanager/tests/run-e2e.sh"
+  "$ROOT_DIR/monitoring/grafana/tests/run-e2e.sh"
 fi
 
 echo "Monitoring configuration validation: SUCCESS"
