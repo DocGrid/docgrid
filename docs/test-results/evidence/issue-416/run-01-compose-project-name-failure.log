@@ -1,0 +1,15 @@
+테스트 목적: Grafana Provisioning·Prometheus 연동 E2E
+실행 위치: 로컬 Docker Desktop
+실행 명령: ./monitoring/grafana/tests/run-e2e.sh
+실행 ID: 20261003T175627Z-62642
+시각대: UTC
+Revision: feature/416 작업 트리(커밋 전)
+성공 기준: Grafana·Prometheus·Metric Fixture 기동 후 Dashboard Provisioning 및 32개 PromQL 성공
+캡처 방식: 실행 직후 Codex 도구 출력을 그대로 보존했으며 Live tee Log는 아님
+
+[시작] run_id=20261003T175627Z-62642 grafana_url=http://127.0.0.1:61846
+invalid project name "docgrid-grafana-20261003T175627Z-62642": must consist only of lowercase alphanumeric characters, hyphens, and underscores as well as start with a letter or number
+
+결과: FAIL
+실패 원인: UTC Run ID의 대문자 T와 Z를 Docker Compose Project 이름에 포함함
+실행 범위: Compose 입력 검증 단계에서 종료되어 Container와 Volume은 생성되지 않음

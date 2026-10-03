@@ -15,20 +15,23 @@ Management endpoint는 기본적으로 Host의 `8081` 포트에서 열린다. �
 실행한다.
 
 ```bash
-docker compose --profile monitoring up -d prometheus alertmanager
+docker compose --profile monitoring up -d prometheus alertmanager grafana
 ```
 
 Prometheus는 컨테이너에서 `host.docker.internal:8081`을 수집하고 firing·resolved 경보를 같은
 profile의 Alertmanager로 전달한다. Compose의 `extra_hosts`가 Linux의 host gateway를 같은 이름으로
 연결하며 Docker Desktop도 같은 주소를 지원한다.
 
-두 monitoring 서비스를 명시하는 이유는 Prometheus가 Alertmanager와 Embedding Provider의 health
+세 monitoring 서비스를 명시하는 이유는 Prometheus가 Alertmanager와 Embedding Provider의 health
 상태에 의존하지 않고 시작하기 때문이다. Embedding Provider가 아직 준비되지 않았거나 중단됐어도
 Prometheus는 먼저 기동하고 해당 target을 `DOWN`으로 기록해 장애 경보를 평가한다.
 
 - Target 상태: <http://localhost:9090/targets>
 - Alert 상태: <http://localhost:9090/alerts>
 - Alertmanager 상태: <http://localhost:9093>
+- Grafana 운영 Dashboard: <http://localhost:3000/d/docgrid-operations/docgrid-operations>
+
+Grafana의 Panel 구성과 접근 경계는 [Grafana 가이드](../grafana/README.md)를 따른다.
 
 기본 Backend target과 배포 식별 label은
 `monitoring/prometheus/targets/docgrid-backend.yml`에서 변경한다.
