@@ -175,6 +175,33 @@ class EmbeddingProviderCircuitBreakerTest {
     }
 
     @Test
+    @DisplayName("실패한 Half-open Probe 뒤 다음 Probe가 성공하면 실패 Gauge를 해제한다")
+    void recordSuccess_clearsFailedProbeGaugeAfterRecovery() {
+        MutableClock clock = new MutableClock(STARTED_AT);
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        EmbeddingProviderCircuitBreaker circuitBreaker = openCircuit(clock, meterRegistry);
+        clock.advance(Duration.ofSeconds(30));
+
+        CallPermission failedProbe = circuitBreaker.acquirePermission();
+        circuitBreaker.recordFailure(failedProbe, true);
+
+        assertThat(gauge(meterRegistry)).isEqualTo(1.0);
+        assertThat(probeFailedGauge(meterRegistry)).isEqualTo(1.0);
+
+        clock.advance(Duration.ofSeconds(30));
+        CallPermission successfulProbe = circuitBreaker.acquirePermission();
+        circuitBreaker.recordSuccess(successfulProbe);
+
+        assertThat(gauge(meterRegistry)).isZero();
+        assertThat(probeFailedGauge(meterRegistry)).isZero();
+        assertThat(transitions(meterRegistry, "open")).isEqualTo(2.0);
+        assertThat(transitions(meterRegistry, "half_open")).isEqualTo(2.0);
+        assertThat(transitions(meterRegistry, "closed")).isEqualTo(1.0);
+        assertThat(probes(meterRegistry, "failed")).isEqualTo(1.0);
+        assertThat(probes(meterRegistry, "success")).isEqualTo(1.0);
+    }
+
+    @Test
     @DisplayName("Open 전 시작한 요청의 늦은 성공은 새 Circuit 상태를 닫지 못한다")
     void staleSuccess_doesNotCloseOpenedCircuit() {
         MutableClock clock = new MutableClock(STARTED_AT);
