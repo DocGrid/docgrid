@@ -1,0 +1,21 @@
+{
+  "run_id": "ha418px00001",
+  "client_http_500": 5,
+  "matched_exception_500": 5,
+  "matched_result_500": 5,
+  "matched_throw_500": 0,
+  "client_500_without_app_diagnostic": 0,
+  "app_diagnostic_without_client_500": 0,
+  "per_app_event_count": {
+    "app_1": 2,
+    "app_2": 8
+  },
+  "error_classes": [
+    {
+      "phase": "SQL_EXECUTE",
+      "type": "JpaSystemException",
+      "sqlstate": "none",
+      "count": 5
+    }
+  ]
+}
