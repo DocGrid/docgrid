@@ -79,6 +79,7 @@ HTTP 오류율에서는 Streamable HTTP 특성이 다른 `/mcp`를 제외한다.
 | 경보 | 조건 | 지속 시간 |
 |---|---|---:|
 | `DocGridEmbeddingRetryableFailureRatioHigh` | 10분간 10회 이상 실행되고 retryable 실패가 10% 초과 | 5분 |
+| `DocGridEmbeddingProviderCircuitOpen` | 최근 6분 내 Half-open Probe 실패 후 Circuit이 닫히지 않음 | 1분 |
 | `DocGridRagProviderFallbackSpike` | 10분간 provider fallback 3회 이상 | 1분 |
 | `DocGridRagTimeoutSweepSpike` | 10분간 timeout 강제 종료 3회 이상 | 1분 |
 | `DocGridSyncOutboxTerminalFailure` | 15분간 새로운 최종 실패 1회 이상 | 즉시 |
@@ -98,13 +99,17 @@ Backend는 기본 15초마다 별도 단일 Thread에서 Queue별 aggregate quer
 메모리에 보관한다. `/actuator/prometheus`의 Gauge callback은 이 메모리만 읽으므로 scrape 횟수가 DB
 조회 횟수를 늘리지 않는다. 주기는 `MANAGEMENT_METRICS_SNAPSHOT_INTERVAL`로 조정할 수 있다.
 
-`PENDING` 전체 개수가 아니라 현재 시각에 실제 claim 가능한 항목만 backlog에 포함한다. Embedding
-Retry는 `next_retry_at`, Sync Outbox는 `available_at`이 미래이면 제외한다. 가장 오래된 항목의 나이도
-최초 생성 시각과 Retry 실행 가능 시각을 구분해 계산한다.
+즉시 실행 backlog는 `PENDING` 전체가 아니라 현재 시각에 실제 claim 가능한 항목만 포함한다. Embedding
+Retry는 `next_retry_at`이 미래인 항목을 별도 delayed Gauge로 제공하고, Sync Outbox는 `available_at`이
+미래인 항목을 제외한다. 가장 오래된 항목의 나이는 최초 생성 시각과 Retry 실행 가능 시각을 구분해
+계산한다.
 
 | Metric | 의미 |
 |---|---|
 | `docgrid_embedding_claimable_jobs` | 지금 claim 가능한 Embedding Job 수 |
+| `docgrid_embedding_delayed_retry_jobs` | 미래 `next_retry_at`까지 대기하는 Embedding Retry Job 수 |
+| `docgrid_embedding_provider_circuit_probe_total{outcome}` | Half-open Probe 성공·실패 횟수 |
+| `docgrid_embedding_provider_circuit_probe_failed` | 현재 Circuit 보호 주기에서 Probe 실패가 확인됐고 아직 성공하지 못했는지 |
 | `docgrid_embedding_processing_jobs` | 처리 중인 Embedding Job 수 |
 | `docgrid_embedding_oldest_claimable_age_seconds` | 가장 오래된 claim 가능 Job의 대기 시간 |
 | `docgrid_embedding_active_workers` | Heartbeat가 만료되지 않은 ACTIVE·IDLE Worker 수 |
@@ -115,6 +120,19 @@ Retry는 `next_retry_at`, Sync Outbox는 `available_at`이 미래이면 제외�
 | `docgrid_sync_outbox_oldest_claimable_age_seconds` | 가장 오래된 claim 가능 Event의 대기 시간 |
 | `docgrid_operational_snapshot_age_seconds` | 마지막 정상 DB Snapshot 이후 경과 시간 |
 | `docgrid_operational_snapshot_refresh_total{outcome}` | Snapshot 갱신 성공·실패 횟수 |
+
+Circuit 상태는 JVM별로 수집한다. `docgrid_embedding_provider_circuit_open`은 일반 호출이 차단되는
+OPEN과 단일 Probe만 허용하는 HALF_OPEN에서 `1`이고, Probe 성공으로 CLOSED가 되면 `0`이다.
+`docgrid_embedding_provider_circuit_transitions_total{state}`는 `open`, `half_open`, `closed` 전환 횟수를
+제한된 label로 제공한다. Probe 결과 Counter와 실패 Gauge는 최초 OPEN 이후 실제 회복 Probe가
+실패한 경우만 구분한다. 트래픽이 없어 Probe가 실행되지 않으면 Circuit 경보는 발생하지 않고,
+성공 Probe가 Circuit을 닫으면 경보 조건이 즉시 해제된다. Probe 실패 뒤 트래픽이 끊기면 성공 여부를
+확인할 수 없으므로, 최근 실패 Counter 증가가 6분 시간 창에서 빠질 때 경보를 해제한다. 이 해제는
+Provider 회복 확인이 아니라 오래된 실패 증거의 만료를 의미한다.
+
+6분 시간 창은 기본 `INDEXING_WORKER_RETRY_MAX_DELAY=5m`보다 길어, Worker의 Probe가 최대 재시도
+간격으로 반복돼도 지속 장애 경보가 끊기지 않게 한다. 이 환경 변수를 5분보다 늘리면
+`DocGridEmbeddingProviderCircuitOpen` 규칙의 Counter 시간 창도 더 긴 값으로 함께 조정해야 한다.
 
 여러 Backend가 같은 DB를 수집하면 동일 Gauge가 인스턴스 수만큼 노출된다. 번들 규칙은 이 값을
 합산하지 않고 `max by (cluster, environment)`로 평가해 backlog를 중복 계산하지 않는다. 갱신 실패는
