@@ -7,8 +7,8 @@ Workload: Backend Fixture 27개 Sample 계열, Provider Fixture 13개 Sample 계
 성공 기준: Health·Data Source·Dashboard·Fixture 값·PromQL 32개 통과 및 Container·Volume 정리
 
 [시작] run_id=20261003t175700z-63206 grafana_url=http://127.0.0.1:61878
- Image python:3.14-alpine Pulling 
- Image grafana/grafana:13.2.3 Pulling 
+ Image python:3.14-alpine Pulling
+ Image grafana/grafana:13.2.3 Pulling
  a9986cd6f37d Already exists 0B
  541523bae70c Pulling fs layer 0B
  9625030534d1 Pulling fs layer 0B
@@ -77,7 +77,7 @@ Workload: Backend Fixture 27개 Sample 계열, Provider Fixture 13개 Sample 계
  de6af1da8f48 Extracting 248B
  de6af1da8f48 Extracting 248B
  de6af1da8f48 Pull complete 0B
- Image python:3.14-alpine Pulled 
+ Image python:3.14-alpine Pulled
  70c8dc1ba068 Extracting 3.637MB
  8998fa436a65 Downloading 16.38kB
  8998fa436a65 Downloading 76.02kB
@@ -305,27 +305,27 @@ Workload: Backend Fixture 27개 Sample 계열, Provider Fixture 13개 Sample 계
  37bc7484dfb5 Extracting 1.333kB
  37bc7484dfb5 Extracting 1.333kB
  37bc7484dfb5 Pull complete 0B
- Image grafana/grafana:13.2.3 Pulled 
- Network docgrid-grafana-20261003t175700z-63206_default Creating 
- Network docgrid-grafana-20261003t175700z-63206_default Created 
- Container docgrid-grafana-20261003t175700z-63206-grafana-1 Creating 
- Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Creating 
- Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Creating 
- Container docgrid-grafana-20261003t175700z-63206-grafana-1 Created 
- Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Created 
- Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Created 
- Container docgrid-grafana-20261003t175700z-63206-grafana-1 Starting 
- Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Starting 
- Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Starting 
- Container docgrid-grafana-20261003t175700z-63206-grafana-1 Started 
- Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Started 
- Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Started 
- Container docgrid-grafana-20261003t175700z-63206-grafana-1 Waiting 
- Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Waiting 
- Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Waiting 
- Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Healthy 
- Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Healthy 
- Container docgrid-grafana-20261003t175700z-63206-grafana-1 Healthy 
+ Image grafana/grafana:13.2.3 Pulled
+ Network docgrid-grafana-20261003t175700z-63206_default Creating
+ Network docgrid-grafana-20261003t175700z-63206_default Created
+ Container docgrid-grafana-20261003t175700z-63206-grafana-1 Creating
+ Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Creating
+ Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Creating
+ Container docgrid-grafana-20261003t175700z-63206-grafana-1 Created
+ Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Created
+ Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Created
+ Container docgrid-grafana-20261003t175700z-63206-grafana-1 Starting
+ Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Starting
+ Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Starting
+ Container docgrid-grafana-20261003t175700z-63206-grafana-1 Started
+ Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Started
+ Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Started
+ Container docgrid-grafana-20261003t175700z-63206-grafana-1 Waiting
+ Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Waiting
+ Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Waiting
+ Container docgrid-grafana-20261003t175700z-63206-metrics-fixture-1 Healthy
+ Container docgrid-grafana-20261003t175700z-63206-prometheus-1 Healthy
+ Container docgrid-grafana-20261003t175700z-63206-grafana-1 Healthy
 [성공] Grafana Health: database=ok
 [성공] Data Source Provisioning: uid=docgrid-prometheus
 [성공] Dashboard Provisioning: uid=docgrid-operations, panels=36
