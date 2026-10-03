@@ -988,6 +988,19 @@ def run_circuit_recovery(output_dir, jar_path):
         ))
         if embedding_count <= 0:
             raise AssertionError("Recovered Job reached INDEXED without stored embeddings")
+        recovered_snapshot = wait_for(
+            "the recovered metric snapshot to clear delayed Retry state",
+            lambda: (
+                snapshot if (
+                    (snapshot := circuit_metric_snapshot(worker))["open"] == 0
+                    and snapshot["probeFailed"] == 0
+                    and snapshot["successfulProbes"] >= 1
+                    and snapshot["closedTransitions"] >= 1
+                    and snapshot["delayedRetryJobs"] == 0
+                ) else None
+            ),
+            30,
+        )
 
         # 7. Require both Prometheus alerts to clear and only the root-cause lifecycle to be delivered.
         alerts_resolved_at = wait_for(
@@ -1094,6 +1107,7 @@ def run_circuit_recovery(output_dir, jar_path):
             "delayedRetry": delayed_retry_snapshot,
             "failedProbe": failed_probe_snapshot,
             "successfulProbe": successful_probe_snapshot,
+            "recovered": recovered_snapshot,
         }
         return result
     finally:
