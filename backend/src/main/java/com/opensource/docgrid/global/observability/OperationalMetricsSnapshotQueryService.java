@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 비동기 Pipeline의 현재 운영 상태를 행 로딩 없이 목적별 aggregate query로 읽는다.
+ * 비동기 Pipeline의 즉시 실행 가능 상태와 미래 재시도 대기 상태를 행 로딩 없이 aggregate query로 읽는다.
  *
  * <p>호출자는 이 짧은 읽기 Transaction의 결과만 메모리에 보관한다. Prometheus scrape 경로에서는 이
  * 서비스를 호출하지 않아, 감시 트래픽이 DB 부하로 이어지지 않게 한다.
@@ -31,6 +31,12 @@ public class OperationalMetricsSnapshotQueryService {
                 WHERE job.status = 'PENDING'
                   AND (job.next_retry_at IS NULL OR job.next_retry_at <= ?)
             ) AS claimable_jobs,
+            (
+                SELECT COUNT(*)
+                FROM embedding_jobs job
+                WHERE job.status = 'PENDING'
+                  AND job.next_retry_at > ?
+            ) AS delayed_retry_jobs,
             (
                 SELECT COUNT(*)
                 FROM embedding_jobs job
@@ -103,6 +109,7 @@ public class OperationalMetricsSnapshotQueryService {
             this::mapEmbeddingSnapshot,
             observedAt,
             observedAt,
+            observedAt,
             heartbeatDeadline
         );
         RagSnapshot rag = jdbcTemplate.queryForObject(RAG_SNAPSHOT_SQL, this::mapRagSnapshot);
@@ -116,6 +123,7 @@ public class OperationalMetricsSnapshotQueryService {
         // 3. 세 Query가 모두 성공한 경우에만 하나의 원자적 Snapshot 후보를 반환한다.
         return new OperationalMetricsSnapshot(
             embedding.claimableJobs(),
+            embedding.delayedRetryJobs(),
             embedding.processingJobs(),
             embedding.oldestClaimableAt(),
             embedding.activeWorkers(),
@@ -130,6 +138,7 @@ public class OperationalMetricsSnapshotQueryService {
     private EmbeddingSnapshot mapEmbeddingSnapshot(ResultSet resultSet, int rowNumber) throws SQLException {
         return new EmbeddingSnapshot(
             resultSet.getLong("claimable_jobs"),
+            resultSet.getLong("delayed_retry_jobs"),
             resultSet.getLong("processing_jobs"),
             resultSet.getObject("oldest_claimable_at", LocalDateTime.class),
             resultSet.getLong("active_workers")
@@ -151,9 +160,10 @@ public class OperationalMetricsSnapshotQueryService {
         );
     }
 
-    /** Embedding Queue와 유효 Worker를 한 SQL에서 읽은 내부 집계 값이다. */
+    /** Embedding 즉시 실행·지연 재시도 Queue와 유효 Worker를 한 SQL에서 읽은 내부 집계 값이다. */
     private record EmbeddingSnapshot(
         long claimableJobs,
+        long delayedRetryJobs,
         long processingJobs,
         LocalDateTime oldestClaimableAt,
         long activeWorkers
