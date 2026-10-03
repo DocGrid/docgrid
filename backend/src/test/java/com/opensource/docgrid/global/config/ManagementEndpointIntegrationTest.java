@@ -109,6 +109,7 @@ class ManagementEndpointIntegrationTest {
             .contains("hikaricp_connections")
             .contains("docgrid_embedding_provider_circuit_open")
             .contains("docgrid_embedding_provider_circuit_transitions_total")
+            .contains("docgrid_embedding_provider_circuit_probe_total")
             .contains("docgrid_embedding_delayed_retry_jobs");
     }
 

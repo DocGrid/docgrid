@@ -24,7 +24,8 @@ import com.opensource.docgrid.global.exception.ErrorCode;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
- * Embedding Provider Circuit의 연속 실패, Open fast-fail과 단일 Half-open Probe 상태 전이를 검증한다.
+ * Embedding Provider Circuit의 연속 실패, Open fast-fail과 단일 Half-open Probe 상태 전이·결과
+ * Metric을 검증한다.
  *
  * <p>실제 HTTP 호출과 Worker Job 재예약은 제외하고 동시 Permission 발급과 Clock 기반 복구 경계만
  * 확인한다.
@@ -49,6 +50,8 @@ class EmbeddingProviderCircuitBreakerTest {
         assertThat(circuitDelay).isEqualTo(Duration.ofSeconds(30));
         assertThat(gauge(meterRegistry)).isEqualTo(1.0);
         assertThat(transitions(meterRegistry, "open")).isEqualTo(1.0);
+        assertThat(probes(meterRegistry, "success")).isZero();
+        assertThat(probes(meterRegistry, "failed")).isZero();
         assertThatThrownBy(circuitBreaker::acquirePermission)
             .isInstanceOf(EmbeddingProviderException.class)
             .hasFieldOrPropertyWithValue(
@@ -117,22 +120,30 @@ class EmbeddingProviderCircuitBreakerTest {
         assertThat(gauge(meterRegistry)).isZero();
         assertThat(transitions(meterRegistry, "half_open")).isEqualTo(1.0);
         assertThat(transitions(meterRegistry, "closed")).isEqualTo(1.0);
+        assertThat(probes(meterRegistry, "success")).isEqualTo(1.0);
+        assertThat(probes(meterRegistry, "failed")).isZero();
     }
 
     @Test
     @DisplayName("Half-open Probe 결과를 기록하지 못하면 소유권을 반환해 다음 Probe를 허용한다")
     void releasePermission_allowsNextHalfOpenProbe() {
         MutableClock clock = new MutableClock(STARTED_AT);
-        EmbeddingProviderCircuitBreaker circuitBreaker = openCircuit(clock);
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        EmbeddingProviderCircuitBreaker circuitBreaker = openCircuit(clock, meterRegistry);
         clock.advance(Duration.ofSeconds(30));
         CallPermission abandonedProbe = circuitBreaker.acquirePermission();
 
         circuitBreaker.releasePermission(abandonedProbe);
+        assertThat(probes(meterRegistry, "success")).isZero();
+        assertThat(probes(meterRegistry, "failed")).isZero();
+
         CallPermission nextProbe = circuitBreaker.acquirePermission();
 
         assertThat(nextProbe.halfOpenProbe()).isTrue();
         circuitBreaker.recordSuccess(nextProbe);
         assertThat(circuitBreaker.acquirePermission().halfOpenProbe()).isFalse();
+        assertThat(probes(meterRegistry, "success")).isEqualTo(1.0);
+        assertThat(probes(meterRegistry, "failed")).isZero();
     }
 
     @Test
@@ -151,6 +162,8 @@ class EmbeddingProviderCircuitBreakerTest {
 
         assertThat(gauge(meterRegistry)).isEqualTo(1.0);
         assertThat(transitions(meterRegistry, "open")).isEqualTo(2.0);
+        assertThat(probes(meterRegistry, "success")).isZero();
+        assertThat(probes(meterRegistry, "failed")).isEqualTo(1.0);
         assertThatThrownBy(circuitBreaker::acquirePermission)
             .isInstanceOf(EmbeddingProviderException.class)
             .hasFieldOrPropertyWithValue("minimumRetryDelay", Duration.ofSeconds(30));
@@ -224,6 +237,13 @@ class EmbeddingProviderCircuitBreakerTest {
     private double transitions(SimpleMeterRegistry meterRegistry, String state) {
         return meterRegistry.get("docgrid.embedding.provider.circuit.transitions")
             .tag("state", state)
+            .counter()
+            .count();
+    }
+
+    private double probes(SimpleMeterRegistry meterRegistry, String outcome) {
+        return meterRegistry.get("docgrid.embedding.provider.circuit.probe")
+            .tag("outcome", outcome)
             .counter()
             .count();
     }
