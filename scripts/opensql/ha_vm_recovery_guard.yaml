@@ -1,0 +1,68 @@
+# A managed, caller-independent one-shot guard for an exact Compute VM target.
+# TARGET_INSTANCE and TARGET_ZONE are fixed at deployment; the caller only chooses the delay.
+main:
+  params: [input]
+  steps:
+    - validate_delay:
+        switch:
+          - condition: ${input.delay_seconds < 120 or input.delay_seconds > 3600}
+            raise: "GUARD_DELAY_OUT_OF_RANGE"
+    # 1. The Workflows execution, not the operator's laptop or faulted VM, owns the timer.
+    - wait_until_recovery:
+        call: sys.sleep
+        args:
+          seconds: ${input.delay_seconds}
+    - target:
+        assign:
+          - project: ${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
+          - zone: ${sys.get_env("TARGET_ZONE")}
+          - instance: ${sys.get_env("TARGET_INSTANCE")}
+          - url: ${"https://compute.googleapis.com/compute/v1/projects/" + project + "/zones/" + zone + "/instances/" + instance}
+    # 2. Never reset a running VM or attempt to start an unexpected intermediate state.
+    - read_before:
+        call: http.get
+        args:
+          url: ${url}
+          auth:
+            type: OAuth2
+        result: before
+    - choose_action:
+        switch:
+          - condition: ${before.body.status == "RUNNING"}
+            next: already_running
+          - condition: ${before.body.status == "TERMINATED"}
+            next: start_target
+        next: unexpected_state
+    - already_running:
+        return: "ALREADY_RUNNING"
+    - unexpected_state:
+        raise: "GUARD_TARGET_STATE_UNEXPECTED"
+    # 3. The service account is bound to get/start on this one instance only.
+    - start_target:
+        call: http.post
+        args:
+          url: ${url + "/start"}
+          auth:
+            type: OAuth2
+          body: {}
+        result: started
+    - wait_for_running:
+        call: sys.sleep
+        args:
+          seconds: 45
+    - read_after:
+        call: http.get
+        args:
+          url: ${url}
+          auth:
+            type: OAuth2
+        result: after
+    - verify_running:
+        switch:
+          - condition: ${after.body.status == "RUNNING"}
+            next: recovered
+        next: recovery_failed
+    - recovered:
+        return: "STARTED_AND_RUNNING"
+    - recovery_failed:
+        raise: "GUARD_START_NOT_RUNNING"
