@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>HTTP 실행 전 Permission만 발급하고 실제 요청·응답 계약에는 관여하지 않는다. 모든 상태 변경은
  * synchronized 경계 안에서 직렬화하며, Open 전 이미 시작된 요청의 늦은 결과가 새 상태를 덮어쓰지
- * 못하도록 세대 번호를 함께 검증한다.
+ * 못하도록 세대 번호를 함께 검증한다. 확정된 상태 전이는 같은 경계 안에서 운영 Metric에 반영한다.
  */
 @Slf4j
 @Component
@@ -26,6 +26,7 @@ public class EmbeddingProviderCircuitBreaker {
 
     private final EmbeddingProviderCircuitBreakerProperties properties;
     private final Clock clock;
+    private final EmbeddingProviderCircuitMetrics metrics;
 
     private CircuitState state = CircuitState.CLOSED;
     private int consecutiveFailures;
@@ -34,14 +35,16 @@ public class EmbeddingProviderCircuitBreaker {
     private boolean halfOpenProbeInProgress;
 
     /**
-     * Circuit 임계값·개방 시간 설정과 테스트 가능한 기준 Clock을 연결한다.
+     * Circuit 임계값·개방 시간 설정, 기준 Clock과 상태 전이 Metric을 연결한다.
      */
     public EmbeddingProviderCircuitBreaker(
         EmbeddingProviderCircuitBreakerProperties properties,
-        Clock clock
+        Clock clock,
+        EmbeddingProviderCircuitMetrics metrics
     ) {
         this.properties = properties;
         this.clock = clock;
+        this.metrics = metrics;
     }
 
     /**
@@ -61,6 +64,7 @@ public class EmbeddingProviderCircuitBreaker {
             }
             state = CircuitState.HALF_OPEN;
             halfOpenProbeInProgress = false;
+            metrics.recordHalfOpen();
         }
 
         // 3. HALF_OPEN에서는 한 호출에만 Probe 소유권을 주고 나머지는 빠르게 거절한다.
@@ -146,6 +150,7 @@ public class EmbeddingProviderCircuitBreaker {
         consecutiveFailures = 0;
         halfOpenProbeInProgress = false;
         generation++;
+        metrics.recordOpen();
         log.warn(
             "Embedding Provider Circuit을 열었습니다. openDurationMs={}",
             properties.getOpenDuration().toMillis()
@@ -162,6 +167,7 @@ public class EmbeddingProviderCircuitBreaker {
         consecutiveFailures = 0;
         halfOpenProbeInProgress = false;
         generation++;
+        metrics.recordClosed();
         log.info("Embedding Provider Circuit이 정상 호출로 닫혔습니다.");
     }
 
