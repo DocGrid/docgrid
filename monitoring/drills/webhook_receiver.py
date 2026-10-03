@@ -8,6 +8,23 @@ from pathlib import Path
 
 
 EVENT_LOG = Path(os.environ["EVENT_LOG"])
+INTERNAL_URL_OMITTED = "[internal URL omitted]"
+
+
+def sanitize_payload(value):
+    """Remove drill-internal Prometheus and Alertmanager addresses before evidence is recorded."""
+    if isinstance(value, dict):
+        return {
+            key: (
+                INTERNAL_URL_OMITTED
+                if key in {"generatorURL", "externalURL"}
+                else sanitize_payload(item)
+            )
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [sanitize_payload(item) for item in value]
+    return value
 
 
 class WebhookHandler(BaseHTTPRequestHandler):
@@ -26,7 +43,8 @@ class WebhookHandler(BaseHTTPRequestHandler):
             return
 
         content_length = int(self.headers.get("Content-Length", "0"))
-        payload = json.loads(self.rfile.read(content_length))
+        # Internal container identifiers are not needed for lifecycle assertions or public evidence.
+        payload = sanitize_payload(json.loads(self.rfile.read(content_length)))
         event = {
             "receivedAt": datetime.now(timezone.utc).isoformat(),
             "payload": payload,
