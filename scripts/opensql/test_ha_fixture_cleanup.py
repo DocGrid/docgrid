@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -15,6 +17,7 @@ if SPEC is None or SPEC.loader is None:
 GUARD = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(GUARD)
 RUN_ID = "abc123def456"
+LOCAL_HELPER = SCRIPT.with_name("permission_fixture.sh")
 
 
 class FakeCluster:
@@ -131,6 +134,30 @@ class HaFixtureCleanupTest(unittest.TestCase):
         GUARD.cleanup(RUN_ID, 900)
         self.assertFalse(any(self.cluster.armed.values()))
         self.assertFalse(any(self.cluster.counts.values()))
+
+
+class PermissionFixtureQueryFailureTest(unittest.TestCase):
+    """A database outage must not be reported as a replica or an empty fixture."""
+
+    def test_role_and_guard_status_fail_when_database_query_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fake_docker = Path(directory, "docker")
+            fake_docker.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+            fake_docker.chmod(0o700)
+            helper = Path(directory, "permission_fixture.sh")
+            source = LOCAL_HELPER.read_text(encoding="utf-8")
+            source = source.replace("/usr/bin/docker", str(fake_docker))
+            source = source.replace("EUID != 0", "0 != 0")
+            helper.write_text(source, encoding="utf-8")
+
+            for action in ("role", "guard-status"):
+                with self.subTest(action=action):
+                    result = subprocess.run(
+                        ["bash", str(helper), action, "docgrid-node1", RUN_ID, "900"],
+                        capture_output=True, text=True, check=False,
+                    )
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertEqual("", result.stdout)
 
 
 if __name__ == "__main__":
