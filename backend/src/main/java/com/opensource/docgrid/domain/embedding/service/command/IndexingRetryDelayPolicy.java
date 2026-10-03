@@ -109,24 +109,40 @@ public class IndexingRetryDelayPolicy {
         Duration lowerDelay = Duration.ofMillis(lowerMillis);
         Duration upperDelay = Duration.ofMillis(upperMillis);
 
-        // 3. Provider 최소 지연이 애플리케이션 구간 안에 있으면 금지 구간만 잘라내고 다시 선택한다.
+        long spreadMillis = positiveJitterSpreadMillis(minimumRetryDelay, jitterRatio);
+
+        // 3. Provider 하한이 구간을 자르면 밀리초 올림 후에도 최소 분산 폭을 유지한다.
         if (minimumRetryDelay.compareTo(upperDelay) < 0) {
             Duration effectiveLower = minimumRetryDelay.compareTo(lowerDelay) > 0
                 ? minimumRetryDelay
                 : lowerDelay;
-            return randomBetween(effectiveLower, upperDelay, jitterUnit);
+            long effectiveUpperMillis = upperMillis;
+            if (minimumRetryDelay.compareTo(lowerDelay) > 0) {
+                effectiveUpperMillis = Math.max(
+                    upperMillis,
+                    Math.addExact(ceilToMillis(effectiveLower), spreadMillis)
+                );
+            }
+            return randomBetween(
+                effectiveLower,
+                Duration.ofMillis(effectiveUpperMillis),
+                jitterUnit
+            );
         }
 
         // 4. 최소 지연이 구간 끝에 닿거나 넘으면 그 이후 방향으로만 제한된 Jitter를 적용한다.
+        long offsetMillis = Math.round(spreadMillis * jitterUnit);
+        return minimumRetryDelay.plusMillis(offsetMillis);
+    }
+
+    /**
+     * Provider 하한 뒤의 분산 폭을 최초 Backoff의 Jitter 폭 이하로 제한한다.
+     */
+    private long positiveJitterSpreadMillis(Duration minimumRetryDelay, double jitterRatio) {
         Duration spreadBase = minimumRetryDelay.compareTo(workerProperties.getRetryInitialDelay()) < 0
             ? minimumRetryDelay
             : workerProperties.getRetryInitialDelay();
-        long spreadMillis = Math.max(
-            1L,
-            Math.round(spreadBase.toMillis() * jitterRatio)
-        );
-        long offsetMillis = Math.round(spreadMillis * jitterUnit);
-        return minimumRetryDelay.plusMillis(offsetMillis);
+        return Math.max(1L, Math.round(spreadBase.toMillis() * jitterRatio));
     }
 
     /**
