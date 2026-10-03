@@ -116,7 +116,7 @@ Patroni planned switchover → history에 새 timeline·새 leader 기록
 
 첫 정상 실행의 원본 k6 Point에 소수점 이하 **5자리** timestamp가 있었고, GCP 부하 VM의 Python 3.9 계측기는 6자리 초과만 잘라 처리해 요약이 종료 코드 **1**, runner가 **98**로 끝났다. k6 본체와 4,200건 요청은 성공했다. 원본을 지우지 않고 계측기의 UTC 정규화를 **소수 1–9자리 → 6자리**로 보정했고, 같은 원본으로 재요약해 4,200건·미전송 0·호스트 샘플 61개를 복구했다. [원본 실패 기록](evidence/issue-412/ha412b070a/실행-기록.txt), [재요약 결과](evidence/issue-412/ha412b070a/계측-요약-복구.json), [단위 회귀](evidence/issue-412/local-parser-01.md)를 함께 보존한다.
 
-이후 runner에 **선택적 초기 VU 인수**를 추가했다. 미지정 시 종전 40을 유지한다. 허용 범위 밖 인수는 실행 전에 거부한다. 로컬 Python 계측 시험 **7/7**, OpenSQL Python 시험 **84/84**, Bash 구문 검사와 유효 토큰 파일로 재검증한 잘못된 VU 입력 차단이 통과했다. [로컬 재검증](evidence/issue-412/local-suite-02.md)과 [공개 전 재실행](evidence/issue-412/local-suite-03.md)을 분리해 기록했다.
+이후 runner에 **선택적 초기 VU 인수**를 추가했다. 미지정 시 종전 40을 유지한다. 허용 범위 밖 인수는 실행 전에 거부한다. 로컬 Python 계측 시험 **7/7**, OpenSQL Python 시험 **84/84**, Bash 구문 검사와 유효 토큰 파일로 재검증한 잘못된 VU 입력 차단이 통과했다. [로컬 재검증](evidence/issue-412/local-suite-02.md), [공개 전 재실행](evidence/issue-412/local-suite-03.md), [최신 develop 통합 후 재실행](evidence/issue-412/local-suite-04.md)을 분리해 기록했다.
 
 ## 기록, 정리, 남은 문제
 
