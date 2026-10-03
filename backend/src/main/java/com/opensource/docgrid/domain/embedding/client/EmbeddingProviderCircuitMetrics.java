@@ -13,7 +13,8 @@ import io.micrometer.core.instrument.MeterRegistry;
  * 기록한다.
  *
  * <p>Circuit 상태 결정은 하지 않고 {@link EmbeddingProviderCircuitBreaker}가 확정한 전이만 반영한다.
- * 상태 label은 고정된 세 값만 사용해 시계열 Cardinality가 입력 데이터에 따라 증가하지 않게 한다.
+ * 상태 label 세 값과 Probe 결과 label 두 값만 사용해 시계열 Cardinality가 입력 데이터에 따라
+ * 증가하지 않게 한다.
  */
 @Component
 public class EmbeddingProviderCircuitMetrics {
