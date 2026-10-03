@@ -1,0 +1,17 @@
+apiVersion: 1
+
+# 제거된 Provisioning 파일의 Data Source가 로컬 DB에 남지 않게 한다.
+prune: true
+
+datasources:
+  - name: DocGrid Prometheus
+    uid: docgrid-prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    version: 1
+    jsonData:
+      httpMethod: POST
+      timeInterval: 15s

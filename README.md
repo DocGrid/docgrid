@@ -111,7 +111,7 @@ SQL을 균등하게 나누는 설정이 아닙니다. Patroni는 각 노드의 �
 | AI | BAAI/bge-m3, Ollama, qwen2.5:7b |
 | Storage | GCS (GCP), MinIO (로컬), Local Filesystem, 선택형 AWS S3 Adapter |
 | Cache | Valkey 9.1 (로컬 Compose), Spring Data Redis 클라이언트; GCP 공용 VM은 전환 전 Redis 6.2 확인 |
-| Observability | RAGOps Dashboard, Prometheus, Alertmanager (로컬 monitoring profile) |
+| Observability | RAGOps Dashboard, Prometheus, Alertmanager, Grafana (로컬 monitoring profile) |
 | Test | JUnit 5, Gradle, Node.js Test Runner |
 
 ## 빠른 실행

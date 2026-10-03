@@ -1,0 +1,20 @@
+# TYPE embedding_provider_model_loaded gauge
+embedding_provider_model_loaded 1
+# TYPE embedding_provider_waiting_requests gauge
+embedding_provider_waiting_requests 1
+# TYPE embedding_provider_max_queue_size gauge
+embedding_provider_max_queue_size 2
+# TYPE embedding_provider_memory_limit_bytes gauge
+embedding_provider_memory_limit_bytes 4294967296
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 1073741824
+# TYPE embedding_provider_requests_total counter
+embedding_provider_requests_total{outcome="success"} 10
+embedding_provider_requests_total{outcome="overloaded"} 1
+# TYPE embedding_provider_request_duration_seconds histogram
+embedding_provider_request_duration_seconds_bucket{outcome="success",le="1"} 4
+embedding_provider_request_duration_seconds_bucket{outcome="success",le="5"} 9
+embedding_provider_request_duration_seconds_bucket{outcome="success",le="25"} 10
+embedding_provider_request_duration_seconds_bucket{outcome="success",le="+Inf"} 10
+embedding_provider_request_duration_seconds_count{outcome="success"} 10
+embedding_provider_request_duration_seconds_sum{outcome="success"} 22

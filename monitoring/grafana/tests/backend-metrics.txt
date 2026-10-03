@@ -1,0 +1,47 @@
+# HELP docgrid_embedding_claimable_jobs Claimable embedding jobs.
+# TYPE docgrid_embedding_claimable_jobs gauge
+docgrid_embedding_claimable_jobs 4
+# TYPE docgrid_embedding_delayed_retry_jobs gauge
+docgrid_embedding_delayed_retry_jobs 2
+# TYPE docgrid_embedding_processing_jobs gauge
+docgrid_embedding_processing_jobs 1
+# TYPE docgrid_embedding_oldest_claimable_age_seconds gauge
+docgrid_embedding_oldest_claimable_age_seconds 70
+# TYPE docgrid_embedding_active_workers gauge
+docgrid_embedding_active_workers 1
+# TYPE docgrid_embedding_provider_circuit_open gauge
+docgrid_embedding_provider_circuit_open 1
+# TYPE docgrid_embedding_provider_circuit_probe_failed gauge
+docgrid_embedding_provider_circuit_probe_failed 1
+# TYPE docgrid_embedding_provider_circuit_transitions_total counter
+docgrid_embedding_provider_circuit_transitions_total{state="open"} 2
+docgrid_embedding_provider_circuit_transitions_total{state="half_open"} 1
+docgrid_embedding_provider_circuit_transitions_total{state="closed"} 0
+# TYPE docgrid_embedding_provider_circuit_probe_total counter
+docgrid_embedding_provider_circuit_probe_total{outcome="failed"} 1
+docgrid_embedding_provider_circuit_probe_total{outcome="success"} 0
+# TYPE docgrid_embedding_job_attempts_total counter
+docgrid_embedding_job_attempts_total{outcome="success",failure_type="NONE",retryable="false"} 20
+docgrid_embedding_job_attempts_total{outcome="retry_scheduled",failure_type="EMBEDDING_PROVIDER_TIMEOUT",retryable="true"} 2
+# TYPE docgrid_rag_processing_jobs gauge
+docgrid_rag_processing_jobs 1
+# TYPE docgrid_rag_oldest_processing_age_seconds gauge
+docgrid_rag_oldest_processing_age_seconds 20
+# TYPE docgrid_rag_job_completions_total counter
+docgrid_rag_job_completions_total{outcome="success"} 10
+docgrid_rag_job_completions_total{outcome="provider_fallback"} 1
+# TYPE docgrid_sync_outbox_claimable_events gauge
+docgrid_sync_outbox_claimable_events 2
+# TYPE docgrid_sync_outbox_processing_events gauge
+docgrid_sync_outbox_processing_events 1
+# TYPE docgrid_sync_outbox_oldest_claimable_age_seconds gauge
+docgrid_sync_outbox_oldest_claimable_age_seconds 30
+# TYPE docgrid_sync_event_attempts_total counter
+docgrid_sync_event_attempts_total{outcome="success"} 8
+docgrid_sync_event_attempts_total{outcome="retry_scheduled"} 1
+docgrid_sync_event_attempts_total{outcome="terminal_failure"} 0
+# TYPE docgrid_operational_snapshot_age_seconds gauge
+docgrid_operational_snapshot_age_seconds 12
+# TYPE docgrid_operational_snapshot_refresh_total counter
+docgrid_operational_snapshot_refresh_total{outcome="success"} 12
+docgrid_operational_snapshot_refresh_total{outcome="failed"} 1
