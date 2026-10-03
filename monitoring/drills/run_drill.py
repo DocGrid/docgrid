@@ -427,6 +427,43 @@ def fetch_metrics(backend):
     return body.decode("utf-8")
 
 
+def circuit_metric_snapshot(backend):
+    """Read one exposition snapshot of the Circuit, Probe, and delayed Retry metrics."""
+    metrics = fetch_metrics(backend)
+    return {
+        "open": metric_value(metrics, "docgrid_embedding_provider_circuit_open"),
+        "probeFailed": metric_value(
+            metrics, "docgrid_embedding_provider_circuit_probe_failed"
+        ),
+        "openTransitions": metric_value(
+            metrics,
+            "docgrid_embedding_provider_circuit_transitions_total",
+            {"state": "open"},
+        ),
+        "halfOpenTransitions": metric_value(
+            metrics,
+            "docgrid_embedding_provider_circuit_transitions_total",
+            {"state": "half_open"},
+        ),
+        "closedTransitions": metric_value(
+            metrics,
+            "docgrid_embedding_provider_circuit_transitions_total",
+            {"state": "closed"},
+        ),
+        "failedProbes": metric_value(
+            metrics,
+            "docgrid_embedding_provider_circuit_probe_total",
+            {"outcome": "failed"},
+        ),
+        "successfulProbes": metric_value(
+            metrics,
+            "docgrid_embedding_provider_circuit_probe_total",
+            {"outcome": "success"},
+        ),
+        "delayedRetryJobs": metric_value(metrics, "docgrid_embedding_delayed_retry_jobs"),
+    }
+
+
 def login_and_upload(
     backend,
     temp_dir,
@@ -726,6 +763,339 @@ def run_provider_outage(output_dir):
         environment.close()
 
 
+def run_circuit_recovery(output_dir, jar_path):
+    """Drive one real Job through Circuit protection, failed Probe, and successful recovery."""
+    environment = DrillEnvironment("circuit-recovery", output_dir)
+    provider_paused = False
+    try:
+        # 1. Create a real Job while the Provider is healthy, but keep all Workers disabled.
+        environment.start_core(include_provider=True)
+        wait_for(
+            "initial Embedding Provider readiness",
+            lambda: request(
+                f"http://127.0.0.1:{environment.embedding_port}/health/ready",
+                timeout=5,
+            )[0] == 200,
+            900,
+            5,
+        )
+        observer = environment.start_backend(
+            jar_path, "circuit-observer", worker_enabled=False, snapshot_interval="2s"
+        )
+        upload = login_and_upload(
+            observer,
+            environment.temp_dir,
+            filename="circuit-recovery.txt",
+            title="Embedding Circuit Recovery Drill",
+            description="Actual Circuit alert, Probe failure, and recovery",
+        )
+        job_id = int(upload["embeddingJobId"])
+        document_version_id = int(upload["documentVersionId"])
+        environment.psql(
+            "UPDATE sync_outbox_events SET status='PROCESSED', processed_at=CURRENT_TIMESTAMP, "
+            "updated_at=CURRENT_TIMESTAMP WHERE event_id=(SELECT source_event_id FROM embedding_jobs "
+            f"WHERE id={job_id})"
+        )
+        # The default three retries would terminate at the first failed Probe; preserve recovery headroom.
+        environment.psql(
+            "UPDATE embedding_jobs SET max_retry_count=10, updated_at=CURRENT_TIMESTAMP "
+            f"WHERE id={job_id}"
+        )
+
+        # 2. Pause the existing container so Backend and Prometheus see an outage without changing its port.
+        print("Pausing the real Embedding Provider container...", flush=True)
+        provider_paused_at = utc_now()
+        environment.compose("pause", "embedding-server", capture=False)
+        provider_paused = True
+        worker = environment.start_backend(
+            jar_path,
+            "circuit-worker",
+            worker_enabled=True,
+            snapshot_interval="2s",
+            environment_overrides={"INDEXING_WORKER_RETRY_JITTER_RATIO": "0"},
+        )
+        environment.write_prometheus_config(worker["managementPort"])
+        environment.start_prometheus()
+        wait_for(
+            "Prometheus to scrape the Circuit Worker",
+            lambda: environment.prometheus_value('up{job="docgrid-backend"}') == 1,
+            60,
+        )
+        provider_down_condition_at = wait_for(
+            "Prometheus up=0 provider condition",
+            lambda: utc_now() if environment.prometheus_value(
+                'up{job="embedding-provider"}'
+            ) == 0 else None,
+            60,
+        )
+
+        # 3. Observe the first OPEN and a real future Retry before the Half-open failure.
+        circuit_open_snapshot = wait_for(
+            "the Worker Circuit to open",
+            lambda: (
+                snapshot if (
+                    (snapshot := circuit_metric_snapshot(worker))["open"] == 1
+                    and snapshot["openTransitions"] >= 1
+                ) else None
+            ),
+            120,
+        )
+        circuit_opened_at = utc_now()
+        delayed_retry_snapshot = wait_for(
+            "a delayed Retry Job after Circuit OPEN",
+            lambda: (
+                snapshot if (
+                    (snapshot := circuit_metric_snapshot(worker))["delayedRetryJobs"] >= 1
+                    and environment.psql(
+                        f"SELECT status FROM embedding_jobs WHERE id={job_id}"
+                    ) == "PENDING"
+                ) else None
+            ),
+            60,
+        )
+        delayed_retry_observed_at = utc_now()
+
+        # 4. Wait for the real failed Probe and freeze only this Job while the production for-clause matures.
+        failed_probe_snapshot = wait_for(
+            "a failed Half-open Probe and Retry persistence",
+            lambda: (
+                snapshot if (
+                    (snapshot := circuit_metric_snapshot(worker))["failedProbes"] >= 1
+                    and snapshot["probeFailed"] == 1
+                    and snapshot["openTransitions"] >= 2
+                    and environment.psql(
+                        f"SELECT status FROM embedding_jobs WHERE id={job_id}"
+                    ) == "PENDING"
+                ) else None
+            ),
+            120,
+        )
+        failed_probe_at = utc_now()
+        environment.psql(
+            "UPDATE embedding_jobs SET next_retry_at=CURRENT_TIMESTAMP + INTERVAL '10 minutes', "
+            f"updated_at=CURRENT_TIMESTAMP WHERE id={job_id} AND status='PENDING'"
+        )
+        wait_for(
+            "the frozen Job to remain visible as delayed Retry",
+            lambda: circuit_metric_snapshot(worker)["delayedRetryJobs"] >= 1,
+            30,
+        )
+
+        # 5. Verify the real root-cause alert, Circuit alert, and Alertmanager inhibition boundary.
+        provider_down_firing_at = wait_for(
+            "EmbeddingProviderDown firing state",
+            lambda: utc_now() if environment.prometheus_alert(
+                "EmbeddingProviderDown", "firing"
+            ) else None,
+            150,
+            2,
+        )
+        provider_down_delivery = wait_for(
+            "EmbeddingProviderDown firing webhook",
+            lambda: environment.webhook_delivery("EmbeddingProviderDown", "firing"),
+            60,
+        )
+        circuit_alert_pending_at = wait_for(
+            "DocGridEmbeddingProviderCircuitOpen pending state",
+            lambda: utc_now() if environment.prometheus_alert(
+                "DocGridEmbeddingProviderCircuitOpen", "pending"
+            ) else None,
+            60,
+            2,
+        )
+        circuit_alert_firing_at = wait_for(
+            "DocGridEmbeddingProviderCircuitOpen firing state",
+            lambda: utc_now() if environment.prometheus_alert(
+                "DocGridEmbeddingProviderCircuitOpen", "firing"
+            ) else None,
+            120,
+            2,
+        )
+        inhibited_circuit_alert = wait_for(
+            "Circuit warning inhibition by the Provider root cause",
+            lambda: (
+                alert if (
+                    (alert := environment.alertmanager_alert(
+                        "DocGridEmbeddingProviderCircuitOpen"
+                    )) and alert.get("status", {}).get("state") == "suppressed"
+                ) else None
+            ),
+            60,
+        )
+        circuit_suppressed_at = utc_now()
+        assert_absent_for(
+            "Circuit warning firing webhook while inhibited",
+            lambda: environment.webhook_delivery(
+                "DocGridEmbeddingProviderCircuitOpen", "firing"
+            ),
+            35,
+        )
+
+        # 6. Resume the same Provider, release the frozen Retry, and require a successful Probe closure.
+        print("Unpausing the real Embedding Provider container...", flush=True)
+        recovery_started_at = utc_now()
+        environment.compose("unpause", "embedding-server", capture=False)
+        provider_paused = False
+        wait_for(
+            "Embedding Provider readiness after unpause",
+            lambda: request(
+                f"http://127.0.0.1:{environment.embedding_port}/health/ready",
+                timeout=5,
+            )[0] == 200,
+            120,
+            2,
+        )
+        provider_ready_at = utc_now()
+        wait_for(
+            "Prometheus to observe Provider recovery",
+            lambda: environment.prometheus_value('up{job="embedding-provider"}') == 1,
+            60,
+        )
+        environment.psql(
+            "UPDATE embedding_jobs SET next_retry_at=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP "
+            f"WHERE id={job_id} AND status='PENDING'"
+        )
+        successful_probe_snapshot = wait_for(
+            "the successful Probe to close the Circuit",
+            lambda: (
+                snapshot if (
+                    (snapshot := circuit_metric_snapshot(worker))["successfulProbes"] >= 1
+                    and snapshot["closedTransitions"] >= 1
+                    and snapshot["open"] == 0
+                    and snapshot["probeFailed"] == 0
+                ) else None
+            ),
+            120,
+        )
+        successful_probe_at = utc_now()
+        job_indexed_at = wait_for(
+            "the recovered Job to reach INDEXED",
+            lambda: utc_now() if environment.psql(
+                f"SELECT status FROM embedding_jobs WHERE id={job_id}"
+            ) == "INDEXED" else None,
+            120,
+            2,
+        )
+        embedding_count = int(environment.psql(
+            "SELECT COUNT(*) FROM embeddings WHERE document_version_id="
+            f"{document_version_id}"
+        ))
+        if embedding_count <= 0:
+            raise AssertionError("Recovered Job reached INDEXED without stored embeddings")
+
+        # 7. Require both Prometheus alerts to clear and only the root-cause lifecycle to be delivered.
+        alerts_resolved_at = wait_for(
+            "Provider and Circuit alerts to resolve in Prometheus",
+            lambda: utc_now() if (
+                not environment.prometheus_alert("EmbeddingProviderDown")
+                and not environment.prometheus_alert("DocGridEmbeddingProviderCircuitOpen")
+            ) else None,
+            90,
+            2,
+        )
+        provider_down_resolved = wait_for(
+            "EmbeddingProviderDown resolved webhook",
+            lambda: environment.webhook_delivery("EmbeddingProviderDown", "resolved"),
+            90,
+        )
+        circuit_firing_deliveries = sum(
+            1 for event in environment.webhook_events()
+            for alert in event["payload"].get("alerts", [])
+            if alert.get("labels", {}).get("alertname")
+            == "DocGridEmbeddingProviderCircuitOpen"
+            and alert.get("status") == "firing"
+        )
+        if circuit_firing_deliveries != 0:
+            raise AssertionError("The inhibited Circuit warning reached the webhook receiver")
+
+        final_job = environment.psql(
+            "SELECT status || '|' || retry_count || '|' || max_retry_count "
+            f"FROM embedding_jobs WHERE id={job_id}"
+        ).split("|")
+        firing_received_at = datetime.fromisoformat(provider_down_delivery["receivedAt"])
+        resolved_received_at = datetime.fromisoformat(provider_down_resolved["receivedAt"])
+        result = base_result("circuit-recovery")
+        result["conditions"] = {
+            "providerFailureMode": "docker-pause",
+            "circuitFailureThreshold": 3,
+            "circuitOpenDuration": "30s",
+            "retryJitterRatio": 0,
+            "jobMaxRetryCount": 10,
+            "failedProbeRetryFreeze": "10m",
+            "scrapeInterval": "15s",
+            "evaluationInterval": "15s",
+            "circuitRuleFor": "1m",
+            "criticalGroupWait": "10s",
+            "warningGroupWait": "30s",
+            "testGroupInterval": "30s",
+            "productionGroupInterval": "5m",
+        }
+        result["timestamps"] = {
+            "providerPausedAt": iso(provider_paused_at),
+            "providerDownConditionAt": iso(provider_down_condition_at),
+            "circuitOpenedAt": iso(circuit_opened_at),
+            "delayedRetryObservedAt": iso(delayed_retry_observed_at),
+            "failedProbeAt": iso(failed_probe_at),
+            "providerDownFiringAt": iso(provider_down_firing_at),
+            "providerDownWebhookAt": iso(firing_received_at),
+            "circuitAlertPendingAt": iso(circuit_alert_pending_at),
+            "circuitAlertFiringAt": iso(circuit_alert_firing_at),
+            "circuitSuppressedAt": iso(circuit_suppressed_at),
+            "recoveryStartedAt": iso(recovery_started_at),
+            "providerReadyAt": iso(provider_ready_at),
+            "successfulProbeAt": iso(successful_probe_at),
+            "jobIndexedAt": iso(job_indexed_at),
+            "alertsResolvedAt": iso(alerts_resolved_at),
+            "providerDownResolvedWebhookAt": iso(resolved_received_at),
+        }
+        result["measurements"] = {
+            "pauseToProviderDownConditionSeconds": round(
+                (provider_down_condition_at - provider_paused_at).total_seconds(), 3
+            ),
+            "pauseToCircuitOpenSeconds": round(
+                (circuit_opened_at - provider_paused_at).total_seconds(), 3
+            ),
+            "pauseToFailedProbeSeconds": round(
+                (failed_probe_at - provider_paused_at).total_seconds(), 3
+            ),
+            "failedProbeToCircuitFiringSeconds": round(
+                (circuit_alert_firing_at - failed_probe_at).total_seconds(), 3
+            ),
+            "recoveryToProviderReadySeconds": round(
+                (provider_ready_at - recovery_started_at).total_seconds(), 3
+            ),
+            "providerReadyToSuccessfulProbeSeconds": round(
+                (successful_probe_at - provider_ready_at).total_seconds(), 3
+            ),
+            "recoveryToIndexedSeconds": round(
+                (job_indexed_at - recovery_started_at).total_seconds(), 3
+            ),
+            "recoveryToAllPrometheusAlertsResolvedSeconds": round(
+                (alerts_resolved_at - recovery_started_at).total_seconds(), 3
+            ),
+            "recoveryToProviderResolvedWebhookSeconds": round(
+                (resolved_received_at - recovery_started_at).total_seconds(), 3
+            ),
+            "circuitWarningSuppressed": bool(inhibited_circuit_alert),
+            "circuitWarningFiringWebhookDeliveries": circuit_firing_deliveries,
+            "storedEmbeddings": embedding_count,
+            "finalJobStatus": final_job[0],
+            "finalRetryCount": int(final_job[1]),
+            "maxRetryCount": int(final_job[2]),
+        }
+        result["metricSnapshots"] = {
+            "circuitOpen": circuit_open_snapshot,
+            "delayedRetry": delayed_retry_snapshot,
+            "failedProbe": failed_probe_snapshot,
+            "successfulProbe": successful_probe_snapshot,
+        }
+        return result
+    finally:
+        if provider_paused:
+            environment.compose("unpause", "embedding-server", check=False)
+        environment.close()
+
+
 def run_queue_recovery(output_dir, jar_path):
     """Create a real queued document, observe production alerts, then recover it with a Worker."""
     environment = DrillEnvironment("queue-recovery", output_dir)
@@ -926,7 +1296,13 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "scenario",
-        choices=["scrape-load", "queue-recovery", "provider-outage", "all"],
+        choices=[
+            "scrape-load",
+            "queue-recovery",
+            "provider-outage",
+            "circuit-recovery",
+            "all",
+        ],
     )
     parser.add_argument(
         "--output-dir",
@@ -943,11 +1319,12 @@ def main():
     output_dir = arguments.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     scenarios = (
-        ["scrape-load", "queue-recovery", "provider-outage"]
+        ["scrape-load", "queue-recovery", "provider-outage", "circuit-recovery"]
         if arguments.scenario == "all" else [arguments.scenario]
     )
     jar_path = build_backend() if any(
-        scenario in {"scrape-load", "queue-recovery"} for scenario in scenarios
+        scenario in {"scrape-load", "queue-recovery", "circuit-recovery"}
+        for scenario in scenarios
     ) else None
     results = []
     try:
@@ -956,6 +1333,8 @@ def main():
                 result = run_scrape_load(output_dir, jar_path)
             elif scenario == "queue-recovery":
                 result = run_queue_recovery(output_dir, jar_path)
+            elif scenario == "circuit-recovery":
+                result = run_circuit_recovery(output_dir, jar_path)
             else:
                 result = run_provider_outage(output_dir)
             write_result(output_dir, result)
