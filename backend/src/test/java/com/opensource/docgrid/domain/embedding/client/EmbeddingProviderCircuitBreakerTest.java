@@ -49,6 +49,7 @@ class EmbeddingProviderCircuitBreakerTest {
 
         assertThat(circuitDelay).isEqualTo(Duration.ofSeconds(30));
         assertThat(gauge(meterRegistry)).isEqualTo(1.0);
+        assertThat(probeFailedGauge(meterRegistry)).isZero();
         assertThat(transitions(meterRegistry, "open")).isEqualTo(1.0);
         assertThat(probes(meterRegistry, "success")).isZero();
         assertThat(probes(meterRegistry, "failed")).isZero();
@@ -118,6 +119,7 @@ class EmbeddingProviderCircuitBreakerTest {
 
         assertThat(circuitBreaker.acquirePermission().halfOpenProbe()).isFalse();
         assertThat(gauge(meterRegistry)).isZero();
+        assertThat(probeFailedGauge(meterRegistry)).isZero();
         assertThat(transitions(meterRegistry, "half_open")).isEqualTo(1.0);
         assertThat(transitions(meterRegistry, "closed")).isEqualTo(1.0);
         assertThat(probes(meterRegistry, "success")).isEqualTo(1.0);
@@ -134,6 +136,7 @@ class EmbeddingProviderCircuitBreakerTest {
         CallPermission abandonedProbe = circuitBreaker.acquirePermission();
 
         circuitBreaker.releasePermission(abandonedProbe);
+        assertThat(probeFailedGauge(meterRegistry)).isZero();
         assertThat(probes(meterRegistry, "success")).isZero();
         assertThat(probes(meterRegistry, "failed")).isZero();
 
@@ -142,6 +145,7 @@ class EmbeddingProviderCircuitBreakerTest {
         assertThat(nextProbe.halfOpenProbe()).isTrue();
         circuitBreaker.recordSuccess(nextProbe);
         assertThat(circuitBreaker.acquirePermission().halfOpenProbe()).isFalse();
+        assertThat(probeFailedGauge(meterRegistry)).isZero();
         assertThat(probes(meterRegistry, "success")).isEqualTo(1.0);
         assertThat(probes(meterRegistry, "failed")).isZero();
     }
@@ -161,6 +165,7 @@ class EmbeddingProviderCircuitBreakerTest {
         circuitBreaker.recordFailure(probe, true);
 
         assertThat(gauge(meterRegistry)).isEqualTo(1.0);
+        assertThat(probeFailedGauge(meterRegistry)).isEqualTo(1.0);
         assertThat(transitions(meterRegistry, "open")).isEqualTo(2.0);
         assertThat(probes(meterRegistry, "success")).isZero();
         assertThat(probes(meterRegistry, "failed")).isEqualTo(1.0);
@@ -232,6 +237,10 @@ class EmbeddingProviderCircuitBreakerTest {
 
     private double gauge(SimpleMeterRegistry meterRegistry) {
         return meterRegistry.get("docgrid.embedding.provider.circuit.open").gauge().value();
+    }
+
+    private double probeFailedGauge(SimpleMeterRegistry meterRegistry) {
+        return meterRegistry.get("docgrid.embedding.provider.circuit.probe.failed").gauge().value();
     }
 
     private double transitions(SimpleMeterRegistry meterRegistry, String state) {
