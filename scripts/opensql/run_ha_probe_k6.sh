@@ -18,6 +18,10 @@ case "$purpose_code" in
   primary-vm-fault) purpose='OpenSQL primary VM 상실 중 쓰기' ;;
   *) echo '시험 목적 코드가 잘못되었습니다' >&2; exit 2 ;;
 esac
+# A leader handoff can hold many requests until the 10 s client timeout; allow
+# k6 to keep scheduling the requested rate instead of silently dropping slots.
+max_vus=160
+if [[ "$purpose_code" == primary-switchover ]]; then max_vus=800; fi
 if [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
    [[ ! "$rate" =~ ^[0-9]+$ ]] || (( rate < 1 || rate > 500 )) ||
    [[ ! "$duration" =~ ^[0-9]+s$ ]] ||
@@ -36,7 +40,7 @@ printf '실행 ID=%s\n위치=GCP 내부 부하 VM\n목적=%s\n시작 UTC=%s\n요
 export HA_RUN_ID="$run_id" HA_RATE="$rate" HA_DURATION="$duration"
 export HA_TARGET_URL="$target" HA_JWT="$(< "$token_file")"
 export HA_SUMMARY_FILE="$run_dir/k6-summary.json"
-export HA_VUS=40 HA_MAX_VUS=160 HA_TIMEOUT=10s
+export HA_VUS=40 HA_MAX_VUS="$max_vus" HA_TIMEOUT=10s
 set +e
 k6 run --quiet --log-format=raw --console-output="$run_dir/k6-events.jsonl" \
   /home/giminkim/ha_probe_load_389.js >/dev/null 2>/dev/null
