@@ -1,0 +1,13 @@
+실행 ID=issue410-reference-01
+위치=분리된 로컬 worktree
+목적=압축본 해시·복원 크기·원문 복구 가능성·문서 링크 확인
+기준 시각 UTC=2026-10-03T16:08:31Z
+아카이브=docs/test-results/evidence/issue-378/gcp-runs/b378-after-n50-01/samples.jsonl.gz|gzip=PASS|원문_SHA256=PASS|압축_SHA256=PASS|크기=PASS|기존커밋복구=PASS
+아카이브=docs/test-results/evidence/issue-378/gcp-runs/b378-after-n50-02/samples.jsonl.gz|gzip=PASS|원문_SHA256=PASS|압축_SHA256=PASS|크기=PASS|기존커밋복구=PASS
+아카이브=docs/test-results/evidence/issue-378/gcp-runs/b378-after-n50-03/samples.jsonl.gz|gzip=PASS|원문_SHA256=PASS|압축_SHA256=PASS|크기=PASS|기존커밋복구=PASS
+아카이브=docs/test-results/evidence/issue-380/runs/ab380-lb-n50-r1/k6/samples.jsonl.gz|gzip=PASS|원문_SHA256=PASS|압축_SHA256=PASS|크기=PASS|기존커밋복구=PASS
+아카이브=docs/test-results/evidence/issue-380/runs/ab380-lb-n50-r2/k6/samples.jsonl.gz|gzip=PASS|원문_SHA256=PASS|압축_SHA256=PASS|크기=PASS|기존커밋복구=PASS
+아카이브=docs/test-results/evidence/issue-380/runs/ab380-bonly-n50-r1/k6/samples.jsonl.gz|gzip=PASS|원문_SHA256=PASS|압축_SHA256=PASS|크기=PASS|기존커밋복구=PASS
+문서 링크=6/6 PASS
+정확한 원본 제거=6/6 PASS
+전체 결과=PASS

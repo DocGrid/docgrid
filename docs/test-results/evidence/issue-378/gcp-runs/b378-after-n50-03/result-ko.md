@@ -17,4 +17,4 @@
 | 판정 | 통과 |
 | 정리 | 이 시험 묶음 종료 후 일회용 사용자 잔여 0명·JWT 및 임시 DB 암호 복사본 삭제 확인. VM·Redis는 유지. |
 
-원본: [k6 요약](summary.json), [비식별 실시간 표본](samples.jsonl), [실행 manifest](manifest.json). URL·토큰·계정·IP는 기록 전에 제외했다.
+원본: [k6 요약](summary.json), [비식별 실시간 표본·gzip](samples.jsonl.gz), [실행 manifest](manifest.json). URL·토큰·계정·IP는 기록 전에 제외했다.

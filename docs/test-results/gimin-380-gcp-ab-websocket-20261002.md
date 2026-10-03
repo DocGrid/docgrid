@@ -39,11 +39,11 @@ k6는 **GCP 내부 전용 부하 VM**에서 실행했다. 각 회차는 예열 1
 | `ab380-lb-n1-r1` | 1 / 1 | 100 | 0 / 1 | 0 | 18 / 19.01ms | [요약](evidence/issue-380/runs/ab380-lb-n1-r1/k6/summary.json), [샘플](evidence/issue-380/runs/ab380-lb-n1-r1/k6/samples.jsonl) |
 | `ab380-lb-n5-r1` | 5 / 5 | 500 | 2 / 3 | 0 | 17 / 18ms | [요약](evidence/issue-380/runs/ab380-lb-n5-r1/k6/summary.json), [샘플](evidence/issue-380/runs/ab380-lb-n5-r1/k6/samples.jsonl) |
 | `ab380-lb-n20-r1` | 20 / 20 | 2,000 | 10 / 10 | 0 | 16 / 52.01ms | [요약](evidence/issue-380/runs/ab380-lb-n20-r1/k6/summary.json), [샘플](evidence/issue-380/runs/ab380-lb-n20-r1/k6/samples.jsonl) |
-| `ab380-lb-n50-r2` | 50 / 50 | 5,000 | 25 / 25 | 0 | 19 / 20.01ms | [요약](evidence/issue-380/runs/ab380-lb-n50-r2/k6/summary.json), [샘플](evidence/issue-380/runs/ab380-lb-n50-r2/k6/samples.jsonl) |
+| `ab380-lb-n50-r2` | 50 / 50 | 5,000 | 25 / 25 | 0 | 19 / 20.01ms | [요약](evidence/issue-380/runs/ab380-lb-n50-r2/k6/summary.json), [샘플·gzip](evidence/issue-380/runs/ab380-lb-n50-r2/k6/samples.jsonl.gz) |
 
 각 실행의 KST 시각·구독 수·종료 코드는 해당 [run 디렉터리](evidence/issue-380/runs/)의 `status.txt`와 `k6/manifest.json`에 분리해 뒀다. A/B 도착의 독립 근거는 [A 발행·세션 로그](evidence/issue-380/fixtures/A/publisher-events.tsv), [B 발행·세션 로그](evidence/issue-380/fixtures/B/publisher-events.tsv)다. `p95/p99`는 테스트 payload에 담은 **발행 시각 → k6 클라이언트 수신 시각** 차이다. 측정 후 읽기 전용 `chronyc tracking`에서 A/B/부하 VM의 leap status는 모두 `Normal`, system-time 편차는 각각 약 +5.6µs/+0.05µs/−16.6µs였다. 이 확인은 실행 중 매 프레임의 시계 오차를 증명하지는 않는다.
 
-첫 50명 회차 `ab380-lb-n50-r1`은 k6 자체는 50연결·5,001수신·오류 0건이었지만, A/B 세션을 가져오던 `/actuator/prometheus` 탐침이 HTTP 401로 **47회 모두 실패**했다. 따라서 그 회차로 접속 분산을 주장하지 않았다. [실패한 탐침 요약](evidence/issue-380/runs/ab380-lb-n50-r1/sessions/summary.json)을 남기고, A/B fixture의 인증 세션 수를 직접 수집하도록 바꿔 `r2`를 다시 실행했다. HTTP 401의 내부 보안 설정 원인은 이 시험에서 확정하지 않았다.
+첫 50명 회차 `ab380-lb-n50-r1`은 k6 자체는 50연결·5,001수신·오류 0건이었지만, A/B 세션을 가져오던 `/actuator/prometheus` 탐침이 HTTP 401로 **47회 모두 실패**했다. 따라서 그 회차로 접속 분산을 주장하지 않았다. [실패한 탐침 요약](evidence/issue-380/runs/ab380-lb-n50-r1/sessions/summary.json)과 [원본 샘플·gzip](evidence/issue-380/runs/ab380-lb-n50-r1/k6/samples.jsonl.gz)을 남기고, A/B fixture의 인증 세션 수를 직접 수집하도록 바꿔 `r2`를 다시 실행했다. HTTP 401의 내부 보안 설정 원인은 이 시험에서 확정하지 않았다.
 
 준비 단계에서도 실패·수정이 있었다. 처음 시도한 프록시 전용 서브넷 주소 범위는 기본 VPC의 예약 범위와 충돌해 **생성되지 않았고**, 다른 비충돌 범위로 다시 만들었다. 첫 A/B fixture 실행은 테스트 설정의 `management.server.port=0` 때문에 건강 검사 포트가 무작위로 잡혀 LB에서 unhealthy였다. `MANAGEMENT_SERVER_PORT=8081`을 명시한 다음 실행에서 A/B readiness와 LB healthy를 확인한 뒤 최종 계측을 진행했다. 또한 VM 이름에 `load`가 포함된 앱 VM을 처음에는 부하 VM으로 잘못 선택했다. 전용 부하 VM을 앱/백엔드 이름 제외 조건으로 다시 식별했고, **이 문서의 k6 실행은 모두 바로잡은 전용 부하 VM에서만 실행**했다. 앞선 잘못된 선택·건강 검사 실패는 성능 근거로 쓰지 않았다.
 
@@ -80,7 +80,7 @@ k6는 **GCP 내부 전용 부하 VM**에서 실행했다. 각 회차는 예열 1
 
 [시간축 원본 이벤트](evidence/issue-380/runs/ab380-a-stop-reconnect-r1/events.jsonl), [A 종료·계정 정리](evidence/issue-380/fixtures/A/launch-status.txt), [B 지속 실행 로그](evidence/issue-380/fixtures/B/publisher-events.tsv). **342.4ms는 장애 주입→복구 RTO가 아니라 기존 연결이 닫힌 시점→새 메시지 수신 시간**이다. 종료 요청→새 수신은 기록된 초 단위 요청시각 기준 대략 11초이며, 진행 중이던 WebSocket이 B로 무중단 이전된 것도 아니다.
 
-A가 내려간 상태의 `ab380-bonly-n50-r1`에서도 k6 50/50 연결, 5,000수신, 오류 0건, p95 22ms·p99 25ms를 확인했고, B 로컬 인증 세션 최대값은 50이었다. [B 단독 요약](evidence/issue-380/runs/ab380-bonly-n50-r1/k6/summary.json), [원본 샘플](evidence/issue-380/runs/ab380-bonly-n50-r1/k6/samples.jsonl). 이것은 **새 연결의 복구**만 확인하며, 갑작스러운 프로세스 강제 종료·패킷 DROP의 복구 시간은 측정하지 않았다.
+A가 내려간 상태의 `ab380-bonly-n50-r1`에서도 k6 50/50 연결, 5,000수신, 오류 0건, p95 22ms·p99 25ms를 확인했고, B 로컬 인증 세션 최대값은 50이었다. [B 단독 요약](evidence/issue-380/runs/ab380-bonly-n50-r1/k6/summary.json), [원본 샘플·gzip](evidence/issue-380/runs/ab380-bonly-n50-r1/k6/samples.jsonl.gz). 이것은 **새 연결의 복구**만 확인하며, 갑작스러운 프로세스 강제 종료·패킷 DROP의 복구 시간은 측정하지 않았다.
 
 ## 5. 발견한 미완성 경계: A 단독 push는 B에 전달되지 않음
 
@@ -100,14 +100,14 @@ A가 내려간 상태의 `ab380-bonly-n50-r1`에서도 k6 50/50 연결, 5,000수
 | 실행 위치 | 절차/명령 형식 | 주요 결과 | 해석·근거 |
 | --- | --- | --- | --- |
 | A/B VM | `launch_ab_dashboard_fixture.sh <run-id> <output-dir> <0600-secret-dir> <true/false>` | A/B 같은 앱 기준 커밋. 일방향 발행 run04에 배치한 fixture의 양쪽 SHA-256은 `c17d92a2…`로 일치. 종료 코드 0, 실행마다 시험 사용자 2개 정리. 앞선 run03 fixture의 별도 파일 해시는 보존하지 못했다. | [run03 A](evidence/issue-380/fixtures/A/launch-status.txt), [run03 B](evidence/issue-380/fixtures/B/launch-status.txt), [run04 A](evidence/issue-380/fixtures/A-04/launch-status.txt), [run04 B](evidence/issue-380/fixtures/B-04/launch-status.txt) |
-| 부하 VM | `run_dashboard_ab_load.sh <run-id> <1\|5\|20\|50> <new-output-dir> <0600-token-file>` | 네 규모 모두 연결 수 일치·오류 0. B 단독 50개도 통과 | 각 실행의 `status.txt`, `k6/manifest.json`, `k6/summary.json`, `k6/samples.jsonl` |
+| 부하 VM | `run_dashboard_ab_load.sh <run-id> <1\|5\|20\|50> <new-output-dir> <0600-token-file>` | 네 규모 모두 연결 수 일치·오류 0. B 단독 50개도 통과 | 각 실행의 `status.txt`, `k6/manifest.json`, `k6/summary.json`, `k6/samples.jsonl`(50명 3회는 `.gz`) |
 | 부하 VM | `websocket_dashboard_revocation.py` A/B 직접 각 25개 → 실제 회수 API → 8초 관측 | 회수 200, 양쪽 기존 세션 50개 종료, 이후 새 후보 수신 0 | [원본 이벤트](evidence/issue-380/runs/ab380-revoke-a25-b25-r1/events.jsonl) |
 | 부하 VM | `probe_ab_websocket_auth.py`로 두 서버의 새 `SUBSCRIBE` | A/B 모두 `거부_ERROR` | [재시험](evidence/issue-380/runs/ab380-revoked-subscribe-r2.json) |
 | 부하 VM·A VM | `websocket_ab_failover.py` 준비 확인 → A fixture `stop` → LB 새 구독 | 기존 소켓 종료 후 342.4ms, 첫 시도 복구 | [시간축](evidence/issue-380/runs/ab380-a-stop-reconnect-r1/events.jsonl) |
 | 부하 VM·A/B VM | `websocket_dashboard_revocation.py --observe-only`와 B 발행 `false` | 2회 모두 A 수신 양수, B 수신 0 | [r1](evidence/issue-380/runs/ab380-one-sided-fanout-r1/events.jsonl), [r2](evidence/issue-380/runs/ab380-one-sided-fanout-r2/events.jsonl) |
 | 로컬 | `python3 -B -m unittest discover -s scripts/opensql -p 'test_websocket_dashboard_revocation.py' -v`; `bash -n …`; `./backend/gradlew -p backend compileTestJava --offline --no-daemon` | Python 4/4, Bash 구문 통과, Java test compile 성공 | 클라우드 E2E와 별도의 로컬 검증이며 전체 Gradle 테스트는 실행하지 않았다. |
 
-관련 인프라·정리의 숫자와 남겨 둔 상태는 [운영 체크 기록](evidence/issue-380/infra-checks-20261002.md)에 분리했다. 모든 `samples.jsonl`은 k6 원시 스트림을 파일로 쓰기 **전에** 허용 지표명·수치·KST만 선택했다. HTTP 태그·URL·JWT는 수집 파일에 쓰지 않았다. 공개 전 전체 증거 폴더를 다시 스캔해 내부 IP, 프로젝트명, 토큰, 시험 사용자 이메일 패턴 매치가 0개임을 확인했다.
+관련 인프라·정리의 숫자와 남겨 둔 상태는 [운영 체크 기록](evidence/issue-380/infra-checks-20261002.md)에 분리했다. 모든 `samples.jsonl`은 k6 원시 스트림을 파일로 쓰기 **전에** 허용 지표명·수치·KST만 선택했다. 50명 실행 3개의 표본은 [무손실 압축 검증](evidence/issue-410/compression-manifest.csv) 후 `.gz`로 보관한다. HTTP 태그·URL·JWT는 수집 파일에 쓰지 않았다. 공개 전 전체 증거 폴더를 다시 스캔해 내부 IP, 프로젝트명, 토큰, 시험 사용자 이메일 패턴 매치가 0개임을 확인했다.
 
 ## 7. 결과가 뜻하지 않는 것과 남은 결정
 
