@@ -36,5 +36,5 @@ indexing:
   worker:
     # E2E 테스트가 빈 Queue Backoff 상한 때문에 오래 대기하지 않도록 테스트 환경만 짧게 유지한다.
     idle-max-polling-interval: ${INDEXING_WORKER_IDLE_MAX_POLLING_INTERVAL:1s}
-    # Retry 시각을 검증하는 통합 테스트는 결정적인 지수 Backoff를 사용하고 Jitter는 단위 테스트에서 검증한다.
+    # 기본 통합 테스트는 결정적인 Backoff를 사용하고, 분포 테스트만 Jitter를 명시적으로 활성화한다.
     retry-jitter-ratio: ${INDEXING_WORKER_RETRY_JITTER_RATIO:0.0}

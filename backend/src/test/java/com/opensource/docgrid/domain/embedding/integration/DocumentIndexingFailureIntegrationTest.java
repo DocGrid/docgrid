@@ -20,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -214,15 +216,16 @@ class DocumentIndexingFailureIntegrationTest {
         }
     }
 
-    @Test
-    @DisplayName("상한 +1ns Provider 하한은 PostgreSQL에 저장한 뒤에도 지킨다")
-    void overloadedJob_preservesNanosecondProviderMinimumAfterPersistence() {
+    @ParameterizedTest(name = "Jitter 비율 {0}")
+    @ValueSource(doubles = {0.0, 0.2})
+    @DisplayName("상한 +1ns Provider 하한을 Jitter 설정과 무관하게 PostgreSQL 저장 후에도 지킨다")
+    void overloadedJob_preservesNanosecondProviderMinimumAfterPersistence(double jitterRatio) {
         Duration minimumRetryDelay = Duration.ofSeconds(12).plusNanos(1);
         double originalJitterRatio = workerProperties.getRetryJitterRatio();
-        workerProperties.setRetryJitterRatio(0.2);
+        workerProperties.setRetryJitterRatio(jitterRatio);
 
         try {
-            // 1. 밀리초 경계를 넘는 Provider 하한으로 실제 Job을 실패 처리한다.
+            // 1. Jitter 비활성화와 활성화 모두에서 나노초 Provider 하한을 실제 Job에 적용한다.
             ExecutionContext context = insertFirstVersionExecution("EMBEDDING", false);
             DocumentIndexingFailureResponse response = failureService.fail(
                 context.jobId(),
@@ -235,13 +238,18 @@ class DocumentIndexingFailureIntegrationTest {
                 minimumRetryDelay
             );
 
-            // 2. DB에서 다시 읽은 예약 시각이 원래 나노초 하한보다 이르지 않은지 확인한다.
+            // 2. 난수 오프셋과 무관하게 저장된 지연의 나노초 잔여분이 올림 결과인지 확인한다.
             LocalDateTime nextRetryAt = queryDateTime(
                 "SELECT next_retry_at FROM embedding_jobs WHERE id = ?",
                 context.jobId()
             );
-            assertThat(Duration.between(response.failedAt(), nextRetryAt))
-                .isGreaterThanOrEqualTo(minimumRetryDelay);
+            Duration storedDelay = Duration.between(response.failedAt(), nextRetryAt);
+            Duration expectedLower = Duration.ofSeconds(12).plusNanos(1_000);
+            assertThat(storedDelay).isBetween(expectedLower, expectedLower.plusSeconds(2));
+            assertThat(storedDelay.getNano() % 1_000_000).isEqualTo(1_000);
+            if (jitterRatio == 0.0) {
+                assertThat(storedDelay).isEqualTo(expectedLower);
+            }
         } finally {
             workerProperties.setRetryJitterRatio(originalJitterRatio);
         }
