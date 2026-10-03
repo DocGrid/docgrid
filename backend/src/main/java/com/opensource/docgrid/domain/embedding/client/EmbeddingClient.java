@@ -8,6 +8,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
@@ -68,6 +69,8 @@ public class EmbeddingClient {
         try {
             response = queryRestClient.post()
                 .uri("/embed")
+                // JSON을 명시해 XML Converter가 Provider 요청 DTO를 먼저 선택하지 못하게 한다.
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(new EmbedRequest(text))
                 .retrieve()
                 .body(EmbedServerResponse.class);
@@ -107,6 +110,8 @@ public class EmbeddingClient {
         try {
             response = documentRestClient.post()
                 .uri("/embed/batch")
+                // FastAPI Batch 계약은 JSON 객체이므로 classpath의 XML 지원 여부와 무관하게 고정한다.
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(new EmbedBatchRequest(texts, batchSize))
                 .retrieve()
                 .body(EmbedBatchServerResponse.class);
