@@ -22,6 +22,7 @@ public class EmbeddingProviderCircuitMetrics {
     private static final String PROBES = "docgrid.embedding.provider.circuit.probe";
 
     private final AtomicInteger open = new AtomicInteger();
+    private final AtomicInteger probeFailed = new AtomicInteger();
     private final Counter openTransitions;
     private final Counter halfOpenTransitions;
     private final Counter closedTransitions;
@@ -32,6 +33,13 @@ public class EmbeddingProviderCircuitMetrics {
     public EmbeddingProviderCircuitMetrics(MeterRegistry meterRegistry) {
         Gauge.builder("docgrid.embedding.provider.circuit.open", open, AtomicInteger::get)
             .description("Whether the Embedding Provider circuit is open or half-open")
+            .register(meterRegistry);
+        Gauge.builder(
+            "docgrid.embedding.provider.circuit.probe.failed",
+            probeFailed,
+            AtomicInteger::get
+        )
+            .description("Whether the current circuit protection episode has a failed probe")
             .register(meterRegistry);
         openTransitions = transitionCounter(meterRegistry, "open");
         halfOpenTransitions = transitionCounter(meterRegistry, "half_open");
@@ -59,14 +67,16 @@ public class EmbeddingProviderCircuitMetrics {
         closedTransitions.increment();
     }
 
-    /** Half-open Probe가 Provider 회복을 확인한 횟수를 기록한다. */
+    /** Half-open Probe 성공 횟수를 기록하고 현재 보호 주기의 실패 표시를 해제한다. */
     void recordProbeSuccess() {
         successfulProbes.increment();
+        probeFailed.set(0);
     }
 
-    /** Half-open Probe에서 Retry 가능한 Provider 장애가 재확인된 횟수를 기록한다. */
+    /** Half-open Probe 실패 횟수를 기록하고 현재 보호 주기에 확인된 장애를 표시한다. */
     void recordProbeFailure() {
         failedProbes.increment();
+        probeFailed.set(1);
     }
 
     private Counter transitionCounter(MeterRegistry meterRegistry, String state) {
