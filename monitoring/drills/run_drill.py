@@ -106,6 +106,20 @@ def wait_for(description, predicate, timeout_seconds, interval_seconds=1):
     raise TimeoutError(f"Timed out after {timeout_seconds}s waiting for {description}{detail}")
 
 
+def assert_absent_for(description, predicate, duration_seconds, interval_seconds=1):
+    """Fail if an observable event appears during a bounded negative-check window."""
+    deadline = time.monotonic() + duration_seconds
+    next_progress = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        if predicate():
+            raise AssertionError(f"Unexpected event while checking {description}")
+        now = time.monotonic()
+        if now >= next_progress:
+            print(f"Still verifying absence of {description}...", flush=True)
+            next_progress = now + 30
+        time.sleep(interval_seconds)
+
+
 def nearest_rank(values, percentile):
     """Calculate an explicit nearest-rank percentile without external benchmark libraries."""
     ordered = sorted(values)
@@ -184,8 +198,16 @@ class DrillEnvironment:
         )
         return result.stdout.strip()
 
-    def start_backend(self, jar_path, name, *, worker_enabled, snapshot_interval):
-        """Launch a real Backend process against this scenario's database and shared local files."""
+    def start_backend(
+        self,
+        jar_path,
+        name,
+        *,
+        worker_enabled,
+        snapshot_interval,
+        environment_overrides=None,
+    ):
+        """Launch a real Backend process with optional scenario-specific non-secret settings."""
         api_port = free_port()
         management_port = free_port()
         log_path = self.log_dir / f"backend-{name}.log"
@@ -228,6 +250,8 @@ class DrillEnvironment:
             "SERVER_PORT": str(api_port),
             "MANAGEMENT_PORT": str(management_port),
         })
+        # Scenario overrides are applied last so timing tests can remove randomness without changing defaults.
+        environment.update(environment_overrides or {})
         process = subprocess.Popen(
             ["java", "-jar", str(jar_path)],
             cwd=ROOT_DIR,
@@ -403,7 +427,14 @@ def fetch_metrics(backend):
     return body.decode("utf-8")
 
 
-def login_and_upload(backend, temp_dir):
+def login_and_upload(
+    backend,
+    temp_dir,
+    *,
+    filename="queue-stall.txt",
+    title="Observability Queue Recovery Drill",
+    description="Actual queue alert and worker recovery",
+):
     """Create a real pending Embedding Job through authentication and multipart upload APIs."""
     _, login_response = request_json(
         f"http://127.0.0.1:{backend['apiPort']}/auth/login",
@@ -411,7 +442,7 @@ def login_and_upload(backend, temp_dir):
         payload={"email": "kcw130502@gmail.com", "password": "admin1234"},
     )
     access_token = login_response["data"]["accessToken"]
-    document_path = temp_dir / "queue-stall.txt"
+    document_path = temp_dir / filename
     document_path.write_text(
         "A recovered indexing worker must claim this queued document and complete its embedding.",
         encoding="utf-8",
@@ -429,13 +460,13 @@ def login_and_upload(backend, temp_dir):
 
     parts.extend([
         f"--{boundary}\r\n".encode(),
-        b'Content-Disposition: form-data; name="file"; filename="queue-stall.txt"\r\n',
+        f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'.encode(),
         b"Content-Type: text/plain\r\n\r\n",
         document_path.read_bytes(),
         b"\r\n",
     ])
-    append_field("title", "Observability Queue Recovery Drill")
-    append_field("description", "Actual queue alert and worker recovery")
+    append_field("title", title)
+    append_field("description", description)
     append_field("visibility", "PRIVATE")
     parts.append(f"--{boundary}--\r\n".encode())
     upload_request = urllib.request.Request(
