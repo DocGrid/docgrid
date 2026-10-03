@@ -221,7 +221,8 @@ public class IndexingFailureTransitionService {
      * Version의 재개 지점을 유지한 채 Job을 지연된 PENDING 상태로 되돌리고 실패·재시도 이벤트를 남긴다.
      *
      * <p>Attempt가 시작됐다면 단계 실패 이벤트에 실행 식별자를 포함하고, Provider가 제시한 최소
-     * 지연과 지수 Backoff 중 안전한 값을 다음 실행 시각에 반영한다.
+     * 지연과 지수 Backoff 중 안전한 값을 다음 실행 시각에 반영한다. PostgreSQL TIMESTAMP 저장 전
+     * 마이크로초 단위로 올려 Provider 최소 시각보다 이른 예약을 막는다.
      */
     private void scheduleRetry(
         EmbeddingJob embeddingJob,
@@ -238,9 +239,14 @@ public class IndexingFailureTransitionService {
             minimumRetryDelay
         );
         LocalDateTime nextRetryAt = failedAt.plus(retryDelay);
+        // 1. 나노초가 DB 정밀도에서 사라져 Provider 하한을 위반하지 않도록 저장 시각을 올림한다.
+        int nanosBeyondMicros = nextRetryAt.getNano() % 1_000;
+        if (nanosBeyondMicros != 0) {
+            nextRetryAt = nextRetryAt.plusNanos(1_000 - nanosBeyondMicros);
+        }
         embeddingJob.scheduleRetry(failureCode, failureMessage, nextRetryAt);
 
-        // 1. Version 상태는 재개 지점으로 보존한 채 현재 처리 단계의 실패 이벤트를 기록한다.
+        // 2. Version 상태는 재개 지점으로 보존한 채 현재 처리 단계의 실패 이벤트를 기록한다.
         saveStageFailureEvent(
             embeddingJob,
             attempt,
@@ -251,7 +257,7 @@ public class IndexingFailureTransitionService {
             failedAt
         );
 
-        // 2. 계산된 재실행 시각과 증가한 Retry 횟수를 Queue 재예약 이벤트에 남긴다.
+        // 3. 계산된 재실행 시각과 증가한 Retry 횟수를 Queue 재예약 이벤트에 남긴다.
         indexingEventRepository.save(IndexingEvent.builder()
             .embeddingJob(embeddingJob)
             .eventType(IndexingEventType.RETRY)
