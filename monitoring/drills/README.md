@@ -28,7 +28,10 @@ Compose project와 PostgreSQL volume을 만들고 종료할 때 삭제한다.
 # 실제 BGE-M3 중단·재시작과 종속 경보 억제
 ./monitoring/drills/run.sh provider-outage
 
-# 세 실험을 순서대로 각각 새 Stack에서 실행
+# 실제 Job으로 Circuit OPEN·실패 Probe·성공 Probe 복구
+./monitoring/drills/run.sh circuit-recovery
+
+# 네 실험을 순서대로 각각 새 Stack에서 실행
 ./monitoring/drills/run.sh all
 ```
 
@@ -76,10 +79,27 @@ scrape callback이 DB를 호출하지 않았다는 의미이며, 주기적 갱�
 2. 실제 Provider 컨테이너를 중단하고 운영 `EmbeddingProviderDown` 규칙의 pending·firing을 기다린다.
 3. 실제 root-cause 경보가 Alertmanager에 있는 동안 동일 배포의 종속 warning 하나를 API로 주입한다.
 4. 종속 warning의 `suppressed` 상태와 firing webhook 0건을 함께 확인한다.
-5. Provider를 재시작하고 새 동적 host 포트, readiness, Prometheus 해제와 resolved webhook을 확인한다.
+5. Provider를 재시작하고 실행 시작 때 고정한 동적 host 포트, readiness, Prometheus 해제와 resolved
+   webhook을 확인한다.
 
 종속 warning만 inhibition 경계를 분리하기 위해 직접 주입한다. Provider 중단·복구와 root-cause 경보는
 실제 BGE-M3와 운영 Prometheus 규칙에서 발생한다.
+
+### `circuit-recovery`
+
+1. Worker를 끈 실제 Backend의 로그인·multipart API로 TXT 문서와 PENDING Job을 만든다.
+2. Provider 컨테이너를 중단하고 실제 Worker가 연속 세 번 실패해 Circuit을 여는지 확인한다.
+3. 30초 뒤 HALF_OPEN Probe가 실패해 Circuit이 다시 열리고 failed Probe Metric이 증가하는지 확인한다.
+4. 해당 Job만 10분 뒤로 원자적으로 미뤄 운영 Circuit 경보의 `for: 1m`을 유지한다.
+5. Provider critical 경보와 Circuit warning이 모두 firing인지, Alertmanager가 warning을 suppressed로
+   유지하고 webhook 전송은 0건인지 확인한다.
+6. 같은 Provider를 같은 host port로 재시작하고 Job을 즉시 실행 가능하게 만든다.
+7. 성공 Probe가 Circuit을 닫고 Job `INDEXED`, Embedding 저장, delayed Retry 0건과 경보 해제를
+   모두 확인한다.
+
+Provider host port는 실행 시작 때 비어 있는 loopback port 하나로 고정한다. `pause/unpause`는 timeout된
+HTTP 연결이 재개 뒤 Provider로 밀려들 수 있으므로 장애 주입에는 `stop/start`를 사용한다. Webhook
+receiver는 증거를 기록하기 전에 Prometheus·Alertmanager 내부 URL을 생략 표시로 치환한다.
 
 ## 운영 설정과 다른 값
 
@@ -87,6 +107,10 @@ Prometheus의 scrape 15초, evaluation 15초와 모든 `for` 시간, Alertmanage
 10초 `group_wait`은 운영값을 그대로 사용한다. `group_interval`만 resolved 실험 시간을 제한하기 위해
 운영 5분에서 30초로 줄인다. JSON에는 두 값을 모두 기록하므로 테스트 복구 시간과 운영 최악 시간을
 구분할 수 있다.
+
+Circuit 복구 실험은 재현 가능한 시간 경계를 위해 Retry Jitter를 0으로 설정한다. 기본 재시도 한도로는
+첫 실패 Probe에서 Job이 종결되므로 이 Job의 한도만 10회로 높이고, 경보 `for` 구간에는 이 Job만 10분
+뒤로 미룬다. 애플리케이션 기본 설정과 다른 값은 결과 JSON의 `conditions`에 기록한다.
 
 각 결과 JSON은 조건, UTC 시각, 구간별 초 단위 측정값과 검증된 최종 상태를 기록한다. 실패하면 같은
 결과 디렉터리에 traceback과 Backend·Compose·webhook 로그를 남기며 Stack은 동일하게 정리한다.

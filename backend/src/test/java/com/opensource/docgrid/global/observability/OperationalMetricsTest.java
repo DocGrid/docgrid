@@ -31,6 +31,7 @@ class OperationalMetricsTest {
         LocalDateTime now = LocalDateTime.now(clock);
         metrics.recordRefreshSuccess(new OperationalMetricsSnapshot(
             3,
+            7,
             2,
             now.minusSeconds(75),
             1,
@@ -42,6 +43,7 @@ class OperationalMetricsTest {
         ), NOW.minusSeconds(10));
 
         assertThat(gauge("docgrid.embedding.claimable.jobs")).isEqualTo(3.0);
+        assertThat(gauge("docgrid.embedding.delayed.retry.jobs")).isEqualTo(7.0);
         assertThat(gauge("docgrid.embedding.processing.jobs")).isEqualTo(2.0);
         assertThat(gauge("docgrid.embedding.oldest.claimable.age.seconds")).isEqualTo(75.0);
         assertThat(gauge("docgrid.embedding.active.workers")).isEqualTo(1.0);
@@ -59,12 +61,13 @@ class OperationalMetricsTest {
     void retainsLastGoodSnapshotAfterRefreshFailure() {
         LocalDateTime now = LocalDateTime.now(clock);
         metrics.recordRefreshSuccess(new OperationalMetricsSnapshot(
-            2, 0, now.minusSeconds(15), 1, 0, null, 0, 0, null
+            2, 4, 0, now.minusSeconds(15), 1, 0, null, 0, 0, null
         ), NOW);
 
         metrics.recordRefreshFailure();
 
         assertThat(gauge("docgrid.embedding.claimable.jobs")).isEqualTo(2.0);
+        assertThat(gauge("docgrid.embedding.delayed.retry.jobs")).isEqualTo(4.0);
         assertThat(gauge("docgrid.embedding.oldest.claimable.age.seconds")).isEqualTo(15.0);
         assertThat(counter("success")).isEqualTo(1.0);
         assertThat(counter("failed")).isEqualTo(1.0);

@@ -31,6 +31,34 @@ groups:
           summary: DocGrid embedding retryable failure ratio is high
           description: More than 10% of at least 10 embedding attempts failed with a retryable cause during the last ten minutes.
 
+      - alert: DocGridEmbeddingProviderCircuitOpen
+        expr: |
+          max by (cluster, environment) (
+            (
+              (
+                docgrid_embedding_provider_circuit_open == 1
+              )
+              and on (instance, cluster, environment)
+              (
+                docgrid_embedding_provider_circuit_probe_failed == 1
+              )
+            )
+            and on (instance, cluster, environment)
+            (
+              increase(docgrid_embedding_provider_circuit_probe_total{
+                outcome="failed"
+              }[6m]) > 0
+            )
+          ) == 1
+        for: 1m
+        labels:
+          severity: warning
+          service: docgrid-backend
+          dependency: embedding-provider
+        annotations:
+          summary: DocGrid embedding provider recovery probe recently failed
+          description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
+
       - alert: DocGridRagProviderFallbackSpike
         expr: |
           sum by (cluster, environment) (

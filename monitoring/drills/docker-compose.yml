@@ -42,7 +42,7 @@ services:
       EMBEDDING_PROVIDER_MAX_QUEUE_SIZE: 1
       EMBEDDING_PROVIDER_QUEUE_WAIT_TIMEOUT_SECONDS: 15
     ports:
-      - "127.0.0.1::8000"
+      - "127.0.0.1:${DRILL_EMBEDDING_PORT:-0}:8000"
     volumes:
       - huggingface-cache:/root/.cache/huggingface
     healthcheck:
