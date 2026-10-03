@@ -18,8 +18,8 @@ case "$purpose_code" in
   primary-vm-fault) purpose='OpenSQL primary VM 상실 중 쓰기' ;;
   *) echo '시험 목적 코드가 잘못되었습니다' >&2; exit 2 ;;
 esac
-# A leader handoff can hold many requests until the 10 s client timeout; allow
-# k6 to keep scheduling the requested rate instead of silently dropping slots.
+# A leader handoff can hold many requests until the 10 s client timeout.
+# Raising this budget may reduce drops; each run still checks dropped_iterations.
 max_vus=160
 if [[ "$purpose_code" == primary-switchover ]]; then max_vus=800; fi
 if [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
