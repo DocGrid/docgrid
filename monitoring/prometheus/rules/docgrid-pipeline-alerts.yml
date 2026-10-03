@@ -35,11 +35,19 @@ groups:
         expr: |
           max by (cluster, environment) (
             (
-              docgrid_embedding_provider_circuit_open == 1
+              (
+                docgrid_embedding_provider_circuit_open == 1
+              )
+              and on (instance, cluster, environment)
+              (
+                docgrid_embedding_provider_circuit_probe_failed == 1
+              )
             )
             and on (instance, cluster, environment)
             (
-              docgrid_embedding_provider_circuit_probe_failed == 1
+              increase(docgrid_embedding_provider_circuit_probe_total{
+                outcome="failed"
+              }[6m]) > 0
             )
           ) == 1
         for: 1m
@@ -48,8 +56,8 @@ groups:
           service: docgrid-backend
           dependency: embedding-provider
         annotations:
-          summary: DocGrid embedding provider recovery probe keeps failing
-          description: A half-open probe failed and the circuit remained unclosed for one minute.
+          summary: DocGrid embedding provider recovery probe recently failed
+          description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
 
       - alert: DocGridRagProviderFallbackSpike
         expr: |
