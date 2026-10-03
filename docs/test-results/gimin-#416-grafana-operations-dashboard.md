@@ -6,8 +6,8 @@
 |---|---|
 | Issue | `#416` |
 | Branch | `feature/416` |
-| 실행 Revision | `22e41b2` |
-| 실행 일시 | 2026-10-04 02:56~03:01 KST |
+| 최종 실행 Revision | `8f2a3bd` |
+| 실행 일시 | 2026-10-04 02:56~03:04 KST |
 | Host | macOS arm64, Docker Engine 29.4.1, Docker Compose 5.1.3 |
 | Runtime | Grafana 13.2.3, Prometheus 3.5.5, Alertmanager 0.33.1, Python 3.14.6 |
 
@@ -60,6 +60,7 @@ Fixture는 운영 환경 측정치가 아니다. Dashboard의 Data Source, Label
 | 01 | 최초 Grafana E2E | `./monitoring/grafana/tests/run-e2e.sh` | Compose Project 이름의 대문자 `T/Z`를 거부, Container 생성 전 종료 | 실패 후 수정 |
 | 02 | Grafana 단독 E2E | `./monitoring/grafana/tests/run-e2e.sh` | Health OK, Data Source 1개, Dashboard 36개 Panel, Fixture 값 4, PromQL 32개 성공 | PASS |
 | 03 | 전체 Monitoring 회귀 | `./monitoring/verify.sh --e2e` | Rule 20개, Rule Test 3개, Alertmanager 설정 9개, Routing E2E, Grafana E2E 성공 | PASS |
+| 04 | 최신 develop 재배치 후 최종 회귀 | `./monitoring/verify.sh --e2e` | Run 03과 같은 전체 범위 통과, Routing Firing 4초·Resolved 2초 | PASS |
 | 시각 검토 | 실제 Browser Rendering | 격리 Grafana에서 `docgrid-operations` 조회 | 세 변수와 7개 Row 표시, 상태 색상·Queue 시계열 렌더링 확인 | PASS |
 | 정리 확인 | 격리 자원 누수 검사 | 이름 기준 Container·Volume 조회 | 일치하는 Container 0개, Volume 0개 | PASS |
 
@@ -115,6 +116,23 @@ Run 03은 2026-10-04 03:00:25~03:01:00 KST에 실행됐다.
 - Grafana E2E 재실행 성공
 - 최종 출력 `Monitoring configuration validation: SUCCESS`
 
+### 4.4 최신 develop 재배치 후 최종 검증
+
+작업 중 `develop`에 PR #415가 머지되어 Grafana 커밋을 최신 `develop` 위로 재배치했다. 재배치 후
+Revision `8f2a3bd`에서 Run 03과 같은 `./monitoring/verify.sh --e2e`를 다시 실행했다.
+
+- 실행 시간: 2026-10-04 03:03:47~03:04:33 KST
+- Prometheus 설정·Rule·Rule Test 전부 성공
+- Alertmanager 설정 검증 성공
+- Alertmanager Routing E2E: Firing 전달 4초, Resolved 전달 2초
+- Grafana Health·Data Source·Dashboard Provisioning 성공
+- Fixture `claimable_jobs=4` 조회 성공
+- Dashboard PromQL 32개 실행 성공
+- 최종 출력 `Monitoring configuration validation: SUCCESS`
+
+두 Routing 실행의 2~4초 차이는 1초 Polling과 Container 기동 시점에 따른 범위이며, 두 실행 모두
+E2E의 제한 시간 안에서 Firing과 Resolved를 순서대로 전달했다.
+
 ## 5. 시각 검토
 
 Grafana 13.2.3 Browser 화면에서 다음을 직접 확인했다.
@@ -135,7 +153,7 @@ Browser Screenshot은 Codex 화면에서 확인했지만 파일 저장에는 성
 - 초기 관리자 계정을 생성하지 않고 익명 Viewer만 허용한다.
 - Provisioning Data Source와 Dashboard는 UI에서 수정할 수 없다.
 - Test Log와 Grafana 파일에서 Password·Token·Authorization Header·Access Key를 검색했고 결과는 0건이었다.
-- Run 02·03과 시각 검토가 생성한 격리 Container·Network·Volume을 모두 제거했다.
+- Run 02·03·04와 시각 검토가 생성한 격리 Container·Network·Volume을 모두 제거했다.
 
 공유 서버 또는 외부 Network에서는 조직 Grafana의 인증·TLS·권한 설정을 사용해야 한다. 번들 설정은
 로컬 Loopback 운영 화면의 편의 구성을 검증한 결과다.
@@ -145,6 +163,7 @@ Browser Screenshot은 Codex 화면에서 확인했지만 파일 저장에는 성
 - `docs/test-results/evidence/issue-416/run-01-compose-project-name-failure.log`
 - `docs/test-results/evidence/issue-416/run-02-grafana-e2e.log`
 - `docs/test-results/evidence/issue-416/run-03-monitoring-validation.log`
+- `docs/test-results/evidence/issue-416/run-04-post-rebase-validation.log`
 
 각 실행 목적과 반복 실행의 Raw Output을 별도 파일로 보존했다. Run 01은 Live File Capture 이전의
-도구 출력을 실행 직후 그대로 옮긴 기록이며, Run 02·03은 `tee`로 실행 중 수집한 Log다.
+도구 출력을 실행 직후 그대로 옮긴 기록이며, Run 02·03·04는 `tee`로 실행 중 수집한 Log다.

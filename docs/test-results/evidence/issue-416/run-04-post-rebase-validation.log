@@ -1,0 +1,168 @@
+테스트 목적: 최신 develop 재배치 후 전체 Monitoring 최종 회귀 검증
+실행 위치: 로컬 Docker Desktop
+실행 명령: ./monitoring/verify.sh --e2e
+시각대: Asia/Seoul(내부 E2E Run ID는 UTC)
+Revision: 8f2a3bd
+Workload: Prometheus 설정·Rule·Rule Test, Alertmanager 설정·Routing E2E, Grafana Dashboard 36개 Panel·PromQL 32개
+성공 기준: 최신 develop과 결합된 최종 Branch에서 전체 Monitoring 검증 통과 및 격리 자원 정리
+
+Checking /etc/prometheus/prometheus.yml
+  SUCCESS: 3 rule files found
+ SUCCESS: /etc/prometheus/prometheus.yml is valid prometheus config file syntax
+
+Checking /etc/prometheus/rules/docgrid-backend-alerts.yml
+  SUCCESS: 3 rules found
+
+Checking /etc/prometheus/rules/docgrid-pipeline-alerts.yml
+  SUCCESS: 10 rules found
+
+Checking /etc/prometheus/rules/embedding-provider-alerts.yml
+  SUCCESS: 7 rules found
+
+Checking /etc/prometheus/rules/embedding-provider-alerts.yml
+  SUCCESS: 7 rules found
+
+Checking /etc/prometheus/rules/docgrid-backend-alerts.yml
+  SUCCESS: 3 rules found
+
+Checking /etc/prometheus/rules/docgrid-pipeline-alerts.yml
+  SUCCESS: 10 rules found
+
+  SUCCESS
+
+  SUCCESS
+
+  SUCCESS
+
+Checking /test/rules-firing.yml
+  SUCCESS: 3 rules found
+
+Checking /test/rules-resolved.yml
+  SUCCESS: 3 rules found
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 1 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Checking '/etc/alertmanager/alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 2 inhibit rules
+ - 1 receivers
+ - 0 templates
+
+Grafana dashboard validation: SUCCESS (36 panels, 32 PromQL expressions)
+ Network docgrid-alertmanager-e2e-68913_default Creating
+ Network docgrid-alertmanager-e2e-68913_default Created
+ Container docgrid-alertmanager-e2e-68913-webhook-receiver-1 Creating
+ Container docgrid-alertmanager-e2e-68913-webhook-receiver-1 Created
+ Container docgrid-alertmanager-e2e-68913-alertmanager-1 Creating
+ Container docgrid-alertmanager-e2e-68913-alertmanager-1 Created
+ Container docgrid-alertmanager-e2e-68913-prometheus-1 Creating
+ Container docgrid-alertmanager-e2e-68913-prometheus-1 Created
+ Container docgrid-alertmanager-e2e-68913-webhook-receiver-1 Starting
+ Container docgrid-alertmanager-e2e-68913-webhook-receiver-1 Started
+ Container docgrid-alertmanager-e2e-68913-webhook-receiver-1 Waiting
+ Container docgrid-alertmanager-e2e-68913-webhook-receiver-1 Healthy
+ Container docgrid-alertmanager-e2e-68913-alertmanager-1 Starting
+ Container docgrid-alertmanager-e2e-68913-alertmanager-1 Started
+ Container docgrid-alertmanager-e2e-68913-alertmanager-1 Waiting
+ Container docgrid-alertmanager-e2e-68913-alertmanager-1 Healthy
+ Container docgrid-alertmanager-e2e-68913-prometheus-1 Starting
+ Container docgrid-alertmanager-e2e-68913-prometheus-1 Started
+ Container docgrid-alertmanager-e2e-68913-alertmanager-1 Waiting
+ Container docgrid-alertmanager-e2e-68913-prometheus-1 Waiting
+ Container docgrid-alertmanager-e2e-68913-webhook-receiver-1 Waiting
+ Container docgrid-alertmanager-e2e-68913-alertmanager-1 Healthy
+ Container docgrid-alertmanager-e2e-68913-webhook-receiver-1 Healthy
+ Container docgrid-alertmanager-e2e-68913-prometheus-1 Healthy
+Alertmanager routing E2E: SUCCESS (firing 4s, resolved 2s)
+[시작] run_id=20261003t180419z-69064 grafana_url=http://127.0.0.1:62749
+ Network docgrid-grafana-20261003t180419z-69064_default Creating
+ Network docgrid-grafana-20261003t180419z-69064_default Created
+ Container docgrid-grafana-20261003t180419z-69064-grafana-1 Creating
+ Container docgrid-grafana-20261003t180419z-69064-prometheus-1 Creating
+ Container docgrid-grafana-20261003t180419z-69064-metrics-fixture-1 Creating
+ Container docgrid-grafana-20261003t180419z-69064-prometheus-1 Created
+ Container docgrid-grafana-20261003t180419z-69064-metrics-fixture-1 Created
+ Container docgrid-grafana-20261003t180419z-69064-grafana-1 Created
+ Container docgrid-grafana-20261003t180419z-69064-metrics-fixture-1 Starting
+ Container docgrid-grafana-20261003t180419z-69064-prometheus-1 Starting
+ Container docgrid-grafana-20261003t180419z-69064-grafana-1 Starting
+ Container docgrid-grafana-20261003t180419z-69064-metrics-fixture-1 Started
+ Container docgrid-grafana-20261003t180419z-69064-grafana-1 Started
+ Container docgrid-grafana-20261003t180419z-69064-prometheus-1 Started
+ Container docgrid-grafana-20261003t180419z-69064-grafana-1 Waiting
+ Container docgrid-grafana-20261003t180419z-69064-metrics-fixture-1 Waiting
+ Container docgrid-grafana-20261003t180419z-69064-prometheus-1 Waiting
+ Container docgrid-grafana-20261003t180419z-69064-prometheus-1 Healthy
+ Container docgrid-grafana-20261003t180419z-69064-metrics-fixture-1 Healthy
+ Container docgrid-grafana-20261003t180419z-69064-grafana-1 Healthy
+[성공] Grafana Health: database=ok
+[성공] Data Source Provisioning: uid=docgrid-prometheus
+[성공] Dashboard Provisioning: uid=docgrid-operations, panels=36
+[성공] Grafana→Prometheus 실제 조회: claimable_jobs=4
+[성공] Dashboard PromQL 실행: 32개
+[완료] run_id=20261003t180419z-69064 result=SUCCESS
+Monitoring configuration validation: SUCCESS
