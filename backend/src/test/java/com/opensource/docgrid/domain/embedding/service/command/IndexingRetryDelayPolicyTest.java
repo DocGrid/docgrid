@@ -82,6 +82,19 @@ class IndexingRetryDelayPolicyTest {
     }
 
     @Test
+    @DisplayName("최소 지원 지연 1ms는 Jitter 경계에서도 0ms로 줄어들지 않는다")
+    void calculate_preservesMinimumSupportedDelay() {
+        properties.setRetryInitialDelay(Duration.ofMillis(1));
+        properties.setRetryMaxDelay(Duration.ofMillis(1));
+
+        assertThat(properties.isRetryDelayValid()).isTrue();
+        assertThat(policy.calculate(0, Duration.ZERO, 0.0))
+            .isEqualTo(Duration.ofMillis(1));
+        assertThat(policy.calculate(0, Duration.ZERO, Math.nextDown(1.0)))
+            .isEqualTo(Duration.ofMillis(1));
+    }
+
+    @Test
     @DisplayName("Provider 최소 지연이 Jitter 구간 안에 있으면 금지 구간을 제외하고 선택한다")
     void calculate_truncatesJitterRangeAtProviderMinimum() {
         Duration delay = policy.calculate(0, Duration.ofSeconds(11), 0.25);
