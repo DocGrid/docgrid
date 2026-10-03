@@ -1,0 +1,12 @@
+{
+  "run_id": "ha412sw070a",
+  "iterations": 12434,
+  "http_requests": 12434,
+  "dropped_iterations": 167,
+  "failed_rate": 0.005468875663503297,
+  "duration_ms": {
+    "p50": 10.636181,
+    "p95": 52.76027689999999,
+    "p99": 3610.8031524200005
+  }
+}

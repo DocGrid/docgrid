@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "fault_events": [
+    {
+      "at": "2026-10-03T16:47:47.534Z",
+      "name": "planned-switchover",
+      "phase": "start"
+    },
+    {
+      "at": "2026-10-03T16:48:37.669Z",
+      "name": "planned-switchover",
+      "phase": "end"
+    }
+  ],
+  "finished_at": "2026-10-03T16:53:56.342Z",
+  "open_faults": [],
+  "outcome_counts": {
+    "ACKNOWLEDGED": 12366,
+    "FAILED": 68,
+    "UNKNOWN": 0
+  },
+  "request_count": 12434,
+  "run_id": "ha412sw070a",
+  "schema_version": 1,
+  "started_at": "2026-10-03T16:46:39.839Z"
+}

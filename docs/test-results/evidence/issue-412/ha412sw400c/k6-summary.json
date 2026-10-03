@@ -1,0 +1,12 @@
+{
+  "run_id": "ha412sw400c",
+  "iterations": 12601,
+  "http_requests": 12601,
+  "dropped_iterations": 0,
+  "failed_rate": 0.006745496389175462,
+  "duration_ms": {
+    "p50": 10.632819,
+    "p95": 177.3399,
+    "p99": 4692.763768
+  }
+}
