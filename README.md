@@ -39,7 +39,7 @@ DocGrid는 조직에 흩어진 PDF·DOCX 문서를 자동으로 인덱싱하고,
 | Database | OpenSQL 17.8, PostgreSQL 17, pgvector 0.8.1 |
 | AI | BAAI/bge-m3, Ollama, qwen2.5:7b |
 | Storage | Local Filesystem, MinIO, AWS S3 |
-| Cache | Redis 7 |
+| Cache | Valkey 9.1 (Redis 프로토콜 호환, 클라이언트: Spring Data Redis) |
 | Observability | RAGOps Dashboard, Prometheus |
 | Test | JUnit 5, Gradle, Node.js Test Runner |
 
@@ -69,10 +69,10 @@ npm --prefix frontend install
 `.env.example`은 로컬 PostgreSQL, MinIO와 자동 인덱싱 Worker를 실행할 수 있는 기본값을 제공합니다.
 실제 비밀번호와 외부 서버 인증정보는 `.env`, README, Issue 또는 Commit에 기록하지 않습니다.
 
-### 3. PostgreSQL, MinIO, Redis, BGE-M3 실행
+### 3. PostgreSQL, MinIO, Valkey, BGE-M3 실행
 
 ```bash
-docker compose up -d --build postgres minio redis embedding-server
+docker compose up -d --build postgres minio valkey embedding-server
 docker compose logs -f embedding-server
 ```
 
@@ -96,7 +96,7 @@ ollama pull qwen2.5:7b
 ollama run qwen2.5:7b "안녕"
 ```
 
-초기 설치 후에는 Redis, BGE-M3, Ollama를 전용 스크립트로 한 번에 기동하고 실제 연결 상태까지 확인합니다.
+초기 설치 후에는 Valkey, BGE-M3, Ollama를 전용 스크립트로 한 번에 기동하고 실제 연결 상태까지 확인합니다.
 
 ```bash
 ./scripts/local-services.sh start
@@ -147,7 +147,7 @@ Embedding Provider가 준비되지 않아도 먼저 기동해 수집 실패와 �
 ### 종료
 
 ```bash
-docker compose stop postgres minio redis embedding-server
+docker compose stop postgres minio valkey embedding-server
 # macOS에서 Homebrew로 Ollama를 실행한 경우
 brew services stop ollama
 ```
@@ -180,11 +180,11 @@ SSH Key는 저장소에 포함하지 않습니다. 환경별 설정은 [.env.exa
 
 ## 테스트
 
-일반 회귀 테스트는 외부 장시간 Benchmark와 실제 인프라 E2E를 제외하지만 PostgreSQL과 Redis를
+일반 회귀 테스트는 외부 장시간 Benchmark와 실제 인프라 E2E를 제외하지만 PostgreSQL과 Valkey를
 사용하는 통합 테스트를 포함합니다. 두 Service를 먼저 준비합니다.
 
 ```bash
-docker compose up -d --wait postgres redis
+docker compose up -d --wait postgres valkey
 ./backend/gradlew -p backend test
 npm --prefix frontend test
 ```
@@ -192,7 +192,7 @@ npm --prefix frontend test
 파일 저장소 Adapter와 실제 자동 Worker 전체 흐름은 별도 E2E로 검증합니다.
 
 ```bash
-docker compose up -d --build --wait postgres minio redis embedding-server
+docker compose up -d --build --wait postgres minio valkey embedding-server
 
 DB_HOST=127.0.0.1 DB_PORT=55432 \
   ./backend/gradlew -p backend storageWorkerE2eTest

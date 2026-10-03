@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# DocGrid 로컬 실행에 필수인 Redis, Embedding Provider, Ollama의 기동과 준비 상태만 관리한다.
+# DocGrid 로컬 실행에 필수인 Valkey, Embedding Provider, Ollama의 기동과 준비 상태만 관리한다.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ACTION="${1:-status}"
@@ -32,7 +32,7 @@ usage() {
     cat <<'EOF'
 Usage: ./scripts/local-services.sh <start|status>
 
-  start   Redis, Embedding Provider, Ollama를 기동하고 준비 완료까지 기다립니다.
+  start   Valkey, Embedding Provider, Ollama를 기동하고 준비 완료까지 기다립니다.
   status  세 서비스의 실제 연결 상태와 Ollama 모델 준비 상태를 즉시 확인합니다.
 
 Environment:
@@ -53,8 +53,8 @@ require_positive_integer() {
     fi
 }
 
-redis_ready() {
-    docker compose exec -T redis redis-cli ping 2>/dev/null | grep -qx 'PONG'
+valkey_ready() {
+    docker compose exec -T valkey valkey-cli ping 2>/dev/null | grep -qx 'PONG'
 }
 
 embedding_ready() {
@@ -152,11 +152,11 @@ start_ollama() {
 print_status() {
     local failures=0
 
-    # 1. 실행 상태가 아니라 실제 Redis 명령 응답으로 로그인 캐시 사용 가능 여부를 확인한다.
-    if redis_ready; then
-        ok "Redis 연결 가능"
+    # 1. 실행 상태가 아니라 실제 Valkey 명령 응답으로 로그인 캐시 사용 가능 여부를 확인한다.
+    if valkey_ready; then
+        ok "Valkey 연결 가능"
     else
-        fail "Redis 연결 실패 — 복구: docker compose up -d redis"
+        fail "Valkey 연결 실패 — 복구: docker compose up -d valkey"
         failures=$((failures + 1))
     fi
 
@@ -194,7 +194,7 @@ print_status() {
         return 1
     fi
 
-    ok "Redis·Embedding Provider·Ollama가 모두 사용 가능합니다."
+    ok "Valkey·Embedding Provider·Ollama가 모두 사용 가능합니다."
 }
 
 start_services() {
@@ -212,14 +212,14 @@ start_services() {
     }
 
     # 1. Compose 서비스는 기존 Volume을 유지한 채 필요한 두 서비스만 멱등하게 기동한다.
-    log "Redis와 Embedding Provider를 시작합니다."
-    COMPOSE_IGNORE_ORPHANS=true docker compose up -d redis embedding-server
+    log "Valkey와 Embedding Provider를 시작합니다."
+    COMPOSE_IGNORE_ORPHANS=true docker compose up -d valkey embedding-server
 
     # 2. Native Ollama를 기동해 Docker Desktop의 CPU 추론 경로를 피한다.
     start_ollama
 
     # 3. 각 서비스가 실제 요청을 받을 수 있을 때까지 제한 시간 안에서 기다린다.
-    wait_until_ready "Redis" redis_ready
+    wait_until_ready "Valkey" valkey_ready
     wait_until_ready "Embedding Provider" embedding_ready
     wait_until_ready "Ollama API" ollama_ready
 

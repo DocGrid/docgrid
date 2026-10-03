@@ -159,14 +159,14 @@ class DrillEnvironment:
 
     def start_core(self, *, include_provider):
         """Start fresh database, cache, local receiver, Alertmanager, and optionally BGE-M3."""
-        services = ["postgres", "redis", "webhook-receiver", "alertmanager"]
+        services = ["postgres", "valkey", "webhook-receiver", "alertmanager"]
         if include_provider:
             run(["docker", "volume", "create", "docgrid_huggingface-cache"])
             services.append("embedding-server")
         print(f"Starting isolated services for {self.scenario}...", flush=True)
         self.compose("up", "-d", "--wait", *services, capture=False)
         self.postgres_port = self.service_port("postgres", 5432)
-        self.redis_port = self.service_port("redis", 6379)
+        self.redis_port = self.service_port("valkey", 6379)
         self.alertmanager_url = f"http://127.0.0.1:{self.service_port('alertmanager', 9093)}"
         if include_provider:
             self.embedding_port = self.service_port("embedding-server", 8000)
