@@ -118,16 +118,16 @@ services:
     networks:
       - docgrid-local
 
-  redis:
-    image: redis:7-alpine
-    container_name: docgrid-redis
+  valkey:
+    image: valkey/valkey:9.1-alpine
+    container_name: docgrid-valkey
     restart: unless-stopped
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
-      - redis-data:/data
+      - valkey-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -142,6 +142,6 @@ volumes:
     name: docgrid_postgres17_data
   minio-data:
   huggingface-cache:
-  redis-data:
+  valkey-data:
   prometheus-data:
   alertmanager-data:
