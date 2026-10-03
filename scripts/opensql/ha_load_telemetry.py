@@ -8,6 +8,7 @@ import csv
 import json
 import math
 import os
+import re
 import signal
 import time
 from collections import defaultdict
@@ -40,8 +41,11 @@ def utc_now():
 
 
 def utc_second(value):
-    """Reject timestamps without a zone rather than silently aligning wrong seconds."""
-    instant = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    """Align k6 nanosecond timestamps and host samples, rejecting missing zones."""
+    # 1. Python 3.9 accepts at most six fractional digits; k6 emits nine.
+    normalized = re.sub(r"(\.\d{6})\d+(?=(?:Z|[+-]\d{2}:\d{2})$)", r"\1", value)
+    # 2. Keep the original offset so the second is joined on UTC, not local time.
+    instant = datetime.fromisoformat(normalized.replace("Z", "+00:00"))
     if instant.tzinfo is None:
         raise ValueError("UTC 시각에 시간대가 없습니다")
     return instant.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")

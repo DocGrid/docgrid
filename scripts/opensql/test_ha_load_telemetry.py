@@ -102,6 +102,13 @@ class HaLoadTelemetryTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "시간대"):
             TELEMETRY.utc_second("2026-10-04T01:00:00")
 
+    def test_k6_nanosecond_timestamp_joins_to_utc_second(self):
+        """k6 2.3 emits nine digits, which Python 3.9 cannot parse directly."""
+        self.assertEqual("2026-10-03T15:38:26Z", TELEMETRY.utc_second(
+            "2026-10-03T15:38:26.066870512Z"))
+        self.assertEqual("2026-10-03T15:38:26Z", TELEMETRY.utc_second(
+            "2026-10-03T17:38:26.066870512+02:00"))
+
 
 if __name__ == "__main__":
     unittest.main()
