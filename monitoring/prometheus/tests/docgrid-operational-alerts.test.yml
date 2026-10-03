@@ -44,8 +44,8 @@ tests:
               service: docgrid-backend
               severity: warning
             exp_annotations:
-              summary: DocGrid embedding provider recovery probe keeps failing
-              description: A half-open probe failed and the circuit remained unclosed for one minute.
+              summary: DocGrid embedding provider recovery probe recently failed
+              description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
       - eval_time: 2m
         alertname: DocGridEmbeddingProviderCircuitOpen
         exp_alerts: []
@@ -54,12 +54,38 @@ tests:
     interval: 15s
     input_series:
       - series: 'docgrid_embedding_provider_circuit_open{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
-        values: '1x26'
+        values: '1x48'
       - series: 'docgrid_embedding_provider_circuit_probe_failed{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
-        values: '0x1 1x25'
+        values: '0x1 1x46'
       - series: 'docgrid_embedding_provider_circuit_probe_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="failed"}'
-        values: '0x1 1x19 2x5'
+        values: '0x1 1x19 2x19 3x7'
     alert_rule_test:
+      - eval_time: 1m30s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingProviderCircuitOpen
+              cluster: docgrid-production
+              dependency: embedding-provider
+              environment: production
+              service: docgrid-backend
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding provider recovery probe recently failed
+              description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
+      - eval_time: 5m15s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingProviderCircuitOpen
+              cluster: docgrid-production
+              dependency: embedding-provider
+              environment: production
+              service: docgrid-backend
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding provider recovery probe recently failed
+              description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
       - eval_time: 5m30s
         alertname: DocGridEmbeddingProviderCircuitOpen
         exp_alerts:
@@ -71,8 +97,77 @@ tests:
               service: docgrid-backend
               severity: warning
             exp_annotations:
-              summary: DocGrid embedding provider recovery probe keeps failing
-              description: A half-open probe failed and the circuit remained unclosed for one minute.
+              summary: DocGrid embedding provider recovery probe recently failed
+              description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
+      - eval_time: 10m15s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingProviderCircuitOpen
+              cluster: docgrid-production
+              dependency: embedding-provider
+              environment: production
+              service: docgrid-backend
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding provider recovery probe recently failed
+              description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
+      - eval_time: 11m30s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingProviderCircuitOpen
+              cluster: docgrid-production
+              dependency: embedding-provider
+              environment: production
+              service: docgrid-backend
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding provider recovery probe recently failed
+              description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
+
+  - name: single failed probe expires after six minutes without traffic
+    interval: 15s
+    input_series:
+      - series: 'docgrid_embedding_provider_circuit_open{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '1x120'
+      - series: 'docgrid_embedding_provider_circuit_probe_failed{instance="backend-a:8081",environment="production",cluster="docgrid-production"}'
+        values: '0x1 1x119'
+      - series: 'docgrid_embedding_provider_circuit_probe_total{instance="backend-a:8081",environment="production",cluster="docgrid-production",outcome="failed"}'
+        values: '0x1 1x119'
+    alert_rule_test:
+      - eval_time: 1m30s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingProviderCircuitOpen
+              cluster: docgrid-production
+              dependency: embedding-provider
+              environment: production
+              service: docgrid-backend
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding provider recovery probe recently failed
+              description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
+      - eval_time: 6m
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts:
+          - exp_labels:
+              alertname: DocGridEmbeddingProviderCircuitOpen
+              cluster: docgrid-production
+              dependency: embedding-provider
+              environment: production
+              service: docgrid-backend
+              severity: warning
+            exp_annotations:
+              summary: DocGrid embedding provider recovery probe recently failed
+              description: A half-open probe failed within the last six minutes and the circuit remained unclosed for one minute.
+      - eval_time: 6m15s
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts: []
+      - eval_time: 30m
+        alertname: DocGridEmbeddingProviderCircuitOpen
+        exp_alerts: []
 
   - name: previous probe failure does not affect a new initial circuit open
     interval: 15s
