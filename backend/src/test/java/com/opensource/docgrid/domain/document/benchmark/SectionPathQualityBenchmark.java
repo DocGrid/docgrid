@@ -32,10 +32,12 @@ import com.opensource.docgrid.domain.document.service.SectionPath;
 import com.opensource.docgrid.domain.document.service.TextDocumentParser;
 import com.opensource.docgrid.domain.embedding.client.EmbeddingClient;
 import com.opensource.docgrid.domain.embedding.client.EmbeddingProviderCircuitBreaker;
+import com.opensource.docgrid.domain.embedding.client.EmbeddingProviderCircuitMetrics;
 import com.opensource.docgrid.domain.embedding.config.EmbeddingProviderCircuitBreakerProperties;
 import com.opensource.docgrid.domain.embedding.dto.response.EmbedBatchItemResponse;
 import com.opensource.docgrid.domain.embedding.dto.response.EmbedBatchServerResponse;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -68,7 +70,11 @@ class SectionPathQualityBenchmark {
         EmbeddingClient embeddingClient = new EmbeddingClient(
             restClient,
             restClient,
-            new EmbeddingProviderCircuitBreaker(circuitProperties, Clock.systemUTC())
+            new EmbeddingProviderCircuitBreaker(
+                circuitProperties,
+                Clock.systemUTC(),
+                new EmbeddingProviderCircuitMetrics(new SimpleMeterRegistry())
+            )
         );
         restClient.get().uri("/health").retrieve().toBodilessEntity();
 

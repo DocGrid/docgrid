@@ -24,6 +24,8 @@ import com.opensource.docgrid.global.config.EmbeddingServerConfig;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 /**
  * 운영 설정({@link EmbeddingServerConfig})으로 만든 실제 RestClient가 Embedding Server에 보내는 요청의 전송 형식을 검증한다.
  *
@@ -59,7 +61,11 @@ class EmbeddingClientWireContractTest {
         embeddingClient = new EmbeddingClient(
             config.embeddingRestClient(),
             config.documentEmbeddingRestClient(),
-            new EmbeddingProviderCircuitBreaker(circuitProperties, Clock.systemUTC())
+            new EmbeddingProviderCircuitBreaker(
+                circuitProperties,
+                Clock.systemUTC(),
+                new EmbeddingProviderCircuitMetrics(new SimpleMeterRegistry())
+            )
         );
     }
 
