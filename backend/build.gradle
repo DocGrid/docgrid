@@ -63,7 +63,7 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'opensql-ha-connection', 'opensql-ha-contract'
+		excludeTags 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract'
 	}
 }
 
@@ -256,6 +256,28 @@ tasks.register('chunkQualityPerformanceTest', Test) {
 		)
 	}
 	// 실제 외부 모델을 반복 호출하는 장시간 Benchmark이므로 일반 Test와 Build Cache에서 분리한다.
+	outputs.upToDateWhen { false }
+}
+
+tasks.register('sectionPathQualityTest', Test) {
+	group = 'verification'
+	description = '실제 BGE-M3에서 Section 경로를 Embedding 입력에 붙인 경우와 본문만 쓴 경우의 검색 품질을 비교합니다.'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'section-path-quality'
+	}
+	maxParallelForks = 1
+	systemProperties System.properties.findAll { key, value ->
+		key.toString().startsWith('section.path.quality.')
+	}
+	if (System.getProperty('section.path.quality.output') == null) {
+		systemProperty(
+			'section.path.quality.output',
+			layout.buildDirectory.file('reports/section-path/section-path-latest.json').get().asFile.absolutePath
+		)
+	}
+	// 실제 외부 모델을 호출하는 Benchmark이므로 일반 Test와 Build Cache에서 분리한다.
 	outputs.upToDateWhen { false }
 }
 
