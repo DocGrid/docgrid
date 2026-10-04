@@ -22,13 +22,15 @@ class DocumentParserRegistryTest {
     private final TextDocumentParser textDocumentParser = new TextDocumentParser();
 
     @Test
-    @DisplayName("TXT와 Markdown은 같은 Text Parser로 변환한다")
+    @DisplayName("TXT와 Markdown은 각 형식에 등록된 Parser로 변환한다")
     void parse_selectsRegisteredParser() {
-        DocumentParserRegistry registry = new DocumentParserRegistry(List.of(textDocumentParser));
-        byte[] content = "본문".getBytes(StandardCharsets.UTF_8);
+        DocumentParserRegistry registry = new DocumentParserRegistry(
+            List.of(textDocumentParser, new MarkdownDocumentParser(textDocumentParser))
+        );
+        byte[] content = "# 제목\n본문\n# 다음\n본문 둘".getBytes(StandardCharsets.UTF_8);
 
         assertThat(registry.parse(DocumentType.TXT, content).segments()).hasSize(1);
-        assertThat(registry.parse(DocumentType.MD, content).segments()).hasSize(1);
+        assertThat(registry.parse(DocumentType.MD, content).segments()).hasSize(2);
     }
 
     @Test
