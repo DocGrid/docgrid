@@ -1,0 +1,14 @@
+{
+  "phase": "synchronous-standby-link-baseline",
+  "patroni_synchronous_mode": true,
+  "postgresql_sync_replica_count": 1,
+  "postgresql_async_replica_count": 1,
+  "request_rate_per_second": 30,
+  "duration_seconds": 30,
+  "initial_virtual_users": 80,
+  "maximum_virtual_users": 800,
+  "backend_instances": 2,
+  "openproxy_instances": 2,
+  "database_instances": 3,
+  "fault": "none"
+}

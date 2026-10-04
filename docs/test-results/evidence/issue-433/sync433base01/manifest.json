@@ -1,0 +1,14 @@
+{
+  "config_sha256": "045445e73c8fc2d7fedef065b8e8a04ef0264a735b8a67ccf4d73a2e54d7ee90",
+  "git_sha": "7bcd750b7f0547b8ea66dc14e377e30d93f05fdb",
+  "run_id": "sync433base01",
+  "scenario": "sync-standby-link-baseline",
+  "schema_version": 1,
+  "started_at": "2026-10-04T10:04:51.020Z",
+  "versions": {
+    "etcd": "3.6.5",
+    "openproxy": "1.1.3",
+    "opensql": "3.17.8.7",
+    "patroni": "4.0.5"
+  }
+}
