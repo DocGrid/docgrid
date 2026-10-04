@@ -74,7 +74,7 @@ public class MarkdownDocumentParser implements DocumentContentParser {
 
             // 2. Heading은 본문이 있는 이전 Section을 닫고, 본문이 없으면 그 줄들을 새 Section에 합친다.
             Matcher heading = ATX_HEADING.matcher(line);
-            if (heading.matches() && !heading.group(2).isBlank()) {
+            if (heading.matches() && hasHeadingText(heading.group(2))) {
                 if (sectionHasBody) {
                     addSegment(segments, sectionLines, sectionTitle, headingTrail.metadataJson());
                     sectionLines.clear();
@@ -96,6 +96,14 @@ public class MarkdownDocumentParser implements DocumentContentParser {
         // 4. 마지막 Section을 닫는다. 본문이 없는 끝 Heading도 원문 보존을 위해 별도 Segment로 둔다.
         addSegment(segments, sectionLines, sectionTitle, headingTrail.metadataJson());
         return new ParsedDocument(segments);
+    }
+
+    /**
+     * 제목 글자가 실제로 있는지 확인한다. 비었거나 닫는 {@code #}만 남은 줄({@code # #})은 CommonMark에서 빈 제목이다.
+     */
+    private boolean hasHeadingText(String text) {
+        String stripped = text.strip();
+        return !stripped.isEmpty() && !stripped.chars().allMatch(character -> character == '#');
     }
 
     /**
