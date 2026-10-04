@@ -21,6 +21,7 @@ case "$purpose_code" in
   primary-vm-fault) purpose='OpenSQL primary VM 상실 중 쓰기' ;;
   etcd-one-fault) purpose='etcd 한 멤버 중단 중 앱 HTTP 쓰기' ;;
   etcd-quorum-fault) purpose='etcd 정족수 상실 중 앱 HTTP 쓰기' ;;
+  sync-standby-link-fault) purpose='OpenSQL 동기 standby 복제 연결 상실 중 앱 HTTP 쓰기' ;;
   *) echo '시험 목적 코드가 잘못되었습니다' >&2; exit 2 ;;
 esac
 # A leader handoff can hold many requests until the 10 s client timeout.
@@ -29,6 +30,7 @@ max_vus=160
 if [[ "$purpose_code" == primary-switchover ||
       "$purpose_code" == primary-process-fault ||
       "$purpose_code" == primary-vm-fault ||
+      "$purpose_code" == sync-standby-link-fault ||
       "$purpose_code" == etcd-quorum-fault ]]; then max_vus=800; fi
 if [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
    [[ ! "$rate" =~ ^[0-9]+$ ]] || (( rate < 1 || rate > 500 )) ||
