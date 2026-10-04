@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: DocGrid
+    orgId: 1
+    folder: DocGrid
+    folderUid: docgrid
+    type: file
+    disableDeletion: false
+    allowUiUpdates: false
+    # Docker Bind Mount에서도 파일 변경을 확실히 감지하도록 Watch 대신 Polling을 사용한다.
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/dashboards

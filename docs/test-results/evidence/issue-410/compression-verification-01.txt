@@ -1,0 +1,11 @@
+실행 ID=issue410-compression-01
+위치=분리된 로컬 worktree
+목적=6개 비식별 JSONL 무손실 압축 검증
+성공 조건=gzip -t 6/6, 압축 해제와 원본 cmp 6/6, 파일별 SHA-256·바이트 기록
+원본=docs/test-results/evidence/issue-378/gcp-runs/b378-after-n50-01/samples.jsonl|원본_바이트=969705|원본_SHA256=5580fb4d3659b82c5ae90b876340827de3b5cf00077f6e1bcc2e2d831fd82991|압축_바이트=47293|압축_SHA256=5bf26cfc1817fb7eff5fdfc7b6987583d1591b44c51bc49a9ea5e70b72104846|gzip=PASS|cmp=PASS
+원본=docs/test-results/evidence/issue-378/gcp-runs/b378-after-n50-02/samples.jsonl|원본_바이트=969671|원본_SHA256=efc425cac66c0834c2213fb26eb3564bf31e123e625fa5f4ddd11ebce8057526|압축_바이트=47397|압축_SHA256=bb1fe0df702afc2ebc9f4d83713e3b3b8ca1ca433bd100fb0e768e042127cf58|gzip=PASS|cmp=PASS
+원본=docs/test-results/evidence/issue-378/gcp-runs/b378-after-n50-03/samples.jsonl|원본_바이트=969784|원본_SHA256=86b12e846e747a01f8216c021c4106d360c6c9eb78af34ee918e2e77ce0aea2d|압축_바이트=46243|압축_SHA256=7717959a1bf10a967b67c2af06ecc6af8504e70cadb51879a21ce53265f3cdd1|gzip=PASS|cmp=PASS
+원본=docs/test-results/evidence/issue-380/runs/ab380-lb-n50-r1/k6/samples.jsonl|원본_바이트=969991|원본_SHA256=d54c2d00f49cb883eca06cc335da3d3866162e2a214f46305b160c77b114ad75|압축_바이트=48167|압축_SHA256=edfd4eb5996457fd72d220bd7328cc80d23567efef3454bb609440c88071794d|gzip=PASS|cmp=PASS
+원본=docs/test-results/evidence/issue-380/runs/ab380-lb-n50-r2/k6/samples.jsonl|원본_바이트=969800|원본_SHA256=90317a8f7ca938ac0cf238dc49ba20018fc53f0f086c25194f7bad77654204d3|압축_바이트=48171|압축_SHA256=87fda567d4853241e9ae9e130fda62e3418b99c652ee8cbedf81c2fa32a5ddd5|gzip=PASS|cmp=PASS
+원본=docs/test-results/evidence/issue-380/runs/ab380-bonly-n50-r1/k6/samples.jsonl|원본_바이트=969702|원본_SHA256=6a5fbd5cd0d998105c72f9e2ee76585b1aba86ab7393ef3f1bb74507f6de916a|압축_바이트=47900|압축_SHA256=27bd73d134e5d1e98e16e633c8efc67e1becd0a09de44aa315217df926340620|gzip=PASS|cmp=PASS
+결과=6/6 PASS

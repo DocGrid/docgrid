@@ -1,0 +1,12 @@
+{
+  "run_id": "ha418sw00001",
+  "iterations": 12600,
+  "http_requests": 12600,
+  "dropped_iterations": 0,
+  "failed_rate": 0.007063492063492063,
+  "duration_ms": {
+    "p50": 13.185688,
+    "p95": 66.7413700999984,
+    "p99": 4718.193070560003
+  }
+}

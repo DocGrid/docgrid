@@ -1,0 +1,20 @@
+{
+  "run_id": "ha405b100a",
+  "db_export_sha256": "3df4ac4b13e01e4a70ca9e875111b36e9096b2cd1fe77efbf5fbd3e9a2d29876",
+  "client_request_count": 6001,
+  "db_request_count": 6001,
+  "db_row_count": 6001,
+  "acknowledged_count": 6001,
+  "failed_count": 0,
+  "unknown_count": 0,
+  "acknowledged_missing_count": 0,
+  "acknowledged_duplicate_count": 0,
+  "db_duplicate_request_count": 0,
+  "unknown_persisted_count": 0,
+  "unknown_not_persisted_count": 0,
+  "failed_persisted_count": 0,
+  "orphan_db_request_count": 0,
+  "durable_write_pass": true,
+  "load_schedule_pass": true,
+  "normal_baseline_pass": true
+}

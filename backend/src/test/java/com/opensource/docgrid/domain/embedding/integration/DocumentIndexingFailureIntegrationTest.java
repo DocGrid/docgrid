@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CyclicBarrier;
@@ -19,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -38,13 +41,15 @@ import com.opensource.docgrid.domain.embedding.service.command.DocumentIndexingC
 import com.opensource.docgrid.domain.embedding.service.command.DocumentIndexingFailureService;
 import com.opensource.docgrid.domain.search.dto.VectorSearchCandidate;
 import com.opensource.docgrid.domain.search.service.query.VectorSearchQueryService;
+import com.opensource.docgrid.domain.worker.config.IndexingWorkerProperties;
 import com.opensource.docgrid.global.exception.DocGridException;
 
 /**
  * 실제 PostgreSQL에서 인덱싱 실패의 예약 Queue, 최종 검색 상태, 멱등성과 완료 경쟁을 검증한다.
  *
  * <p>격리 Schema에 각 실행 상태를 직접 구성한 뒤 실제 Service Transaction과 PostgreSQL 행 잠금을
- * 사용해 Retry 또는 최종 실패가 부분 상태 없이 원자 커밋되는지 확인한다.
+ * 사용해 Retry 또는 최종 실패가 부분 상태 없이 원자 커밋되는지 확인한다. 여러 Job의 Provider
+ * 경계 Retry는 실제 저장된 예약 시각에서 지연 분포를 확인한다.
  */
 @Tag("integration")
 @ActiveProfiles("test")
@@ -68,6 +73,7 @@ class DocumentIndexingFailureIntegrationTest {
     @Autowired private DocumentIndexingFailureService failureService;
     @Autowired private DocumentIndexingCompletionService completionService;
     @Autowired private VectorSearchQueryService vectorSearchQueryService;
+    @Autowired private IndexingWorkerProperties workerProperties;
 
     @DynamicPropertySource
     static void configureDatabase(DynamicPropertyRegistry registry) {
@@ -161,6 +167,92 @@ class DocumentIndexingFailureIntegrationTest {
             "SELECT COUNT(*) FROM embedding_job_attempts WHERE embedding_job_id = ?",
             context.jobId()
         )).isOne();
+    }
+
+    @Test
+    @DisplayName("Provider 상한 직전 하한을 받은 여러 Job의 저장 지연을 1초 구간에 분산한다")
+    void overloadedJobs_distributePersistedRetryDelaysAcrossPollingWindows() {
+        Duration minimumRetryDelay = Duration.ofMillis(11_950);
+        double originalJitterRatio = workerProperties.getRetryJitterRatio();
+        List<Duration> storedDelays = new ArrayList<>();
+        workerProperties.setRetryJitterRatio(0.2);
+
+        try {
+            // 1. 동일한 Provider 하한으로 40개 Job을 실제 실패 처리하고 DB 예약 시각을 읽는다.
+            for (int index = 0; index < 40; index++) {
+                ExecutionContext context = insertFirstVersionExecution("EMBEDDING", false);
+                DocumentIndexingFailureResponse response = failureService.fail(
+                    context.jobId(),
+                    context.attemptId(),
+                    failureRequest(
+                        context.workerId(),
+                        IndexingFailureType.EMBEDDING_PROVIDER_OVERLOADED,
+                        "Embedding provider overloaded"
+                    ),
+                    minimumRetryDelay
+                );
+                LocalDateTime nextRetryAt = queryDateTime(
+                    "SELECT next_retry_at FROM embedding_jobs WHERE id = ?",
+                    context.jobId()
+                );
+                Duration storedDelay = Duration.between(response.failedAt(), nextRetryAt);
+                assertThat(storedDelay).isBetween(minimumRetryDelay, Duration.ofMillis(13_950));
+                storedDelays.add(storedDelay);
+            }
+
+            // 2. 실패 시각에 정렬된 1초 조회 모델에서 저장된 예약 지연의 분포를 기록한다.
+            long tick12 = storedDelays.stream().filter(delay -> firstAlignedPollTick(delay) == 12).count();
+            long tick13 = storedDelays.stream().filter(delay -> firstAlignedPollTick(delay) == 13).count();
+            long tick14 = storedDelays.stream().filter(delay -> firstAlignedPollTick(delay) == 14).count();
+            long distinct = storedDelays.stream().distinct().count();
+            assertThat(tick12 + tick13 + tick14).isEqualTo(40L);
+            assertThat(distinct).isGreaterThan(1L);
+            System.out.printf(
+                "JITTER_METRIC jobs=40 distinct=%d tick12=%d tick13=%d tick14=%d provider_violations=0%n",
+                distinct, tick12, tick13, tick14
+            );
+        } finally {
+            workerProperties.setRetryJitterRatio(originalJitterRatio);
+        }
+    }
+
+    @ParameterizedTest(name = "Jitter 비율 {0}")
+    @ValueSource(doubles = {0.0, 0.2})
+    @DisplayName("상한 +1ns Provider 하한을 Jitter 설정과 무관하게 PostgreSQL 저장 후에도 지킨다")
+    void overloadedJob_preservesNanosecondProviderMinimumAfterPersistence(double jitterRatio) {
+        Duration minimumRetryDelay = Duration.ofSeconds(12).plusNanos(1);
+        double originalJitterRatio = workerProperties.getRetryJitterRatio();
+        workerProperties.setRetryJitterRatio(jitterRatio);
+
+        try {
+            // 1. Jitter 비활성화와 활성화 모두에서 나노초 Provider 하한을 실제 Job에 적용한다.
+            ExecutionContext context = insertFirstVersionExecution("EMBEDDING", false);
+            DocumentIndexingFailureResponse response = failureService.fail(
+                context.jobId(),
+                context.attemptId(),
+                failureRequest(
+                    context.workerId(),
+                    IndexingFailureType.EMBEDDING_PROVIDER_OVERLOADED,
+                    "Embedding provider overloaded"
+                ),
+                minimumRetryDelay
+            );
+
+            // 2. 난수 오프셋과 무관하게 저장된 지연의 나노초 잔여분이 올림 결과인지 확인한다.
+            LocalDateTime nextRetryAt = queryDateTime(
+                "SELECT next_retry_at FROM embedding_jobs WHERE id = ?",
+                context.jobId()
+            );
+            Duration storedDelay = Duration.between(response.failedAt(), nextRetryAt);
+            Duration expectedLower = Duration.ofSeconds(12).plusNanos(1_000);
+            assertThat(storedDelay).isBetween(expectedLower, expectedLower.plusSeconds(2));
+            assertThat(storedDelay.getNano() % 1_000_000).isEqualTo(1_000);
+            if (jitterRatio == 0.0) {
+                assertThat(storedDelay).isEqualTo(expectedLower);
+            }
+        } finally {
+            workerProperties.setRetryJitterRatio(originalJitterRatio);
+        }
     }
 
     @Test
@@ -533,6 +625,14 @@ class DocumentIndexingFailureIntegrationTest {
             .findNextPendingForUpdate(claimedAt)
             .map(EmbeddingJob::getId)
             .orElse(null));
+    }
+
+    /**
+     * 실패 시각과 조회 시각이 정렬됐다고 가정한 1초 Polling 모델의 첫 실행 가능 구간을 반환한다.
+     */
+    private long firstAlignedPollTick(Duration delay) {
+        long oneSecondNanos = Duration.ofSeconds(1).toNanos();
+        return (delay.toNanos() + oneSecondNanos - 1) / oneSecondNanos;
     }
 
     private List<VectorSearchCandidate> search(ExecutionContext context) {

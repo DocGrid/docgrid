@@ -1,0 +1,11 @@
+실행 ID=issue410-history-01
+위치=분리된 로컬 worktree
+목적=기존 Git 커밋 원문과 새 압축본의 바이트 일치 검증
+시각 UTC=2026-10-03T16:10:05Z
+docs/test-results/evidence/issue-378/gcp-runs/b378-after-n50-01/samples.jsonl.gz=기존 Git 원문과 압축 해제본 동일
+docs/test-results/evidence/issue-378/gcp-runs/b378-after-n50-02/samples.jsonl.gz=기존 Git 원문과 압축 해제본 동일
+docs/test-results/evidence/issue-378/gcp-runs/b378-after-n50-03/samples.jsonl.gz=기존 Git 원문과 압축 해제본 동일
+docs/test-results/evidence/issue-380/runs/ab380-lb-n50-r1/k6/samples.jsonl.gz=기존 Git 원문과 압축 해제본 동일
+docs/test-results/evidence/issue-380/runs/ab380-lb-n50-r2/k6/samples.jsonl.gz=기존 Git 원문과 압축 해제본 동일
+docs/test-results/evidence/issue-380/runs/ab380-bonly-n50-r1/k6/samples.jsonl.gz=기존 Git 원문과 압축 해제본 동일
+전체 결과=6/6 PASS

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "observed_date_utc": "2026-10-03",
+  "environment": "GCP internal test-only",
+  "purpose": "Distinguish planned primary switchover and one OpenProxy process failure at request level",
+  "topology": {
+    "db_vms": 3,
+    "openproxy_instances": 2,
+    "app_vms": 2,
+    "load_vms": 1,
+    "shared_cache_vms": 1,
+    "lb_healthy_before": 2,
+    "patroni_leaders_before": 1,
+    "patroni_streaming_replicas_before": 2,
+    "etcd_healthy_before": 3
+  },
+  "tested_app_jar_sha256": "27db8d6ac74db5fb3f3795f532ee908da8f9b8985066ffdae6b03255f41f7a34",
+  "restored_app_jar_sha256": "c0180191121208d105f422cb64c57e325efc63a1c568c4c81a73d70cc7b8d1aa",
+  "load": {
+    "baseline": "10 req/s, 20 s, initial 40 VUs",
+    "planned_switchover": "70 req/s, 180 s, initial 400 VUs, maximum 800 VUs",
+    "proxy_a_failure": "100 req/s, 130 s, initial 40 VUs, maximum 160 VUs",
+    "client_timeout_seconds": 10
+  },
+  "scripts_sha256": {
+    "runner": "ba2ea0d168c83f940ec95f4af2b27042698b270e92950b2649a031cdcf877c1d",
+    "k6": "f47567887d495cb782722f5780271bfd33dac516827a3b9f68ff2535943f0eb3",
+    "telemetry": "84e63cf3968fe9f0e163782553d4e9c068b4559887f3791f1adbbb60a60114d2",
+    "k6_sanitizer": "9fd0137c6884e0ef5cf028992ed5608fbe0002ea374eb3d362786e745002312b",
+    "journal_sanitizer": "210742ec4821a8703df1fb9e2e5ee325367c6c73925c2709f751b676700d388e"
+  },
+  "limits": [
+    "The diagnostic JAR was built from the branch working tree and was restored after tests; its source diff is part of this PR.",
+    "Product binaries and dynamic settings were not version-queried again in this run.",
+    "A ready disk snapshot existed from an earlier time; a fresh multi-node-consistent restore was not rehearsed here."
+  ]
+}

@@ -33,6 +33,9 @@ public class OperationalMetrics {
         registerGauge(meterRegistry, "docgrid.embedding.claimable.jobs",
             "Embedding jobs that can be claimed now",
             snapshot -> snapshot.embeddingClaimableJobs());
+        registerGauge(meterRegistry, "docgrid.embedding.delayed.retry.jobs",
+            "Embedding retry jobs waiting for their next retry time",
+            snapshot -> snapshot.embeddingDelayedRetryJobs());
         registerGauge(meterRegistry, "docgrid.embedding.processing.jobs",
             "Embedding jobs currently processing",
             snapshot -> snapshot.embeddingProcessingJobs());

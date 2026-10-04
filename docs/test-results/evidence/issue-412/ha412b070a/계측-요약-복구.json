@@ -1,0 +1,15 @@
+{
+  "run_id": "ha412b070a",
+  "original_runner_exit": 98,
+  "original_k6_exit": 0,
+  "original_telemetry_exit": 1,
+  "original_error": "Python 3.9 rejected a five-digit fractional k6 timestamp",
+  "recovered_from_unchanged_metric_and_host_samples": true,
+  "recovery_parser_sha256": "84e63cf3968fe9f0e163782553d4e9c068b4559887f3791f1adbbb60a60114d2",
+  "dropped": 0,
+  "requests": 4200,
+  "seconds": 61,
+  "host_seconds": 61,
+  "active_vu_peak": 2,
+  "allocated_vu_peak": 40
+}

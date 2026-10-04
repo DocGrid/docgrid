@@ -1,0 +1,14 @@
+{
+  "config_sha256": "b949cc8a366daddff7cf4534758102a4a65f0959c2b5ee142e8e00a50688b63a",
+  "git_sha": "40cb6f3cec1ddc8696d469206be953b44350d34a",
+  "run_id": "ha418px00001",
+  "scenario": "proxy-a-kill",
+  "schema_version": 1,
+  "started_at": "2026-10-03T18:56:06Z",
+  "versions": {
+    "etcd": "not-rechecked",
+    "openproxy": "not-rechecked",
+    "opensql": "not-rechecked",
+    "patroni": "not-rechecked"
+  }
+}

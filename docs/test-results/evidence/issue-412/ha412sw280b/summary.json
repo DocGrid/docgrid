@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "fault_events": [
+    {
+      "at": "2026-10-03T17:04:15.665Z",
+      "name": "planned-switchover",
+      "phase": "start"
+    },
+    {
+      "at": "2026-10-03T17:05:04.168Z",
+      "name": "planned-switchover",
+      "phase": "end"
+    }
+  ],
+  "finished_at": "2026-10-03T17:10:12.834Z",
+  "open_faults": [],
+  "outcome_counts": {
+    "ACKNOWLEDGED": 12474,
+    "FAILED": 88,
+    "UNKNOWN": 0
+  },
+  "request_count": 12562,
+  "run_id": "ha412sw280b",
+  "schema_version": 1,
+  "started_at": "2026-10-03T17:02:33.878Z"
+}

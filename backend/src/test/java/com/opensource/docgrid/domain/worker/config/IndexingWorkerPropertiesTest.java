@@ -15,7 +15,7 @@ import jakarta.validation.Validator;
 /**
  * Worker Polling, 실행 동시성, Lease, Retry와 종료 설정의 기본값 및 시작 단계 유효성 검사를 검증한다.
  *
- * <p>정상적인 양수 기간은 허용하고 발급 즉시 만료되는 0 또는 음수 기간은 차단하는지 확인한다.
+ * <p>정상적인 기간은 허용하고 0·음수 또는 계산 정밀도보다 짧은 기간은 차단하는지 확인한다.
  */
 @DisplayName("IndexingWorkerProperties 테스트")
 class IndexingWorkerPropertiesTest {
@@ -142,6 +142,22 @@ class IndexingWorkerPropertiesTest {
 
         properties.setRetryMaxDelay(Duration.ofSeconds(10));
         assertThat(properties.isRetryDelayValid()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Retry 초기 지연은 1ms부터 허용한다")
+    void retryDelay_isValid_fromOneMillisecond() {
+        IndexingWorkerProperties properties = new IndexingWorkerProperties();
+        properties.setRetryMaxDelay(Duration.ofMillis(1));
+
+        // 밀리초 기반 Jitter 계산에서 0ms로 손실되는 더 짧은 설정은 시작 전에 거부한다.
+        properties.setRetryInitialDelay(Duration.ofNanos(500_000));
+        assertThat(properties.isRetryDelayValid()).isFalse();
+        assertThat(validator.validate(properties)).isNotEmpty();
+
+        properties.setRetryInitialDelay(Duration.ofMillis(1));
+        assertThat(properties.isRetryDelayValid()).isTrue();
+        assertThat(validator.validate(properties)).isEmpty();
     }
 
     @Test

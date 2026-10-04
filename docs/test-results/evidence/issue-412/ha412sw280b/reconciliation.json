@@ -1,0 +1,20 @@
+{
+  "run_id": "ha412sw280b",
+  "db_export_sha256": "2247ff842d81169e56106a09b2cbcff7783830ba94506c33408140f3aee0000f",
+  "client_request_count": 12562,
+  "db_request_count": 12474,
+  "db_row_count": 12474,
+  "acknowledged_count": 12474,
+  "failed_count": 88,
+  "unknown_count": 0,
+  "acknowledged_missing_count": 0,
+  "acknowledged_duplicate_count": 0,
+  "db_duplicate_request_count": 0,
+  "unknown_persisted_count": 0,
+  "unknown_not_persisted_count": 0,
+  "failed_persisted_count": 0,
+  "orphan_db_request_count": 0,
+  "durable_write_pass": false,
+  "load_schedule_pass": false,
+  "normal_baseline_pass": false
+}

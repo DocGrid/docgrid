@@ -1,0 +1,20 @@
+{
+  "run_id": "ha412sw400c",
+  "db_export_sha256": "d8888795fd8832ad237c0e1c1147dc07f5f49cd3381eae741731520a811e592c",
+  "client_request_count": 12601,
+  "db_request_count": 12516,
+  "db_row_count": 12516,
+  "acknowledged_count": 12516,
+  "failed_count": 85,
+  "unknown_count": 0,
+  "acknowledged_missing_count": 0,
+  "acknowledged_duplicate_count": 0,
+  "db_duplicate_request_count": 0,
+  "unknown_persisted_count": 0,
+  "unknown_not_persisted_count": 0,
+  "failed_persisted_count": 0,
+  "orphan_db_request_count": 0,
+  "durable_write_pass": false,
+  "load_schedule_pass": false,
+  "normal_baseline_pass": false
+}

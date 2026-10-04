@@ -1,0 +1,117 @@
+{
+  "scenario": "circuit-recovery",
+  "status": "PASS",
+  "measuredAt": "2026-10-03T17:08:18.145282+00:00",
+  "gitCommit": "310965b929cff4e682d029ff1bb836379c1fe3ae",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "images": {
+    "postgres": "pgvector/pgvector:0.8.1-pg17",
+    "prometheus": "prom/prometheus:v3.5.5",
+    "alertmanager": "quay.io/prometheus/alertmanager:v0.33.1"
+  },
+  "conditions": {
+    "providerFailureMode": "docker-stop",
+    "circuitFailureThreshold": 3,
+    "circuitOpenDuration": "30s",
+    "retryJitterRatio": 0,
+    "jobMaxRetryCount": 10,
+    "failedProbeRetryFreeze": "10m",
+    "scrapeInterval": "15s",
+    "evaluationInterval": "15s",
+    "circuitRuleFor": "1m",
+    "criticalGroupWait": "10s",
+    "warningGroupWait": "30s",
+    "testGroupInterval": "30s",
+    "productionGroupInterval": "5m"
+  },
+  "timestamps": {
+    "providerStoppedAt": "2026-10-03T17:04:13.035922+00:00",
+    "providerDownConditionAt": "2026-10-03T17:04:32.110422+00:00",
+    "circuitOpenedAt": "2026-10-03T17:04:51.405977+00:00",
+    "delayedRetryObservedAt": "2026-10-03T17:04:51.628918+00:00",
+    "failedProbeAt": "2026-10-03T17:05:31.612993+00:00",
+    "providerDownFiringAt": "2026-10-03T17:05:39.643678+00:00",
+    "providerDownWebhookAt": "2026-10-03T17:05:47.781605+00:00",
+    "circuitAlertPendingAt": "2026-10-03T17:05:48.687839+00:00",
+    "circuitAlertFiringAt": "2026-10-03T17:06:46.911840+00:00",
+    "circuitSuppressedAt": "2026-10-03T17:06:46.914042+00:00",
+    "recoveryStartedAt": "2026-10-03T17:07:22.044228+00:00",
+    "providerReadyAt": "2026-10-03T17:07:26.326082+00:00",
+    "successfulProbeAt": "2026-10-03T17:07:30.473955+00:00",
+    "jobIndexedAt": "2026-10-03T17:07:30.553405+00:00",
+    "alertsResolvedAt": "2026-10-03T17:07:52.763847+00:00",
+    "providerDownResolvedWebhookAt": "2026-10-03T17:08:17.793669+00:00"
+  },
+  "measurements": {
+    "stopToProviderDownConditionSeconds": 19.075,
+    "stopToCircuitOpenSeconds": 38.37,
+    "stopToFailedProbeSeconds": 78.577,
+    "failedProbeToCircuitFiringSeconds": 75.299,
+    "recoveryToProviderReadySeconds": 4.282,
+    "providerReadyToSuccessfulProbeSeconds": 4.148,
+    "recoveryToIndexedSeconds": 8.509,
+    "recoveryToAllPrometheusAlertsResolvedSeconds": 30.72,
+    "recoveryToProviderResolvedWebhookSeconds": 55.749,
+    "circuitWarningSuppressed": true,
+    "circuitWarningFiringWebhookDeliveries": 0,
+    "storedEmbeddings": 1,
+    "finalJobStatus": "INDEXED",
+    "finalRetryCount": 5,
+    "maxRetryCount": 10
+  },
+  "metricSnapshots": {
+    "circuitOpen": {
+      "open": 1.0,
+      "probeFailed": 0.0,
+      "openTransitions": 1.0,
+      "halfOpenTransitions": 0.0,
+      "closedTransitions": 0.0,
+      "failedProbes": 0.0,
+      "successfulProbes": 0.0,
+      "delayedRetryJobs": 1.0
+    },
+    "delayedRetry": {
+      "open": 1.0,
+      "probeFailed": 0.0,
+      "openTransitions": 1.0,
+      "halfOpenTransitions": 0.0,
+      "closedTransitions": 0.0,
+      "failedProbes": 0.0,
+      "successfulProbes": 0.0,
+      "delayedRetryJobs": 1.0
+    },
+    "failedProbe": {
+      "open": 1.0,
+      "probeFailed": 1.0,
+      "openTransitions": 2.0,
+      "halfOpenTransitions": 1.0,
+      "closedTransitions": 0.0,
+      "failedProbes": 1.0,
+      "successfulProbes": 0.0,
+      "delayedRetryJobs": 1.0
+    },
+    "successfulProbe": {
+      "open": 0.0,
+      "probeFailed": 0.0,
+      "openTransitions": 2.0,
+      "halfOpenTransitions": 2.0,
+      "closedTransitions": 1.0,
+      "failedProbes": 1.0,
+      "successfulProbes": 1.0,
+      "delayedRetryJobs": 0.0
+    },
+    "recovered": {
+      "open": 0.0,
+      "probeFailed": 0.0,
+      "openTransitions": 2.0,
+      "halfOpenTransitions": 2.0,
+      "closedTransitions": 1.0,
+      "failedProbes": 1.0,
+      "successfulProbes": 1.0,
+      "delayedRetryJobs": 0.0
+    }
+  }
+}

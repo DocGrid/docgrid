@@ -19,7 +19,7 @@ import lombok.Setter;
  * 인덱싱 Worker의 실행 여부, Polling, 동시 실행, Heartbeat, Job Lease와 Retry를 바인딩하는 설정 클래스.
  *
  * <p>{@code indexing.worker} 환경 설정을 타입 안전한 {@link Duration}으로 제공하고, 애플리케이션 시작
- * 단계에서 서로 모순되거나 0 이하인 시간 설정을 차단한다.
+ * 단계에서 서로 모순된 시간 설정과 Retry 계산 정밀도보다 짧은 지연을 차단한다.
  */
 @Getter
 @Setter
@@ -27,6 +27,9 @@ import lombok.Setter;
 @Component
 @ConfigurationProperties(prefix = "indexing.worker")
 public class IndexingWorkerProperties {
+
+    // Jitter와 다음 실행 시각 계산이 밀리초 단위이므로 더 짧은 Retry 설정은 시작 전에 차단한다.
+    private static final Duration MIN_RETRY_DELAY = Duration.ofMillis(1);
 
     // API 전용 실행에서는 Worker 등록과 Scheduler가 동작하지 않도록 기본값을 false로 유지한다.
     private boolean enabled = false;
@@ -73,7 +76,7 @@ public class IndexingWorkerProperties {
     @NotNull
     private Duration retryMaxDelay = Duration.ofMinutes(5);
 
-    // 같은 시각에 실패한 Job의 다음 Claim이 다시 몰리지 않도록 지수 Backoff를 양방향으로 분산한다.
+    // 지수 Backoff는 양방향, Provider 최소 지연은 이후 방향으로 분산할 때 사용할 비율이다.
     @DecimalMin("0.0")
     @DecimalMax("1.0")
     private double retryJitterRatio = 0.2;
@@ -139,14 +142,13 @@ public class IndexingWorkerProperties {
     }
 
     /**
-     * Retry 지연이 모두 양수이고 최대 지연이 초기 지연보다 짧지 않은지 검증한다.
+     * Retry 초기 지연이 밀리초 계산 정밀도를 만족하고 최대 지연보다 길지 않은지 검증한다.
      */
-    @AssertTrue(message = "Retry 최대 지연은 양수인 초기 지연보다 짧을 수 없습니다.")
+    @AssertTrue(message = "Retry 초기 지연은 1ms 이상이며 최대 지연보다 길 수 없습니다.")
     public boolean isRetryDelayValid() {
         return retryInitialDelay != null
             && retryMaxDelay != null
-            && !retryInitialDelay.isZero()
-            && !retryInitialDelay.isNegative()
+            && retryInitialDelay.compareTo(MIN_RETRY_DELAY) >= 0
             && retryMaxDelay.compareTo(retryInitialDelay) >= 0;
     }
 

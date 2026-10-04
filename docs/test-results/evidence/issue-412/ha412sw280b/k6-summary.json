@@ -1,0 +1,12 @@
+{
+  "run_id": "ha412sw280b",
+  "iterations": 12562,
+  "http_requests": 12562,
+  "dropped_iterations": 39,
+  "failed_rate": 0.0070052539404553416,
+  "duration_ms": {
+    "p50": 10.7285755,
+    "p95": 55.443134699999874,
+    "p99": 4729.4113316099965
+  }
+}

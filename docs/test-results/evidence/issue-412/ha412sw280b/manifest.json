@@ -1,0 +1,14 @@
+{
+  "config_sha256": "a126b3eebdab2561414630d0153e5da1240fc49c4490e037739e1f169fc992fa",
+  "git_sha": "6b787b1121328b5ca30ee947e0248961e9631aad",
+  "run_id": "ha412sw280b",
+  "scenario": "primary-switchover-vu-preallocated",
+  "schema_version": 1,
+  "started_at": "2026-10-03T17:02:33.878Z",
+  "versions": {
+    "etcd": "3.6.5",
+    "openproxy": "1.1.3",
+    "opensql": "v3.17.8.7",
+    "patroni": "4.0.5"
+  }
+}

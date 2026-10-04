@@ -15,6 +15,8 @@ if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$/.test(runId || '') || !target || !token 
 
 export const options = {
   discardResponseBodies: true,
+  // 1. Do not emit URL, error text or other infrastructure identifiers as metric tags.
+  systemTags: [],
   summaryTrendStats: ['med', 'p(95)', 'p(99)'],
   scenarios: {
     writes: {
@@ -38,8 +40,14 @@ export default function () {
   let response;
   try {
     response = http.post(target, JSON.stringify({ runId, requestId }), {
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      timeout: __ENV.HA_TIMEOUT || '10s', tags: { name: 'ha_probe_write' },
+      // The profile-gated app diagnostic joins sanitized failure logs to this external ledger.
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-Ha-Run-Id': runId,
+        'X-Ha-Request-Id': requestId,
+      },
+      timeout: __ENV.HA_TIMEOUT || '10s',
     });
   } catch (_) {
     event(requestId, 'unknown', { reason: 'other' });

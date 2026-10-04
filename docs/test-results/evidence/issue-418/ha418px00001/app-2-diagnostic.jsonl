@@ -1,0 +1,8 @@
+{"at": "2026-10-03T18:57:07.347Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v31-i151", "run_id": "ha418px00001", "sqlstate": "none", "status": 500, "type": "JpaSystemException"}
+{"at": "2026-10-03T18:57:07.348Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v31-i151", "run_id": "ha418px00001", "status": 500}
+{"at": "2026-10-03T18:57:07.368Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v7-i151", "run_id": "ha418px00001", "sqlstate": "none", "status": 500, "type": "JpaSystemException"}
+{"at": "2026-10-03T18:57:07.368Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v7-i151", "run_id": "ha418px00001", "status": 500}
+{"at": "2026-10-03T18:57:07.373Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v3-i152", "run_id": "ha418px00001", "sqlstate": "none", "status": 500, "type": "JpaSystemException"}
+{"at": "2026-10-03T18:57:07.373Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v3-i152", "run_id": "ha418px00001", "status": 500}
+{"at": "2026-10-03T18:57:07.395Z", "event": "EXCEPTION", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v30-i152", "run_id": "ha418px00001", "sqlstate": "none", "status": 500, "type": "JpaSystemException"}
+{"at": "2026-10-03T18:57:07.396Z", "event": "RESULT", "phase": "SQL_EXECUTE", "request_id": "ha418px00001-v30-i152", "run_id": "ha418px00001", "status": 500}
