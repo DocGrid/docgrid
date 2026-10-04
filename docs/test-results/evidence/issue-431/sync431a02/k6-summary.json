@@ -1,0 +1,12 @@
+{
+  "run_id": "sync431a02",
+  "iterations": 1800,
+  "http_requests": 1800,
+  "dropped_iterations": 0,
+  "failed_rate": 0,
+  "duration_ms": {
+    "p50": 13.2623785,
+    "p95": 52.7907166,
+    "p99": 55.10362926
+  }
+}
