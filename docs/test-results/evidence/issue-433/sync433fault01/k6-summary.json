@@ -1,0 +1,12 @@
+{
+  "run_id": "sync433fault01",
+  "iterations": 5401,
+  "http_requests": 5401,
+  "dropped_iterations": 0,
+  "failed_rate": 0.3621551564525088,
+  "duration_ms": {
+    "p50": 13.364078,
+    "p95": 5012.104082,
+    "p99": 5027.212724
+  }
+}

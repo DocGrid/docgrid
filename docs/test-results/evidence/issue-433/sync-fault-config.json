@@ -1,0 +1,16 @@
+{
+  "phase": "synchronous-standby-replication-link-fault",
+  "patroni_synchronous_mode": true,
+  "postgresql_sync_replica_count_before_fault": 1,
+  "postgresql_async_replica_count_before_fault": 1,
+  "request_rate_per_second": 30,
+  "duration_seconds": 180,
+  "initial_virtual_users": 400,
+  "maximum_virtual_users": 800,
+  "backend_instances": 2,
+  "openproxy_instances": 2,
+  "database_instances": 3,
+  "fault": "primary-host-input-reject-selected-sync-standby-postgresql-tcp",
+  "fault_guard_seconds": 120,
+  "fault_scope": "replication link only; not a standby VM or etcd outage"
+}

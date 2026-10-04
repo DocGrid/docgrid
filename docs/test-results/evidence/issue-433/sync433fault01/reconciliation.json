@@ -1,0 +1,20 @@
+{
+  "run_id": "sync433fault01",
+  "db_export_sha256": "7f574d78bb2aa8a82cff862a2f4afc4dddc28c6ba95597fc7e9c2996edb615f8",
+  "client_request_count": 5401,
+  "db_request_count": 3450,
+  "db_row_count": 3450,
+  "acknowledged_count": 3445,
+  "failed_count": 1942,
+  "unknown_count": 14,
+  "acknowledged_missing_count": 0,
+  "acknowledged_duplicate_count": 0,
+  "db_duplicate_request_count": 0,
+  "unknown_persisted_count": 5,
+  "unknown_not_persisted_count": 9,
+  "failed_persisted_count": 0,
+  "orphan_db_request_count": 0,
+  "durable_write_pass": false,
+  "load_schedule_pass": false,
+  "normal_baseline_pass": false
+}
