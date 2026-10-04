@@ -94,6 +94,27 @@ class MarkdownDocumentParserTest {
     }
 
     @Test
+    @DisplayName("닫는 #만 있는 빈 제목은 Heading이 아니라 본문 줄로 본다")
+    void parseDocument_treatsEmptyHeadingWithClosingHashesAsBody() {
+        for (String source : new String[] {"# #\n본문", "## ##\n본문", "# # #\n본문"}) {
+            ParsedDocument result = parse(source);
+
+            assertThat(result.segments()).as(source).singleElement().satisfies(segment -> {
+                assertThat(segment.text()).isEqualTo(source);
+                assertThat(segment.sectionTitle()).isNull();
+                assertThat(segment.metadataJson()).isNull();
+            });
+        }
+
+        ParsedDocument nested = parse("# 제목\n## ##\n본문");
+
+        assertThat(nested.segments()).singleElement().satisfies(segment -> {
+            assertThat(segment.text()).isEqualTo("# 제목\n## ##\n본문");
+            assertSection(segment, "제목", List.of("제목"), 1);
+        });
+    }
+
+    @Test
     @DisplayName("레벨을 건너뛴 Heading도 상위 Heading 아래에 둔다")
     void parseDocument_handlesSkippedHeadingLevel() {
         ParsedDocument result = parse("# 장\n장 본문\n### 세부\n세부 본문");
