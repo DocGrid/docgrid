@@ -47,6 +47,18 @@ class FileValidationServiceTest {
     }
 
     @Test
+    @DisplayName("브라우저가 .md에 붙이는 여러 Content-Type을 모두 허용한다")
+    void validate_succeeds_forMarkdownWithBrowserContentTypes() {
+        for (String contentType : new String[] {
+            "text/markdown", "text/x-markdown", "text/plain", "application/octet-stream"
+        }) {
+            ValidatedFile result = fileValidationService.validate(file("README.md", contentType, "# title"));
+
+            assertThat(result.documentType()).as(contentType).isEqualTo(DocumentType.MD);
+        }
+    }
+
+    @Test
     @DisplayName("PDF 확장자와 Content-Type 조합을 허용한다")
     void validate_succeeds_forPdf() {
         ValidatedFile result = fileValidationService.validate(
@@ -114,7 +126,9 @@ class FileValidationServiceTest {
     @Test
     @DisplayName("확장자와 Content-Type이 일치하지 않으면 예외가 발생한다")
     void validate_throws_when_contentTypeIsUnsupported() {
-        assertError(file("sample.md", "application/octet-stream", "md"),
+        assertError(file("sample.md", "application/pdf", "md"),
+            ErrorCode.UNSUPPORTED_FILE_CONTENT_TYPE);
+        assertError(file("sample.txt", "application/octet-stream", "txt"),
             ErrorCode.UNSUPPORTED_FILE_CONTENT_TYPE);
         assertError(file("sample.pdf", "application/octet-stream", "pdf"),
             ErrorCode.UNSUPPORTED_FILE_CONTENT_TYPE);

@@ -177,6 +177,18 @@ class DocumentChunkTransactionServiceTest {
     }
 
     @Test
+    @DisplayName("브라우저가 octet-stream으로 올린 Markdown도 파싱 준비 단계에서 허용한다")
+    void prepare_acceptsMarkdownUploadedAsOctetStream() {
+        prepareEntities(DocumentType.MD, DocumentVersionStatus.UPLOADED);
+        ReflectionTestUtils.setField(documentVersion, "contentType", "application/octet-stream");
+        givenValidContext();
+
+        PreparationResult result = service.prepare(JOB_ID, ATTEMPT_ID, WORKER_ID, CLAIM_TOKEN);
+
+        assertThat(result.fileSnapshot().documentType()).isEqualTo(DocumentType.MD);
+    }
+
+    @Test
     @DisplayName("CHUNKED Version은 기존 Chunk 수를 반환하고 외부 Snapshot을 만들지 않는다")
     void prepare_replaysCompletedChunks() {
         prepareEntities(DocumentType.TXT, DocumentVersionStatus.CHUNKED);
