@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.opensource.docgrid.domain.document.service.SectionPath;
 import com.opensource.docgrid.domain.rag.repository.RagResponseRepository;
 import com.opensource.docgrid.domain.rag.repository.ResponseCitationRepository;
 import com.opensource.docgrid.domain.search.dto.ConversationCitationProjection;
@@ -131,7 +132,9 @@ public class SearchConversationQueryService {
             ConversationSearchResultProjection result = results.get(index);
             items.add(new SearchResultItem(
                 index + 1, result.documentId(), result.chunkId(), result.documentTitle(),
-                result.chunkText(), result.pageNo(), result.similarityScore()
+                result.chunkText(), result.pageNo(),
+                SectionPath.display(result.metadataJson(), result.sectionTitle()),
+                result.similarityScore()
             ));
         }
         return List.copyOf(items);
@@ -141,7 +144,8 @@ public class SearchConversationQueryService {
     private CitationResponse toCitationResponse(ConversationCitationProjection citation) {
         return new CitationResponse(
             citation.citationLabel(), citation.documentId(), citation.documentTitle(), citation.chunkId(),
-            citation.pageNo(), citation.quotedText()
+            citation.pageNo(), SectionPath.display(citation.metadataJson(), citation.sectionTitle()),
+            citation.quotedText()
         );
     }
 

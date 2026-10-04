@@ -13,6 +13,7 @@ public record SearchResultItem(
     @Schema(description = "문서 제목") String documentTitle,
     @Schema(description = "매칭된 청크 텍스트") String chunkText,
     @Schema(description = "원본 문서 페이지 번호, 페이지 개념이 없는 형식은 null") Integer pageNo,
+    @Schema(description = "Section 경로(예: \"3. 환불 정책 > 3.2 개봉 후 환불\"), 구조 정보가 없는 청크는 null") String sectionPath,
     @Schema(description = "코사인 유사도 (0~1, 높을수록 유사)") BigDecimal similarityScore
 ) {
     public static SearchResultItem of(int rank, VectorSearchCandidate candidate) {
@@ -23,6 +24,7 @@ public record SearchResultItem(
             candidate.documentTitle(),
             candidate.chunkText(),
             candidate.pageNo(),
+            candidate.sectionPath(),
             candidate.similarityScore()
         );
     }

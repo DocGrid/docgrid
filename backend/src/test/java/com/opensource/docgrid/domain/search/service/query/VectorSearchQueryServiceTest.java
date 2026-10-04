@@ -190,6 +190,8 @@ class VectorSearchQueryServiceTest {
             public Long getDocumentId() { return documentId; }
             public String getChunkText() { return chunkText; }
             public Integer getPageNo() { return pageNo; }
+            public String getSectionTitle() { return null; }
+            public String getMetadataJson() { return null; }
             public String getDocumentTitle() { return documentTitle; }
             public Double getDistance() { return distance; }
         };

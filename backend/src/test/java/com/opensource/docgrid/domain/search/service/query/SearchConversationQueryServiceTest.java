@@ -68,13 +68,15 @@ class SearchConversationQueryServiceTest {
         ));
         given(searchResultRepository.findConversationDetailResults(List.of(1L, 2L, 3L))).willReturn(List.of(
             new ConversationSearchResultProjection(
-                1L, 7, 101L, 201L, "문서 A", "근거 A", 3, new BigDecimal("0.910000")
+                1L, 7, 101L, 201L, "문서 A", "근거 A", 3, new BigDecimal("0.910000"),
+                "3.2 개봉 후 환불",
+                "{\"headingPath\":[\"3. 환불 정책\",\"3.2 개봉 후 환불\"],\"headingLevel\":2}"
             ),
             new ConversationSearchResultProjection(
-                2L, 1, 102L, 202L, "문서 B", "근거 B", 4, new BigDecimal("0.900000")
+                2L, 1, 102L, 202L, "문서 B", "근거 B", 4, new BigDecimal("0.900000"), null, null
             ),
             new ConversationSearchResultProjection(
-                3L, 1, 103L, 203L, "문서 C", "근거 C", 5, new BigDecimal("0.890000")
+                3L, 1, 103L, 203L, "문서 C", "근거 C", 5, new BigDecimal("0.890000"), null, null
             )
         ));
         given(ragResponseRepository.findConversationDetailResponses(List.of(1L, 2L, 3L))).willReturn(List.of(
@@ -82,8 +84,8 @@ class SearchConversationQueryServiceTest {
             new ConversationRagResponseProjection(2L, ResultStatus.PROCESSING, null)
         ));
         given(responseCitationRepository.findConversationDetailCitations(List.of(1L, 2L, 3L))).willReturn(List.of(
-            new ConversationCitationProjection(1L, "[1]", 101L, "문서 A", 201L, 3, "근거 A"),
-            new ConversationCitationProjection(2L, "[1]", 102L, "문서 B", 202L, 4, "근거 B")
+            new ConversationCitationProjection(1L, "[1]", 101L, "문서 A", 201L, 3, "근거 A", "3.2 개봉 후 환불", null),
+            new ConversationCitationProjection(2L, "[1]", 102L, "문서 B", 202L, 4, "근거 B", null, null)
         ));
 
         SearchConversationResponse response = searchConversationQueryService.getConversation(10L, 20L);
@@ -95,6 +97,11 @@ class SearchConversationQueryServiceTest {
         assertThat(response.turns().get(0).response().results()).hasSize(1);
         assertThat(response.turns().get(0).response().results().get(0).rank()).isEqualTo(1);
         assertThat(response.turns().get(0).response().citations()).hasSize(1);
+        assertThat(response.turns().get(0).response().results().get(0).sectionPath())
+            .isEqualTo("3. 환불 정책 > 3.2 개봉 후 환불");
+        assertThat(response.turns().get(0).response().citations().get(0).sectionPath())
+            .isEqualTo("3.2 개봉 후 환불");
+        assertThat(response.turns().get(1).response().results().get(0).sectionPath()).isNull();
         assertThat(response.turns().get(1).response().ragStatus()).isEqualTo(ResultStatus.PROCESSING);
         assertThat(response.turns().get(1).response().answer()).isNull();
         assertThat(response.turns().get(1).response().citations()).isEmpty();

@@ -16,6 +16,7 @@ import com.opensource.docgrid.domain.document.entity.DocumentVersion;
 import com.opensource.docgrid.domain.document.enums.DocumentVersionStatus;
 import com.opensource.docgrid.domain.document.repository.DocumentChunkRepository;
 import com.opensource.docgrid.domain.document.repository.DocumentVersionRepository;
+import com.opensource.docgrid.domain.document.service.SectionPath;
 import com.opensource.docgrid.domain.embedding.entity.Embedding;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingJob;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingModel;
@@ -118,6 +119,7 @@ public class DocumentEmbeddingTransactionService {
                     chunk.getId(),
                     chunk.getChunkIndex(),
                     chunk.getChunkText(),
+                    SectionPath.embeddingInput(chunk.getMetadataJson(), chunk.getChunkText()),
                     chunk.getTokenCount(),
                     chunk.getContentHash()
                 ))
@@ -469,15 +471,32 @@ public class DocumentEmbeddingTransactionService {
     }
 
     /**
-     * 외부 호출에 전달하는 단일 Chunk의 식별자, 순서, Text, Token 수와 내용 Hash Snapshot.
+     * 외부 호출에 전달하는 단일 Chunk의 식별자, 순서, Text, Embedding 입력, Token 수와 내용 Hash Snapshot.
+     *
+     * <p>{@code chunkText}는 저장된 원문으로 완료 단계의 일치 검증에 쓰고, {@code embeddingText}는
+     * Section 경로가 붙을 수 있는 Vector 생성 입력이다. 경로가 없으면 두 값은 같다.
      */
     public record ChunkSnapshot(
         Long chunkId,
         int chunkIndex,
         String chunkText,
+        String embeddingText,
         int tokenCount,
         String contentHash
     ) {
+
+        /**
+         * Section 경로 없이 원문을 그대로 Embedding 입력으로 쓰는 Snapshot을 만든다.
+         */
+        public ChunkSnapshot(
+            Long chunkId,
+            int chunkIndex,
+            String chunkText,
+            int tokenCount,
+            String contentHash
+        ) {
+            this(chunkId, chunkIndex, chunkText, chunkText, tokenCount, contentHash);
+        }
     }
 
     /**

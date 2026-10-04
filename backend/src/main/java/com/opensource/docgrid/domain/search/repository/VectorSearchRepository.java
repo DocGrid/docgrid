@@ -24,6 +24,8 @@ public interface VectorSearchRepository extends JpaRepository<Embedding, Long> {
             e.document_id AS document_id,
             dc.chunk_text AS chunk_text,
             dc.page_no    AS page_no,
+            dc.section_title AS section_title,
+            dc.metadata_json AS metadata_json,
             d.title       AS document_title,
             (e.vector <=> CAST(:queryVector AS vector)) AS distance
         FROM embeddings e

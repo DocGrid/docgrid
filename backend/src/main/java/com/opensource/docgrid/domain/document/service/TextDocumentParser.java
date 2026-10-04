@@ -23,10 +23,13 @@ import com.opensource.docgrid.global.exception.ErrorCode;
 public class TextDocumentParser implements DocumentContentParser {
 
     private static final char BYTE_ORDER_MARK = '\uFEFF';
-    private static final Set<DocumentType> SUPPORTED_TYPES = Set.of(DocumentType.TXT, DocumentType.MD);
+    private static final Set<DocumentType> SUPPORTED_TYPES = Set.of(DocumentType.TXT);
 
     /**
-     * 이 Parser가 일반 Text와 Markdown 원본을 함께 처리함을 Registry에 알린다.
+     * 이 Parser가 일반 Text 원본만 Segment로 변환함을 Registry에 알린다.
+     *
+     * <p>Markdown은 Heading 구조를 쓰는 {@link MarkdownDocumentParser}가 처리하며, 이 Parser의
+     * {@link #parse(byte[])}로 Canonical Text만 얻는다.
      */
     @Override
     public Set<DocumentType> supportedTypes() {
@@ -34,7 +37,7 @@ public class TextDocumentParser implements DocumentContentParser {
     }
 
     /**
-     * 기존 TXT·Markdown Canonical Text를 단일 Segment 문서로 변환한다.
+     * TXT Canonical Text를 단일 Segment 문서로 변환한다.
      */
     @Override
     public ParsedDocument parseDocument(byte[] content) {

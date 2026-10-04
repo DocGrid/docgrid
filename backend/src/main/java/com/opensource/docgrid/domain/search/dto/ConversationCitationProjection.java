@@ -10,6 +10,8 @@ public record ConversationCitationProjection(
     String documentTitle,
     Long chunkId,
     Integer pageNo,
-    String quotedText
+    String quotedText,
+    String sectionTitle,
+    String metadataJson
 ) {
 }

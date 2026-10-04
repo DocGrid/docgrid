@@ -49,11 +49,11 @@ class TextDocumentParserTest {
     }
 
     @Test
-    @DisplayName("TXT와 Markdown 형식을 단일 Segment Parsed Document로 변환한다")
+    @DisplayName("TXT를 단일 Segment Parsed Document로 변환한다")
     void parseDocument_wrapsCanonicalTextAsSingleSegment() {
         ParsedDocument result = parser.parseDocument("본문\r\n둘째 줄".getBytes(StandardCharsets.UTF_8));
 
-        assertThat(parser.supportedTypes()).containsExactlyInAnyOrder(DocumentType.TXT, DocumentType.MD);
+        assertThat(parser.supportedTypes()).containsExactly(DocumentType.TXT);
         assertThat(result.segments()).singleElement().satisfies(segment -> {
             assertThat(segment.text()).isEqualTo("본문\n둘째 줄");
             assertThat(segment.pageNo()).isNull();

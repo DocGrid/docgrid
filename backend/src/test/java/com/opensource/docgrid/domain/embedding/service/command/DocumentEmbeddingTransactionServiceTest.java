@@ -131,6 +131,22 @@ class DocumentEmbeddingTransactionServiceTest {
     }
 
     @Test
+    @DisplayName("Section 경로 Metadata가 있는 Chunk만 Embedding 입력에 경로를 붙이고 원문은 유지한다")
+    void prepare_buildsEmbeddingTextFromSectionPath() {
+        givenValidContext(List.of(
+            chunk(0, "경로 있는 본문", "{\"headingPath\":[\"3. 환불 정책\",\"3.2 개봉 후 환불\"],\"headingLevel\":2}"),
+            chunk(1, "경로 없는 본문")
+        ));
+
+        PreparationResult result = service.prepare(JOB_ID, ATTEMPT_ID, WORKER_ID, CLAIM_TOKEN);
+
+        assertThat(result.work().chunks()).extracting(ChunkSnapshot::chunkText)
+            .containsExactly("경로 있는 본문", "경로 없는 본문");
+        assertThat(result.work().chunks()).extracting(ChunkSnapshot::embeddingText)
+            .containsExactly("3. 환불 정책 > 3.2 개봉 후 환불\n경로 있는 본문", "경로 없는 본문");
+    }
+
+    @Test
     @DisplayName("저장 결과가 없는 EMBEDDING Version은 시작 이벤트 없이 작업을 재개한다")
     void prepare_resumesEmbeddingWithoutDuplicateEvent() {
         prepareEntities(DocumentVersionStatus.EMBEDDING);
@@ -252,6 +268,30 @@ class DocumentEmbeddingTransactionServiceTest {
         assertThat(first.getVector()).hasSize(EmbeddingModelFixture.DIMENSION);
         assertThat(first.getStatus()).isEqualTo(EmbeddingStatus.ACTIVE);
         then(indexingEventRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("Embedding 입력에 경로가 붙어도 원문 Chunk 일치 검증은 통과해 Embedding Set을 저장한다")
+    void complete_savesEmbeddingSetWhenEmbeddingTextDiffersFromChunkText() {
+        prepareEntities(DocumentVersionStatus.EMBEDDING);
+        List<DocumentChunk> chunks = List.of(chunk(0, "본문"));
+        givenValidContext(chunks);
+        EmbeddingWork work = new EmbeddingWork(
+            VERSION_ID,
+            MODEL_ID,
+            EmbeddingModelFixture.MODEL_NAME,
+            EmbeddingModelFixture.DIMENSION,
+            List.of(new ChunkSnapshot(
+                chunks.get(0).getId(), 0, "본문", "1장 > 1절\n본문", 1, chunks.get(0).getContentHash()
+            ))
+        );
+
+        CompletionResult result = service.complete(
+            JOB_ID, ATTEMPT_ID, WORKER_ID, CLAIM_TOKEN, work, List.of(draft(chunks.get(0), 0.1f))
+        );
+
+        assertThat(result.created()).isTrue();
+        assertThat(result.embeddingCount()).isEqualTo(1);
     }
 
     @Test
@@ -482,6 +522,10 @@ class DocumentEmbeddingTransactionServiceTest {
     }
 
     private DocumentChunk chunk(int index, String text) {
+        return chunk(index, text, null);
+    }
+
+    private DocumentChunk chunk(int index, String text, String metadataJson) {
         DocumentChunk chunk = DocumentChunk.builder()
             .documentVersion(documentVersion)
             .chunkIndex(index)
@@ -490,6 +534,7 @@ class DocumentEmbeddingTransactionServiceTest {
             .charStart(index * 10)
             .charEnd(index * 10 + text.length())
             .contentHash(CONTENT_HASH)
+            .metadataJson(metadataJson)
             .build();
         ReflectionTestUtils.setField(chunk, "id", 20L + index);
         return chunk;

@@ -197,7 +197,7 @@ public class DocGridMcpTools {
                 .map(item -> item.chunkText() != null && item.chunkText().length() > MAX_CHUNK_TEXT_LENGTH
                         ? new SearchResultItem(item.rank(), item.documentId(), item.chunkId(), item.documentTitle(),
                                 item.chunkText().substring(0, MAX_CHUNK_TEXT_LENGTH),
-                                item.pageNo(), item.similarityScore())
+                                item.pageNo(), item.sectionPath(), item.similarityScore())
                         : item)
                 .toList();
     }

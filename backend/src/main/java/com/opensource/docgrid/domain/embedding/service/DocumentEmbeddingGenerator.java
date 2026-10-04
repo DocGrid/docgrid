@@ -40,9 +40,9 @@ public class DocumentEmbeddingGenerator {
         // 1. 저장된 Token 수와 실제 Unicode 문자 수를 함께 반영한 순서 보존 Batch를 계획한다.
         List<List<ChunkSnapshot>> batches = batchPlanner.plan(work.chunks());
         for (List<ChunkSnapshot> batchChunks : batches) {
-            // 2. 현재 Batch의 원문만 전달해 DB Transaction 밖에서 Vector 목록을 생성한다.
+            // 2. 현재 Batch의 Embedding 입력(Section 경로가 있으면 포함)만 전달해 DB Transaction 밖에서 Vector 목록을 생성한다.
             EmbedBatchServerResponse response = embeddingClient.embedBatch(
-                batchChunks.stream().map(ChunkSnapshot::chunkText).toList(),
+                batchChunks.stream().map(ChunkSnapshot::embeddingText).toList(),
                 batchChunks.size()
             );
 

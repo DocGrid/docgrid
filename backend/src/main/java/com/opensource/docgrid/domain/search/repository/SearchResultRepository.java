@@ -32,7 +32,8 @@ public interface SearchResultRepository extends JpaRepository<SearchResult, Long
     /** 여러 대화 Turn의 검색 결과 표시 필드를 queryId와 rank 순서로 한 번에 조회한다. */
     @Query("""
         SELECT new com.opensource.docgrid.domain.search.dto.ConversationSearchResultProjection(
-            r.query.id, r.rankNo, d.id, c.id, d.title, c.chunkText, c.pageNo, r.similarityScore
+            r.query.id, r.rankNo, d.id, c.id, d.title, c.chunkText, c.pageNo, r.similarityScore,
+            c.sectionTitle, c.metadataJson
         )
         FROM SearchResult r
         JOIN r.chunk c

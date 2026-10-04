@@ -1,0 +1,230 @@
+DocgridApplicationTests                                                tests=1    fail=0   err=0   skipped=0
+SignupRequest 테스트                                                      tests=3    fail=0   err=0   skipped=0
+로그아웃 PostgreSQL·Redis 통합 테스트                                           tests=1    fail=0   err=0   skipped=0
+STOMP 연결 인증 통합 테스트                                                     tests=4    fail=0   err=0   skipped=0
+STOMP 실제 역할 회수 통합 테스트                                                  tests=4    fail=0   err=0   skipped=0
+STOMP 관리자 권한 회수 경계 통합 테스트                                              tests=3    fail=0   err=0   skipped=0
+STOMP 목적지 인가 통합 테스트                                                    tests=5    fail=0   err=0   skipped=0
+STOMP 세션 수명주기 통합 테스트                                                   tests=4    fail=0   err=0   skipped=0
+JwtAuthenticationFilter 단위 테스트                                         tests=5    fail=0   err=0   skipped=0
+JwtProviderTest                                                        tests=1    fail=0   err=0   skipped=0
+RoleAuthorityService 단위 테스트                                            tests=6    fail=0   err=0   skipped=0
+StompAuthChannelInterceptor 단위 테스트                                     tests=11   fail=0   err=0   skipped=0
+TokenBlacklistService 단위 테스트                                           tests=5    fail=0   err=0   skipped=0
+AuthCommandService 단위 테스트                                              tests=14   fail=0   err=0   skipped=0
+AuthQueryService 단위 테스트                                                tests=2    fail=0   err=0   skipped=0
+PrimaryRoleQueryService 단위 테스트                                         tests=7    fail=0   err=0   skipped=0
+STOMP 대시보드 outbound 인가 단위 테스트                                          tests=7    fail=0   err=0   skipped=0
+STOMP 목적지 인가 Interceptor 단위 테스트                                        tests=22   fail=0   err=0   skipped=0
+STOMP 세션 Registry 단위 테스트                                               tests=5    fail=0   err=0   skipped=0
+STOMP 세션 재검증 Scheduler 단위 테스트                                          tests=7    fail=0   err=0   skipped=0
+CollectionController 테스트                                               tests=5    fail=0   err=0   skipped=0
+컬렉션 트리 Repository 테스트                                                  tests=16   fail=0   err=0   skipped=0
+CollectionCommandService 단위 테스트                                        tests=25   fail=0   err=0   skipped=0
+CollectionQueryService 단위 테스트                                          tests=14   fail=0   err=0   skipped=0
+대시보드 WebSocket 발행 권한 일괄 조회 단위 테스트                                      tests=4    fail=0   err=0   skipped=0
+대시보드 교차 백엔드 Redis Pub/Sub 통합 테스트                                       tests=1    fail=0   err=0   skipped=0
+대시보드 교차 백엔드 갱신 신호 단위 테스트                                               tests=4    fail=0   err=0   skipped=0
+대시보드 A/B Spring 앱·WebSocket 통합 테스트                                     tests=1    fail=0   err=0   skipped=0
+Dashboard push debounce burst 통합 테스트                                   tests=1    fail=0   err=0   skipped=0
+DashboardPushScheduler 단위 테스트                                          tests=7    fail=0   err=0   skipped=0
+DashboardUpdateFlag 단위 테스트                                             tests=4    fail=0   err=0   skipped=0
+Embedding Job 상태 전이 이벤트 AFTER_COMMIT 통합 테스트                            tests=2    fail=0   err=0   skipped=0
+EmbeddingJobStatusChangedEventListener 단위 테스트                          tests=1    fail=0   err=0   skipped=0
+EmbeddingJobRetryService 단위 테스트                                        tests=6    fail=0   err=0   skipped=0
+EmbeddingJobRetryService 트랜잭션 독립성 통합 테스트                               tests=1    fail=0   err=0   skipped=0
+대시보드 집계 SQL 개수 통합 테스트                                                  tests=1    fail=0   err=0   skipped=0
+DashboardQueryService 단위 테스트                                           tests=3    fail=0   err=0   skipped=0
+Dashboard WebSocket 실시간 push 통합 테스트                                    tests=4    fail=0   err=0   skipped=0
+Chunk Size·Overlap 품질 Benchmark 계약 테스트                                 tests=9    fail=0   err=0   skipped=0
+Section 경로 Benchmark 코퍼스 테스트                                           tests=3    fail=0   err=0   skipped=0
+DocumentChunkingProperties 테스트                                         tests=3    fail=0   err=0   skipped=0
+문서 업로드 제한 설정 테스트                                                       tests=1    fail=0   err=0   skipped=0
+FileStorageProperties 테스트                                              tests=4    fail=0   err=0   skipped=0
+DocumentCommandController 테스트                                          tests=4    fail=0   err=0   skipped=0
+DocumentQueryController 테스트                                            tests=10   fail=0   err=0   skipped=0
+DocumentUploadController 테스트                                           tests=3    fail=0   err=0   skipped=0
+DocumentDetailConverter 테스트                                            tests=1    fail=0   err=0   skipped=0
+DocumentStatusConverter 테스트                                            tests=3    fail=0   err=0   skipped=0
+DocumentVersionHistoryConverter 단위 테스트                                 tests=1    fail=0   err=0   skipped=0
+Document 테스트                                                           tests=3    fail=0   err=0   skipped=0
+DocumentVersion 테스트                                                    tests=29   fail=0   err=0   skipped=0
+Document Chunking OpenSQL 통합 테스트                                       tests=5    fail=0   err=0   skipped=0
+문서 업로드 통합 테스트                                                          tests=4    fail=0   err=0   skipped=0
+문서 새 버전 업로드 통합 테스트                                                     tests=4    fail=0   err=0   skipped=0
+S3 저장소 Spring Context 통합 테스트                                           tests=1    fail=0   err=0   skipped=0
+읽기 가능 문서 ID Repository 테스트                                             tests=7    fail=0   err=0   skipped=0
+findByIdWithCurrentVersion 테스트                                         tests=2    fail=0   err=0   skipped=0
+문서 상태 Projection Repository 테스트                                        tests=3    fail=0   err=0   skipped=0
+DocumentFileService 테스트                                                tests=2    fail=0   err=0   skipped=0
+DocumentParserRegistry 테스트                                             tests=3    fail=0   err=0   skipped=0
+DocumentParsingService 테스트                                             tests=4    fail=0   err=0   skipped=0
+DocumentUploadFacade 단위 테스트                                            tests=4    fail=0   err=0   skipped=0
+DocumentVersionUploadFacade 단위 테스트                                     tests=6    fail=0   err=0   skipped=0
+DocxDocumentParser 테스트                                                 tests=5    fail=0   err=0   skipped=0
+FileHashService 단위 테스트                                                 tests=2    fail=0   err=0   skipped=0
+FileValidationService 단위 테스트                                           tests=13   fail=0   err=0   skipped=0
+FixedSizeChunker 테스트                                                   tests=10   fail=0   err=0   skipped=0
+MarkdownDocumentParser 테스트                                             tests=10   fail=0   err=0   skipped=0
+PdfDocumentParser 테스트                                                  tests=10   fail=0   err=0   skipped=0
+SectionPath 테스트                                                        tests=8    fail=0   err=0   skipped=0
+TextDocumentParser 테스트                                                 tests=6    fail=0   err=0   skipped=0
+DocumentChunkTransactionService 테스트                                    tests=11   fail=0   err=0   skipped=0
+DocumentCommandService 단위 테스트                                          tests=8    fail=0   err=0   skipped=0
+DocumentUploadService 단위 테스트                                           tests=3    fail=0   err=0   skipped=0
+DocumentVersionUploadService 단위 테스트                                    tests=4    fail=0   err=0   skipped=0
+FileObjectResolutionService 테스트                                        tests=4    fail=0   err=0   skipped=0
+DocumentQueryService 테스트                                               tests=19   fail=0   err=0   skipped=0
+GcsStorageService 테스트                                                  tests=7    fail=0   err=0   skipped=0
+LocalFileStorageService 테스트                                            tests=6    fail=0   err=0   skipped=0
+MinioStorageService 테스트                                                tests=6    fail=0   err=0   skipped=0
+S3StorageService 테스트                                                   tests=8    fail=0   err=0   skipped=0
+실제 PDF Embedding Corpus Exporter 테스트                                   tests=1    fail=0   err=0   skipped=0
+Vector 저장 Benchmark 지원 계약                                              tests=6    fail=0   err=0   skipped=0
+EmbeddingClient 단위 테스트                                                 tests=19   fail=0   err=0   skipped=0
+EmbeddingClient 전송 계약 테스트                                              tests=2    fail=0   err=0   skipped=0
+EmbeddingProviderCircuitBreaker 테스트                                    tests=8    fail=0   err=0   skipped=0
+EmbeddingBatchProperties 테스트                                           tests=3    fail=0   err=0   skipped=0
+EmbeddingProviderCircuitBreakerProperties 테스트                          tests=2    fail=0   err=0   skipped=0
+EmbeddingModelController 테스트                                           tests=3    fail=0   err=0   skipped=0
+IndexingJobAdminController 테스트                                         tests=104  fail=0   err=0   skipped=0
+IndexingJobAdminController 조회 테스트                                      tests=17   fail=0   err=0   skipped=0
+EmbeddingJobAttemptConverter 테스트                                       tests=3    fail=0   err=0   skipped=0
+EmbeddingJobConverter 테스트                                              tests=1    fail=0   err=0   skipped=0
+IndexingJobAdminConverter 테스트                                          tests=4    fail=0   err=0   skipped=0
+FailDocumentIndexingRequest 테스트                                        tests=3    fail=0   err=0   skipped=0
+EmbeddingJob 테스트                                                       tests=11   fail=0   err=0   skipped=0
+EmbeddingModel 생성 검증 테스트                                               tests=4    fail=0   err=0   skipped=0
+Embedding 테스트                                                          tests=3    fail=0   err=0   skipped=0
+IndexingFailureType 테스트                                                tests=12   fail=0   err=0   skipped=0
+Document Embedding OpenSQL 통합 테스트                                      tests=3    fail=0   err=0   skipped=0
+Document 인덱싱 완료 OpenSQL 통합 테스트                                         tests=4    fail=0   err=0   skipped=0
+Document 인덱싱 실패 PostgreSQL 통합 테스트                                      tests=9    fail=0   err=0   skipped=0
+Embedding Job Attempt OpenSQL 통합 테스트                                   tests=6    fail=0   err=0   skipped=0
+Embedding Job Claim DB 동시성 통합 테스트                                      tests=6    fail=0   err=0   skipped=0
+Embedding Job 수동 재처리 PostgreSQL 통합 테스트                                 tests=8    fail=0   err=0   skipped=0
+기본 임베딩 모델 DB 제약 통합 테스트                                                 tests=9    fail=0   err=0   skipped=0
+관리자 인덱싱 조회 PostgreSQL 통합 테스트                                           tests=6    fail=0   err=0   skipped=0
+EmbeddingJob 대시보드 집계 Repository 테스트                                    tests=3    fail=0   err=0   skipped=0
+EmbeddingModelRepository 테스트                                           tests=5    fail=0   err=0   skipped=0
+인덱싱 완료 Repository 테스트                                                  tests=3    fail=0   err=0   skipped=0
+AdaptiveEmbeddingBatchPlanner 테스트                                      tests=6    fail=0   err=0   skipped=0
+DocumentEmbeddingGenerator 테스트                                         tests=9    fail=0   err=0   skipped=0
+DocumentEmbeddingService 테스트                                           tests=3    fail=0   err=0   skipped=0
+DocumentEmbeddingTransactionService 테스트                                tests=16   fail=0   err=0   skipped=0
+DocumentIndexingCompletionService 테스트                                  tests=9    fail=0   err=0   skipped=0
+DocumentIndexingFailureService 테스트                                     tests=11   fail=0   err=0   skipped=0
+EmbeddingJobAttemptService 테스트                                         tests=17   fail=0   err=0   skipped=0
+EmbeddingJobClaimService 테스트                                           tests=6    fail=0   err=0   skipped=0
+EmbeddingJobLeaseRecoveryService 테스트                                   tests=6    fail=0   err=0   skipped=0
+EmbeddingJobLeaseService 테스트                                           tests=4    fail=0   err=0   skipped=0
+EmbeddingJobManualRetryPolicy 테스트                                      tests=5    fail=0   err=0   skipped=0
+EmbeddingJobManualRetryService 테스트                                     tests=13   fail=0   err=0   skipped=0
+EmbeddingJobOwnershipValidator 테스트                                     tests=13   fail=0   err=0   skipped=0
+IndexedVersionVectorRepairService 단위 테스트                               tests=1    fail=0   err=0   skipped=0
+IndexingRetryDelayPolicy 테스트                                           tests=18   fail=0   err=0   skipped=0
+EmbeddingJobRecoveryQueryService 테스트                                   tests=2    fail=0   err=0   skipped=0
+EmbeddingModelQueryService 단위 테스트                                      tests=4    fail=0   err=0   skipped=0
+IndexingJobAdminQueryService 테스트                                       tests=7    fail=0   err=0   skipped=0
+QueryEmbeddingService 단위 테스트                                           tests=3    fail=0   err=0   skipped=0
+HaProbeWriteControllerTest                                             tests=4    fail=0   err=0   skipped=0
+HaProbeWriteDisabledTest                                               tests=1    fail=0   err=0   skipped=0
+HaProbeWriteFlagDisabledTest                                           tests=1    fail=0   err=0   skipped=0
+HaProbeWriteSecurityTest                                               tests=1    fail=0   err=0   skipped=0
+HaProbeWriteServiceTest                                                tests=1    fail=0   err=0   skipped=0
+McpApiKeyAuthFilter 단위 테스트                                             tests=5    fail=0   err=0   skipped=0
+McpRateLimiter 단위 테스트                                                  tests=7    fail=0   err=0   skipped=0
+McpAccessTokenCommandService 단위 테스트                                    tests=7    fail=0   err=0   skipped=0
+McpAccessTokenQueryService 단위 테스트                                      tests=1    fail=0   err=0   skipped=0
+DocGridMcpTools 단위 테스트                                                 tests=20   fail=0   err=0   skipped=0
+PermissionController 테스트                                               tests=5    fail=0   err=0   skipped=0
+CollectionPermissionCommandService 단위 테스트                              tests=11   fail=0   err=0   skipped=0
+DocumentPermissionCommandService 단위 테스트                                tests=11   fail=0   err=0   skipped=0
+PermissionQueryService 단위 테스트                                          tests=54   fail=0   err=0   skipped=0
+PermissionTargetUserQueryService 테스트                                   tests=2    fail=0   err=0   skipped=0
+RagJobWorkerConcurrentQueueIntegrationTest                             tests=1    fail=0   err=0   skipped=0
+RagJobWorkerIntegrationTest                                            tests=1    fail=0   err=0   skipped=0
+RagResponse Claim DB 동시성 통합 테스트                                        tests=2    fail=0   err=0   skipped=0
+RagResponseRepository 테스트                                              tests=9    fail=0   err=0   skipped=0
+OllamaClient 단위 테스트                                                    tests=15   fail=0   err=0   skipped=0
+OllamaClient 전송 계약 테스트                                                 tests=1    fail=0   err=0   skipped=0
+PromptBuilder 단위 테스트                                                   tests=6    fail=0   err=0   skipped=0
+RagFacade 단위 테스트                                                       tests=20   fail=0   err=0   skipped=0
+RagJobTimeoutSweeper 단위 테스트                                            tests=4    fail=0   err=0   skipped=0
+RagJobWorker 단위 테스트                                                    tests=10   fail=0   err=0   skipped=0
+RagResponseCommandService 단위 테스트                                       tests=6    fail=0   err=0   skipped=0
+ResponseCitationCommandService 단위 테스트                                  tests=2    fail=0   err=0   skipped=0
+Vector 검색 성능 Benchmark 계약 테스트                                          tests=5    fail=0   err=0   skipped=0
+VectorSearchProperties 검증 테스트                                          tests=8    fail=0   err=0   skipped=0
+SearchController 테스트                                                   tests=2    fail=0   err=0   skipped=0
+Section 경로 전달 테스트                                                      tests=5    fail=0   err=0   skipped=0
+검색 실패 원장 트랜잭션 경계 통합 테스트                                                tests=4    fail=0   err=0   skipped=0
+SearchResultRepository 후보 DTO fetch 테스트                                tests=2    fail=0   err=0   skipped=0
+벡터 검색 Repository Section 경로 통합 테스트                                     tests=1    fail=0   err=0   skipped=0
+SearchFacade 단위 테스트                                                    tests=4    fail=0   err=0   skipped=0
+SearchConversationCommandService 단위 테스트                                tests=2    fail=0   err=0   skipped=0
+SearchQueryCommandService 단위 테스트                                       tests=3    fail=0   err=0   skipped=0
+SearchResultCommandService 단위 테스트                                      tests=2    fail=0   err=0   skipped=0
+AccessibleDocumentQueryService 단위 테스트                                  tests=4    fail=0   err=0   skipped=0
+대화 상세 SQL 개수 통합 테스트                                                    tests=1    fail=0   err=0   skipped=0
+SearchConversationQueryService 단위 테스트                                  tests=4    fail=0   err=0   skipped=0
+VectorSearchQueryService 단위 테스트                                        tests=9    fail=0   err=0   skipped=0
+SyncAdminController 테스트                                                tests=4    fail=0   err=0   skipped=0
+SyncEventDeliveryAttempt 단위 테스트                                        tests=2    fail=0   err=0   skipped=0
+SyncOutboxEvent 상태 전이 테스트                                              tests=3    fail=0   err=0   skipped=0
+Embedding 저장 장애·Lease·Reconciler 복구 통합 테스트                             tests=1    fail=0   err=0   skipped=0
+Sync 관리자 감사 Action 통합 테스트                                              tests=1    fail=0   err=0   skipped=0
+Sync Dispatch 장애 주입·복구 통합 테스트                                          tests=5    fail=0   err=0   skipped=0
+Sync Event Claim 통합 테스트                                                tests=1    fail=0   err=0   skipped=0
+Sync Dispatcher 멱등성·동시성 통합 테스트                                         tests=3    fail=0   err=0   skipped=0
+Sync Outbox 트랜잭션 경계 통합 테스트                                             tests=5    fail=0   err=0   skipped=0
+SyncConsistencyInspector 단위 테스트                                        tests=3    fail=0   err=0   skipped=0
+SyncAdminCommandService 단위 테스트                                         tests=2    fail=0   err=0   skipped=0
+SyncEventClaimService 단위 테스트                                           tests=1    fail=0   err=0   skipped=0
+SyncEventDispatchService 단위 테스트                                        tests=2    fail=0   err=0   skipped=0
+SyncEventFailureService 메트릭 테스트                                        tests=2    fail=0   err=0   skipped=0
+SyncEventLeaseRecoveryService 메트릭 테스트                                  tests=2    fail=0   err=0   skipped=0
+SyncEventWriter 단위 테스트                                                 tests=2    fail=0   err=0   skipped=0
+SyncReconciliationBatchService 단위 테스트                                  tests=2    fail=0   err=0   skipped=0
+DocumentVersionSyncEventHandler 단위 테스트                                 tests=2    fail=0   err=0   skipped=0
+SyncAdminQueryService 단위 테스트                                           tests=4    fail=0   err=0   skipped=0
+AdminUserController 테스트                                                tests=12   fail=0   err=0   skipped=0
+UserRepository 테스트                                                     tests=2    fail=0   err=0   skipped=0
+UserCommandService 단위 테스트                                              tests=4    fail=0   err=0   skipped=0
+UserRoleCommandService 단위 테스트                                          tests=5    fail=0   err=0   skipped=0
+AdminUserQueryService 단위 테스트                                           tests=2    fail=0   err=0   skipped=0
+IndexingWorkerProperties 테스트                                           tests=11   fail=0   err=0   skipped=0
+WorkerAdminController 테스트                                              tests=3    fail=0   err=0   skipped=0
+EmbeddingJobAttempt 테스트                                                tests=5    fail=0   err=0   skipped=0
+WorkerNode 상태 판정 테스트                                                   tests=9    fail=0   err=0   skipped=0
+WorkerExecutionSlotPool 테스트                                            tests=4    fail=0   err=0   skipped=0
+WorkerExecutionLifecycleManager 테스트                                    tests=2    fail=0   err=0   skipped=0
+WorkerHeartbeatScheduler 테스트                                           tests=2    fail=0   err=0   skipped=0
+WorkerJobPollingScheduler 테스트                                          tests=7    fail=0   err=0   skipped=0
+WorkerLeaseRecoveryScheduler 테스트                                       tests=4    fail=0   err=0   skipped=0
+WorkerLifecycleManager 테스트                                             tests=2    fail=0   err=0   skipped=0
+WorkerPollingBackoff 테스트                                               tests=2    fail=0   err=0   skipped=0
+WorkerNodeRepository 테스트                                               tests=7    fail=0   err=0   skipped=0
+WorkerIndexingFailureClassifier 테스트                                    tests=5    fail=0   err=0   skipped=0
+WorkerIndexingFailureReporter 테스트                                      tests=4    fail=0   err=0   skipped=0
+WorkerIndexingPipeline 테스트                                             tests=4    fail=0   err=0   skipped=0
+WorkerLeaseRenewalManager 테스트                                          tests=4    fail=0   err=0   skipped=0
+WorkerNodeCommandService 테스트                                           tests=6    fail=0   err=0   skipped=0
+WorkerNodeQueryService 테스트                                             tests=2    fail=0   err=0   skipped=0
+PDF DOCX 전체 인덱싱 부하 통계 단위 테스트                                           tests=2    fail=0   err=0   skipped=0
+Worker 수평 확장 통계                                                        tests=3    fail=0   err=0   skipped=0
+Worker 인덱싱 처리량 통계 단위 테스트                                               tests=3    fail=0   err=0   skipped=0
+Worker Queue Backpressure 통계                                           tests=7    fail=0   err=0   skipped=0
+Management 엔드포인트 통합 테스트                                                tests=4    fail=0   err=0   skipped=0
+S3Config 테스트                                                           tests=2    fail=0   err=0   skipped=0
+HaProbeDiagnosticContextTest                                           tests=2    fail=0   err=0   skipped=0
+HaProbeDiagnosticFilterTest                                            tests=3    fail=0   err=0   skipped=0
+GlobalExceptionHandlerDataAccessTest                                   tests=1    fail=0   err=0   skipped=0
+Security 예외 응답 단위 테스트                                                  tests=2    fail=0   err=0   skipped=0
+비동기 파이프라인 Counter AFTER_COMMIT 통합 테스트                                  tests=2    fail=0   err=0   skipped=0
+비동기 파이프라인 상태 전이 Counter 테스트                                            tests=3    fail=0   err=0   skipped=0
+운영 상태 Snapshot Query 테스트                                               tests=2    fail=0   err=0   skipped=0
+운영 상태 Snapshot Refresher 테스트                                           tests=2    fail=0   err=0   skipped=0
+운영 상태 Gauge 테스트                                                        tests=3    fail=0   err=0   skipped=0
+8 호환성·Vector 성능 통합 테스트                                                 tests=3    fail=0   err=0   skipped=0
+합계 tests=1360 failures=0 errors=0 skipped=0

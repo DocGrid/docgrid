@@ -40,7 +40,7 @@ public class AdaptiveEmbeddingBatchPlanner {
 
         for (ChunkSnapshot chunk : chunks) {
             validateChunk(chunk);
-            int chunkCodePoints = chunk.chunkText().codePointCount(0, chunk.chunkText().length());
+            int chunkCodePoints = chunk.embeddingText().codePointCount(0, chunk.embeddingText().length());
 
             // 1. 비어 있지 않은 Batch에 다음 Chunk를 더했을 때 어느 예산이든 넘으면 먼저 확정한다.
             if (!currentBatch.isEmpty() && exceedsBudget(
@@ -88,7 +88,10 @@ public class AdaptiveEmbeddingBatchPlanner {
      * Batch 계획에 사용할 Chunk에 검색 가능한 Text와 음수가 아닌 Token 추정치가 있는지 확인한다.
      */
     private void validateChunk(ChunkSnapshot chunk) {
-        if (chunk == null || !StringUtils.hasText(chunk.chunkText()) || chunk.tokenCount() < 0) {
+        if (chunk == null
+            || !StringUtils.hasText(chunk.chunkText())
+            || !StringUtils.hasText(chunk.embeddingText())
+            || chunk.tokenCount() < 0) {
             throw new DocGridException(ErrorCode.DOCUMENT_EMBEDDINGS_INCONSISTENT);
         }
     }

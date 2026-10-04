@@ -22,6 +22,7 @@ import com.opensource.docgrid.domain.document.enums.DocumentVersionStatus;
 import com.opensource.docgrid.domain.document.repository.DocumentChunkRepository;
 import com.opensource.docgrid.domain.document.repository.DocumentVersionRepository;
 import com.opensource.docgrid.domain.document.service.DocumentChunkDraft;
+import com.opensource.docgrid.domain.document.service.FileValidationService;
 import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.domain.embedding.dto.response.DocumentChunksResponse;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingJob;
@@ -51,7 +52,6 @@ import lombok.RequiredArgsConstructor;
 public class DocumentChunkTransactionService {
 
     private static final Set<String> TXT_CONTENT_TYPES = Set.of("text/plain");
-    private static final Set<String> MARKDOWN_CONTENT_TYPES = Set.of("text/plain", "text/markdown");
     private static final Set<String> PDF_CONTENT_TYPES = Set.of("application/pdf");
     private static final Set<String> DOCX_CONTENT_TYPES = Set.of(
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -280,7 +280,7 @@ public class DocumentChunkTransactionService {
             return TXT_CONTENT_TYPES;
         }
         if (documentType == DocumentType.MD) {
-            return MARKDOWN_CONTENT_TYPES;
+            return FileValidationService.MARKDOWN_CONTENT_TYPES;
         }
         if (documentType == DocumentType.PDF) {
             return PDF_CONTENT_TYPES;
