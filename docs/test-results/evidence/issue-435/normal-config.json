@@ -1,0 +1,15 @@
+{
+  "phase": "synchronous-normal-diagnostic-baseline",
+  "patroni_synchronous_mode": true,
+  "streaming_replicas": 2,
+  "synchronous_replicas": 1,
+  "request_rate_per_second": 30,
+  "duration_seconds": 20,
+  "initial_virtual_users": 80,
+  "maximum_virtual_users": 800,
+  "backend_instances": 2,
+  "openproxy_instances": 2,
+  "database_instances": 3,
+  "lb_request_log_sample_rate": 1.0,
+  "fault": "none"
+}

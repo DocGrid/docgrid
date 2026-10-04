@@ -1,0 +1,17 @@
+{
+  "phase": "synchronous-standby-replication-link-fault-diagnostic",
+  "patroni_synchronous_mode": true,
+  "streaming_replicas_before_fault": 2,
+  "synchronous_replicas_before_fault": 1,
+  "request_rate_per_second": 30,
+  "duration_seconds": 120,
+  "initial_virtual_users": 80,
+  "maximum_virtual_users": 800,
+  "backend_instances": 2,
+  "openproxy_instances": 2,
+  "database_instances": 3,
+  "lb_request_log_sample_rate": 1.0,
+  "fault": "primary-host-input-reject-selected-sync-standby-postgresql-tcp",
+  "independent_fault_guard_seconds": 120,
+  "fault_scope": "replication link only; no VM, Patroni REST, etcd or proxy outage"
+}

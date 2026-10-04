@@ -1,0 +1,20 @@
+{
+  "run_id": "ha435syncbase",
+  "db_export_sha256": "5036f710dd35afa830dbb8c3358cf37e79bcf5dbf241979979f9c59b7f030407",
+  "client_request_count": 600,
+  "db_request_count": 600,
+  "db_row_count": 600,
+  "acknowledged_count": 600,
+  "failed_count": 0,
+  "unknown_count": 0,
+  "acknowledged_missing_count": 0,
+  "acknowledged_duplicate_count": 0,
+  "db_duplicate_request_count": 0,
+  "unknown_persisted_count": 0,
+  "unknown_not_persisted_count": 0,
+  "failed_persisted_count": 0,
+  "orphan_db_request_count": 0,
+  "durable_write_pass": true,
+  "load_schedule_pass": true,
+  "normal_baseline_pass": true
+}

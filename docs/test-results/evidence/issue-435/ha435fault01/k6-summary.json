@@ -1,0 +1,12 @@
+{
+  "run_id": "ha435fault01",
+  "iterations": 3539,
+  "http_requests": 3539,
+  "dropped_iterations": 62,
+  "failed_rate": 0.5541113308844307,
+  "duration_ms": {
+    "p50": 12.560258,
+    "p95": 5011.7523685,
+    "p99": 5022.59988848
+  }
+}
