@@ -1,0 +1,12 @@
+{
+  "run_id": "e428htwo01",
+  "iterations": 4500,
+  "http_requests": 4500,
+  "dropped_iterations": 0,
+  "failed_rate": 0,
+  "duration_ms": {
+    "p50": 12.453928999999999,
+    "p95": 54.750580750000005,
+    "p99": 58.123343770000005
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "run_id": "e428hsmoke01",
+  "db_export_sha256": "ad4937f6810de40bc06c6666f2a07b824810fea57649a4c441c38a9aeb7e85b4",
+  "client_request_count": 6,
+  "db_request_count": 6,
+  "db_row_count": 6,
+  "acknowledged_count": 6,
+  "failed_count": 0,
+  "unknown_count": 0,
+  "acknowledged_missing_count": 0,
+  "acknowledged_duplicate_count": 0,
+  "db_duplicate_request_count": 0,
+  "unknown_persisted_count": 0,
+  "unknown_not_persisted_count": 0,
+  "failed_persisted_count": 0,
+  "orphan_db_request_count": 0,
+  "durable_write_pass": true,
+  "load_schedule_pass": true,
+  "normal_baseline_pass": true
+}

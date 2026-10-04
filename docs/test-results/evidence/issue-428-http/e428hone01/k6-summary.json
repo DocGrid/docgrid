@@ -1,0 +1,12 @@
+{
+  "run_id": "e428hone01",
+  "iterations": 2700,
+  "http_requests": 2700,
+  "dropped_iterations": 0,
+  "failed_rate": 0,
+  "duration_ms": {
+    "p50": 13.0448365,
+    "p95": 54.8501119,
+    "p99": 58.30392119999996
+  }
+}
