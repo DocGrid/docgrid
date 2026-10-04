@@ -27,7 +27,8 @@ public interface ResponseCitationRepository extends JpaRepository<ResponseCitati
     @Query("""
         SELECT new com.opensource.docgrid.domain.search.dto.ConversationCitationProjection(
             r.query.id, c.citationLabel,
-            d.id, d.title, ch.id, c.pageNo, c.quotedText
+            d.id, d.title, ch.id, c.pageNo, c.quotedText,
+            ch.sectionTitle, ch.metadataJson
         )
         FROM ResponseCitation c
         JOIN c.response r

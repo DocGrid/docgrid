@@ -3,6 +3,7 @@ package com.opensource.docgrid.domain.search.dto;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import com.opensource.docgrid.domain.document.service.SectionPath;
 import com.opensource.docgrid.domain.search.entity.SearchResult;
 import com.opensource.docgrid.domain.search.repository.VectorSearchRow;
 
@@ -20,8 +21,25 @@ public record VectorSearchCandidate(
     String chunkText,
     Integer pageNo,
     String documentTitle,
-    BigDecimal similarityScore
+    BigDecimal similarityScore,
+    String sectionPath
 ) {
+
+    /**
+     * Section 경로 없이 후보를 만든다. 경로 개념이 없는 형식(PDF·TXT)이나 경로를 알 수 없는 호출에 쓴다.
+     */
+    public VectorSearchCandidate(
+        Long embeddingId,
+        Long chunkId,
+        Long documentId,
+        String chunkText,
+        Integer pageNo,
+        String documentTitle,
+        BigDecimal similarityScore
+    ) {
+        this(embeddingId, chunkId, documentId, chunkText, pageNo, documentTitle, similarityScore, null);
+    }
+
     /**
      * pgvector가 방금 계산한 raw 검색 결과(VectorSearchRow)에서 조립한다.
      * POST /search로 새로 검색할 때 쓰이는 경로 — {@link #from(SearchResult)}와 구분할 것.
@@ -38,7 +56,8 @@ public record VectorSearchCandidate(
             row.getChunkText(),
             row.getPageNo(),
             row.getDocumentTitle(),
-            score
+            score,
+            SectionPath.display(row.getMetadataJson(), row.getSectionTitle())
         );
     }
 
@@ -57,7 +76,8 @@ public record VectorSearchCandidate(
             chunk.getChunkText(),
             chunk.getPageNo(),
             document.getTitle(),
-            result.getSimilarityScore()
+            result.getSimilarityScore(),
+            SectionPath.display(chunk.getMetadataJson(), chunk.getSectionTitle())
         );
     }
 }

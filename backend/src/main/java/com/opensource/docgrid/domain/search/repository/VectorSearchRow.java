@@ -11,6 +11,8 @@ public interface VectorSearchRow {
     Long getDocumentId();
     String getChunkText();
     Integer getPageNo();
+    String getSectionTitle();
+    String getMetadataJson();
     String getDocumentTitle();
     Double getDistance();
 }

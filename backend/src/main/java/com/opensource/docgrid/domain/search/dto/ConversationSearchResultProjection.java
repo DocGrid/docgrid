@@ -13,6 +13,8 @@ public record ConversationSearchResultProjection(
     String documentTitle,
     String chunkText,
     Integer pageNo,
-    BigDecimal similarityScore
+    BigDecimal similarityScore,
+    String sectionTitle,
+    String metadataJson
 ) {
 }
