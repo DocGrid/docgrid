@@ -1,0 +1,12 @@
+{
+  "run_id": "e428hsmoke01",
+  "iterations": 6,
+  "http_requests": 6,
+  "dropped_iterations": 0,
+  "failed_rate": 0,
+  "duration_ms": {
+    "p50": 69.99372299999999,
+    "p95": 350.137068,
+    "p99": 378.79876720000004
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "run_id": "e428hone01",
+  "time_zone": "UTC",
+  "fault": "single-etcd-member-sigstop",
+  "pause_confirmed_at": "2026-10-04T07:12:19.824Z",
+  "first_automatic_sigcont_at": "2026-10-04T07:13:01.720Z",
+  "pause_duration_seconds_approx": 41.9,
+  "independent_recovery_timer_armed": true,
+  "health_query_during_pause": "not_obtained_before_auto_recovery",
+  "final": {
+    "etcd_healthy_members": 3,
+    "primary_count": 1,
+    "streaming_replica_count": 2,
+    "healthy_app_backends": 2
+  },
+  "source_boundary": "pause/status command response and first host systemd journal SIGCONT time; no raw host log published"
+}

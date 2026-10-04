@@ -1,0 +1,26 @@
+{
+  "application": {
+    "backend_instances": 2,
+    "jar_sha256": "c0180191121208d105f422cb64c57e325efc63a1c568c4c81a73d70cc7b8d1aa",
+    "profile": "opensql-ha,ha-probe"
+  },
+  "database": {
+    "instances": 3,
+    "opensql_version": "v3.17.8.7",
+    "patroni_version": "4.0.5",
+    "etcd_version": "3.6.5",
+    "failsafe_mode": true,
+    "ttl_seconds": 30,
+    "loop_wait_seconds": 10
+  },
+  "load": {
+    "generator_instances": 1,
+    "path": "internal-lb-to-http-probe",
+    "client_timeout_seconds": 10
+  },
+  "recovery": {
+    "etcd_guard_max_seconds": 180,
+    "synthetic_account_guard_seconds": 1800,
+    "snapshot_restored_isolated": true
+  }
+}

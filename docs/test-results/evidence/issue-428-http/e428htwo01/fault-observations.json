@@ -1,0 +1,28 @@
+{
+  "run_id": "e428htwo01",
+  "time_zone": "UTC",
+  "fault": "two-etcd-members-sigstop",
+  "first_pause_confirmed_at": "2026-10-04T07:18:12.601Z",
+  "second_pause_confirmed_at": "2026-10-04T07:18:13.589Z",
+  "both_paused_status_confirmed": true,
+  "etcdctl_cluster_health_during_pause_exit_code": 1,
+  "patroni_failsafe_keyword_observations": 27,
+  "patroni_failsafe_first_at": "2026-10-04T07:18:26.889Z",
+  "patroni_failsafe_last_at": "2026-10-04T07:19:47.772Z",
+  "ttl_safe_acknowledged_window": {
+    "start": "2026-10-04T07:18:44.014Z",
+    "end": "2026-10-04T07:19:53.995Z",
+    "http_201_count": 2100
+  },
+  "first_automatic_sigcont_at": {
+    "member_b": "2026-10-04T07:19:54.014Z",
+    "member_c": "2026-10-04T07:19:54.702Z"
+  },
+  "final": {
+    "etcd_healthy_members": 3,
+    "primary_count": 1,
+    "streaming_replica_count": 2,
+    "healthy_app_backends": 2
+  },
+  "source_boundary": "pause/status command responses, systemd journal first SIGCONT times, Patroni keyword counts, and allowlisted k6 event timestamps; continuous per-node role samples were not saved"
+}
