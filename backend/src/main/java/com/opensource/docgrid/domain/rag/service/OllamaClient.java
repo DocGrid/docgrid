@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -112,6 +113,8 @@ public class OllamaClient {
         try {
             chunks = restClient.post()
                 .uri("/api/generate")
+                // jackson-dataformat-xml이 Classpath에 있으면 Content-Type 없는 본문이 XML로 나가 Ollama가 거부한다.
+                .contentType(MediaType.APPLICATION_JSON)
                 /*
                  * 인자 순서 = model, prompt, stream, raw, keepAlive, options.
                  * stream=true, raw=true는 설정값이 아니라 이 메서드가 항상 지켜야 하는 고정
