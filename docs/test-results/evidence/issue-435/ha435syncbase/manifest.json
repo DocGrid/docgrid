@@ -1,0 +1,14 @@
+{
+  "config_sha256": "aedb53a7b6501df7ba54585cc0127943f02676e01e1915a95772765e2cd14ad9",
+  "git_sha": "b9a17919b5ffad55bf96ee0eeeeb860e86e66a76",
+  "run_id": "ha435syncbase",
+  "scenario": "synchronous baseline",
+  "schema_version": 1,
+  "started_at": "2026-10-04T11:45:11.874Z",
+  "versions": {
+    "etcd": "not-remeasured",
+    "openproxy": "not-remeasured",
+    "opensql": "not-remeasured",
+    "patroni": "not-remeasured"
+  }
+}

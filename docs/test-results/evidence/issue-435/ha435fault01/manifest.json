@@ -1,0 +1,14 @@
+{
+  "config_sha256": "55524f0f8e80ccdac0d12af6b2d2f308dc521e061fc47bd27aedffe89fac06e5",
+  "git_sha": "b9a17919b5ffad55bf96ee0eeeeb860e86e66a76",
+  "run_id": "ha435fault01",
+  "scenario": "sync standby link diagnostic",
+  "schema_version": 1,
+  "started_at": "2026-10-04T11:48:14.073Z",
+  "versions": {
+    "etcd": "not-remeasured",
+    "openproxy": "not-remeasured",
+    "opensql": "not-remeasured",
+    "patroni": "not-remeasured"
+  }
+}

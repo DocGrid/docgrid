@@ -1,0 +1,12 @@
+{
+  "run_id": "ha435syncbase",
+  "iterations": 600,
+  "http_requests": 600,
+  "dropped_iterations": 0,
+  "failed_rate": 0,
+  "duration_ms": {
+    "p50": 14.283931500000001,
+    "p95": 54.5437402,
+    "p99": 56.750637299999994
+  }
+}
