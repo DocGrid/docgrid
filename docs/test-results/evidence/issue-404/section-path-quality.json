@@ -1,0 +1,66 @@
+{
+  "measuredAt" : "2026-10-04T03:08:11.674041Z",
+  "model" : "BAAI/bge-m3",
+  "totalQueryCount" : 24,
+  "results" : [ {
+    "format" : "DOCX",
+    "scenario" : "MULTI_DOCUMENT",
+    "queryCount" : 24,
+    "chunkCount" : 48,
+    "bodyOnly" : {
+      "hitAt1" : 0.20833333333333334,
+      "hitAt3" : 0.7916666666666666,
+      "mrrAt10" : 0.49652777777777785
+    },
+    "withPath" : {
+      "hitAt1" : 1.0,
+      "hitAt3" : 1.0,
+      "mrrAt10" : 1.0
+    }
+  }, {
+    "format" : "DOCX",
+    "scenario" : "SINGLE_DOCUMENT_CONTROL",
+    "queryCount" : 6,
+    "chunkCount" : 12,
+    "bodyOnly" : {
+      "hitAt1" : 1.0,
+      "hitAt3" : 1.0,
+      "mrrAt10" : 1.0
+    },
+    "withPath" : {
+      "hitAt1" : 1.0,
+      "hitAt3" : 1.0,
+      "mrrAt10" : 1.0
+    }
+  }, {
+    "format" : "MARKDOWN",
+    "scenario" : "MULTI_DOCUMENT",
+    "queryCount" : 24,
+    "chunkCount" : 48,
+    "bodyOnly" : {
+      "hitAt1" : 0.25,
+      "hitAt3" : 0.75,
+      "mrrAt10" : 0.513888888888889
+    },
+    "withPath" : {
+      "hitAt1" : 1.0,
+      "hitAt3" : 1.0,
+      "mrrAt10" : 1.0
+    }
+  }, {
+    "format" : "MARKDOWN",
+    "scenario" : "SINGLE_DOCUMENT_CONTROL",
+    "queryCount" : 6,
+    "chunkCount" : 12,
+    "bodyOnly" : {
+      "hitAt1" : 1.0,
+      "hitAt3" : 1.0,
+      "mrrAt10" : 1.0
+    },
+    "withPath" : {
+      "hitAt1" : 1.0,
+      "hitAt3" : 1.0,
+      "mrrAt10" : 1.0
+    }
+  } ]
+}
