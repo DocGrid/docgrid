@@ -63,6 +63,24 @@ class DocumentEmbeddingGeneratorTest {
     }
 
     @Test
+    @DisplayName("Section 경로가 붙은 Embedding 입력을 서버에 보내고 Draft는 원문 Chunk의 Hash를 유지한다")
+    void generate_sendsEmbeddingTextAndKeepsChunkContentHash() {
+        DocumentEmbeddingGenerator generator = generator(2);
+        given(embeddingClient.embedBatch(List.of("1장 > 1.1절\n본문"), 1))
+            .willReturn(response(item(0, 1.0f, -2.0f)));
+
+        List<DocumentEmbeddingDraft> drafts = generator.generate(work(
+            new ChunkSnapshot(20L, 0, "본문", "1장 > 1.1절\n본문", 1, CONTENT_HASH)
+        ));
+
+        then(embeddingClient).should().embedBatch(List.of("1장 > 1.1절\n본문"), 1);
+        assertThat(drafts).singleElement().satisfies(draft -> {
+            assertThat(draft.chunkId()).isEqualTo(20L);
+            assertThat(draft.contentHash()).isEqualTo(CONTENT_HASH);
+        });
+    }
+
+    @Test
     @DisplayName("Chunk가 설정 크기보다 많으면 Batch를 순서대로 나누고 Draft 순서를 보존한다")
     void generate_splitsChunksAndPreservesDraftOrder() {
         DocumentEmbeddingGenerator generator = generator(2);

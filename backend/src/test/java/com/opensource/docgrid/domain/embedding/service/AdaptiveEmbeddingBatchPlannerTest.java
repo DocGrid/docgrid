@@ -55,6 +55,24 @@ class AdaptiveEmbeddingBatchPlannerTest {
     }
 
     @Test
+    @DisplayName("Section 경로가 붙은 Embedding 입력의 길이를 문자 예산에 반영한다")
+    void plan_countsEmbeddingTextLengthAgainstCodePointBudget() {
+        AdaptiveEmbeddingBatchPlanner planner = planner(4, 10, 900);
+
+        List<List<ChunkSnapshot>> withoutPath = planner.plan(List.of(
+            chunk(0, "본문", 1),
+            chunk(1, "본문", 1)
+        ));
+        List<List<ChunkSnapshot>> withPath = planner.plan(List.of(
+            new ChunkSnapshot(20L, 0, "본문", "1장 > 1절\n본문", 1, CONTENT_HASH),
+            new ChunkSnapshot(21L, 1, "본문", "1장 > 1절\n본문", 1, CONTENT_HASH)
+        ));
+
+        assertThat(withoutPath).hasSize(1);
+        assertThat(withPath).hasSize(2);
+    }
+
+    @Test
     @DisplayName("저장된 Token 합계가 예산을 넘기 전에 다음 Batch로 분리한다")
     void plan_splitsAtEstimatedTokenLimit() {
         AdaptiveEmbeddingBatchPlanner planner = planner(4, 4_000, 900);
