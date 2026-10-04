@@ -39,7 +39,11 @@ export default function () {
   event(requestId, 'sent', { operation: 'ha_probe_write' });
   let response;
   try {
-    response = http.post(target, JSON.stringify({ runId, requestId }), {
+    // The optional synthetic query ID lets short-lived LB logs join this external ledger.
+    const requestTarget = __ENV.HA_TRACE_QUERY === '1'
+      ? `${target}${target.includes('?') ? '&' : '?'}ha_request_id=${encodeURIComponent(requestId)}`
+      : target;
+    response = http.post(requestTarget, JSON.stringify({ runId, requestId }), {
       // The profile-gated app diagnostic joins sanitized failure logs to this external ledger.
       headers: {
         Authorization: `Bearer ${token}`,
