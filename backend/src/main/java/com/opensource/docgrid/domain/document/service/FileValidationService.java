@@ -26,9 +26,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FileValidationService {
 
+    /**
+     * Markdown 업로드에 허용하는 MIME Type이다.
+     *
+     * <p>브라우저와 OS마다 .md에 붙이는 타입이 달라(text/markdown, text/x-markdown, 타입을 모르면
+     * application/octet-stream) 이들을 함께 허용한다. 업로드 때 저장된 타입을 청킹 단계가 다시 검사하므로
+     * 두 곳이 어긋나지 않게 이 상수 하나를 공유한다.
+     */
+    public static final Set<String> MARKDOWN_CONTENT_TYPES = Set.of(
+        "text/markdown", "text/x-markdown", "text/plain", "application/octet-stream"
+    );
+
     private static final Map<String, Set<String>> ALLOWED_CONTENT_TYPES = Map.of(
         "txt", Set.of("text/plain"),
-        "md", Set.of("text/markdown", "text/plain"),
+        "md", MARKDOWN_CONTENT_TYPES,
         "pdf", Set.of("application/pdf"),
         "docx", Set.of("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
     );
