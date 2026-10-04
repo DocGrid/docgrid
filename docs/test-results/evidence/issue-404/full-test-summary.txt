@@ -65,7 +65,7 @@ DocxDocumentParser 테스트                                                 tes
 FileHashService 단위 테스트                                                 tests=2    fail=0   err=0   skipped=0
 FileValidationService 단위 테스트                                           tests=13   fail=0   err=0   skipped=0
 FixedSizeChunker 테스트                                                   tests=10   fail=0   err=0   skipped=0
-MarkdownDocumentParser 테스트                                             tests=9    fail=0   err=0   skipped=0
+MarkdownDocumentParser 테스트                                             tests=10   fail=0   err=0   skipped=0
 PdfDocumentParser 테스트                                                  tests=10   fail=0   err=0   skipped=0
 SectionPath 테스트                                                        tests=8    fail=0   err=0   skipped=0
 TextDocumentParser 테스트                                                 tests=6    fail=0   err=0   skipped=0
@@ -227,4 +227,4 @@ Security 예외 응답 단위 테스트                                         
 운영 상태 Snapshot Refresher 테스트                                           tests=2    fail=0   err=0   skipped=0
 운영 상태 Gauge 테스트                                                        tests=3    fail=0   err=0   skipped=0
 8 호환성·Vector 성능 통합 테스트                                                 tests=3    fail=0   err=0   skipped=0
-합계 tests=1359 failures=0 errors=0 skipped=0
+합계 tests=1360 failures=0 errors=0 skipped=0

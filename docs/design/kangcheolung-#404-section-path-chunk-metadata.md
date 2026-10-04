@@ -69,7 +69,7 @@
 
 - **본문이 없는 Heading은 다음 Heading의 Segment에 합친다.** Heading 한 줄짜리 청크가 검색 결과를 차지하지 않게 하기 위해서다.
   합쳐도 하위 Segment의 경로가 상위 Heading을 포함하므로 정보는 사라지지 않는다. 문서 끝의 본문 없는 Heading은 원문 보존을 위해 별도 Segment로 둔다.
-- 코드 블록(` ``` `, `~~~`) 안의 `#`은 제목으로 보지 않는다.
+- 코드 블록(` ``` `, `~~~`) 안의 `#`은 제목으로 보지 않는다. 제목 글자가 없거나 닫는 `#`만 남은 줄(`# #`, `## ##`)도 CommonMark의 빈 제목이라 제목으로 보지 않고 본문 줄로 둔다 (CodeRabbit 리뷰에서 확인해 반영).
 - 지원하지 않는 것: Setext Heading(`===`, `---`), HTML Heading, 들여쓰기 코드 블록.
 
 ### 3.4 임베딩 입력만 바꾸고 저장 본문은 그대로 둔다
@@ -202,7 +202,7 @@
 | 구분 | 테스트 | 검증 내용 |
 |---|---|---|
 | 신규 | `SectionPathTest` (8) | 직렬화·읽기·표기·임베딩 입력, 손상 Metadata, 길이 제한, 보충 문자 경계 |
-| 신규 | `MarkdownDocumentParserTest` (9) | 계층 경로, 원문 복원 계약, 본문 없는 Heading 병합, 코드 블록, 닫는 `#`, 레벨 건너뜀, 오류 전파 |
+| 신규 | `MarkdownDocumentParserTest` (10) | 계층 경로, 원문 복원 계약, 본문 없는 Heading 병합, 코드 블록, 닫는 `#`, 닫는 `#`만 있는 빈 제목, 레벨 건너뜀, 오류 전파 |
 | 추가 | `DocxDocumentParserTest` (+2) | 레벨별 경로, 같은·높은 레벨의 경로 닫힘, Title 루트, Heading 이전 본문 |
 | 신규 | `SectionPathBenchmarkCorpusTest` (3) | 정답 유일성, 결정성, DOCX·MD 경로 일치 |
 | 추가 | `DocumentEmbeddingTransactionServiceTest` (+2) | 경로가 있는 청크만 `embeddingText` 구성, 원문 검증 통과 |
@@ -214,7 +214,7 @@
 | 신규 | `EmbeddingClientWireContractTest` (2), `OllamaClientWireContractTest` (1) | 운영 설정으로 만든 RestClient가 로컬 HTTP 서버에 실제로 보내는 Content-Type·본문 (§10) |
 | 추가·수정 | `FileValidationServiceTest`, `DocumentChunkTransactionServiceTest` | `.md` MIME 허용 확대와 청킹 단계 통과 (§11) |
 
-전체 결과: `./backend/gradlew -p backend test` **1359개 통과, 실패 0, 건너뜀 0** (`develop` 최신(`ce3fdcf`)을 합친 상태).
+전체 결과: `./backend/gradlew -p backend test` **1360개 통과, 실패 0, 건너뜀 0** (`develop` 최신(`ce3fdcf`)을 합친 상태, CodeRabbit 리뷰 반영 후).
 클래스별 결과는 [`full-test-summary.txt`](../test-results/evidence/issue-404/full-test-summary.txt)에 있다.
 임시 PostgreSQL(pgvector 0.8.1)과 Valkey 컨테이너를 쓰고 개발 DB와 분리했다. Pub/Sub 테스트가 조용히 건너뛰지 않도록 `DOCGRID_TEST_REDIS_PORT`를 지정했다.
 `develop` 합류 전 이 브랜치만으로는 1332개(변경 전 1297개 + 섹션 경로 32개 + 전송 계약 3개)가 통과했다.
@@ -274,7 +274,7 @@ DB_HOST=127.0.0.1 DB_PORT=55432 DB_NAME=app DB_USER=app DB_PASSWORD=local_passwo
 | GREEN | 수정 후 3개 통과. 기존 `EmbeddingClientTest`(19), `OllamaClientTest`(15)도 통과했다. |
 | 실제 서버 | 로컬 Embedding Server(BGE-M3)에 단건 요청은 1024차원 벡터, Batch 요청은 모델 `BAAI/bge-m3` 2건을 받았다. 로컬 Ollama(`qwen2.5:7b`)는 정상 답변을 반환했다. 운영 설정(`EmbeddingServerConfig`, `OllamaServerConfig`)으로 만든 클라이언트를 사용했다. |
 | 벤치마크 | 어제 넣었던 JSON 헤더 우회를 제거하고 다시 측정해도 §7.2와 같은 수치가 나왔다. |
-| 전체 | `develop` 합류 후 1359개 통과 (§9.1) |
+| 전체 | `develop` 합류 후 1360개 통과 (§9.1) |
 
 ### 10.5 남은 위험
 
