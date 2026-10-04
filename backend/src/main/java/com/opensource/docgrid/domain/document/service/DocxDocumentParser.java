@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.poi.xwpf.usermodel.IBodyElement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -31,6 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 public class DocxDocumentParser implements DocumentContentParser {
 
     private static final Set<DocumentType> SUPPORTED_TYPES = Set.of(DocumentType.DOCX);
+    private static final Pattern HEADING_LEVEL_PATTERN = Pattern.compile("\\d+");
+    private static final int TITLE_LEVEL = 0;
+    private static final int DEFAULT_HEADING_LEVEL = 1;
 
     /**
      * 이 Parser가 DOCX 문서만 처리함을 Registry에 알린다.
@@ -52,6 +57,7 @@ public class DocxDocumentParser implements DocumentContentParser {
         try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(content))) {
             List<ParsedDocumentSegment> segments = new ArrayList<>();
             List<String> sectionParts = new ArrayList<>();
+            HeadingTrail headingTrail = new HeadingTrail();
             String sectionTitle = null;
 
             // 1. Paragraph와 Table을 종류별 목록으로 분리하지 않고 Body 요소의 원래 순서를 따른다.
@@ -64,8 +70,9 @@ public class DocxDocumentParser implements DocumentContentParser {
 
                     // 2. Heading은 이전 Section을 닫고 자신을 첫 줄로 포함하는 새 Section을 시작한다.
                     if (isHeading(paragraph)) {
-                        addSegmentIfPresent(segments, sectionParts, sectionTitle);
+                        addSegmentIfPresent(segments, sectionParts, sectionTitle, headingTrail.metadataJson());
                         sectionParts.clear();
+                        headingTrail.push(headingLevel(paragraph), paragraphText);
                         sectionTitle = paragraphText;
                     }
                     sectionParts.add(paragraphText);
@@ -78,7 +85,7 @@ public class DocxDocumentParser implements DocumentContentParser {
             }
 
             // 3. 마지막 Section을 닫고 검색 가능한 본문이 없으면 안정적인 빈 문서 오류로 종료한다.
-            addSegmentIfPresent(segments, sectionParts, sectionTitle);
+            addSegmentIfPresent(segments, sectionParts, sectionTitle, headingTrail.metadataJson());
             if (segments.isEmpty()) {
                 throw new DocGridException(ErrorCode.DOCUMENT_CONTENT_EMPTY);
             }
@@ -101,6 +108,18 @@ public class DocxDocumentParser implements DocumentContentParser {
         }
         String normalizedStyle = style.toLowerCase(Locale.ROOT);
         return normalizedStyle.startsWith("heading") || normalizedStyle.equals("title");
+    }
+
+    /**
+     * Heading 스타일에서 계층 레벨을 읽는다. 문서 Title은 모든 Heading의 상위인 0, 숫자가 없는 Heading은 1로 본다.
+     */
+    private int headingLevel(XWPFParagraph paragraph) {
+        String normalizedStyle = paragraph.getStyle().toLowerCase(Locale.ROOT);
+        if (normalizedStyle.equals("title")) {
+            return TITLE_LEVEL;
+        }
+        Matcher levelMatcher = HEADING_LEVEL_PATTERN.matcher(normalizedStyle);
+        return levelMatcher.find() ? Integer.parseInt(levelMatcher.group()) : DEFAULT_HEADING_LEVEL;
     }
 
     /**
@@ -127,19 +146,20 @@ public class DocxDocumentParser implements DocumentContentParser {
     }
 
     /**
-     * 현재 Section에 검색 가능한 본문이 있으면 제목 Metadata와 함께 Segment로 닫는다.
+     * 현재 Section에 검색 가능한 본문이 있으면 제목과 계층 경로 Metadata와 함께 Segment로 닫는다.
      */
     private void addSegmentIfPresent(
         List<ParsedDocumentSegment> segments,
         List<String> sectionParts,
-        String sectionTitle
+        String sectionTitle,
+        String metadataJson
     ) {
         if (sectionParts.isEmpty()) {
             return;
         }
         String text = String.join("\n", sectionParts);
         if (!text.isBlank()) {
-            segments.add(new ParsedDocumentSegment(text, null, sectionTitle, null));
+            segments.add(new ParsedDocumentSegment(text, null, sectionTitle, metadataJson));
         }
     }
 
