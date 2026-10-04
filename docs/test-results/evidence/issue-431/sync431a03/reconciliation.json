@@ -1,0 +1,20 @@
+{
+  "run_id": "sync431a03",
+  "db_export_sha256": "590403b4d4a4c9feaf1051b54e481f8459b0dc01038e3f73881e9ff5faa2bf12",
+  "client_request_count": 1801,
+  "db_request_count": 1801,
+  "db_row_count": 1801,
+  "acknowledged_count": 1801,
+  "failed_count": 0,
+  "unknown_count": 0,
+  "acknowledged_missing_count": 0,
+  "acknowledged_duplicate_count": 0,
+  "db_duplicate_request_count": 0,
+  "unknown_persisted_count": 0,
+  "unknown_not_persisted_count": 0,
+  "failed_persisted_count": 0,
+  "orphan_db_request_count": 0,
+  "durable_write_pass": true,
+  "load_schedule_pass": true,
+  "normal_baseline_pass": true
+}

@@ -1,0 +1,15 @@
+{
+  "phase": "synchronous-normal-write",
+  "patroni_synchronous_mode": true,
+  "postgresql_synchronous_standby_names": "one selected standby (redacted)",
+  "streaming_replicas": 2,
+  "synchronous_replicas": 1,
+  "request_rate_per_second": 30,
+  "duration_seconds": 60,
+  "initial_virtual_users": 80,
+  "maximum_virtual_users": 160,
+  "backend_instances": 2,
+  "openproxy_instances": 2,
+  "database_instances": 3,
+  "base_commit": "d55512bdd9737d8cb185304795f94854297f282d"
+}
