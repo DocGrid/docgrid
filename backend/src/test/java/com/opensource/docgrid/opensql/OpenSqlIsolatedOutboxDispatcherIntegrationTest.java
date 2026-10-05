@@ -42,7 +42,7 @@ import com.opensource.docgrid.domain.sync.repository.SyncOutboxEventRepository;
  * 별도 OpenSQL 시험 DB에서 실제 Dispatcher의 Claim·Handler·완료 경계를 검증한다.
  *
  * <p>파일 저장 호출만 대체하며 기존 DocGrid DB, GCS 객체, 앱 A/B VM은 건드리지 않는다.
- * 전용 DB 이름과 루프백 터널 환경 변수가 없으면 Spring Context 생성 전에 실패한다.
+ * 전용 DB 이름과 필수 인증 환경 변수가 없으면 Spring Context 생성 전에 실패한다.
  */
 @Tag("opensql-outbox-isolated")
 @SpringBootTest
