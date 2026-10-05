@@ -2,7 +2,7 @@
 
 관련: [이슈 #439](https://github.com/DocGrid/docgrid/issues/439), [PR #440](https://github.com/DocGrid/docgrid/pull/440). 최초 분석 기준 커밋: `750b0887c5bf02fc0fd862eb224577eccb435ae1` (`develop`). 격리 시험 코드는 이 PR의 `OpenSqlIsolatedOutboxDispatcherIntegrationTest`에 있다.
 
-**현재 판정: GCP OpenSQL primary에 새로 만든 격리 DB에서 실제 Dispatcher 코드의 정상 소비·실패 후 재처리 통과. 기존 `docgrid` DB의 53건과 연결 Job은 보존.** 로컬 JVM을 임시 SSH 터널로 GCP DB에 연결한 결과이지, 중지된 앱 A/B VM의 Dispatcher가 동작했다는 뜻은 아니다. 원래 DB에는 `DOCUMENT_VERSION_CREATED / PENDING` **53건**이 있었고 모두 Embedding Job의 외래키 참조 대상이었다. 연결 Job은 `INDEXED` 34건·`FAILED` 19건이므로 이벤트 단독 삭제를 하지 않았다. 사용자 선택에 따라 별도 시험 DB에 Flyway **46건**을 적용하고 테스트 전용 이벤트만 생성했다. 최종 전용 태스크 실행 `outbox439-isolated-07`은 **2/2 통과**했고 Event **2건 모두 PROCESSED**, 성공 Attempt **2건**, 의도한 실패 Attempt **1건**, 출처 연결 Job **1건**을 별도 SQL로 대조했다. 앞선 반복 실행 `-02`∼`-06`의 누적 상태도 기록했다. 실제 배포된 Dispatcher 설정과 원래 backlog의 발생 이유는 여전히 미확인이다.
+**현재 판정: GCP OpenSQL primary에 새로 만든 격리 DB에서 실제 Dispatcher 코드의 정상 소비·실패 후 재처리·자동 `@Scheduled` Polling 통과. 기존 `docgrid` DB의 53건과 연결 Job은 보존.** 로컬 JVM을 임시 SSH 터널로 GCP DB에 연결한 결과이지, 중지된 앱 A/B VM의 Dispatcher가 동작했다는 뜻은 아니다. 원래 DB에는 `DOCUMENT_VERSION_CREATED / PENDING` **53건**이 있었고 모두 Embedding Job의 외래키 참조 대상이었다. 연결 Job은 `INDEXED` 34건·`FAILED` 19건이므로 이벤트 단독 삭제를 하지 않았다. 사용자 선택에 따라 별도 시험 DB에 Flyway **46건**을 적용하고 테스트 전용 이벤트만 생성했다. 최신 전용 태스크 실행 `outbox439-isolated-08`은 **3/3 통과**했고 Event **3건 모두 PROCESSED**, 성공 Attempt **3건**, 의도한 실패 Attempt **1건**, 출처 연결 Job **2건**을 별도 SQL로 대조했다. 앞선 반복 실행 `-02`∼`-07`의 결과도 각각 기록했다. 실제 배포된 Dispatcher 설정과 원래 backlog의 발생 이유는 여전히 미확인이다.
 
 ## 시험 목적과 안전 관문
 
@@ -25,7 +25,7 @@ sync_outbox_events: PENDING
        │                앱 A/B 중지, Dispatcher 미실행, 기존 데이터 변경 0건
        │
        └─ 새 격리 GCP DB: 로컬 테스트 JVM이 임시 터널로 접속
-                         실제 PollingScheduler.poll() → Claim → Handler
+                         직접 poll() 및 실제 @Scheduled 자동 Polling → Claim → Handler
                          → PROCESSED + Attempt + Job 출처를 DB에서 대조
 
 남은 경계: GCP 앱 A/B에 배포된 Dispatcher 설정·OpenProxy 경유·GCS 실파일·장애 수렴.
@@ -56,15 +56,16 @@ sync_outbox_events: PENDING
 | `outbox439-isolated-06` · 최종 코드 | 개인 식별자 없는 seed ID 조회로 바꾼 후 전체 클래스 재실행 | **2/2 통과**. 누적 Event 완료 6·성공 Attempt 6·실패 Attempt 3·연결 Job 3. 원래 DB `PENDING` 53 유지 | [최종 실행 기록](evidence/issue-439/outbox439-isolated-06.md). 실제 GCP DB에 대한 제한된 Dispatcher 증거 |
 | `outbox439-isolated-guard-01` · 기본 테스트 분리 | 전용 태스크를 격리 DB 환경 변수 없이 실행 | 예상대로 태스크 사전 가드에서 중단, 테스트 JVM·DB 접근 0건 | [가드 기록](evidence/issue-439/outbox439-isolated-guard-01.md). 첫 로컬 권한 오류와 태스크 자체의 정상 거부를 구분 |
 | `outbox439-isolated-07` · 전용 태스크 최종 | 새 격리 DB에서 `openSqlOutboxIsolatedTest` 실행 | **2/2 통과**. Event 완료 2·성공 Attempt 2·실패 Attempt 1·연결 Job 1. 원래 DB Event/Job 53/53 | [전용 태스크 기록](evidence/issue-439/outbox439-isolated-07.md). 약 11MB 시험 DB 재삭제·터널 종료 |
+| `outbox439-isolated-08` · 자동 스케줄러 확인 | 또 다른 새 격리 DB에서 전용 태스크 재실행. 신규 시험은 `poll()`을 직접 부르지 않고 자동 주기를 기다림 | **3/3 통과**. Event 완료 3·성공 Attempt 3·의도한 실패 Attempt 1·연결 Job 2. 원래 DB Event/Job 53/53 | [자동 Polling 기록](evidence/issue-439/outbox439-isolated-08.md). 약 11MB 시험 DB 삭제·터널 종료 |
 
-기존 로컬 임시 DB 컨테이너는 각 실행 후 제거했다. 격리 OpenSQL `-01`∼`-06`은 같은 신규 시험 DB에서 반복해 건수가 누적됐으며, 전용 태스크 `-07`은 재생성한 별도 DB에서 실행했다. 각각 최종 대조 후 **약 11MB 시험 DB를 삭제**했고, 원래 DB의 `PENDING` Event **53건**과 그 출처를 참조하는 Job **53건**은 그대로였다. 터널·임시 파일도 제거했고 VM의 임시 인스턴스 SSH 키 항목은 없었다. [원복 기록](evidence/issue-439/outbox439-isolated-cleanup.md). Gradle이 만든 원본 XML에는 로컬 호스트 정보가 포함될 수 있으므로 저장소에 커밋하지 않고, 비식별 종료 결과와 읽기 전용 DB 재조회만 기록했다. 로컬 콘솔을 실시간으로 관찰했으나 비식별된 원문 스트림을 별도 파일로 수집한 것은 아니다.
+기존 로컬 임시 DB 컨테이너는 각 실행 후 제거했다. 격리 OpenSQL `-01`∼`-06`은 같은 신규 시험 DB에서 반복해 건수가 누적됐으며, 전용 태스크 `-07`과 자동 주기 확인 `-08`은 각각 재생성한 별도 DB에서 실행했다. 각각 최종 대조 후 **약 11MB 시험 DB를 삭제**했고, 원래 DB의 `PENDING` Event **53건**과 그 출처를 참조하는 Job **53건**은 그대로였다. 터널·임시 파일도 제거했고 VM의 임시 인스턴스 SSH 키 항목은 없었다. [원복 기록](evidence/issue-439/outbox439-isolated-cleanup.md). Gradle이 만든 원본 XML에는 로컬 호스트 정보가 포함될 수 있으므로 저장소에 커밋하지 않고, 비식별 종료 결과와 읽기 전용 DB 재조회만 기록했다. 로컬 콘솔을 실시간으로 관찰했으나 비식별된 원문 스트림을 별도 파일로 수집한 것은 아니다.
 
 ## 격리 시험의 실제 실행 경계
 
 | 경계 | 이번에 한 일 | 하지 않은 일 |
 | --- | --- | --- |
 | DB | 현재 primary에서 원래 DB와 다른 시험 DB 생성, `vector` 확장, migration/app 계정 분리, Flyway **46건** 적용 | 원래 DB의 Event·Job 수정 또는 삭제 |
-| 앱 | 로컬 Java 17 테스트 JVM에서 실제 `SyncEventPollingScheduler.poll()` → Claim → Handler → 성공/실패 Attempt 경로 실행 | 중지된 GCP 앱 A/B VM에 배포하거나 Dispatcher 설정을 변경 |
+| 앱 | 로컬 Java 17 테스트 JVM에서 직접 `SyncEventPollingScheduler.poll()`과 자동 `@Scheduled` 주기 → Claim → Handler → 성공/실패 Attempt 경로 실행 | 중지된 GCP 앱 A/B VM에 배포하거나 Dispatcher 설정을 변경 |
 | 접속 | 임시 루프백 SSH 터널로 primary에 직접 JDBC 접속 | OpenProxy A/B 라우팅·장애 전환 실측 |
 | 파일 | 업로드가 DB에 Event와 Job을 함께 쓰는 경로 확인, 파일 저장 호출만 테스트 대체 | GCS 객체 실제 업로드·삭제 |
 | 원복 | 격리 DB와 임시 접속만 제거, 원래 Event·Job **53/53** 보존 | 원래 backlog 발생 원인의 확정 또는 운영 큐 소비 |

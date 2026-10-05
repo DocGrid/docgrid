@@ -17,3 +17,5 @@
 주의: 기존 승인된 SSH 키는 변경하거나 삭제하지 않았다. 앱 A/B·공용 캐시 VM은 기동하지 않았고, 원래 DB Event 53건을 삭제·완료 처리하지 않았다. 제거한 것은 **이번 실행에서 새로 만든 약 11MB 격리 DB와 시험 임시 파일**이며, 격리 DB 행 자체는 복구 불가능하다. 결과 수치와 재현용 테스트 소스는 별도 비식별 실행 기록에 남겼다.
 
 이후 전용 Gradle 태스크의 실동작을 [`outbox439-isolated-07`](outbox439-isolated-07.md)에서 **새 격리 DB를 재생성**해 한 번 더 검증했다. 그 DB도 동일하게 연결 0건을 확인한 뒤 제거했으며 최종 집계는 **격리 DB 0개, 원래 Event/Job 53/53, 임시 터널 포트 0개**였다.
+
+자동 `@Scheduled` 주기 확인을 위해 [`outbox439-isolated-08`](outbox439-isolated-08.md)에서 또 다른 격리 DB를 재생성했다. **Event 3건 모두 완료, 성공 Attempt 3건, 의도한 실패 Attempt 1건, 출처 Job 2건**을 확인했다. 삭제 직전 DB는 약 **11MB**, 활성 연결 **0개**였으며 해당 DB만 `DROP DATABASE`했다. 재조회에서 시험 DB **0개**, 원래 DB의 Event/Job **53/53**을 확인했다. SSH ControlMaster와 이번 실행의 `known_hosts` 임시 파일도 제거했다. 기존 SSH 키는 변경하지 않았다.
