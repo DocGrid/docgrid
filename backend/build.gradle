@@ -63,7 +63,7 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract'
+		excludeTags 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract', 'opensql-outbox-isolated'
 	}
 }
 
@@ -547,6 +547,31 @@ tasks.register('openSqlHaConnectionTest', Test) {
 		].each { name ->
 			if (!System.getenv(name)?.trim()) {
 				throw new GradleException("필수 3노드 OpenSQL 환경 변수가 비어 있습니다: ${name}")
+			}
+		}
+	}
+}
+
+tasks.register('openSqlOutboxIsolatedTest', Test) {
+	group = 'verification'
+	description = '기존 DB를 제외한 격리 OpenSQL DB에서만 Outbox Dispatcher를 검증합니다.'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'opensql-outbox-isolated'
+	}
+	maxParallelForks = 1
+	outputs.upToDateWhen { false }
+	doFirst {
+		// 1. 원래 DB로의 우발적 Flyway·Dispatcher 쓰기를 테스트 JVM 시작 전에 차단한다.
+		if (!(System.getenv('OUTBOX_ISOLATED_DB_NAME') ?: '').matches('docgrid_outbox_439_[0-9]{8}')) {
+			throw new GradleException('전용 Outbox 격리 DB 이름이 필요합니다.')
+		}
+		// 2. 빈 접속·JWT 설정 때문에 다른 환경에서 성공한 것처럼 보이지 않게 한다.
+		['OPENSQL_APP_USER', 'OPENSQL_APP_PASSWORD',
+		 'OPENSQL_MIGRATION_USER', 'OPENSQL_MIGRATION_PASSWORD', 'JWT_SECRET'].each { name ->
+			if (!System.getenv(name)?.trim()) {
+				throw new GradleException("필수 격리 시험 환경 변수가 비어 있습니다: ${name}")
 			}
 		}
 	}
