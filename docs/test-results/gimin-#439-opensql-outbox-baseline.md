@@ -2,7 +2,7 @@
 
 관련: [이슈 #439](https://github.com/DocGrid/docgrid/issues/439). 기준 커밋: `750b0887c5bf02fc0fd862eb224577eccb435ae1` (`develop`).
 
-**현재 판정: 로컬 코드·DB 기준선과 GCP primary의 읽기 전용 backlog 집계는 통과, GCP 실동작 소비는 미검증.** 이 문서의 로컬 PostgreSQL 17/pgvector 결과를 GCP OpenSQL 3노드 결과로 바꿔 읽지 않는다. GCP 조회 당시 DB VM은 3대 실행 중이지만 앱 A/B, 공용 캐시, 부하 발생기 VM은 중지 상태였다. Cloud Shell의 암호 전달 실패 뒤 로컬 Cloud SDK·임시 SSH 터널로 같은 DB 세션의 primary·읽기 전용 상태를 확인했고, Outbox에는 `DOCUMENT_VERSION_CREATED / PENDING` **53건**이 있었다. 가장 오래된 건의 `occurred_at`은 **2026-10-02 09:13:11.256192**(시간대 없는 DB 컬럼)이다. 예상 밖의 오래된 backlog가 확인돼 Dispatcher를 켜거나 이벤트를 소비하지 않았다. 실제 배포된 Dispatcher 설정과 backlog 원인은 아직 확인되지 않았다.
+**현재 판정: 로컬 코드·DB 기준선과 GCP primary의 읽기 전용 backlog·참조 집계는 통과, GCP 실동작 소비는 미검증.** 이 문서의 로컬 PostgreSQL 17/pgvector 결과를 GCP OpenSQL 3노드 결과로 바꿔 읽지 않는다. GCP 조회 당시 DB VM은 3대 실행 중이지만 앱 A/B, 공용 캐시, 부하 발생기 VM은 중지 상태였다. 같은 DB 세션의 primary·읽기 전용 상태를 확인했고, Outbox에는 `DOCUMENT_VERSION_CREATED / PENDING` **53건**이 있었다. 가장 오래된 건의 `occurred_at`은 **2026-10-02 09:13:11.256192**(시간대 없는 DB 컬럼)이다. 후속 읽기 전용 점검에서 **53건 모두 Embedding Job의 외래키 참조 대상**임을 확인했다. 연결된 Job은 `INDEXED` 34건·`FAILED` 19건이다. 이벤트만 삭제하면 실제 Job 출처 연결을 훼손하거나 DB 제약에 막히므로 삭제·Dispatcher 소비를 실행하지 않았다. 실제 배포된 Dispatcher 설정과 backlog 원인은 아직 확인되지 않았다.
 
 ## 시험 목적과 안전 관문
 
@@ -25,7 +25,8 @@ sync_outbox_events: PENDING
        │
        └─ GCP: 앱 A/B 중지 → Dispatcher 미실행
                  primary 읽기 전용 집계: PENDING 53건, 가장 오래된 건 10/2
-                 → 원인 확인 전 소비 NO-GO
+                 모든 이벤트를 Job 53건이 참조 (INDEXED 34 / FAILED 19)
+                 → 이벤트 단독 삭제 불가, 원인 확인 전 소비 NO-GO
                          ▼
            [backlog 원인 확인 후] PollingScheduler → Handler → PROCESSED + 실제 부작용
 ```
@@ -42,6 +43,7 @@ sync_outbox_events: PENDING
 | `outbox439-gcp-02` · DB 게스트 역할 및 Outbox 조회 시도 | Cloud Shell에서 한 DB VM에 만료형 인스턴스 SSH 키로 접속, 읽기 전용 Patroni 상태 확인 | SSH 연결 성공. Patroni `/primary` **503**, `/replica` **200**으로 해당 VM은 replica. VM에 `psql`·Python DB 클라이언트가 없어 Outbox SQL은 **실행하지 못함** | [게스트 조회 기록](evidence/issue-439/outbox439-gcp-02.md). 인스턴스 SSH 키·Cloud Shell 개인키 제거 확인. 대기량 미확인으로 **NO-GO** |
 | `outbox439-gcp-03` · primary 터널 및 Outbox 집계 접속 시도 | Cloud Shell의 `psql`에서 한 DB VM을 경유해 Patroni primary 후보로 임시 터널 | 암호 요구 단계까지 도달. 로컬 파일 업로드 제한으로 암호 미전송, 집계 SQL **미실행** | [접속 시도 기록](evidence/issue-439/outbox439-gcp-03.md). 터널·임시 키·암호 파일 정리 확인. 대기량 미확인으로 **NO-GO** |
 | `outbox439-gcp-04` · primary의 Outbox backlog 실측 | 로컬 JDBC의 읽기 전용 세션, 승인된 DB VM 한 대 경유 임시 터널 | primary·읽기 전용 확인. `DOCUMENT_VERSION_CREATED / PENDING` **53건**, 그 외 그룹 0. 가장 오래된 `occurred_at` **2026-10-02 09:13:11.256192** | [실측 기록](evidence/issue-439/outbox439-gcp-04.md). 집계 성공, 오래된 backlog로 Dispatcher 기동 **NO-GO**. 터널·키 제거 확인 |
+| `outbox439-gcp-05` · 삭제 전 외래키 안전 관문 | 로컬 JDBC의 primary 읽기 전용 세션에서 이벤트·Job·실행 이력의 참조 수 집계 | 전체 이벤트 **53건** 모두 Job이 참조. 연결 Job `INDEXED` **34**, `FAILED` **19**. DB 변경 **0건** | [참조 확인 기록](evidence/issue-439/outbox439-gcp-05.md). 이벤트 단독 삭제 불가. 앱·Dispatcher 기동 **NO-GO**. 터널·키 제거 확인 |
 
 로컬 임시 DB 컨테이너는 각 실행 후 제거했고 최종 조회에서도 시험용 컨테이너가 남지 않았다. 로그는 실행 목적별로 분리하고 민감한 경로·인프라 식별자를 기록 전에 가렸다.
 
@@ -86,4 +88,4 @@ SELECT event_type, status, COUNT(*) AS events,
 COMMIT;
 ```
 
-실제로 오래된 `PENDING` 53건을 확인했으므로 **NO-GO**다. 최신 primary의 backlog는 측정했지만 앱 A/B의 적용 설정과 개별 이벤트 발생 이유는 확인하지 못했다. GCP 정상 소비, 이벤트 실제 부작용, 장애 후 재처리, GCS 영구 삭제를 완료했다고 주장할 수 없다.
+실제로 오래된 `PENDING` 53건과 그 전부의 Job 외래키 참조를 확인했으므로 **NO-GO**다. 최신 primary의 backlog·참조는 측정했지만 앱 A/B의 적용 설정과 개별 이벤트 발생 이유는 확인하지 못했다. 이벤트 단독 삭제는 실행하지 않았고, 관련 Job의 출처·상태를 변경할지 또는 이벤트를 보존하며 시험을 격리할지는 별도 결정이 필요하다. GCP 정상 소비, 이벤트 실제 부작용, 장애 후 재처리, GCS 영구 삭제를 완료했다고 주장할 수 없다.
