@@ -2,7 +2,7 @@
 
 관련: [이슈 #439](https://github.com/DocGrid/docgrid/issues/439). 기준 커밋: `750b0887c5bf02fc0fd862eb224577eccb435ae1` (`develop`).
 
-**현재 판정: 로컬 코드·DB 기준선은 통과, GCP 실동작 소비는 미검증.** 이 문서의 로컬 PostgreSQL 17/pgvector 결과를 GCP OpenSQL 3노드 결과로 바꿔 읽지 않는다. GCP 조회 당시 DB VM은 3대 실행 중이지만 앱 A/B, 공용 캐시, 부하 발생기 VM은 중지 상태였다. 게스트 내부의 Outbox 대기량과 Dispatcher 적용값을 아직 확인하지 못했으므로 Dispatcher를 켜거나 오래된 이벤트를 소비하지 않았다.
+**현재 판정: 로컬 코드·DB 기준선은 통과, GCP 실동작 소비는 미검증.** 이 문서의 로컬 PostgreSQL 17/pgvector 결과를 GCP OpenSQL 3노드 결과로 바꿔 읽지 않는다. GCP 조회 당시 DB VM은 3대 실행 중이지만 앱 A/B, 공용 캐시, 부하 발생기 VM은 중지 상태였다. DB VM 한 대의 Patroni replica 상태까지 확인했으나, 게스트에 SQL 클라이언트가 없어 Outbox 대기량은 조회하지 못했다. Dispatcher 적용값도 확인되지 않았으므로 Dispatcher를 켜거나 오래된 이벤트를 소비하지 않았다.
 
 ## 시험 목적과 안전 관문
 
@@ -23,7 +23,8 @@ sync_outbox_events: PENDING
        │
        ├─ 로컬: Writer·Claim·Dispatch 단위 테스트 및 DB 원자성 테스트 통과
        │
-       └─ GCP: 앱 A/B 중지 → Dispatcher 미실행, 이벤트 대기량 미조회
+       └─ GCP: 앱 A/B 중지 → Dispatcher 미실행
+                 DB 한 대는 replica 확인, 이벤트 대기량 미조회
                          ▼
            [안전 관문 후] PollingScheduler → Handler → PROCESSED + 실제 부작용
 ```
@@ -37,6 +38,7 @@ sync_outbox_events: PENDING
 | `outbox439-local-03` · DB 원자성 재실행 | 같은 종류의 격리 DB, SQL 준비 완료를 확인한 뒤 `SyncTransactionBoundaryIntegrationTest` | **5/5 통과**, 실패·건너뜀 0 | [재실행 기록](evidence/issue-439/outbox439-local-03.md). 최초 실패를 덮어쓰지 않음 |
 | `outbox439-local-04` · 전체 기본 테스트 | 격리 DB, `./backend/gradlew -p backend test --rerun-tasks --console=plain --no-daemon` | **229 suite / 1,360건: 통과 1,358, 건너뜀 2, 실패 0**. 이 중 Outbox Claim 1건·Dispatch 장애 복구 5건·멱등 동시성 3건·트랜잭션 경계 5건 통과. `BUILD SUCCESSFUL` (1분 17초) | [전체 실행 기록](evidence/issue-439/outbox439-local-04.md). 해당 테스트의 파일 저장소는 대체 객체이므로 GCS 실동작 증거 아님. Gradle 기본 태스크의 제외 태그는 포함되지 않음 |
 | `outbox439-gcp-01` · GCP 기동 상태 사전 조회 | Cloud Console VM 목록, 읽기 전용 | DB VM **3/3 실행**, 앱 **0/2 실행**, 공용 캐시 **0/1 실행**, 부하 VM **0/1 실행** | [사전 조회 기록](evidence/issue-439/outbox439-gcp-01.md). DB 게스트·Outbox 행·적용 환경 변수는 미조회 |
+| `outbox439-gcp-02` · DB 게스트 역할 및 Outbox 조회 시도 | Cloud Shell에서 한 DB VM에 만료형 인스턴스 SSH 키로 접속, 읽기 전용 Patroni 상태 확인 | SSH 연결 성공. Patroni `/primary` **503**, `/replica` **200**으로 해당 VM은 replica. VM에 `psql`·Python DB 클라이언트가 없어 Outbox SQL은 **실행하지 못함** | [게스트 조회 기록](evidence/issue-439/outbox439-gcp-02.md). 인스턴스 SSH 키·Cloud Shell 개인키 제거 확인. 대기량 미확인으로 **NO-GO** |
 
 로컬 임시 DB 컨테이너는 각 실행 후 제거했고 최종 조회에서도 시험용 컨테이너가 남지 않았다. 로그는 실행 목적별로 분리하고 민감한 경로·인프라 식별자를 기록 전에 가렸다.
 
@@ -67,7 +69,7 @@ GCS 원본 PDF ──▶ FileObject ──▶ DocumentVersion
 
 ## 다음 GCP 실행의 읽기 전용 쿼리와 중단 조건
 
-다음 SQL은 **실행 계획**이며 이번에는 실행하지 않았다. 최신 primary임을 확인한 같은 세션에서 읽기 전용 트랜잭션으로 유형별 backlog만 집계한다. payload, 이벤트 ID, 계정 및 객체 키는 출력하지 않는다.
+다음 SQL은 **실행 계획**이며 이번에는 실행하지 않았다. 조회한 DB VM은 replica였고 SQL 클라이언트도 없어 대기 건수를 0건으로 추정할 수 없다. 최신 primary임을 확인한 같은 세션에서 읽기 전용 트랜잭션으로 유형별 backlog만 집계한다. payload, 이벤트 ID, 계정 및 객체 키는 출력하지 않는다.
 
 ```sql
 BEGIN READ ONLY;
