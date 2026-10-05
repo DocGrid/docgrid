@@ -2,7 +2,7 @@
 
 관련: [이슈 #439](https://github.com/DocGrid/docgrid/issues/439). 기준 커밋: `750b0887c5bf02fc0fd862eb224577eccb435ae1` (`develop`).
 
-**현재 판정: 로컬 코드·DB 기준선은 통과, GCP 실동작 소비는 미검증.** 이 문서의 로컬 PostgreSQL 17/pgvector 결과를 GCP OpenSQL 3노드 결과로 바꿔 읽지 않는다. GCP 조회 당시 DB VM은 3대 실행 중이지만 앱 A/B, 공용 캐시, 부하 발생기 VM은 중지 상태였다. DB VM 한 대의 Patroni replica 상태까지 확인했으나, 게스트에 SQL 클라이언트가 없어 Outbox 대기량은 조회하지 못했다. Dispatcher 적용값도 확인되지 않았으므로 Dispatcher를 켜거나 오래된 이벤트를 소비하지 않았다.
+**현재 판정: 로컬 코드·DB 기준선은 통과, GCP 실동작 소비는 미검증.** 이 문서의 로컬 PostgreSQL 17/pgvector 결과를 GCP OpenSQL 3노드 결과로 바꿔 읽지 않는다. GCP 조회 당시 DB VM은 3대 실행 중이지만 앱 A/B, 공용 캐시, 부하 발생기 VM은 중지 상태였다. DB VM 한 대의 Patroni replica 상태를 확인했고, 후속 실행에서는 primary로 향하는 SSH 터널이 암호 인증 단계까지 도달했다. 그러나 승인된 앱 DB 암호의 Cloud Shell 전송이 브라우저 파일 업로드 제한으로 막혀 Outbox 집계 SQL은 실행하지 못했다. Dispatcher 적용값도 확인되지 않았으므로 Dispatcher를 켜거나 오래된 이벤트를 소비하지 않았다.
 
 ## 시험 목적과 안전 관문
 
@@ -39,6 +39,7 @@ sync_outbox_events: PENDING
 | `outbox439-local-04` · 전체 기본 테스트 | 격리 DB, `./backend/gradlew -p backend test --rerun-tasks --console=plain --no-daemon` | **229 suite / 1,360건: 통과 1,358, 건너뜀 2, 실패 0**. 이 중 Outbox Claim 1건·Dispatch 장애 복구 5건·멱등 동시성 3건·트랜잭션 경계 5건 통과. `BUILD SUCCESSFUL` (1분 17초) | [전체 실행 기록](evidence/issue-439/outbox439-local-04.md). 해당 테스트의 파일 저장소는 대체 객체이므로 GCS 실동작 증거 아님. Gradle 기본 태스크의 제외 태그는 포함되지 않음 |
 | `outbox439-gcp-01` · GCP 기동 상태 사전 조회 | Cloud Console VM 목록, 읽기 전용 | DB VM **3/3 실행**, 앱 **0/2 실행**, 공용 캐시 **0/1 실행**, 부하 VM **0/1 실행** | [사전 조회 기록](evidence/issue-439/outbox439-gcp-01.md). DB 게스트·Outbox 행·적용 환경 변수는 미조회 |
 | `outbox439-gcp-02` · DB 게스트 역할 및 Outbox 조회 시도 | Cloud Shell에서 한 DB VM에 만료형 인스턴스 SSH 키로 접속, 읽기 전용 Patroni 상태 확인 | SSH 연결 성공. Patroni `/primary` **503**, `/replica` **200**으로 해당 VM은 replica. VM에 `psql`·Python DB 클라이언트가 없어 Outbox SQL은 **실행하지 못함** | [게스트 조회 기록](evidence/issue-439/outbox439-gcp-02.md). 인스턴스 SSH 키·Cloud Shell 개인키 제거 확인. 대기량 미확인으로 **NO-GO** |
+| `outbox439-gcp-03` · primary 터널 및 Outbox 집계 접속 시도 | Cloud Shell의 `psql`에서 한 DB VM을 경유해 Patroni primary 후보로 임시 터널 | 암호 요구 단계까지 도달. 로컬 파일 업로드 제한으로 암호 미전송, 집계 SQL **미실행** | [접속 시도 기록](evidence/issue-439/outbox439-gcp-03.md). 터널·임시 키·암호 파일 정리 확인. 대기량 미확인으로 **NO-GO** |
 
 로컬 임시 DB 컨테이너는 각 실행 후 제거했고 최종 조회에서도 시험용 컨테이너가 남지 않았다. 로그는 실행 목적별로 분리하고 민감한 경로·인프라 식별자를 기록 전에 가렸다.
 
@@ -69,7 +70,7 @@ GCS 원본 PDF ──▶ FileObject ──▶ DocumentVersion
 
 ## 다음 GCP 실행의 읽기 전용 쿼리와 중단 조건
 
-다음 SQL은 **실행 계획**이며 이번에는 실행하지 않았다. 조회한 DB VM은 replica였고 SQL 클라이언트도 없어 대기 건수를 0건으로 추정할 수 없다. 최신 primary임을 확인한 같은 세션에서 읽기 전용 트랜잭션으로 유형별 backlog만 집계한다. payload, 이벤트 ID, 계정 및 객체 키는 출력하지 않는다.
+다음 SQL은 **실행 계획**이며 이번에는 실행하지 않았다. 첫 게스트 조회는 replica였고 SQL 클라이언트가 없었다. 다음 시도에서는 Cloud Shell의 SQL 클라이언트가 primary 후보까지 닿았지만 암호를 안전하게 전달하지 못했다. 따라서 대기 건수를 0건으로 추정할 수 없다. 최신 primary임을 확인한 같은 세션에서 읽기 전용 트랜잭션으로 유형별 backlog만 집계한다. payload, 이벤트 ID, 계정 및 객체 키는 출력하지 않는다.
 
 ```sql
 BEGIN READ ONLY;
