@@ -67,7 +67,7 @@ public class PermissionQueryService {
                 .toList();
     }
 
-    // 문서 읽기 권한 판단 (6단계)
+    // 문서 읽기 권한 판단 (6단계 + DEPARTMENT 공개 범위 2-1단계)
     public boolean canReadDocument(Long userId, Long documentId) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocGridException(ErrorCode.DOCUMENT_NOT_FOUND));
@@ -79,6 +79,12 @@ public class PermissionQueryService {
 
         // 2단계: PUBLIC
         if (document.getVisibility() == VisibilityType.PUBLIC) {
+            return true;
+        }
+
+        // 2-1단계: DEPARTMENT 공개 범위 — 소유자와 같은 부서의 사용자는 읽기만 허용
+        if (document.getVisibility() == VisibilityType.DEPARTMENT
+                && documentRepository.existsDepartmentVisibleToUser(documentId, userId)) {
             return true;
         }
 
@@ -192,6 +198,13 @@ public class PermissionQueryService {
         if (document.getVisibility() == VisibilityType.PUBLIC) {
             canRead = true;
             sources.add(PermissionSourceType.PUBLIC);
+        }
+
+        // 2-1단계: DEPARTMENT 공개 범위 — 소유자와 같은 부서의 사용자는 읽기만 허용
+        if (document.getVisibility() == VisibilityType.DEPARTMENT
+                && documentRepository.existsDepartmentVisibleToUser(documentId, userId)) {
+            canRead = true;
+            sources.add(PermissionSourceType.DEPARTMENT_VISIBILITY);
         }
 
         // 3단계: USER 캐시

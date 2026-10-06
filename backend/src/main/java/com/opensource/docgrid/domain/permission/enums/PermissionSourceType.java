@@ -8,5 +8,6 @@ public enum PermissionSourceType {
     PUBLIC,
     USER_CACHE,
     ROLE,
-    DEPARTMENT
+    DEPARTMENT,
+    DEPARTMENT_VISIBILITY
 }
