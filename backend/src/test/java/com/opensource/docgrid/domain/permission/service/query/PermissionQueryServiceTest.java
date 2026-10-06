@@ -650,6 +650,68 @@ class PermissionQueryServiceTest {
         assertThat(result).isFalse();
     }
 
+    // ==================== DEPARTMENT 공개 범위 (2-1단계) ====================
+
+    @Test
+    @DisplayName("DEPARTMENT 공개 문서는 소유자와 같은 부서면 canReadDocument가 true다")
+    void canReadDocument_departmentVisibility_sameDepartment_returnsTrue() {
+        Document document = CollectionFixture.createDocument(CollectionFixture.createOwner());
+        org.springframework.test.util.ReflectionTestUtils.setField(document, "visibility", VisibilityType.DEPARTMENT);
+        Long otherUserId = 99L;
+        given(documentRepository.findById(CollectionFixture.DOCUMENT_ID)).willReturn(Optional.of(document));
+        given(documentRepository.existsDepartmentVisibleToUser(CollectionFixture.DOCUMENT_ID, otherUserId)).willReturn(true);
+
+        boolean result = service.canReadDocument(otherUserId, CollectionFixture.DOCUMENT_ID);
+
+        assertThat(result).isTrue();
+        then(cacheRepository).should(never()).existsValidReadCache(otherUserId, CollectionFixture.DOCUMENT_ID);
+    }
+
+    @Test
+    @DisplayName("DEPARTMENT 공개 문서라도 소유자와 다른 부서면 다음 단계로 넘어가 모두 없으면 false다")
+    void canReadDocument_departmentVisibility_otherDepartment_fallsThroughToFalse() {
+        Document document = CollectionFixture.createDocument(CollectionFixture.createOwner());
+        org.springframework.test.util.ReflectionTestUtils.setField(document, "visibility", VisibilityType.DEPARTMENT);
+        Long otherUserId = 99L;
+        given(documentRepository.findById(CollectionFixture.DOCUMENT_ID)).willReturn(Optional.of(document));
+        given(documentRepository.existsDepartmentVisibleToUser(CollectionFixture.DOCUMENT_ID, otherUserId)).willReturn(false);
+
+        boolean result = service.canReadDocument(otherUserId, CollectionFixture.DOCUMENT_ID);
+
+        assertThat(result).isFalse();
+        then(cacheRepository).should().existsValidReadCache(otherUserId, CollectionFixture.DOCUMENT_ID);
+    }
+
+    @Test
+    @DisplayName("PRIVATE 문서는 같은 부서 여부를 조회하지 않는다")
+    void canReadDocument_privateVisibility_doesNotCheckDepartment() {
+        Document document = CollectionFixture.createDocument(CollectionFixture.createOwner());
+        Long otherUserId = 99L;
+        given(documentRepository.findById(CollectionFixture.DOCUMENT_ID)).willReturn(Optional.of(document));
+
+        service.canReadDocument(otherUserId, CollectionFixture.DOCUMENT_ID);
+
+        then(documentRepository).should(never()).existsDepartmentVisibleToUser(CollectionFixture.DOCUMENT_ID, otherUserId);
+    }
+
+    @Test
+    @DisplayName("DEPARTMENT 공개 문서는 같은 부서면 canRead만 true이고 sources에 DEPARTMENT_VISIBILITY가 포함된다")
+    void checkDocumentPermission_departmentVisibility_returnsReadOnlyWithSource() {
+        Document document = CollectionFixture.createDocument(CollectionFixture.createOwner());
+        org.springframework.test.util.ReflectionTestUtils.setField(document, "visibility", VisibilityType.DEPARTMENT);
+        Long otherUserId = 99L;
+        given(documentRepository.findById(CollectionFixture.DOCUMENT_ID)).willReturn(Optional.of(document));
+        given(documentRepository.existsDepartmentVisibleToUser(CollectionFixture.DOCUMENT_ID, otherUserId)).willReturn(true);
+
+        DocumentPermissionSummaryResponse result =
+                service.checkDocumentPermission(otherUserId, CollectionFixture.DOCUMENT_ID);
+
+        assertThat(result.canRead()).isTrue();
+        assertThat(result.canWrite()).isFalse();
+        assertThat(result.canAdmin()).isFalse();
+        assertThat(result.sources()).contains(PermissionSourceType.DEPARTMENT_VISIBILITY);
+    }
+
     // ==================== checkDocumentPermission ====================
 
     @Test
