@@ -200,3 +200,13 @@ test("derives RAG socket status from token instead of setState inside the effect
   assert.match(source, /if \(!enabled\) return "CONNECTING";/);
   assert.match(source, /return hasToken \? liveStatus : "POLLING";/);
 });
+
+test("offers only upload visibility options the backend actually enforces", async () => {
+  const source = await readFile(new URL("../app/components/UploadModal.tsx", import.meta.url), "utf8");
+
+  assert.match(source, /<option value="PRIVATE">/);
+  assert.match(source, /<option value="DEPARTMENT">/);
+  assert.match(source, /<option value="PUBLIC">/);
+  // COLLECTION은 부모 컬렉션 권한 상속 규칙 때문에 PRIVATE과 동작이 같아 구분할 의미가 없다.
+  assert.doesNotMatch(source, /<option value="COLLECTION">/);
+});
