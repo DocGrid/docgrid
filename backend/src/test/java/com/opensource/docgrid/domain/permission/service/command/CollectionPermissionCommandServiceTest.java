@@ -74,7 +74,6 @@ class CollectionPermissionCommandServiceTest {
         given(collectionRepository.findById(CollectionFixture.COLLECTION_ID)).willReturn(Optional.of(collection));
         given(permissionQueryService.canAdminCollection(CollectionFixture.USER_ID, collection)).willReturn(true);
         given(userRepository.findById(CollectionFixture.USER_ID)).willReturn(Optional.of(owner));
-        given(userRepository.getReferenceById(CollectionFixture.USER_ID)).willReturn(owner);
         given(collectionDocumentRepository.findAllByCollectionId(CollectionFixture.COLLECTION_ID))
                 .willReturn(List.of(cd));
         given(permissionConverter.toCollectionPermissionResponse(any())).willReturn(null);
@@ -98,7 +97,7 @@ class CollectionPermissionCommandServiceTest {
         given(collectionRepository.findById(CollectionFixture.COLLECTION_ID)).willReturn(Optional.of(collection));
         given(permissionQueryService.canAdminCollection(CollectionFixture.USER_ID, collection)).willReturn(true);
         given(roleRepository.findById(PermissionFixture.ROLE_ID)).willReturn(Optional.of(role));
-        given(userRepository.getReferenceById(CollectionFixture.USER_ID)).willReturn(owner);
+        given(userRepository.findById(CollectionFixture.USER_ID)).willReturn(Optional.of(owner));
         given(permissionConverter.toCollectionPermissionResponse(any())).willReturn(null);
 
         service.grantPermission(CollectionFixture.COLLECTION_ID, CollectionFixture.USER_ID, request);

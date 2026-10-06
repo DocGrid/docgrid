@@ -71,8 +71,23 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
         @Param("activeJobStatuses") Collection<EmbeddingJobStatus> activeJobStatuses
     );
 
+    // 공개 범위가 DEPARTMENT인 문서를 소유자와 같은 부서의 사용자가 읽을 수 있는지 판단한다.
+    // 부서가 없는 소유자·사용자는 NULL 비교가 거짓이라 자연히 제외된다. 검색 pre-filter SQL의 같은 블록과 조건을 맞춘다.
+    @Query(value = """
+        SELECT EXISTS (
+            SELECT 1 FROM documents d
+              JOIN users owner ON owner.id = d.owner_user_id
+              JOIN users viewer ON viewer.department_id = owner.department_id
+            WHERE d.id = :documentId AND d.visibility = 'DEPARTMENT' AND viewer.id = :userId
+        )
+        """, nativeQuery = true)
+    boolean existsDepartmentVisibleToUser(
+        @Param("documentId") Long documentId,
+        @Param("userId") Long userId
+    );
+
     // 검색 pre-filter — 사용자가 읽을 수 있는 문서 ID 전체 (컬렉션 미지정)
-    // 5가지 접근 경로: OWNER / PUBLIC / USER캐시 / ROLE live / DEPT live (문서·컬렉션 권한 모두 포함)
+    // 접근 경로: OWNER / PUBLIC / DEPARTMENT 공개 범위(소유자와 같은 부서) / USER캐시 / ROLE live / DEPT live (문서·컬렉션 권한 모두 포함)
     // 컬렉션 ROLE/DEPT 권한은 collection_closure(조상-자손 물질화 테이블)를 통해 부모 컬렉션 체인까지 상속된다.
     // statuses는 DocumentStatus.name() 문자열 목록. 검색은 INDEXED만, 문서 목록은 처리 중 상태까지 넘긴다.
     @Query(value = """
@@ -81,6 +96,12 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
         UNION
         SELECT d.id FROM documents d
         WHERE d.visibility = 'PUBLIC' AND d.deleted_at IS NULL AND d.status IN (:statuses)
+        UNION
+        SELECT d.id FROM documents d
+          JOIN users owner ON owner.id = d.owner_user_id
+          JOIN users viewer ON viewer.department_id = owner.department_id
+        WHERE d.visibility = 'DEPARTMENT' AND viewer.id = :userId
+          AND d.deleted_at IS NULL AND d.status IN (:statuses)
         UNION
         SELECT d.id FROM documents d
           JOIN user_document_access_cache c ON c.document_id = d.id
@@ -135,6 +156,12 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             UNION
             SELECT d.id FROM documents d
             WHERE d.visibility = 'PUBLIC' AND d.deleted_at IS NULL AND d.status IN (:statuses)
+            UNION
+            SELECT d.id FROM documents d
+              JOIN users owner ON owner.id = d.owner_user_id
+              JOIN users viewer ON viewer.department_id = owner.department_id
+            WHERE d.visibility = 'DEPARTMENT' AND viewer.id = :userId
+              AND d.deleted_at IS NULL AND d.status IN (:statuses)
             UNION
             SELECT d.id FROM documents d
               JOIN user_document_access_cache c ON c.document_id = d.id

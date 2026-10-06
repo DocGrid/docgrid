@@ -49,7 +49,7 @@ export function UploadModal({ documentId, onClose, onSuccess }: {
         {!versionMode ? <>
           <label className="form-field">문서 제목<input name="title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="문서 제목" maxLength={500} required /></label>
           <label className="form-field">설명<textarea name="description" rows={3} placeholder="선택 입력" /></label>
-          <label className="form-field">공개 범위<select name="visibility" defaultValue="PRIVATE"><option value="PRIVATE">PRIVATE · 나만 보기</option><option value="DEPARTMENT">DEPARTMENT · 같은 부서</option><option value="COLLECTION">COLLECTION · 컬렉션 권한</option><option value="PUBLIC">PUBLIC · 전체 공개</option></select></label>
+          <label className="form-field">공개 범위<select name="visibility" defaultValue="PRIVATE"><option value="PRIVATE">PRIVATE · 나만 보기</option><option value="DEPARTMENT">DEPARTMENT · 같은 부서</option><option value="PUBLIC">PUBLIC · 전체 공개</option></select></label>
         </> : null}
         <div className="modal-footer"><button type="button" className="secondary-button" onClick={onClose}>취소</button><button className="primary-button" disabled={!file || submitting}>{submitting ? "업로드 중…" : "업로드 시작"}</button></div>
       </form>
