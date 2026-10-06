@@ -87,7 +87,10 @@ public class CollectionPermissionCommandService {
         }
 
         boolean[] permissions = resolvePermissions(request.permissionType());
-        User grantor = userRepository.getReferenceById(grantorId); // 권한 부여자 정보 조회
+        // 부여자는 프록시가 아니라 실제 엔티티로 읽는다. USER 대상 권한은 벌크 UPDATE(clearAutomatically)가
+        // 영속성 컨텍스트를 비워서, 프록시면 응답 변환 시 getName()이 LazyInitializationException으로 실패한다.
+        User grantor = userRepository.findById(grantorId)
+                .orElseThrow(() -> new DocGridException(ErrorCode.USER_NOT_FOUND));
 
         CollectionPermission permission = CollectionPermission.builder()
                 .collection(collection)
