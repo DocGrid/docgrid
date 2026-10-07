@@ -167,7 +167,7 @@ export function CollectionDetailPage({ collectionId, notify }: { collectionId: n
   async function removeCollection() {
     // children은 현재 사용자가 읽을 수 있는 직계 자식만 담고 있어 실제 하위 컬렉션 존재 여부의 기준이 될 수 없다
     // (읽기 권한이 없는 후손도 삭제 시엔 함께 cascade 삭제되므로 항상 경고한다).
-    const warning = "이 컬렉션을 삭제할까요? 하위 컬렉션과 그 안의 문서도 전부 함께 삭제됩니다. 복구 API는 제공되지 않습니다.";
+    const warning = "이 컬렉션을 삭제할까요? 하위 컬렉션도 함께 삭제되며, 들어 있던 문서는 컬렉션에서만 빠지고 문서 자체는 유지됩니다. 복구 API는 제공되지 않습니다.";
     if (!window.confirm(warning)) return;
     setBusy(true);
     try {
