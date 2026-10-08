@@ -13,7 +13,7 @@
 | --- | --- | --- | --- |
 | 1. DB 컨테이너 3대 | 실행 Patroni YAML의 `restapi` 항목을 컨테이너 내부에서 읽고 인증·TLS 키 존재 여부만 판정 | 노드 **3/3 모두 인증·TLS 항목 없음** | 직접 8008 scrape는 관측 VM에 무인증 관리 REST API의 네트워크 경로까지 제공한다. 비밀 원문은 출력하지 않았다. |
 | 2. 로컬 첫 테스트 | `python3 -m unittest scripts/opensql/test_patroni_metrics_gateway.py -v` | **import 오류 1회** | 테스트 모듈 경로를 잘못 지정한 실행 오류. 코드는 아직 검증되지 않았다. |
-| 3. 로컬 재실행 | `PYTHONPATH=scripts/opensql python3 -m unittest test_patroni_metrics_gateway -v` | **4/4 통과** | 고정 upstream `GET /metrics`만 전달, 관리 GET 404·변경 메서드 405, upstream 오류 502를 검증했다. 로컬 소켓 바인딩이 필요한 시험이다. |
+| 3. 로컬 재실행 | `PYTHONPATH=scripts/opensql python3 -m unittest test_patroni_metrics_gateway -v` | 초기 **4/4 통과**, RFC1918 바인딩 조건 추가 후 최종 **5/5 통과** | 고정 upstream `GET /metrics`만 전달, 관리 GET 404·변경 메서드 405, upstream 오류 502·와일드카드 바인딩 거부를 검증했다. 로컬 소켓 바인딩이 필요한 시험이다. |
 | 4. DB node1 첫 설치 | `gcloud compute scp` → `sudo install` → `systemctl enable --now` | **기동 실패 1회**, `216/GROUP` | 해당 DB OS에는 `nogroup`이 없었다. 테스트 실패를 숨기지 않고 OS의 계정 구성을 재확인했다. |
 | 5. DB node1 수정 | 그룹 확인 후 systemd unit을 `DynamicUser=yes`로 바꿔 재시작 | 서비스 active, `/metrics` **200** | 공용 `nobody` 계정 경고도 제거하고 전용 임시 사용자로 실행했다. 재시작 직후 첫 curl 한 번은 기동 경합으로 실패했으나 다음 조회는 200이었다. Patroni·DB는 재시작하지 않았다. |
 | 6. DB node2/3 설치 | 동일 코드·unit 배포, private IP에만 바인딩, systemd active 확인 | **2/2 active**, `/metrics` **200 2/2**, `/patroni` **404 2/2**, `POST /switchover` **405 2/2** | 새 포트에서 지표와 관리 경로가 분리됐다. node1도 수정 전·후 지표 200과 관리 GET 404·POST 405를 개별 확인했다. |
@@ -24,7 +24,7 @@
 | 11. GCP 방화벽 보강 | 관측 VM `/32`→DB 8008 명시 DENY(우선순위 650); DB 18008·앱 8081은 필요한 관측 VM/LB 예외보다 낮은 우선순위의 전체 출처 DENY(우선순위 1000) | DENY **3개 생성 성공** | 앱 8081의 기존 LB health checker ALLOW 우선순위 900을 유지했다. 다른 VM의 기존 8008 정책까지 수정하지 않았다. |
 | 12. 양쪽 VM 재검증 | 관측 VM→DB 8008/18008·앱 8081, 부하 VM→DB 18008·앱 8081·관측 9090 | 관측 VM: 8008 **CLOSED 3/3**, 18008 **200 3/3**, 앱 8081 **200 2/2**. 부하 VM: DB·앱 지표 **CLOSED 2/2**, 9090 **OPEN 1/1** | 목적별 허용·거부를 양쪽 출처에서 검증했다. 18008의 관리 POST는 **405 3/3**(node1 초기, node2/3 설치, 관측 VM node1 재확인). |
 | 13. GCP LB API | `gcloud compute backend-services get-health` | 앱 A/B **HEALTHY 2/2** | 8081 거부 규칙이 LB의 health check를 끊지 않았다. |
-| 14. 로컬 최종 회귀 | `PYTHONPATH=scripts/opensql python3 -m unittest test_verify_ha_prometheus_rw test_ha_load_telemetry test_sanitize_ha_k6_events test_patroni_metrics_gateway`; `bash -n`; `node --check`; `git diff --check` | Python **21/21**, 나머지 **각 종료 0** | 게이트웨이와 기존 k6 원장 계측의 로컬 회귀를 함께 확인했다. |
+| 14. 로컬 최종 회귀·DB 순차 재배포 | `PYTHONPATH=scripts/opensql python3 -m unittest test_verify_ha_prometheus_rw test_ha_load_telemetry test_sanitize_ha_k6_events test_patroni_metrics_gateway`; `bash -n`; `node --check`; `git diff --check`; 게이트웨이 코드만 DB 3대 재배포 | Python **22/22**, 나머지 **각 종료 0**; 재배포 후 DB `/metrics` **200 3/3**, Prometheus active target **5/5 up** | 와일드카드·특수 주소 바인딩을 거부하도록 제한하고 실제 실행 경로가 유지됨을 확인했다. |
 
 ## 경계와 남은 한계
 

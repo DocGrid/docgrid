@@ -54,7 +54,7 @@ Prometheus 합계가 맞아도 DB의 누락·중복이 0이라고 주장하지 �
 | `scripts/opensql/verify_ha_prometheus_rw.py` | 사설 IPv4 수신 주소만 허용하고, 안전 원장의 완료 상태와 Prometheus 최종 Counter를 실행 ID별로 비교한다. 내부 주소·원시 HTTP 오류는 출력하지 않는다. |
 | `scripts/opensql/test_verify_ha_prometheus_rw.py`, `scripts/opensql/test_ha_load_telemetry.py` | 불완전·중복 원장, 기타 오류, 태그 금지, 최종 합계의 한계를 회귀 시험한다. |
 | `scripts/opensql/patroni_metrics_gateway.py`, `scripts/opensql/patroni_metrics_gateway.service` | DB 호스트의 비권한 프로세스가 정확한 `GET /metrics`만 로컬 Patroni로 전달한다. 기존 Patroni·PostgreSQL 프로세스는 재시작하지 않는다. |
-| `scripts/opensql/test_patroni_metrics_gateway.py` | 관리 경로·변경 메서드 거부, 고정 upstream, upstream 실패 판정의 회귀 시험 4건. |
+| `scripts/opensql/test_patroni_metrics_gateway.py` | 관리 경로·변경 메서드 거부, 고정 upstream, upstream 실패, RFC1918 바인딩의 회귀 시험 5건. |
 | GCP 관측 VM (저장소 비공개 운영 설정) | Prometheus 3.5.5, Grafana 13.2.3, 30GB 디스크, IAP 관리 경로. 실제 내부 대상 주소·Grafana 비밀은 Git에 넣지 않는다. |
 
 ```text
@@ -84,7 +84,7 @@ GCP LB health checker ──▶ 앱 A/B :8081 (기존 예외 유지)
 | 목적·실행 위치 | 실행 명령·방법 | 숫자 결과 | 판정 |
 | --- | --- | --- | --- |
 | 현재 클러스터 · GCP/VM 읽기 | Compute 목록·LB health, 앱 JAR 해시, Patroni REST, etcd 로컬 health·멤버 목록, 프록시 프로세스·리스너 | 앱 **2/2**, DB **3/3**, LB **2/2**, leader **1**·replica **2**, etcd health·멤버 **3/3**, 프록시 **2/2** | 수집 시점 기준 상태 확인. [로그](evidence/issue-446/current-state-20261009.md) |
-| 코드 회귀 · 로컬/부하 VM | Python 기존 세 suite + 게이트웨이 suite, `bash -n`, `node --check`, k6 2.3.0 `inspect -e ...` | Python **21/21**, Bash·JS·k6 inspect 최종 **각 통과**. 초기 잘못된 unittest 탐색 2회·inspect 환경값 누락 1회 실패 보존 | 코드·런타임 파싱 확인. [기존 로그](evidence/issue-446/local-regression-20261009.md), [게이트웨이 로그](evidence/issue-446/gateway-hardening-20261009.md) |
+| 코드 회귀 · 로컬/부하 VM | Python 기존 세 suite + 게이트웨이 suite, `bash -n`, `node --check`, k6 2.3.0 `inspect -e ...` | Python **22/22**, Bash·JS·k6 inspect 최종 **각 통과**. 초기 잘못된 unittest 탐색 2회·inspect 환경값 누락 1회 실패 보존 | 코드·런타임 파싱 확인. [기존 로그](evidence/issue-446/local-regression-20261009.md), [게이트웨이 로그](evidence/issue-446/gateway-hardening-20261009.md) |
 | 관측 인프라 · GCP | Docker 컨테이너·Prometheus active targets·Patroni 지표·Grafana API·내외부 연결 | 컨테이너 **2/2**, active targets **5/5**, primary metric **1/3**, Grafana 무인증 **401**·인증 **200** | 수집·접근 경계 통과. [초기 로그](evidence/issue-446/observer-security-20261009.md), [보강 로그](evidence/issue-446/gateway-hardening-20261009.md) |
 | k6 전송 · GCP 내부 부하 VM | `--out json` + `--out experimental-prometheus-rw`, 원장/Counter 대조 | 실행 `ha446rw20261009a`, 안전 이벤트 **2건**, 201 예상·관측 **1/1**, 태그 붙은 JSONL Point **0/5** | **합성 전송 경로 통과**. [로그](evidence/issue-446/remote-write-ha446rw20261009a.md) |
 
