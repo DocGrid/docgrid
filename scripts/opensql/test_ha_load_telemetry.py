@@ -84,6 +84,17 @@ class HaLoadTelemetryTest(unittest.TestCase):
             TELEMETRY.summarize(self.metrics, self.host, self.summary, self.output)
         self.assertFalse(self.output.exists())
 
+    def test_tag_free_dashboard_counter_keeps_existing_jsonl_summary(self):
+        """Remote-write outcome counters must not weaken the strict JSONL tag gate."""
+        self.write_fixture()
+        with self.metrics.open("a", encoding="utf-8") as output:
+            output.write(json.dumps({
+                "type": "Point", "metric": "ha_outcome_201",
+                "data": {"time": "2026-10-04T01:00:01.000Z", "value": 1, "tags": None},
+            }) + "\n")
+        result = TELEMETRY.summarize(self.metrics, self.host, self.summary, self.output)
+        self.assertEqual(2, result["requests"])
+
     def test_rejects_missing_metric_points(self):
         """Do not claim a complete 1s timeline when dropped samples went missing."""
         self.write_fixture(dropped=1)

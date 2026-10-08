@@ -58,6 +58,23 @@ export HA_SUMMARY_FILE="$run_dir/k6-summary.json"
 export HA_VUS="$initial_vus" HA_MAX_VUS="$max_vus" HA_TIMEOUT=10s
 printf '초기 VU=%s\n설정 최대 VU=%s\n계측 간격=1초\n지표 태그=모두 비활성\n' \
   "$HA_VUS" "$HA_MAX_VUS" >> "$run_dir/실행-기록.txt"
+outputs=(--out "json=$run_dir/k6-metrics.jsonl")
+remote_write_enabled=0
+if [[ -n "${HA_PROM_RW_URL:-}" ]]; then
+  if ! python3 "$script_dir/verify_ha_prometheus_rw.py" validate-url >/dev/null 2>/dev/null; then
+    echo '관측 서버 주소가 허용된 사설 IPv4 형식이 아닙니다' >&2
+    exit 2
+  fi
+  # Only remote write receives run_id; JSONL stays tag-free for the evidence gate.
+  export K6_PROMETHEUS_RW_SERVER_URL="$HA_PROM_RW_URL"
+  export K6_PROMETHEUS_RW_LABELS="run_id=$run_id"
+  export K6_PROMETHEUS_RW_STALE_MARKERS=true
+  export K6_PROMETHEUS_RW_TREND_STATS=count,sum
+  outputs+=(--out experimental-prometheus-rw)
+  remote_write_enabled=1
+fi
+printf '원격 지표 전송=%s\n실시간 백분위=사용하지 않음\n' \
+  "$remote_write_enabled" >> "$run_dir/실행-기록.txt"
 # 1. Stream tag-free k6 points and numeric /proc samples into this run alone.
 cleanup_children() {
   if [[ -n "${sampler_pid:-}" ]]; then kill "$sampler_pid" 2>/dev/null || true; fi
@@ -66,7 +83,7 @@ cleanup_children() {
 trap cleanup_children EXIT
 set +e
 k6 run --quiet --log-format=raw --console-output="$run_dir/k6-events.jsonl" \
-  --out "json=$run_dir/k6-metrics.jsonl" \
+  "${outputs[@]}" \
   "$script_dir/ha_probe_load.js" >/dev/null 2>/dev/null &
 k6_pid=$!
 env -u HA_JWT -u HA_TARGET_URL python3 "$script_dir/ha_load_telemetry.py" sample --pid "$k6_pid" \
@@ -87,10 +104,27 @@ python3 "$script_dir/ha_load_telemetry.py" summarize \
   --metrics "$run_dir/k6-metrics.jsonl" --host "$run_dir/host-samples.csv" \
   --summary "$run_dir/k6-summary.json" --out "$run_dir/계측-1초.csv" \
   > "$run_dir/계측-요약.json" 2>/dev/null || telemetry_exit=$?
+remote_write_exit=0
+if (( remote_write_enabled )); then
+  python3 "$script_dir/verify_ha_prometheus_rw.py" verify \
+    --events "$run_dir/k6-events.jsonl" --run-id "$run_id" \
+    > "$run_dir/원격-지표-대조.json" 2>/dev/null || remote_write_exit=$?
+  if (( remote_write_exit == 2 )); then
+    printf '{"run_id":"%s","status":"검증 불가","final_totals_match":false}\n' \
+      "$run_id" > "$run_dir/원격-지표-대조.json"
+  fi
+fi
 printf '종료 UTC=%s\nk6 종료 코드=%s\nVM 표본기 종료 코드=%s\n1초 계측 검증 종료 코드=%s\n실시간 안전 이벤트=%s건\n원시 k6 stderr=비밀·내부 주소 사전 제거 보장 불가로 수집하지 않음\n' \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$exit_code" "$sampler_exit" "$telemetry_exit" \
   "$(wc -l < "$run_dir/k6-events.jsonl")" >> "$run_dir/실행-기록.txt"
+if (( remote_write_enabled )); then
+  printf '원격 지표 최종 합계 검증 종료 코드=%s\n중간 전송 공백=이 검증으로는 판정 불가\n' \
+    "$remote_write_exit" >> "$run_dir/실행-기록.txt"
+else
+  printf '원격 지표 최종 합계 검증=미사용\n' >> "$run_dir/실행-기록.txt"
+fi
 printf 'run_id=%s k6_exit=%s events=%s\n' "$run_id" "$exit_code" \
   "$(wc -l < "$run_dir/k6-events.jsonl")"
 if (( sampler_exit != 0 || telemetry_exit != 0 )); then exit 98; fi
+if (( remote_write_exit != 0 )); then exit 97; fi
 exit "$exit_code"
