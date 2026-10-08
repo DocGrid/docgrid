@@ -1,7 +1,7 @@
 # 관측 VM 구성·접근 경계 — 2026-10-09
 
 - 실행 ID: `ha446observer20261009a`
-- 최종 확인: 2026-10-09 04:38 KST
+- 최종 확인: 2026-10-09 04:44 KST
 - 목적: 앱/DB 장애와 분리된 관측 경로를 만들되 관리 포트를 외부 인터넷에 공개하지 않는다.
 - 실행 위치: GCP API, 신규 관측 VM, 부하 VM, 앱 A VM.
 - 성공 기준: 관측 VM RUNNING, Prometheus/Grafana 실행, 수집 대상 5/5 UP, k6만 9090 접근, Grafana 인증·loopback, 외부 포트 차단.
@@ -17,7 +17,8 @@
 | Grafana `/api/datasources/uid/ha-prometheus` | 인증 없이 **401**, 보호된 관리자 인증 후 **200**, Prometheus 데이터소스 확인 | Grafana 3000은 **127.0.0.1에만** 바인딩. 관리자 암호는 관측 VM의 읽기 제한 파일에만 있고 문서·로그로 전송하지 않았다. |
 | 부하 VM → 관측 VM `GET /-/ready`; 앱 A → 같은 주소 | 부하 VM **HTTP 200**, 앱 A **연결 불가** | 허용/비허용 원본 VM에서 경계를 각각 시험했다. |
 | 로컬 외부 위치 → 관측 VM 공인 IP TCP 22·3000·9090 | 각 포트 **연결 불가 (3/3)** | IAP SSH는 별도 경로로 성공했다. 공인 IP가 있어도 관리 포트는 외부에서 열리지 않았다. |
+| DB node1 Patroni 실행 설정 탐색 | 실행 프로세스 인자에서 YAML 후보 **1개** 발견 후 호스트 `sudo cat` 읽기 시도 | 호스트에서 읽기 **실패**, REST 쓰기 API의 인증·TLS 설정 **미판정** | `GET /metrics` 성공만으로 변경 API의 인증을 단정할 수 없다. 관리 API에 변이 요청을 보내지는 않았다. |
 
-기존 앱 8081 규칙은 GCP 내부 LB health check에 사용되며 출처 CIDR 두 개가 기존대로 남아 있다. 이를 관측 VM `/32` 하나로 바꾸면 LB 2/2 상태를 깨므로 **관측 VM과 LB health checker만 예외로 허용**한다. 프로젝트에는 정지된 과거 VM 태그를 대상으로 한 공인 3000 허용 규칙도 존재한다. 현재 실행 VM에는 적용되지 않았으며 이번 범위에서 타인의 과거 규칙을 변경하지 않았다. 향후 해당 VM을 재시작할 때 별도 감사가 필요하다.
+기존 앱 8081 규칙은 GCP 내부 LB health check에 사용되며 출처 CIDR 두 개가 기존대로 남아 있다. 이를 관측 VM `/32` 하나로 바꾸면 LB 2/2 상태를 깨므로 **관측 VM과 LB health checker만 예외로 허용**한다. Patroni 8008은 방화벽이 URL 경로를 구분하지 못해 관측 VM에서 지표뿐 아니라 관리 API에도 네트워크상 도달할 수 있다. 이번 점검에서는 변경 API의 인증 구성을 판정하지 못했다. 프로젝트에는 정지된 과거 VM 태그를 대상으로 한 공인 3000 허용 규칙도 존재한다. 현재 실행 VM에는 적용되지 않았으며 이번 범위에서 타인의 과거 규칙을 변경하지 않았다. 향후 해당 VM을 재시작할 때 별도 감사가 필요하다.
 
 관측 VM을 계속 RUNNING으로 두면 **VM 계산 자원·30GB 디스크·사용 중 외부 IPv4** 비용이 지속되며 이미지 다운로드 등의 네트워크 요금도 발생할 수 있다. 외부 IPv4는 패키지·이미지 설치용 outbound를 위해 붙였고 모든 일반 inbound는 차단했다. 정확한 청구액은 계정의 SKU·할인·실제 사용량에 달려 있어 여기서 확정하지 않는다. 관측이 끝나면 VM 중지 여부를 사용자가 결정해야 하며, 중지 후에도 디스크 비용은 남는다. [Google Cloud VM 요금](https://cloud.google.com/products/compute/pricing), [디스크 요금](https://cloud.google.com/compute/disks-image-pricing), [네트워크·외부 IPv4 요금](https://cloud.google.com/vpc/network-pricing). 이번 작업에서는 VM·컨테이너를 내리지 않았다.
