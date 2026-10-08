@@ -35,6 +35,19 @@ Git에서 다음 파일을 수정한다.
 인증·TLS·권한 정책을 적용하고 Dashboard JSON을 가져온다. 이때 Prometheus Data Source UID를
 `docgrid-prometheus`로 만들거나 가져오기 과정에서 조직 Data Source로 교체한다.
 
+## GCP OpenSQL HA 시연 Dashboard
+
+`dashboards/docgrid-ha-demo.json`은 별도 GCP 관측 VM에서 사용하는 수동 가져오기용 Dashboard다.
+번들 Data Source가 아니라 인증된 관측 VM의 Prometheus UID `ha-prometheus`를 요구한다. 앱 A/B,
+Patroni 3노드, Hikari 대기, standby WAL 수신·재생 차이, k6 결과별 응답/초와 활성 VU를 표시한다.
+`run_id` 변수를 선택해 한 실행만 볼 수 있다.
+
+이 화면의 `up=1`은 지표 수집 성공일 뿐 HTTP 쓰기 성공이 아니다. OpenProxy 프로세스 준비 상태는
+현재 Prometheus에 직접 수집하지 않으므로 운영자 장애 로그와 HTTP 원장을 함께 본다. 그래프만으로
+성공 응답 데이터의 보존이나 RPO를 주장하지 않으며 요청 ID별 DB 대조 결과를 별도로 확인한다.
+Remote Write의 누적 Trend p95/p99는 복구 시점 지연으로 오해하기 쉬워 패널에서 제외했다.
+실행·장애 계측 결과는 [GCP HA 대시보드 검증 기록](../../docs/test-results/opensql-ha-live-dashboard-fault-rehearsal-20261009.md)에 둔다.
+
 ## 화면 구성
 
 Dashboard는 `cluster`, `environment`, `instance` 순서로 조회 범위를 좁힌다. 기본값 `All`은 같은
