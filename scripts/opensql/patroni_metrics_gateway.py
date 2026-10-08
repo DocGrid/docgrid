@@ -17,6 +17,9 @@ UPSTREAM_HOST = "127.0.0.1"
 UPSTREAM_PORT = 8008
 UPSTREAM_PATH = "/metrics"
 MAX_METRICS_BYTES = 1024 * 1024
+PRIVATE_NETWORKS = tuple(
+    ipaddress.ip_network(cidr) for cidr in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")
+)
 
 
 class MetricsOnlyHandler(BaseHTTPRequestHandler):
@@ -65,15 +68,24 @@ class MetricsOnlyHandler(BaseHTTPRequestHandler):
         self.send_error(405)
 
 
+def validate_private_bind(value: str) -> str:
+    """Reject wildcard and non-RFC1918 addresses, including special-use ranges."""
+    address = ipaddress.ip_address(value)
+    if address.version != 4 or not any(address in network for network in PRIVATE_NETWORKS):
+        raise ValueError("--bind must be an RFC1918 IPv4 address")
+    return str(address)
+
+
 def main() -> None:
-    """Bind only a supplied private IPv4 address on the metrics-only port."""
+    """Bind only a supplied RFC1918 interface address on the metrics-only port."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bind", required=True)
     args = parser.parse_args()
-    address = ipaddress.ip_address(args.bind)
-    if address.version != 4 or not address.is_private or address.is_loopback:
-        parser.error("--bind must be a private, non-loopback IPv4 address")
-    with ThreadingHTTPServer((str(address), 18008), MetricsOnlyHandler) as server:
+    try:
+        bind_address = validate_private_bind(args.bind)
+    except ValueError as error:
+        parser.error(str(error))
+    with ThreadingHTTPServer((bind_address, 18008), MetricsOnlyHandler) as server:
         server.serve_forever(poll_interval=0.5)
 
 

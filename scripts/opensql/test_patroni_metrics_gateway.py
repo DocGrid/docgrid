@@ -7,7 +7,7 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from patroni_metrics_gateway import MetricsOnlyHandler, ThreadingHTTPServer
+from patroni_metrics_gateway import MetricsOnlyHandler, ThreadingHTTPServer, validate_private_bind
 
 
 class FakeUpstream:
@@ -72,6 +72,13 @@ class PatroniMetricsGatewayTest(unittest.TestCase):
             connection.return_value.request.side_effect = OSError("unavailable")
             status, _ = self.request("GET", "/metrics")
         self.assertEqual(502, status)
+
+    def test_bind_requires_rfc1918_interface(self):
+        """A wildcard or special-use address must not widen the listener."""
+        self.assertEqual("10.0.0.7", validate_private_bind("10.0.0.7"))
+        for address in ("0.0.0.0", "127.0.0.1", "169.254.1.1", "255.255.255.255", "8.8.8.8", "::1"):
+            with self.subTest(address=address), self.assertRaises(ValueError):
+                validate_private_bind(address)
 
 
 if __name__ == "__main__":
