@@ -12,17 +12,20 @@ GCP 내부 부하 VM ── k6 결과별 Counter ── Remote Write :9090 ─�
       │                                                       ▼
 앱 A ─ Actuator :8081 ─┐                             관측 VM Prometheus
 앱 B ─ Actuator :8081 ─┤                               5초 scrape / 2초 timeout
-DB node1 ─ Patroni :8008 ─┤                            7일·15GB 보존 상한
-DB node2 ─ Patroni :8008 ─┤                                     │
-DB node3 ─ Patroni :8008 ─┘                                     ▼
+DB node1 ─ metrics-only :18008 ─┤                    7일·15GB 보존 상한
+DB node2 ─ metrics-only :18008 ─┤                             │
+DB node3 ─ metrics-only :18008 ─┘                             ▼
                                                    Grafana :3000 (loopback)
                                                    관리자 로그인 + IAP SSH 터널
+
+각 DB의 게이트웨이: GET /metrics만 로컬 Patroni :8008로 전달
+                   관리 경로·변경 메서드는 전달하지 않음
 
 OpenProxy A/B는 현재 프로세스·6432 리스너만 재확인했다.
 OpenProxy 자체의 시계열 패널은 이 단계에서 아직 연결하지 않았다.
 ```
 
-앱 지표 2개와 Patroni 지표 3개는 실제 Prometheus 조회에서 모두 `up=1`이었다. Patroni의 `patroni_primary` 값은 1인 노드 하나와 0인 노드 둘, `patroni_postgres_running`은 3/3이었다. 상세 원본 명령·숫자는 [현재 상태 로그](evidence/issue-446/current-state-20261009.md)와 [관측 VM·접근 경계 로그](evidence/issue-446/observer-security-20261009.md)에 목적별로 나눴다.
+앱 지표 2개와 Patroni 지표 3개는 실제 Prometheus의 **active target 5/5**에서 모두 `up`이었다. Patroni의 `patroni_primary` 값은 1인 노드 하나와 0인 노드 둘, `patroni_postgres_running`은 3/3이었다. 기존 8008 target의 오래된 시계열이 조회 시점에 잠시 함께 남아 있었으므로 단순 `up` 결과 개수 대신 active target 포트를 확인했다. 상세 원본 명령·숫자는 [현재 상태 로그](evidence/issue-446/current-state-20261009.md), [관측 VM·접근 경계 로그](evidence/issue-446/observer-security-20261009.md), [지표 전용 경계 보강 로그](evidence/issue-446/gateway-hardening-20261009.md)에 목적별로 나눴다.
 
 ```text
 그림 2 — k6의 두 출력과 각자 주장할 수 있는 범위
@@ -50,6 +53,8 @@ Prometheus 합계가 맞아도 DB의 누락·중복이 0이라고 주장하지 �
 | `scripts/opensql/run_ha_probe_k6.sh` | `HA_PROM_RW_URL`이 있을 때만 JSONL과 Remote Write를 병행하고, `run_id` 원격 라벨·stale marker·최종 카운터 대조를 적용한다. 미설정이면 기존 JSONL 전용 실행을 유지한다. |
 | `scripts/opensql/verify_ha_prometheus_rw.py` | 사설 IPv4 수신 주소만 허용하고, 안전 원장의 완료 상태와 Prometheus 최종 Counter를 실행 ID별로 비교한다. 내부 주소·원시 HTTP 오류는 출력하지 않는다. |
 | `scripts/opensql/test_verify_ha_prometheus_rw.py`, `scripts/opensql/test_ha_load_telemetry.py` | 불완전·중복 원장, 기타 오류, 태그 금지, 최종 합계의 한계를 회귀 시험한다. |
+| `scripts/opensql/patroni_metrics_gateway.py`, `scripts/opensql/patroni_metrics_gateway.service` | DB 호스트의 비권한 프로세스가 정확한 `GET /metrics`만 로컬 Patroni로 전달한다. 기존 Patroni·PostgreSQL 프로세스는 재시작하지 않는다. |
+| `scripts/opensql/test_patroni_metrics_gateway.py` | 관리 경로·변경 메서드 거부, 고정 upstream, upstream 실패 판정의 회귀 시험 4건. |
 | GCP 관측 VM (저장소 비공개 운영 설정) | Prometheus 3.5.5, Grafana 13.2.3, 30GB 디스크, IAP 관리 경로. 실제 내부 대상 주소·Grafana 비밀은 Git에 넣지 않는다. |
 
 ```text
@@ -64,7 +69,9 @@ Prometheus 합계가 맞아도 DB의 누락·중복이 0이라고 주장하지 �
                     └─ SSH 터널 → 관측 VM loopback :3000 (Grafana 로그인)
 
 관측 VM 내부 IP /32 ──▶ 앱 A/B :8081 (metrics)
-관측 VM 내부 IP /32 ──▶ DB 3대 :8008 (Patroni metrics)
+관측 VM 내부 IP /32 ──▶ DB 3대 :18008 (metrics-only)
+관측 VM ──X──▶ DB 3대 :8008 (Patroni 관리 REST)
+부하 VM ──X──▶ 앱 :8081 / DB :18008
 GCP LB health checker ──▶ 앱 A/B :8081 (기존 예외 유지)
 
 앱 A에서 관측 VM :9090 연결: 실패 관측
@@ -72,13 +79,13 @@ GCP LB health checker ──▶ 앱 A/B :8081 (기존 예외 유지)
 외부에서 관측 VM :22/:3000/:9090 연결: 3/3 실패 관측
 ```
 
-Patroni 8008은 읽기 지표뿐 아니라 관리 REST API도 제공하므로, 관측 VM 한 대의 내부 주소만 소스로 허용했다. GCP 방화벽은 URL 경로까지 구분하지 못한다. 실행 프로세스의 YAML 설정은 호스트에서 읽히지 않아 **Patroni 변경 API의 인증·TLS 설정은 미판정**이다. 이 네트워크 경계만으로 관측 VM 프로세스의 무해성을 보장하지 않는다. 관측 VM에는 GCP 서비스 계정을 붙이지 않았다. 보안 확인 세부 사항은 [접근 경계 로그](evidence/issue-446/observer-security-20261009.md)에 있다.
+설치된 DB 컨테이너 안의 실행 Patroni 설정을 확인한 결과 REST API 인증·TLS 항목이 **세 노드 모두 없었다**. 초기에는 관측 VM에서 8008로 직접 수집했고, 이를 위험한 임시 경계로 판정했다. DB 호스트의 지표 전용 게이트웨이를 검증·배포한 뒤 수집을 18008로 전환했다. 기본 VPC 내부 허용 규칙 때문에 초기 8008 허용 규칙만 삭제해도 관측 VM에서 관리 포트에 계속 접속할 수 있었으므로, 관측 VM 출처의 8008을 명시적으로 거부했다. 현재 관측 VM→8008은 3/3 연결 불가이고 18008 지표는 3/3 HTTP 200이다. 다른 기존 VPC 내부 VM의 8008 접근 정책 전체를 바꾼 것은 아니므로, 이는 클러스터 전반의 Patroni 관리 API 보안 완료를 뜻하지 않는다. 관측 VM에는 GCP 서비스 계정을 붙이지 않았다. 순서와 실패·수정 증거는 [지표 전용 경계 보강 로그](evidence/issue-446/gateway-hardening-20261009.md)에 있다.
 
 | 목적·실행 위치 | 실행 명령·방법 | 숫자 결과 | 판정 |
 | --- | --- | --- | --- |
 | 현재 클러스터 · GCP/VM 읽기 | Compute 목록·LB health, 앱 JAR 해시, Patroni REST, etcd 로컬 health·멤버 목록, 프록시 프로세스·리스너 | 앱 **2/2**, DB **3/3**, LB **2/2**, leader **1**·replica **2**, etcd health·멤버 **3/3**, 프록시 **2/2** | 수집 시점 기준 상태 확인. [로그](evidence/issue-446/current-state-20261009.md) |
-| 코드 회귀 · 로컬/부하 VM | Python 세 suite, `bash -n`, `node --check`, k6 2.3.0 `inspect -e ...` | Python **17/17**, Bash·JS·k6 inspect 최종 **각 통과**. 초기 잘못된 unittest 탐색 1회·inspect 환경값 누락 1회 실패 보존 | 코드·런타임 파싱 확인. [로그](evidence/issue-446/local-regression-20261009.md) |
-| 관측 인프라 · GCP | Docker 컨테이너·Prometheus `up`·Patroni 지표·Grafana API·내외부 연결 | 컨테이너 **2/2**, targets **5/5**, primary metric **1/3**, Grafana 무인증 **401**·인증 **200** | 수집·접근 경계 통과. [로그](evidence/issue-446/observer-security-20261009.md) |
+| 코드 회귀 · 로컬/부하 VM | Python 기존 세 suite + 게이트웨이 suite, `bash -n`, `node --check`, k6 2.3.0 `inspect -e ...` | Python **21/21**, Bash·JS·k6 inspect 최종 **각 통과**. 초기 잘못된 unittest 탐색 2회·inspect 환경값 누락 1회 실패 보존 | 코드·런타임 파싱 확인. [기존 로그](evidence/issue-446/local-regression-20261009.md), [게이트웨이 로그](evidence/issue-446/gateway-hardening-20261009.md) |
+| 관측 인프라 · GCP | Docker 컨테이너·Prometheus active targets·Patroni 지표·Grafana API·내외부 연결 | 컨테이너 **2/2**, active targets **5/5**, primary metric **1/3**, Grafana 무인증 **401**·인증 **200** | 수집·접근 경계 통과. [초기 로그](evidence/issue-446/observer-security-20261009.md), [보강 로그](evidence/issue-446/gateway-hardening-20261009.md) |
 | k6 전송 · GCP 내부 부하 VM | `--out json` + `--out experimental-prometheus-rw`, 원장/Counter 대조 | 실행 `ha446rw20261009a`, 안전 이벤트 **2건**, 201 예상·관측 **1/1**, 태그 붙은 JSONL Point **0/5** | **합성 전송 경로 통과**. [로그](evidence/issue-446/remote-write-ha446rw20261009a.md) |
 
 ```text

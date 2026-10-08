@@ -1,7 +1,7 @@
 # 관측 VM 구성·접근 경계 — 2026-10-09
 
 - 실행 ID: `ha446observer20261009a`
-- 최종 확인: 2026-10-09 04:44 KST
+- 초기 구성 확인: 2026-10-09 04:44 KST. 이후 접근 경계를 보강했으며, **이 문서의 8008 허용 상태를 최종 상태로 읽으면 안 된다.**
 - 목적: 앱/DB 장애와 분리된 관측 경로를 만들되 관리 포트를 외부 인터넷에 공개하지 않는다.
 - 실행 위치: GCP API, 신규 관측 VM, 부하 VM, 앱 A VM.
 - 성공 기준: 관측 VM RUNNING, Prometheus/Grafana 실행, 수집 대상 5/5 UP, k6만 9090 접근, Grafana 인증·loopback, 외부 포트 차단.
@@ -22,3 +22,7 @@
 기존 앱 8081 규칙은 GCP 내부 LB health check에 사용되며 출처 CIDR 두 개가 기존대로 남아 있다. 이를 관측 VM `/32` 하나로 바꾸면 LB 2/2 상태를 깨므로 **관측 VM과 LB health checker만 예외로 허용**한다. Patroni 8008은 방화벽이 URL 경로를 구분하지 못해 관측 VM에서 지표뿐 아니라 관리 API에도 네트워크상 도달할 수 있다. 이번 점검에서는 변경 API의 인증 구성을 판정하지 못했다. 프로젝트에는 정지된 과거 VM 태그를 대상으로 한 공인 3000 허용 규칙도 존재한다. 현재 실행 VM에는 적용되지 않았으며 이번 범위에서 타인의 과거 규칙을 변경하지 않았다. 향후 해당 VM을 재시작할 때 별도 감사가 필요하다.
 
 관측 VM을 계속 RUNNING으로 두면 **VM 계산 자원·30GB 디스크·사용 중 외부 IPv4** 비용이 지속되며 이미지 다운로드 등의 네트워크 요금도 발생할 수 있다. 외부 IPv4는 패키지·이미지 설치용 outbound를 위해 붙였고 모든 일반 inbound는 차단했다. 정확한 청구액은 계정의 SKU·할인·실제 사용량에 달려 있어 여기서 확정하지 않는다. 관측이 끝나면 VM 중지 여부를 사용자가 결정해야 하며, 중지 후에도 디스크 비용은 남는다. [Google Cloud VM 요금](https://cloud.google.com/products/compute/pricing), [디스크 요금](https://cloud.google.com/compute/disks-image-pricing), [네트워크·외부 IPv4 요금](https://cloud.google.com/vpc/network-pricing). 이번 작업에서는 VM·컨테이너를 내리지 않았다.
+
+## 뒤이은 보안 정정
+
+호스트에서 읽히지 않던 실행 YAML은 **DB 컨테이너 내부**에서 다시 확인했다. 세 노드 모두 Patroni `restapi`에 인증·TLS 항목이 없었다. 초기의 관측 VM→8008 `/32` 허용은 관리 REST API에 대한 네트워크 접근도 열었으므로 최종 정책으로 부적절했다. 지표 전용 18008 게이트웨이를 설치하고 Prometheus active target 5/5를 확인한 뒤, 우리가 만든 8008 허용 규칙을 삭제했다. 그러나 기존 `default-allow-internal` 규칙 때문에 관측 VM→8008 연결이 여전히 **3/3 OPEN**인 실패 결과가 나왔다. 이후 관측 VM 출처의 DB 8008을 더 높은 우선순위로 명시적으로 거부했고, 최종 재검증에서는 **3/3 CLOSED**였다. 전체 변경·시험·남는 VPC 내부 위험은 [별도 보강 로그](gateway-hardening-20261009.md)에 보존한다.
