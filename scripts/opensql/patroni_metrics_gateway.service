@@ -1,0 +1,20 @@
+[Unit]
+Description=DocGrid Patroni metrics-only gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+EnvironmentFile=/etc/default/docgrid-patroni-metrics-gateway
+ExecStart=/usr/bin/python3 /usr/local/lib/docgrid/patroni_metrics_gateway.py --bind ${BIND_IP}
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target
