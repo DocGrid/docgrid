@@ -63,7 +63,7 @@ class HaDashboardTest(unittest.TestCase):
         self.assertNotIn("p95", expressions)
 
     def test_http_class_cards_keep_received_statuses_separate_from_unknown(self):
-        """A selected run exposes four cumulative code classes alongside rates."""
+        """A selected run separates four HTTP classes from unknown outcomes."""
         panels = {panel["id"]: panel for panel in self.dashboard["panels"]}
         promql_fixture = (
             DASHBOARD.parent.parent / "tests" / "ha_dashboard_http_classes.yml"
@@ -87,6 +87,11 @@ class HaDashboardTest(unittest.TestCase):
             )
         self.assertIn("결과 불명", self.dashboard["description"])
         self.assertLess(panels[15]["gridPos"]["y"], panels[7]["gridPos"]["y"])
+        unknown = panels[19]
+        self.assertEqual("stat", unknown["type"])
+        self.assertIn("k6_ha_outcome_unknown_total", unknown["targets"][0]["expr"])
+        self.assertIn("last_over_time", unknown["targets"][0]["expr"])
+        self.assertEqual("gray", unknown["fieldConfig"]["defaults"]["thresholds"]["steps"][0]["color"])
 
     def test_run_filter_and_interpretation(self):
         """A recorded run is selectable, and RPO remains an external-DB claim."""
@@ -159,11 +164,32 @@ class HaDashboardTest(unittest.TestCase):
         panels = {panel["id"]: panel for panel in self.dashboard["panels"]}
         self.assertIn("http_server_requests_seconds_count", panels[11]["targets"][0]["expr"])
         self.assertIn("LB", panels[11]["description"])
+        self.assertIn("increase(", panels[11]["targets"][0]["expr"])
+        self.assertIn("[15s]", panels[11]["targets"][0]["expr"])
+        self.assertIn("15초", panels[11]["title"])
+        self.assertEqual("short", panels[11]["fieldConfig"]["defaults"]["unit"])
         self.assertIn("hikaricp_connections_timeout_total", panels[12]["targets"][0]["expr"])
         self.assertIn("[15s]", panels[12]["targets"][0]["expr"])
         self.assertIn("axisSoftMax", panels[12]["fieldConfig"]["defaults"]["custom"])
         self.assertEqual("never", panels[7]["fieldConfig"]["defaults"]["custom"]["showPoints"])
-        self.assertIn("k6_ha_outcome_500_total", panels[7]["targets"][1]["expr"])
+        self.assertEqual(1, len(panels[7]["targets"]))
+        self.assertIn("k6_ha_outcome_201_total", panels[7]["targets"][0]["expr"])
+        self.assertIn("[15s]", panels[7]["targets"][0]["expr"])
+
+    def test_sparse_failures_are_cumulative_steps(self):
+        """A single 500 sample must not depend on two samples for rate()."""
+        panels = {panel["id"]: panel for panel in self.dashboard["panels"]}
+        failure = panels[20]
+        self.assertEqual("timeseries", failure["type"])
+        self.assertEqual("stepAfter", failure["fieldConfig"]["defaults"]["custom"]["lineInterpolation"])
+        self.assertEqual("short", failure["fieldConfig"]["defaults"]["unit"])
+        self.assertEqual(4, len(failure["targets"]))
+        for target, suffix in zip(failure["targets"], ("500", "503", "other_failed", "unknown")):
+            self.assertIn(f"k6_ha_outcome_{suffix}_total", target["expr"])
+            self.assertIn("last_over_time", target["expr"])
+            self.assertNotIn("rate(", target["expr"])
+            self.assertIn("k6_vus", target["expr"])
+        self.assertIn("원장", failure["description"])
 
     def test_annotation_source_is_explicit_fault_event(self):
         """Show recorded fault events rather than a marker for every failed scrape."""
