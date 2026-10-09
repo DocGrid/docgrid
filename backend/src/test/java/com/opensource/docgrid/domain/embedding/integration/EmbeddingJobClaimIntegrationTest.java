@@ -119,6 +119,43 @@ class EmbeddingJobClaimIntegrationTest {
     }
 
     @Test
+    @DisplayName("시험 문서 버전의 Claim 조회는 더 높은 우선순위의 다른 문서 Job을 제외한다")
+    void findNextPendingForDocumentVersionForUpdate_excludesOtherVersions() {
+        Long selectedVersionId = insertDocumentVersion();
+        Long otherVersionId = insertDocumentVersion();
+        Long selectedJobId = insertJob(selectedVersionId, "PENDING", 1, "2026-07-22 10:00:00");
+        insertJob(otherVersionId, "PENDING", 100, "2026-07-22 09:00:00");
+
+        Long actualJobId = inNewTransaction(() -> embeddingJobRepository
+            .findNextPendingForDocumentVersionForUpdate(CLAIMED_AT, selectedVersionId)
+            .orElseThrow()
+            .getId());
+
+        assertThat(actualJobId).isEqualTo(selectedJobId);
+    }
+
+    @Test
+    @DisplayName("시험 문서 버전의 Lease 복구 후보 조회는 다른 문서를 제외한다")
+    void findExpiredProcessingJobIdsForDocumentVersion_excludesOtherVersions() {
+        Long selectedVersionId = insertDocumentVersion();
+        Long otherVersionId = insertDocumentVersion();
+        Long selectedJobId = insertJob(selectedVersionId, "PROCESSING", 1, "2026-07-22 10:00:00");
+        Long otherJobId = insertJob(otherVersionId, "PROCESSING", 1, "2026-07-22 09:00:00");
+        jdbcTemplate.update(
+            "UPDATE embedding_jobs SET lock_expires_at = CAST(? AS TIMESTAMP) WHERE id IN (?, ?)",
+            "2026-08-03 09:00:00",
+            selectedJobId,
+            otherJobId
+        );
+
+        assertThat(embeddingJobRepository.findExpiredProcessingJobIdsForDocumentVersion(
+            CLAIMED_AT,
+            100,
+            selectedVersionId
+        )).containsExactly(selectedJobId);
+    }
+
+    @Test
     @DisplayName("다른 트랜잭션이 잠근 PENDING Job은 기다리지 않고 다음 Job을 선택한다")
     void findNextPendingForUpdate_skipsLockedRow() throws Exception {
         Long documentVersionId = insertDocumentVersion();
