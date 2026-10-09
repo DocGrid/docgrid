@@ -1,0 +1,15 @@
+# 관측 VM의 기존 scrape_configs에 추가한다. 내부 주소는 실제 배포 시에만 대입한다.
+- job_name: openproxy-tcp
+  metrics_path: /probe
+  params:
+    module: [tcp_connect]
+  static_configs:
+    - targets: ["<proxy-A-internal-host>:6432"]
+      labels: {node: "proxy-A"}
+    - targets: ["<proxy-B-internal-host>:6432"]
+      labels: {node: "proxy-B"}
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - target_label: __address__
+      replacement: blackbox-exporter:9115

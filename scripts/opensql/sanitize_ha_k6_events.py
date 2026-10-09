@@ -44,7 +44,8 @@ def safe_event(value: object, run_id: str) -> dict:
        kind == "acknowledged" and value["http_status"] != 201:
         raise ValueError("unexpected success status")
     if kind == "failed" and (type(value["http_status"]) is not int or
-                             not 300 <= value["http_status"] < 600):
+                             not 200 <= value["http_status"] < 600 or
+                             value["http_status"] == 201):
         raise ValueError("unexpected failure status")
     if kind == "unknown" and value["reason"] not in {"timeout", "connection_lost", "client_stopped", "other"}:
         raise ValueError("unexpected unknown reason")

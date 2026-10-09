@@ -28,6 +28,8 @@ GCP 부하 VM: k6 ──HTTP request_id──▶ 내부 LB ──▶ 앱 A/B
 
 Grafana Dashboard UID는 `docgrid-opensql-ha-live`다. 패널 8개(제목 Row 2개 포함), `run_id` 선택 변수 1개이며 인증된 관측 VM에 실제 가져와 읽어 보았다. OpenProxy **프로세스 상태 자체는 Prometheus에 직접 수집하지 않는다.** 따라서 화면만으로 A/B 프록시가 살아 있다고 판단하지 않고 장애 가드의 프로세스·포트 확인과 HTTP 결과를 함께 사용한다. k6 Remote Write의 누적 p95/p99를 구간 복구 지연인 것처럼 표시하지 않도록 해당 패널을 제외했다.
 
+위 **8패널은 이 절의 장애 실행 당시 구성**이다. 이후 같은 작업 브랜치에서 OpenProxy의 관측 VM 기준 TCP 포트 지표와 HTTP 2xx·3xx·4xx·5xx 누적 카드 등을 더해 **18패널**로 확장했다. [후속 실행별 기록](evidence/ha-dashboard-preview-20261009/run-09-live-dashboard-apply.md)과 [새 정상 기준선](evidence/ha-dashboard-preview-20261009/run-07-http-baseline.md)을 구분해 읽어야 한다. TCP 포트 연결은 OpenProxy 프로세스 상태·SQL 처리 성공·앱에서 사용하는 경로의 증거가 아니며, 아래 OpenProxy·primary 장애 실행을 새 카드 구성으로 다시 실행했다고 주장하지 않는다.
+
 ## 실행 결과
 
 | 실행 ID | 조건 | HTTP 결과 | 드롭 | p95 / p99 | 요청 ID별 DB 판정 |

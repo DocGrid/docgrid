@@ -50,6 +50,21 @@ class HaPrometheusRemoteWriteTest(unittest.TestCase):
             self.write_event(request_id, kind, **fields)
         self.assertEqual({name: 1 for name in remote_write.OUTCOMES},
                          remote_write.expected_outcomes(self.events, self.run_id))
+        counts = remote_write.expected_counts(self.events, self.run_id)
+        self.assertEqual(
+            {"http_2xx": 1, "http_3xx": 0, "http_4xx": 0, "http_5xx": 3},
+            {name: counts[name] for name in ("http_2xx", "http_3xx", "http_4xx", "http_5xx")},
+        )
+
+    def test_http_class_counts_include_redirect_and_client_error(self):
+        """Every received status class is visible without exposing status tags."""
+        for index, status in enumerate((200, 302, 401, 504)):
+            request_id = f"{self.run_id}-v1-i{index}"
+            self.write_event(request_id, "sent", operation="ha_probe_write")
+            self.write_event(request_id, "failed", http_status=status)
+        counts = remote_write.expected_counts(self.events, self.run_id)
+        self.assertEqual([1, 1, 1, 1], [counts[f"http_{name}"] for name in remote_write.HTTP_CLASSES])
+        self.assertEqual(4, counts["other_failed"])
 
     def test_rejects_missing_or_duplicate_terminal_events(self):
         """An incomplete client ledger cannot validate remote-write delivery."""
@@ -97,6 +112,9 @@ class HaPrometheusRemoteWriteTest(unittest.TestCase):
         self.assertEqual(3, count)
         self.assertIn("k6_ha_outcome_201_total", opener.url)
         self.assertIn("last_over_time", opener.url)
+        with patch.object(remote_write, "build_opener", return_value=opener):
+            remote_write.remote_count("http://10.1.2.3:9090/api/v1/query", self.run_id, "http_5xx")
+        self.assertIn("k6_ha_http_5xx_total", opener.url)
 
     def test_verdict_explicitly_excludes_live_gaps_and_database_effects(self):
         """Matching totals do not claim a continuous graph or RPO 0."""
@@ -104,7 +122,7 @@ class HaPrometheusRemoteWriteTest(unittest.TestCase):
         self.write_event(request_id, "sent", operation="ha_probe_write")
         self.write_event(request_id, "acknowledged", http_status=201)
         with patch.object(remote_write, "remote_count", side_effect=lambda _, __, name:
-                          1 if name == "201" else 0):
+                          1 if name in ("201", "http_2xx") else 0):
             result = remote_write.verify(
                 self.events, self.run_id, "http://10.1.2.3:9090/api/v1/write")
         self.assertTrue(result["final_totals_match"])

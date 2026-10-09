@@ -57,6 +57,27 @@ class SanitizedHaK6EventsTest(unittest.TestCase):
             SANITIZER.sanitize(self.source, self.output, "ha391b100")
         self.assertFalse(self.output.exists())
 
+    def test_unexpected_http_200_is_safe_failed_evidence(self):
+        """An HTTP response can be 2xx while violating the probe's 201 contract."""
+        failed = {
+            "at": "2026-10-02T11:40:48.234Z", "event_id": "ha391b100-v1-i0-failed",
+            "kind": "failed", "http_status": 200,
+            "request_id": "ha391b100-v1-i0", "run_id": "ha391b100",
+        }
+        self.write(self.sent, failed)
+        self.assertEqual(2, SANITIZER.sanitize(self.source, self.output, "ha391b100"))
+
+    def test_failed_201_is_rejected(self):
+        """The only accepted 201 classification is acknowledged."""
+        failed = {
+            "at": "2026-10-02T11:40:48.234Z", "event_id": "ha391b100-v1-i0-failed",
+            "kind": "failed", "http_status": 201,
+            "request_id": "ha391b100-v1-i0", "run_id": "ha391b100",
+        }
+        self.write(self.sent, failed)
+        with self.assertRaises(ValueError):
+            SANITIZER.sanitize(self.source, self.output, "ha391b100")
+
 
 if __name__ == "__main__":
     unittest.main()

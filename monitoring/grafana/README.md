@@ -39,14 +39,26 @@ Git에서 다음 파일을 수정한다.
 
 `dashboards/docgrid-ha-demo.json`은 별도 GCP 관측 VM에서 사용하는 수동 가져오기용 Dashboard다.
 번들 Data Source가 아니라 인증된 관측 VM의 Prometheus UID `ha-prometheus`를 요구한다. 앱 A/B,
-Patroni 3노드, Hikari 대기, standby WAL 수신·재생 차이, k6 결과별 응답/초와 활성 VU를 표시한다.
-`run_id` 변수를 선택해 한 실행만 볼 수 있다.
+Patroni 3노드의 수집·역할 상태와 관측 VM에서 본 OpenProxy A/B TCP 포트 연결을 타임라인으로 표시하고,
+현재 primary·timeline·연결 가능한 프록시 포트 수, 실행 ID별 HTTP 2xx·3xx·4xx·5xx 누적 응답 건수, 앱별 5xx,
+Hikari 대기·연결 timeout, standby WAL 수신·재생 차이, k6 결과별 응답/초와 활성 VU를 보여준다.
+`run_id` 변수를 선택해 한 실행만 볼 수 있다. `All`이면 최근 10분 이내 여러 실행의 건수가
+합산될 수 있으므로 영상에서는 특정 실행 ID를 선택한다. 코드 대역 카드에는 응답이 오지 않은
+결과 불명 요청이 포함되지 않으며, 이 건수는 아래 결과별 응답/초 그래프와 안전 원장에서 별도로 확인한다.
 
-이 화면의 `up=1`은 지표 수집 성공일 뿐 HTTP 쓰기 성공이 아니다. OpenProxy 프로세스 준비 상태는
-현재 Prometheus에 직접 수집하지 않으므로 운영자 장애 로그와 HTTP 원장을 함께 본다. 그래프만으로
+이 화면의 `up=1`은 지표 수집 성공일 뿐 HTTP 쓰기 성공이 아니며, `up=0`만으로 VM 중단을
+확정하지 않는다. 앱별 5xx는 LB가 직접 반환한 오류를 포함하지 않을 수 있다. OpenProxy 포트 연결은
+관측 VM에서 Blackbox Exporter의 TCP probe로 확인하며 SQL 성공을 보장하지 않는다. 앱→프록시 연결 경로는
+현재 Prometheus에 직접 수집하지 않으므로 운영자 장애 로그와 HTTP 원장을
+함께 본다. 장애 주입·복구 annotation은 설정만 있으며 실제 이벤트를 기록해야 화면에 나타난다. 그래프만으로
 성공 응답 데이터의 보존이나 RPO를 주장하지 않으며 요청 ID별 DB 대조 결과를 별도로 확인한다.
 Remote Write의 누적 Trend p95/p99는 복구 시점 지연으로 오해하기 쉬워 패널에서 제외했다.
 실행·장애 계측 결과는 [GCP HA 대시보드 검증 기록](../../docs/test-results/opensql-ha-live-dashboard-fault-rehearsal-20261009.md)에 둔다.
+
+OpenProxy 관측에는 `monitoring/blackbox/blackbox.yml`의 TCP 전용 모듈을 사용한다.
+Prometheus 잡의 재현용 형식은 `monitoring/blackbox/prometheus-scrape.example.yml`에 있으며,
+실제 두 내부 대상 주소는 관측 VM 설정에만 둔다. Exporter는 관측 VM의 Prometheus와 같은
+내부 Docker 네트워크에서 실행하고 호스트 포트를 게시하지 않는다.
 
 ## 화면 구성
 
