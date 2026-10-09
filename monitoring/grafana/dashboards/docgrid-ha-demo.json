@@ -160,23 +160,23 @@
       "id": 15,
       "type": "stat",
       "title": "2xx 누적 응답",
-      "description": "선택한 실행 ID에서 HTTP 2xx 응답을 받은 누적 건수. 결과 불명은 포함하지 않는다. All 선택 시 최근 10분에 기록된 모든 실행의 합계다.",
+      "description": "선택한 실행 ID에서 HTTP 2xx 응답을 받은 누적 건수. k6 VU 지표가 있고 2xx 응답이 없으면 0으로 표시한다. 결과 불명은 포함하지 않는다. All 선택 시 최근 10분에 기록된 모든 실행의 합계다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
       "gridPos": {"x": 0, "y": 11, "w": 6, "h": 3},
-      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "gray", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
       "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "colorMode": "value", "graphMode": "none"},
-      "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_2xx_total{run_id=~\"$run_id\"}[10m]))", "instant": true, "legendFormat": "2xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
+      "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_2xx_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "2xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
     },
     {
       "id": 16,
       "type": "stat",
       "title": "3xx 누적 응답",
-      "description": "선택한 실행 ID에서 HTTP 3xx 응답을 받은 누적 건수. 지표가 아직 없는 경우, 2xx가 수집된 실행에 한해서 0으로 표시한다.",
+      "description": "선택한 실행 ID에서 HTTP 3xx 응답을 받은 누적 건수. k6 VU 지표가 있고 3xx 응답이 없으면 0으로 표시한다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
       "gridPos": {"x": 6, "y": 11, "w": 6, "h": 3},
-      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}]}}, "overrides": []},
+      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "gray", "value": null}, {"color": "yellow", "value": 1}]}}, "overrides": []},
       "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "colorMode": "value", "graphMode": "none"},
-      "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_3xx_total{run_id=~\"$run_id\"}[10m])) or (sum(last_over_time(k6_ha_http_2xx_total{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "3xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
+      "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_3xx_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "3xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
     },
     {
       "id": 17,
@@ -185,9 +185,9 @@
       "description": "선택한 실행 ID에서 HTTP 4xx 응답을 받은 누적 건수. 결과 불명은 포함하지 않는다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
       "gridPos": {"x": 12, "y": 11, "w": 6, "h": 3},
-      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}]}}, "overrides": []},
+      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "gray", "value": null}, {"color": "yellow", "value": 1}]}}, "overrides": []},
       "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "colorMode": "value", "graphMode": "none"},
-      "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_4xx_total{run_id=~\"$run_id\"}[10m])) or (sum(last_over_time(k6_ha_http_2xx_total{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "4xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
+      "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_4xx_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "4xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
     },
     {
       "id": 18,
@@ -196,9 +196,9 @@
       "description": "선택한 실행 ID에서 HTTP 5xx 응답을 받은 누적 건수. 결과 불명은 포함하지 않는다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
       "gridPos": {"x": 18, "y": 11, "w": 6, "h": 3},
-      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
+      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "gray", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
       "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "colorMode": "value", "graphMode": "none"},
-      "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_5xx_total{run_id=~\"$run_id\"}[10m])) or (sum(last_over_time(k6_ha_http_2xx_total{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "5xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
+      "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_5xx_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "5xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
     }
   ],
   "refresh": "5s",
@@ -210,8 +210,8 @@
       "label": "실행 ID",
       "type": "query",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
-      "definition": "label_values(k6_ha_outcome_201_total, run_id)",
-      "query": {"query": "label_values(k6_ha_outcome_201_total, run_id)", "refId": "PrometheusVariableQueryEditor-VariableQuery"},
+      "definition": "label_values(k6_vus, run_id)",
+      "query": {"query": "label_values(k6_vus, run_id)", "refId": "PrometheusVariableQueryEditor-VariableQuery"},
       "includeAll": true,
       "allValue": ".*",
       "current": {"selected": true, "text": "All", "value": "$__all"},

@@ -65,6 +65,9 @@ class HaDashboardTest(unittest.TestCase):
     def test_http_class_cards_keep_received_statuses_separate_from_unknown(self):
         """A selected run exposes four cumulative code classes alongside rates."""
         panels = {panel["id"]: panel for panel in self.dashboard["panels"]}
+        promql_fixture = (
+            DASHBOARD.parent.parent / "tests" / "ha_dashboard_http_classes.yml"
+        ).read_text(encoding="utf-8")
         for panel_id, name in zip((15, 16, 17, 18), ("2xx", "3xx", "4xx", "5xx")):
             panel = panels[panel_id]
             self.assertEqual("stat", panel["type"])
@@ -73,6 +76,15 @@ class HaDashboardTest(unittest.TestCase):
             self.assertIn('run_id=~"$run_id"', panel["targets"][0]["expr"])
             self.assertIn("누적", panel["title"])
             self.assertEqual("none", panel["fieldConfig"]["defaults"]["unit"])
+            # 1. A run with no 201 response still has a VU series to anchor zero counts.
+            self.assertIn(
+                'or (max(last_over_time(k6_vus{run_id=~"$run_id"}[10m])) * 0)',
+                panel["targets"][0]["expr"],
+            )
+            self.assertIn(panel["targets"][0]["expr"].replace("$run_id", "r403"), promql_fixture)
+            self.assertEqual(
+                "gray", panel["fieldConfig"]["defaults"]["thresholds"]["steps"][0]["color"]
+            )
         self.assertIn("결과 불명", self.dashboard["description"])
         self.assertLess(panels[15]["gridPos"]["y"], panels[7]["gridPos"]["y"])
 
@@ -82,6 +94,9 @@ class HaDashboardTest(unittest.TestCase):
         self.assertEqual(["run_id"], [variable["name"] for variable in variables])
         self.assertIn("run_id=~", json.dumps(self.dashboard["panels"]))
         self.assertIn("요청 ID 원장과 DB 대조", self.dashboard["description"])
+        # 2. The run selector cannot depend on receiving HTTP 201.
+        self.assertEqual("label_values(k6_vus, run_id)", variables[0]["definition"])
+        self.assertEqual(variables[0]["definition"], variables[0]["query"]["query"])
         self.assertEqual(2, variables[0]["refresh"])
 
     def test_wal_panel_excludes_primary(self):
