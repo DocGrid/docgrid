@@ -4,9 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.Set;
+import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -31,8 +35,39 @@ class IndexingWorkerPropertiesTest {
         assertThat(properties.getIdleMaxPollingInterval()).isEqualTo(Duration.ofSeconds(10));
         assertThat(properties.getMaxConcurrency()).isEqualTo(2);
         assertThat(properties.getShutdownGracePeriod()).isEqualTo(Duration.ofSeconds(30));
+        assertThat(properties.getDocumentVersionIdFilter()).isNull();
         assertThat(properties.isPollingIntervalValid()).isTrue();
         assertThat(properties.isShutdownGracePeriodValid()).isTrue();
+    }
+
+    @Test
+    @DisplayName("시험 문서 버전 필터는 양수만 허용한다")
+    void documentVersionIdFilter_requiresPositiveId() {
+        IndexingWorkerProperties properties = new IndexingWorkerProperties();
+
+        properties.setDocumentVersionIdFilter(0L);
+        assertThat(validator.validate(properties)).isNotEmpty();
+
+        properties.setDocumentVersionIdFilter(42L);
+        assertThat(validator.validate(properties)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("빈 환경변수 기본값은 문서 버전 필터를 적용하지 않는다")
+    void documentVersionIdFilter_emptyConfigurationKeepsDefaultBehavior() {
+        Binder binder = new Binder(new MapConfigurationPropertySource(
+            Map.of(
+                "indexing.worker.enabled", "false",
+                "indexing.worker.document-version-id-filter", ""
+            )
+        ));
+
+        IndexingWorkerProperties properties = binder.bind(
+            "indexing.worker",
+            Bindable.of(IndexingWorkerProperties.class)
+        ).orElseThrow(IllegalStateException::new);
+
+        assertThat(properties.getDocumentVersionIdFilter()).isNull();
     }
 
     @Test

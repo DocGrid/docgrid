@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 import com.opensource.docgrid.domain.worker.execution.WorkerExecutionSlotPool;
@@ -29,11 +31,17 @@ public class WorkerExecutionConfig {
      * 최대 동시 실행 수와 같은 크기의 무대기 Job Executor를 만든다.
      */
     @Bean(name = WORKER_JOB_EXECUTOR, destroyMethod = "shutdownNow")
-    public ThreadPoolExecutor workerJobExecutor(IndexingWorkerProperties properties) {
-        // 1. DB Claim 수와 실제 실행 Thread 수가 같은 상한을 공유하도록 설정값을 사용한다.
+    public ThreadPoolExecutor workerJobExecutor(IndexingWorkerProperties properties, Environment environment) {
+        // 1. 시험 범위를 제한하는 설정을 일반 운영 프로필에서 실수로 활성화하지 못하게 시작을 중단한다.
+        if (properties.getDocumentVersionIdFilter() != null
+            && !environment.acceptsProfiles(Profiles.of("worker-scope-test"))) {
+            throw new IllegalStateException("문서 버전 한정 Worker는 worker-scope-test 프로필에서만 실행할 수 있습니다.");
+        }
+
+        // 2. DB Claim 수와 실제 실행 Thread 수가 같은 상한을 공유하도록 설정값을 사용한다.
         int maxConcurrency = properties.getMaxConcurrency();
 
-        // 2. SynchronousQueue와 AbortPolicy로 실행 여력이 없을 때 Task를 적재하지 않고 즉시 거부한다.
+        // 3. SynchronousQueue와 AbortPolicy로 실행 여력이 없을 때 Task를 적재하지 않고 즉시 거부한다.
         return new ThreadPoolExecutor(
             maxConcurrency,
             maxConcurrency,

@@ -63,10 +63,11 @@ class EmbeddingJobClaimServiceTest {
     @Mock private ApplicationEventPublisher applicationEventPublisher;
 
     private EmbeddingJobClaimService embeddingJobClaimService;
+    private IndexingWorkerProperties properties;
 
     @BeforeEach
     void setUp() {
-        IndexingWorkerProperties properties = new IndexingWorkerProperties();
+        properties = new IndexingWorkerProperties();
         properties.setDeadThreshold(Duration.ofSeconds(30));
         properties.setLeaseDuration(Duration.ofMinutes(5));
         Clock clock = Clock.fixed(NOW_INSTANT, ZONE_ID);
@@ -135,6 +136,21 @@ class EmbeddingJobClaimServiceTest {
         given(embeddingJobConverter.toClaimedResponse(embeddingJob)).willReturn(expected);
 
         assertThat(embeddingJobClaimService.claim(WorkerNodeFixture.WORKER_ID)).contains(expected);
+    }
+
+    @Test
+    @DisplayName("문서 버전 범위를 지정하면 그 버전의 Job만 Claim 후보로 조회한다")
+    void claim_queriesOnlySelectedDocumentVersion_when_filterIsSet() {
+        properties.setDocumentVersionIdFilter(42L);
+        WorkerNode workerNode = createWorker(WorkerStatus.ACTIVE, NOW);
+        given(workerNodeRepository.findById(WorkerNodeFixture.WORKER_ID)).willReturn(Optional.of(workerNode));
+        given(embeddingJobRepository.findNextPendingForDocumentVersionForUpdate(NOW, 42L))
+            .willReturn(Optional.empty());
+
+        assertThat(embeddingJobClaimService.claim(WorkerNodeFixture.WORKER_ID)).isEmpty();
+        then(embeddingJobRepository).should().findNextPendingForDocumentVersionForUpdate(NOW, 42L);
+        then(embeddingJobRepository).should(never()).findNextPendingForUpdate(any());
+        then(indexingEventRepository).shouldHaveNoInteractions();
     }
 
     @Test

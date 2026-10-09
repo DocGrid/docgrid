@@ -34,6 +34,10 @@ public class IndexingWorkerProperties {
     // API 전용 실행에서는 Worker 등록과 Scheduler가 동작하지 않도록 기본값을 false로 유지한다.
     private boolean enabled = false;
 
+    // 시험 프로필에서만 지정한 문서 버전의 Job을 Claim·복구한다. 미설정이면 기존 전체 Queue 동작을 유지한다.
+    @Min(1)
+    private Long documentVersionIdFilter;
+
     @NotBlank
     private String name = "indexing-worker";
 
