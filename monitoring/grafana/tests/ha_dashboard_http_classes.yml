@@ -1,0 +1,53 @@
+# Synthetic PromQL checks: a 403-only run has no HTTP 201 or 2xx series.
+rule_files: []
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'k6_vus{run_id="r403"}'
+        values: '1 1 1 1'
+      - series: 'k6_ha_http_4xx_total{run_id="r403"}'
+        values: '6 6 6 6'
+    promql_expr_test:
+      - expr: 'sum(last_over_time(k6_ha_http_2xx_total{run_id=~"r403"}[10m])) or (max(last_over_time(k6_vus{run_id=~"r403"}[10m])) * 0)'
+        eval_time: 3m
+        exp_samples:
+          - labels: '{}'
+            value: 0
+      - expr: 'sum(last_over_time(k6_ha_http_3xx_total{run_id=~"r403"}[10m])) or (max(last_over_time(k6_vus{run_id=~"r403"}[10m])) * 0)'
+        eval_time: 3m
+        exp_samples:
+          - labels: '{}'
+            value: 0
+      - expr: 'sum(last_over_time(k6_ha_http_4xx_total{run_id=~"r403"}[10m])) or (max(last_over_time(k6_vus{run_id=~"r403"}[10m])) * 0)'
+        eval_time: 3m
+        exp_samples:
+          - labels: '{}'
+            value: 6
+      - expr: 'sum(last_over_time(k6_ha_http_5xx_total{run_id=~"r403"}[10m])) or (max(last_over_time(k6_vus{run_id=~"r403"}[10m])) * 0)'
+        eval_time: 3m
+        exp_samples:
+          - labels: '{}'
+            value: 0
+  - interval: 1m
+    input_series:
+      - series: 'k6_vus{run_id="r201"}'
+        values: '1 1 1 1'
+      - series: 'k6_ha_http_2xx_total{run_id="r201"}'
+        values: '1801 1801 1801 1801'
+    promql_expr_test:
+      - expr: 'sum(last_over_time(k6_ha_http_2xx_total{run_id=~"r201"}[10m])) or (max(last_over_time(k6_vus{run_id=~"r201"}[10m])) * 0)'
+        eval_time: 3m
+        exp_samples:
+          - labels: '{}'
+            value: 1801
+      - expr: 'sum(last_over_time(k6_ha_http_4xx_total{run_id=~"r201"}[10m])) or (max(last_over_time(k6_vus{run_id=~"r201"}[10m])) * 0)'
+        eval_time: 3m
+        exp_samples:
+          - labels: '{}'
+            value: 0
+  - interval: 1m
+    promql_expr_test:
+      - expr: 'sum(last_over_time(k6_ha_http_2xx_total{run_id=~"missing"}[10m])) or (max(last_over_time(k6_vus{run_id=~"missing"}[10m])) * 0)'
+        eval_time: 3m
+        exp_samples: []

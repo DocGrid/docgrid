@@ -1,0 +1,11 @@
+{
+  "run_id": "ha449run0001",
+  "purpose": "Grafana 및 요청 ID별 DB 대조 정상 부하 리허설",
+  "location": "GCP 내부 부하 발생기에서 내부 LB로 HTTP 쓰기",
+  "rate_per_second": 30,
+  "duration_seconds": 60,
+  "initial_vus": 80,
+  "max_vus": 160,
+  "target": "내부 LB 주소 비공개",
+  "jwt": "시험용 단기 토큰 값 비공개"
+}

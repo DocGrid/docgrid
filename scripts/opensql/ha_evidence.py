@@ -149,8 +149,9 @@ def replay(manifest, events):
             status = event.get("http_status")
             if kind == "acknowledged" and (not isinstance(status, int) or not 200 <= status < 300):
                 raise EvidenceError("성공 응답에는 2xx HTTP 상태가 필요합니다")
-            if kind == "failed" and (not isinstance(status, int) or not 300 <= status < 600):
-                raise EvidenceError("실패 응답에는 3xx~5xx HTTP 상태가 필요합니다")
+            if kind == "failed" and (not isinstance(status, int) or
+                                      not 200 <= status < 600 or status == 201):
+                raise EvidenceError("실패 응답에는 201 이외 2xx~5xx HTTP 상태가 필요합니다")
             if kind == "unknown" and (status is not None or event.get("reason") not in
                                       {"timeout", "connection_lost", "client_stopped", "other"}):
                 raise EvidenceError("결과 불명에는 허용된 사유만 기록합니다")

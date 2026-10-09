@@ -77,6 +77,15 @@ class HaEvidenceTest(unittest.TestCase):
         with self.assertRaisesRegex(EVIDENCE.EvidenceError, "미완료"):
             EVIDENCE.append_event(self.directory, "failed", request_id="one", http_status=500)
 
+    def test_unexpected_2xx_is_recorded_as_failed_not_unknown(self):
+        """A received HTTP 200 still has a code class but violates the 201 contract."""
+        EVIDENCE.append_event(self.directory, "sent", request_id="unexpected", operation="write")
+        with self.assertRaisesRegex(EVIDENCE.EvidenceError, "201 이외"):
+            EVIDENCE.append_event(self.directory, "failed", request_id="unexpected", http_status=201)
+        EVIDENCE.append_event(self.directory, "failed", request_id="unexpected", http_status=200)
+        summary = EVIDENCE.export(self.directory)
+        self.assertEqual(1, summary["outcome_counts"]["FAILED"])
+
     def test_tampered_raw_or_derived_evidence_fails_verification(self):
         """The report is not trusted when a raw line or derived count is edited."""
         EVIDENCE.append_event(self.directory, "sent", request_id="one", operation="write")

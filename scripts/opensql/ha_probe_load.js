@@ -16,6 +16,11 @@ const outcome500 = new Counter('ha_outcome_500');
 const outcome503 = new Counter('ha_outcome_503');
 const outcomeOtherFailed = new Counter('ha_outcome_other_failed');
 const outcomeUnknown = new Counter('ha_outcome_unknown');
+// Count received HTTP responses separately from unknown transport outcomes.
+const http2xx = new Counter('ha_http_2xx');
+const http3xx = new Counter('ha_http_3xx');
+const http4xx = new Counter('ha_http_4xx');
+const http5xx = new Counter('ha_http_5xx');
 
 if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$/.test(runId || '') || !target || !token || !__ENV.HA_SUMMARY_FILE) {
   throw new Error('A short HA_RUN_ID, HA_TARGET_URL, HA_JWT and HA_SUMMARY_FILE are required');
@@ -66,11 +71,16 @@ export default function () {
     event(requestId, 'unknown', { reason: 'other' });
     return;
   }
+  // 2. Class counters stay tag-free; run_id is added only by Remote Write.
+  if (response.status >= 200 && response.status < 300) http2xx.add(1);
+  else if (response.status >= 300 && response.status < 400) http3xx.add(1);
+  else if (response.status >= 400 && response.status < 500) http4xx.add(1);
+  else if (response.status >= 500 && response.status < 600) http5xx.add(1);
   if (response.status === 201) {
     outcome201.add(1);
     event(requestId, 'acknowledged', { http_status: 201 });
-  } else if (response.status >= 300 && response.status < 600) {
-    // 2. Keep unexpected HTTP failures visible alongside the main 500/503 buckets.
+  } else if (response.status >= 200 && response.status < 600) {
+    // 3. Keep every unexpected HTTP response visible alongside 500/503.
     if (response.status === 500) outcome500.add(1);
     else if (response.status === 503) outcome503.add(1);
     else outcomeOtherFailed.add(1);
