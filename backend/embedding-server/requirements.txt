@@ -1,9 +1,13 @@
-# torch를 NVIDIA 독점 패키지(nvidia-*)가 딸려오는 GPU용이 아닌 CPU 전용 빌드로 받는다.
+# Linux x86_64에서는 NVIDIA 독점 패키지(nvidia-*)가 딸려오는 GPU용 torch 대신 CPU 전용 빌드(+cpu)를 강제한다.
+# CPU 저장소에 접속하지 못하면 일반 torch로 넘어가지 않고 설치가 실패한다.
 --extra-index-url https://download.pytorch.org/whl/cpu
 fastapi==0.115.0
 uvicorn==0.30.6
 FlagEmbedding==1.2.11
-torch==2.4.1
+# arm64·macOS는 CPU 저장소에 +cpu 휠이 없고 GPU 패키지도 딸려오지 않아 기존 torch를 그대로 쓴다.
+# 환경 마커에는 not을 쓸 수 없어 두 번째 줄은 첫 번째 조건의 반대를 or로 풀어 적는다.
+torch==2.4.1+cpu ; sys_platform == "linux" and platform_machine == "x86_64"
+torch==2.4.1 ; sys_platform != "linux" or platform_machine != "x86_64"
 transformers==4.44.2
 peft==0.12.0
 numpy==1.26.4
