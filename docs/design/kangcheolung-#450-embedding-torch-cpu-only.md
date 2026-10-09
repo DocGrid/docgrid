@@ -67,15 +67,19 @@ nvidia-nvjitlink-cu12 12.9.86    nvidia-nvtx-cu12      12.1.105
 |---|---|
 | linux/amd64 `pip install --dry-run` | 76개 → 63개. `nvidia-*` 12개와 `triton` 제거, `torch 2.4.1+cpu` 선택 |
 | linux/amd64 이미지 빌드 | `pip list`의 `nvidia-*` **0개**(변경 전 12개), `torch 2.4.1+cpu`, `import torch` 성공, `cuda_available False` |
-| linux/amd64 이미지 크기 | 3.16GB → **2.29GB** (약 0.87GB 감소) |
-| 임베딩 값 비교 (linux/arm64, 고정 문장 6개, `/embed/batch`, 1024차원) | 변경 전·후 **모든 값이 완전히 일치** (`cos=1.0`, 최대 절대 오차 `0`) |
-| `pytest test_main.py` (변경 후 이미지) | 22 passed |
-| 기준 이미지 | 변경 전 이미지는 `HEAD`의 `requirements.txt`로 같은 방식으로 빌드해 비교 |
+| linux/amd64 이미지 크기 | 디스크 사용량(압축 해제 후, `docker images`) 9.29GB → **2.29GB**, 압축 기준(`docker image inspect`) 3.16GB → **0.50GB** |
+| linux/amd64 기동 (에뮬레이션, 변경 전·후 각각) | 모델 로딩 후 `/health/ready` **200**(약 10초), `uname -m`=`x86_64`. 변경 전 `torch 2.4.1+cu121`·`nvidia-*` 12개, 변경 후 `torch 2.4.1+cpu`·`nvidia-*` 0개 |
+| 임베딩 값 비교 (linux/amd64, 고정 문장 6개, `/embed/batch`, 1024차원) | 변경 전·후 **모든 값이 완전히 일치** (`cos=1.0`, 최대 절대 오차 `0`) |
+| 임베딩 값 비교 (linux/arm64, 같은 문장) | 변경 전·후 **모든 값이 완전히 일치** (`cos=1.0`, 최대 절대 오차 `0`) |
+| `pytest test_main.py` (변경 후 이미지, arm64) | 22 passed |
+| 기준 이미지 | 변경 전 이미지는 `origin/develop`의 `requirements.txt`로 같은 방식으로 빌드해 비교 |
+
+참고: 같은 변경 전 이미지에서 arm64와 amd64의 임베딩을 비교하면 `cos=0.9999964`, 최대 절대 오차 `3.0e-4`로 아키텍처 사이에는 미세한 차이가 있다. 이 차이는 이번 변경과 무관한 CPU 아키텍처 차이이므로, 비교 기준은 **같은 아키텍처에서의 변경 전·후**다.
 
 ### 검증하지 못한 범위
 
-- 임베딩 값 비교는 **arm64**에서만 수행했다. arm64 torch는 원래 CPU 빌드라 변경 전후 패키지 구성이 같다. 즉 이 비교는 서버 코드와 모델 동작이 그대로임을 확인한 것이며, **x86 CPU 빌드의 수치 일치**는 확인하지 못했다. amd64는 설치 구성, `import torch`, 이미지 크기까지만 확인했다. (에뮬레이션에서 BGE-M3 추론은 실행하지 않음)
-- 배포 환경(GCP VM 등)에서의 실제 기동은 이 이슈에서 확인하지 않았다. 배포 시 `/health/ready`로 확인이 필요하다.
+- amd64 확인은 **Apple Silicon Mac의 Docker linux/amd64 에뮬레이션**에서 수행했다. 실제 x86 하드웨어에서 계산한 값은 아니다. 변경 전·후 값이 비트 단위로 같았으므로 CPU 전용 빌드가 결과를 바꾸지 않는다고 판단하지만, 실제 x86 서버에서의 재확인은 배포 때 필요하다.
+- 배포 환경(GCP VM 등)에서의 실제 기동은 이 이슈에서 확인하지 않았다. 배포 시 `/health/ready`와 임베딩 값으로 확인이 필요하다.
 
 ---
 
