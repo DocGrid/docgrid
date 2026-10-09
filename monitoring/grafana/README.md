@@ -40,19 +40,28 @@ Git에서 다음 파일을 수정한다.
 `dashboards/docgrid-ha-demo.json`은 별도 GCP 관측 VM에서 사용하는 수동 가져오기용 Dashboard다.
 번들 Data Source가 아니라 인증된 관측 VM의 Prometheus UID `ha-prometheus`를 요구한다. 앱 A/B,
 Patroni 3노드의 수집·역할 상태와 관측 VM에서 본 OpenProxy A/B TCP 포트 연결을 타임라인으로 표시하고,
-현재 primary·timeline·연결 가능한 프록시 포트 수, 실행 ID별 HTTP 2xx·3xx·4xx·5xx 누적 응답 건수, 앱별 5xx,
-Hikari 대기·연결 timeout, standby WAL 수신·재생 차이, k6 결과별 응답/초와 활성 VU를 보여준다.
+현재 primary·timeline·연결 가능한 프록시 포트 수, 실행 ID별 HTTP 2xx·3xx·4xx·5xx와 결과 불명 누적 건수,
+앱별 최근 15초 5xx 증가량, Hikari 대기·연결 timeout, standby WAL 수신·재생 차이,
+k6 HTTP 201 응답/초·실패 누적 계단과 활성 VU를 보여준다.
 `run_id` 변수는 k6 VU 지표에서 읽어 201 응답이 0건인 실행도 선택할 수 있게 한다. 각 코드 대역 카드에
 해당 응답이 없더라도 선택한 실행의 VU 지표가 수집됐다면 0건으로 표시한다. `All`이면 최근 10분 이내
 여러 실행의 건수가 합산될 수 있으므로 영상에서는 특정 실행 ID를 선택한다. 새 실행 ID가 자동 새로고침만으로
 목록에 나타나는지는 검증되지 않았으므로 촬영 전 목록을 다시 열어 확인한다. 코드 대역 카드에는 응답이 오지 않은
-결과 불명 요청이 포함되지 않으며, 이 건수는 아래 결과별 응답/초 그래프와 안전 원장에서 별도로 확인한다.
+결과 불명 요청이 포함되지 않으므로 별도 결과 불명 카드와 안전 원장에서 확인한다.
+
+HTTP 201 응답/초는 15초 이동 평균이다. 500·503·기타 예상 외 응답·결과 불명은
+`last_over_time(...[10m])`으로 마지막 Counter 표본을 유지하는 누적 계단으로 따로 그린다.
+첫 오류 표본이 이미 1이면 `rate()`는 그 이전 0→1 사건을 계산하지 못할 수 있다.
+계단의 시각은 k6 Remote Write 전송 주기만큼 실제 응답 완료보다 늦을 수 있고,
+10분 뒤에는 값이 화면에서 사라질 수 있다. 오래된 실행은 실행 ID와 절대 시간 범위를 함께 선택한다.
+앱별 5xx `increase(...[15s])`는 Prometheus의 보간값이므로 정확한 총 건수처럼 읽지 않는다.
 
 이 화면의 `up=1`은 지표 수집 성공일 뿐 HTTP 쓰기 성공이 아니며, `up=0`만으로 VM 중단을
 확정하지 않는다. 앱별 5xx는 LB가 직접 반환한 오류를 포함하지 않을 수 있다. OpenProxy 포트 연결은
 관측 VM에서 Blackbox Exporter의 TCP probe로 확인하며 SQL 성공을 보장하지 않는다. 앱→프록시 연결 경로는
 현재 Prometheus에 직접 수집하지 않으므로 운영자 장애 로그와 HTTP 원장을
-함께 본다. 장애 주입·복구 annotation은 설정만 있으며 실제 이벤트를 기록해야 화면에 나타난다. 그래프만으로
+함께 본다. 장애 주입·복구 annotation은 Grafana DB에 해당 실행의 검증된 시각을 기록해야 화면에 나타난다.
+Dashboard JSON만 다른 Grafana로 가져와도 과거 annotation 레코드는 복사되지 않는다. 그래프만으로
 성공 응답 데이터의 보존이나 RPO를 주장하지 않으며 요청 ID별 DB 대조 결과를 별도로 확인한다.
 Remote Write의 누적 Trend p95/p99는 복구 시점 지연으로 오해하기 쉬워 패널에서 제외했다.
 실행·장애 계측 결과는 [GCP HA 대시보드 검증 기록](../../docs/test-results/opensql-ha-live-dashboard-fault-rehearsal-20261009.md)에 둔다.

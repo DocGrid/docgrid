@@ -1,6 +1,6 @@
 {
   "annotations": {"list": [{"builtIn": 1, "datasource": {"type": "grafana", "uid": "-- Grafana --"}, "enable": true, "hide": false, "iconColor": "rgba(255, 152, 48, 1)", "name": "장애 주입·복구 기록", "type": "dashboard"}]},
-  "description": "GCP OpenSQL HA 시연: 앱·DB 지표 수집, Patroni 역할, 관측 VM에서 OpenProxy 포트 연결, 실행 ID별 k6 HTTP 응답코드 대역 누적 건수와 결과별 응답/초를 같은 시간축에서 본다. 결과 불명처럼 HTTP 응답이 없는 요청은 코드 대역 카드에 포함되지 않는다. 앱→프록시 연결 경로는 아직 직접 수집하지 않는다. 정합성은 요청 ID 원장과 DB 대조로 판정한다.",
+  "description": "GCP OpenSQL HA 시연: 앱·DB 지표 수집, Patroni 역할, 관측 VM에서 OpenProxy 포트 연결, 실행 ID별 k6 HTTP 응답코드 대역·결과 불명 누적 건수, 201 응답/초와 실패 누적 변화를 같은 시간축에서 본다. 결과 불명처럼 HTTP 응답이 없는 요청은 코드 대역 카드에 포함되지 않는다. 앱→프록시 연결 경로는 아직 직접 수집하지 않는다. 정합성은 요청 ID 원장과 DB 대조로 판정한다.",
   "editable": false,
   "graphTooltip": 1,
   "id": null,
@@ -88,7 +88,7 @@
       "title": "앱 Hikari 연결 대기",
       "description": "앱별 Hikari pending 연결 요청 수. DB 전환 중 풀 대기가 쌓이는지 관측한다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
-      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 4},
+      "gridPos": {"x": 0, "y": 25, "w": 12, "h": 4},
       "fieldConfig": {"defaults": {"min": 0, "unit": "short", "custom": {"axisSoftMax": 10, "showPoints": "never"}}, "overrides": []},
       "targets": [{"refId": "A", "expr": "hikaricp_connections_pending{job=\"docgrid-app\"}", "legendFormat": "{{node}} / {{pool}}", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
     },
@@ -98,19 +98,19 @@
       "title": "standby 수신 후 WAL 재생 대기",
       "description": "각 standby가 이미 받은 WAL과 재생한 WAL의 차이(Byte). primary와 standby 사이 전체 복제 지연이나 RPO는 이 값만으로 판정할 수 없다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
-      "gridPos": {"x": 12, "y": 24, "w": 12, "h": 4},
+      "gridPos": {"x": 12, "y": 29, "w": 12, "h": 4},
       "fieldConfig": {"defaults": {"min": 0, "unit": "bytes", "custom": {"showPoints": "never"}}, "overrides": []},
       "targets": [{"refId": "A", "expr": "clamp_min(patroni_xlog_received_location{job=\"patroni\"} - patroni_xlog_replayed_location{job=\"patroni\"}, 0) and on(instance) (patroni_replica{job=\"patroni\"} == 1)", "legendFormat": "{{node}}", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
     },
     {
       "id": 11,
       "type": "timeseries",
-      "title": "앱별 HTTP 5xx/초",
-      "description": "앱 Actuator가 관측한 5xx만 표시한다. LB가 앱에 전달하지 않고 반환한 5xx는 포함되지 않을 수 있어 k6 전체 결과와 함께 읽는다.",
+      "title": "앱별 HTTP 5xx 증분 (최근 15초)",
+      "description": "앱 Actuator의 최근 15초 5xx Counter 증가량(건/15초, Prometheus 보간값). 정확한 총 오류 건수가 아니며 LB가 앱에 전달하지 않고 반환한 5xx는 포함되지 않을 수 있다. k6 전체 결과와 함께 읽는다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
-      "gridPos": {"x": 0, "y": 24, "w": 12, "h": 4},
-      "fieldConfig": {"defaults": {"min": 0, "unit": "reqps", "custom": {"axisSoftMax": 10, "showPoints": "never"}}, "overrides": []},
-      "targets": [{"refId": "A", "expr": "sum by (node) (rate(http_server_requests_seconds_count{job=\"docgrid-app\",status=~\"5..\"}[30s])) or on(node) (sum by (node) (up{job=\"docgrid-app\"} == 1) * 0)", "legendFormat": "{{node}}", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
+      "gridPos": {"x": 0, "y": 29, "w": 12, "h": 4},
+      "fieldConfig": {"defaults": {"min": 0, "unit": "short", "custom": {"axisSoftMax": 2, "showPoints": "never"}}, "overrides": []},
+      "targets": [{"refId": "A", "expr": "sum by (node) (increase(http_server_requests_seconds_count{job=\"docgrid-app\",status=~\"5..\"}[15s])) or on(node) (sum by (node) (up{job=\"docgrid-app\"} == 1) * 0)", "legendFormat": "{{node}}", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
     },
     {
       "id": 12,
@@ -118,7 +118,7 @@
       "title": "앱별 Hikari 연결 timeout 증분 (최근 15초)",
       "description": "최근 15초 동안 증가한 Hikari 연결 timeout 수. 앱 지표 수집 실패는 0으로 숨기지 않는다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
-      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 4},
+      "gridPos": {"x": 12, "y": 25, "w": 12, "h": 4},
       "fieldConfig": {"defaults": {"min": 0, "unit": "short", "custom": {"axisSoftMax": 10, "showPoints": "never"}}, "overrides": []},
       "targets": [{"refId": "A", "expr": "sum by (node) (increase(hikaricp_connections_timeout_total{job=\"docgrid-app\"}[15s])) or on(node) (sum by (node) (up{job=\"docgrid-app\"} == 1) * 0)", "legendFormat": "{{node}}", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
     },
@@ -133,18 +133,12 @@
     {
       "id": 7,
       "type": "timeseries",
-      "title": "HTTP 결과별 응답/초",
-      "description": "응답이 끝난 시각의 k6 Counter를 30초 창으로 계산한다. 기타 예상 외 응답에는 201 이외의 2xx도 포함한다. timeout·결과 불명은 응답 지연만큼 장애 주입 시각보다 늦게 나타날 수 있다.",
+      "title": "HTTP 201 응답/초",
+      "description": "응답이 끝난 시각의 k6 HTTP 201 Counter를 최근 15초 창의 초당 평균으로 계산한다. 이동 창이므로 시작·회복 시각이나 총 성공 건수는 원장과 별도로 판정한다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
       "gridPos": {"x": 0, "y": 14, "w": 16, "h": 6},
       "fieldConfig": {"defaults": {"min": 0, "unit": "reqps", "custom": {"showPoints": "never"}}, "overrides": []},
-      "targets": [
-        {"refId": "A", "expr": "sum(rate(k6_ha_outcome_201_total{run_id=~\"$run_id\"}[30s]))", "legendFormat": "HTTP 201", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}},
-        {"refId": "B", "expr": "sum(rate(k6_ha_outcome_500_total{run_id=~\"$run_id\"}[30s]))", "legendFormat": "HTTP 500", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}},
-        {"refId": "C", "expr": "sum(rate(k6_ha_outcome_503_total{run_id=~\"$run_id\"}[30s]))", "legendFormat": "HTTP 503", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}},
-        {"refId": "D", "expr": "sum(rate(k6_ha_outcome_other_failed_total{run_id=~\"$run_id\"}[30s]))", "legendFormat": "기타 예상 외 응답", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}},
-        {"refId": "E", "expr": "sum(rate(k6_ha_outcome_unknown_total{run_id=~\"$run_id\"}[30s]))", "legendFormat": "결과 불명", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}
-      ]
+      "targets": [{"refId": "A", "expr": "sum(rate(k6_ha_outcome_201_total{run_id=~\"$run_id\"}[15s]))", "legendFormat": "HTTP 201", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
     },
     {
       "id": 8,
@@ -162,7 +156,7 @@
       "title": "2xx 누적 응답",
       "description": "선택한 실행 ID에서 HTTP 2xx 응답을 받은 누적 건수. k6 VU 지표가 있고 2xx 응답이 없으면 0으로 표시한다. 결과 불명은 포함하지 않는다. All 선택 시 최근 10분에 기록된 모든 실행의 합계다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
-      "gridPos": {"x": 0, "y": 11, "w": 6, "h": 3},
+      "gridPos": {"x": 0, "y": 11, "w": 4, "h": 3},
       "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "gray", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
       "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "colorMode": "value", "graphMode": "none"},
       "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_2xx_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "2xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
@@ -173,7 +167,7 @@
       "title": "3xx 누적 응답",
       "description": "선택한 실행 ID에서 HTTP 3xx 응답을 받은 누적 건수. k6 VU 지표가 있고 3xx 응답이 없으면 0으로 표시한다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
-      "gridPos": {"x": 6, "y": 11, "w": 6, "h": 3},
+      "gridPos": {"x": 4, "y": 11, "w": 4, "h": 3},
       "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "gray", "value": null}, {"color": "yellow", "value": 1}]}}, "overrides": []},
       "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "colorMode": "value", "graphMode": "none"},
       "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_3xx_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "3xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
@@ -184,7 +178,7 @@
       "title": "4xx 누적 응답",
       "description": "선택한 실행 ID에서 HTTP 4xx 응답을 받은 누적 건수. 결과 불명은 포함하지 않는다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
-      "gridPos": {"x": 12, "y": 11, "w": 6, "h": 3},
+      "gridPos": {"x": 8, "y": 11, "w": 4, "h": 3},
       "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "gray", "value": null}, {"color": "yellow", "value": 1}]}}, "overrides": []},
       "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "colorMode": "value", "graphMode": "none"},
       "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_4xx_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "4xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
@@ -195,10 +189,36 @@
       "title": "5xx 누적 응답",
       "description": "선택한 실행 ID에서 HTTP 5xx 응답을 받은 누적 건수. 결과 불명은 포함하지 않는다.",
       "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
-      "gridPos": {"x": 18, "y": 11, "w": 6, "h": 3},
+      "gridPos": {"x": 12, "y": 11, "w": 6, "h": 3},
       "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "gray", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
       "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "colorMode": "value", "graphMode": "none"},
       "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_http_5xx_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "5xx", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "결과 불명 누적",
+      "description": "선택한 실행 ID에서 HTTP 응답을 받지 못해 결과를 모르는 누적 요청 수. DB 반영 여부는 요청 ID별 대조가 필요하다. 선택 실행의 VU 지표가 있고 결과 불명이 없으면 0으로 표시한다.",
+      "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
+      "gridPos": {"x": 18, "y": 11, "w": 6, "h": 3},
+      "fieldConfig": {"defaults": {"unit": "none", "decimals": 0, "noValue": "시험 지표 없음", "thresholds": {"mode": "absolute", "steps": [{"color": "gray", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "colorMode": "value", "graphMode": "none"},
+      "targets": [{"refId": "A", "expr": "sum(last_over_time(k6_ha_outcome_unknown_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "instant": true, "legendFormat": "결과 불명", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}]
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "HTTP 실패·결과 불명 누적",
+      "description": "선택 실행의 k6 결과 Counter 최종 표본을 10분 유지해 단발 실패도 계단으로 표시한다. 500·503·기타 예상 외 응답·결과 불명은 서로 다른 분류이며, k6 전송 주기만큼 그래프 시각이 늦을 수 있다. SQL 결과는 요청 ID 원장·DB 대조로 확인한다.",
+      "datasource": {"type": "prometheus", "uid": "ha-prometheus"},
+      "gridPos": {"x": 0, "y": 20, "w": 24, "h": 5},
+      "fieldConfig": {"defaults": {"min": 0, "unit": "short", "decimals": 0, "custom": {"axisSoftMax": 5, "showPoints": "never", "lineInterpolation": "stepAfter"}}, "overrides": []},
+      "targets": [
+        {"refId": "A", "expr": "sum(last_over_time(k6_ha_outcome_500_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "legendFormat": "HTTP 500", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}},
+        {"refId": "B", "expr": "sum(last_over_time(k6_ha_outcome_503_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "legendFormat": "HTTP 503", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}},
+        {"refId": "C", "expr": "sum(last_over_time(k6_ha_outcome_other_failed_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "legendFormat": "기타 예상 외 응답", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}},
+        {"refId": "D", "expr": "sum(last_over_time(k6_ha_outcome_unknown_total{run_id=~\"$run_id\"}[10m])) or (max(last_over_time(k6_vus{run_id=~\"$run_id\"}[10m])) * 0)", "legendFormat": "결과 불명", "datasource": {"type": "prometheus", "uid": "ha-prometheus"}}
+      ]
     }
   ],
   "refresh": "5s",

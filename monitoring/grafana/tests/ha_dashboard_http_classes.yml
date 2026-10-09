@@ -51,3 +51,36 @@ tests:
       - expr: 'sum(last_over_time(k6_ha_http_2xx_total{run_id=~"missing"}[10m])) or (max(last_over_time(k6_vus{run_id=~"missing"}[10m])) * 0)'
         eval_time: 3m
         exp_samples: []
+  # A one-off 500 has one Counter sample: rate() cannot show it, last_over_time() can.
+  - interval: 5s
+    input_series:
+      - series: 'k6_vus{run_id="rSparse"}'
+        values: '1 1 1 1 1 1 1'
+      - series: 'k6_ha_outcome_500_total{run_id="rSparse"}'
+        values: '1 _ _ _ _ _ _'
+      - series: 'k6_ha_outcome_unknown_total{run_id="rSparse"}'
+        values: '1 _ _ _ _ _ _'
+    promql_expr_test:
+      - expr: 'sum(last_over_time(k6_ha_outcome_500_total{run_id=~"rSparse"}[10m])) or (max(last_over_time(k6_vus{run_id=~"rSparse"}[10m])) * 0)'
+        eval_time: 0s
+        exp_samples:
+          - labels: '{}'
+            value: 1
+      - expr: 'sum(last_over_time(k6_ha_outcome_500_total{run_id=~"rSparse"}[10m])) or (max(last_over_time(k6_vus{run_id=~"rSparse"}[10m])) * 0)'
+        eval_time: 5s
+        exp_samples:
+          - labels: '{}'
+            value: 1
+      - expr: 'k6_ha_outcome_500_total{run_id="rSparse"}'
+        eval_time: 5s
+        exp_samples:
+          - labels: '{__name__="k6_ha_outcome_500_total",run_id="rSparse"}'
+            value: 1
+      - expr: 'sum(rate(k6_ha_outcome_500_total{run_id=~"rSparse"}[15s]))'
+        eval_time: 5s
+        exp_samples: []
+      - expr: 'sum(last_over_time(k6_ha_outcome_unknown_total{run_id=~"rSparse"}[10m])) or (max(last_over_time(k6_vus{run_id=~"rSparse"}[10m])) * 0)'
+        eval_time: 5s
+        exp_samples:
+          - labels: '{}'
+            value: 1
