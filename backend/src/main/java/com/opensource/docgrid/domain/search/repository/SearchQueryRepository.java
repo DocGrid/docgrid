@@ -15,6 +15,10 @@ import com.opensource.docgrid.domain.search.entity.SearchQuery;
 
 public interface SearchQueryRepository extends JpaRepository<SearchQuery, Long> {
 
+    /** 원격 WebSocket 노드가 검색 완료 신호의 수신자만 DB에서 확인한다. */
+    @Query("SELECT q.user.email FROM SearchQuery q WHERE q.id = :queryId")
+    Optional<String> findUserEmailByQueryId(@Param("queryId") Long queryId);
+
     /**
      * 대시보드 집계 카드의 최근 검색 요청 수. 기준 시각 이후 생성된 검색 Query를 센다.
      */
