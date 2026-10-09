@@ -1,3 +1,5 @@
+# torch를 NVIDIA 독점 패키지(nvidia-*)가 딸려오는 GPU용이 아닌 CPU 전용 빌드로 받는다.
+--extra-index-url https://download.pytorch.org/whl/cpu
 fastapi==0.115.0
 uvicorn==0.30.6
 FlagEmbedding==1.2.11
