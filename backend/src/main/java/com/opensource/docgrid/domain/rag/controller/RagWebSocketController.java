@@ -18,16 +18,22 @@ import lombok.RequiredArgsConstructor;
  * <p>본문은 트리거 용도로만 쓴다. {@code useDashboardSocket}과 동일하게, 프론트는 이 메시지를
  * "다시 조회해야 한다"는 신호로만 쓰고 최신 상태는 REST로 다시 읽는다 — Push 페이로드와 실제
  * DB 상태가 어긋날 걱정 없이 항상 단일 진실 소스(REST)를 신뢰할 수 있다.
+ * 다른 앱에 {@link RagAnswerCrossNodeSignal}을 전파한 뒤 로컬 broker에도 보낸다. 한쪽 전송이
+ * 실패해도 다른 쪽의 전달 기회를 잃지 않으며, 실제 답변은 REST 폴링으로도 수렴한다.
  */
 @Component
 @RequiredArgsConstructor
 public class RagWebSocketController {
 
-    private static final String RAG_ANSWER_QUEUE = "/queue/rag-answer";
+    static final String RAG_ANSWER_QUEUE = "/queue/rag-answer";
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final RagAnswerCrossNodeSignal crossNodeSignal;
 
     public void notifyAnswerReady(String userEmail, Long queryId) {
+        // 1. 다른 앱의 세션은 공유 신호를 받아 자기 broker에서 별도로 알린다.
+        crossNodeSignal.publish(queryId);
+        // 2. Redis 발행이 실패해도 현재 앱의 로컬 세션에는 알린다.
         messagingTemplate.convertAndSendToUser(userEmail, RAG_ANSWER_QUEUE, new RagAnswerReadyEvent(queryId));
     }
 
@@ -35,6 +41,6 @@ public class RagWebSocketController {
      * 완료 알림의 최소 트리거 페이로드 — 답변 본문은 담지 않는다. 프론트가 이 이벤트를 받으면
      * 항상 GET /search/{queryId}로 다시 조회해야 하며, 이 record 자체를 최종 상태로 신뢰하면 안 된다.
      */
-    private record RagAnswerReadyEvent(Long queryId) {
+    record RagAnswerReadyEvent(Long queryId) {
     }
 }
