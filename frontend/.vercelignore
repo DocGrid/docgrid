@@ -1,0 +1,11 @@
+# 1. Upload only source needed by the Vercel build.
+.openai/
+.wrangler/
+build/
+dist/
+outputs/
+work/
+
+# 2. Keep local configuration and logs out of deployment source.
+.env*
+*.log
