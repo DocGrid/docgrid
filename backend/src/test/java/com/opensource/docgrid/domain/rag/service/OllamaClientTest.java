@@ -33,6 +33,8 @@ import com.opensource.docgrid.domain.rag.dto.OllamaGenerateResult;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("OllamaClient 단위 테스트")
@@ -42,11 +44,14 @@ class OllamaClientTest {
     @Mock(answer = Answers.RETURNS_SELF) private RestClient.RequestBodyUriSpec requestBodyUriSpec;
 
     private OllamaClient ollamaClient;
+    private SimpleMeterRegistry meterRegistry;
 
     @BeforeEach
     void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
         ollamaClient = new OllamaClient(
-            "qwen2.5:3b", "30m", 300, 0.3, 0.8, 1.1, 256, Duration.ofSeconds(25), restClient
+            "qwen2.5:3b", "30m", 300, 0.3, 0.8, 1.1, 256, Duration.ofSeconds(25), restClient,
+            meterRegistry
         );
         doReturn(requestBodyUriSpec).when(restClient).post();
     }
@@ -82,6 +87,14 @@ class OllamaClientTest {
         assertThat(result.inputTokenCount()).isEqualTo(120);
         assertThat(result.outputTokenCount()).isEqualTo(45);
         assertThat(result.latencyMs()).isGreaterThanOrEqualTo(0);
+        assertThat(meterRegistry.get("docgrid.ollama.generate.requests")
+            .tag("outcome", "complete").counter().count()).isEqualTo(1);
+        assertThat(meterRegistry.get("docgrid.ollama.generate.duration")
+            .tag("outcome", "complete").timer().count()).isEqualTo(1);
+        assertThat(meterRegistry.get("docgrid.ollama.generate.tokens")
+            .tag("kind", "input").summary().totalAmount()).isEqualTo(120);
+        assertThat(meterRegistry.get("docgrid.ollama.generate.tokens")
+            .tag("kind", "output").summary().totalAmount()).isEqualTo(45);
     }
 
     @Test
@@ -97,6 +110,8 @@ class OllamaClientTest {
         assertThat(result.answerText())
             .startsWith("1. 첫 항목 2. 둘째 항목")
             .contains("답변이 길어 일부 내용이 생략됐을 수 있습니다");
+        assertThat(meterRegistry.get("docgrid.ollama.generate.requests")
+            .tag("outcome", "partial").counter().count()).isEqualTo(1);
     }
 
     @Test
@@ -119,7 +134,8 @@ class OllamaClientTest {
     @DisplayName("데드라인 초과: 스트림을 중단하고 그때까지 받은 부분 답변에 잘림 안내를 덧붙인다")
     void generate_deadlineExceeded_returnsPartialAnswer() {
         ollamaClient = new OllamaClient(
-            "qwen2.5:3b", "30m", 300, 0.3, 0.8, 1.1, 256, Duration.ZERO, restClient
+            "qwen2.5:3b", "30m", 300, 0.3, 0.8, 1.1, 256, Duration.ZERO, restClient,
+            meterRegistry
         );
         doReturn(requestBodyUriSpec).when(restClient).post();
         givenStreamBody("""
@@ -262,6 +278,10 @@ class OllamaClientTest {
         assertThatThrownBy(() -> ollamaClient.generate("질문"))
             .isInstanceOf(DocGridException.class)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RAG_SERVICE_UNAVAILABLE);
+        assertThat(meterRegistry.get("docgrid.ollama.generate.requests")
+            .tag("outcome", "failure").counter().count()).isEqualTo(1);
+        assertThat(meterRegistry.get("docgrid.ollama.generate.duration")
+            .tag("outcome", "failure").timer().count()).isEqualTo(1);
     }
 
     @Test

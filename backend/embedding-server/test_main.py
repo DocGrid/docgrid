@@ -102,6 +102,18 @@ def test_metrics_exposes_request_admission_memory_and_process_series(client):
     assert "process_resident_memory_bytes" in response.text
 
 
+def test_metrics_restricts_only_metrics_to_configured_observer(monkeypatch):
+    monkeypatch.setenv("EMBEDDING_METRICS_ALLOWED_CLIENTS", "observer-test")
+    embedding_server.model = Mock()
+
+    app_client = TestClient(embedding_server.app)
+    assert app_client.get("/metrics").status_code == 403
+    assert app_client.get("/health").status_code == 200
+
+    monkeypatch.setenv("EMBEDDING_METRICS_ALLOWED_CLIENTS", "testclient")
+    assert app_client.get("/metrics").status_code == 200
+
+
 @pytest.mark.parametrize(
     ("raw_limit", "expected"),
     [

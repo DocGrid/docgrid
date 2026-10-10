@@ -21,9 +21,7 @@ scrape_configs:
 
   - job_name: embedding-provider
     metrics_path: /metrics
-    static_configs:
-      - targets:
-          - embedding-server:8000
-        labels:
-          environment: local
-          cluster: docgrid-local
+    file_sd_configs:
+      # GCP 관측 VM은 별도 target 파일만 바꾸고 로컬 기본값은 아래 파일을 사용한다.
+      - files:
+          - /etc/prometheus/targets/embedding-provider.yml

@@ -20,6 +20,8 @@ import com.opensource.docgrid.domain.rag.dto.OllamaGenerateResult;
 import com.opensource.docgrid.global.config.OllamaServerConfig;
 import com.sun.net.httpserver.HttpServer;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 /**
  * 운영 설정({@link OllamaServerConfig})으로 만든 실제 RestClient가 Ollama에 보내는 요청의 전송 형식을 검증한다.
  *
@@ -58,7 +60,8 @@ class OllamaClientWireContractTest {
         ReflectionTestUtils.setField(config, "connectTimeout", Duration.ofSeconds(2));
         ReflectionTestUtils.setField(config, "readTimeout", Duration.ofSeconds(5));
         ollamaClient = new OllamaClient(
-            "qwen2.5:3b", "30m", 300, 0.3, 0.8, 1.1, 256, Duration.ofSeconds(25), config.ollamaRestClient()
+            "qwen2.5:3b", "30m", 300, 0.3, 0.8, 1.1, 256, Duration.ofSeconds(25),
+            config.ollamaRestClient(), new SimpleMeterRegistry()
         );
     }
 

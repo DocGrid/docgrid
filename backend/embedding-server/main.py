@@ -8,7 +8,7 @@ from collections import deque
 from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from FlagEmbedding import BGEM3FlagModel
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
@@ -409,7 +409,14 @@ def health():
 
 
 @app.get("/metrics", include_in_schema=False)
-def metrics():
+def metrics(request: Request):
+    # 1. 배포 환경은 관측 VM 주소를 명시해 지표만 제한한다. 임베딩 요청은 기존 앱 경로를 유지한다.
+    allowed_clients = os.getenv("EMBEDDING_METRICS_ALLOWED_CLIENTS", "")
+    if allowed_clients:
+        allowed = {client.strip() for client in allowed_clients.split(",") if client.strip()}
+        if request.client is None or request.client.host not in allowed:
+            raise HTTPException(status_code=403, detail="Metrics access denied")
+    # 2. 허용된 관측 클라이언트에만 본문과 지표를 반환한다.
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
