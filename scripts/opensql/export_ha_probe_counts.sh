@@ -4,11 +4,15 @@ set -euo pipefail
 
 container="${1:?primary DB container required}"
 run_id="${2:?run ID required}"
+probe_kind="${3:-original}"
 if (( EUID != 0 )) || [[ ! "$container" =~ ^docgrid-node[123]$ ]] ||
-   [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]]; then
+   [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
+   [[ ! "$probe_kind" =~ ^(original|idempotent)$ ]]; then
   echo 'DB_EXPORT_INVALID_INPUT' >&2
   exit 2
 fi
+table='ha_probe_writes'
+if [[ "$probe_kind" == idempotent ]]; then table='ha_probe_idempotent_writes'; fi
 
 query() {
   /usr/bin/docker exec "$container" sh -c '
@@ -26,7 +30,7 @@ fi
 
 sql="COPY (
   SELECT request_id, count(*) AS row_count
-  FROM ha_probe_writes
+  FROM $table
   WHERE run_id = '$run_id'
   GROUP BY request_id ORDER BY request_id
 ) TO STDOUT WITH CSV HEADER"

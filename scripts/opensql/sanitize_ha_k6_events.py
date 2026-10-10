@@ -38,7 +38,7 @@ def safe_event(value: object, run_id: str) -> dict:
     if not isinstance(at, str) or not AT.fullmatch(at):
         raise ValueError("unexpected event time")
     datetime.fromisoformat(at.replace("Z", "+00:00"))
-    if kind == "sent" and value["operation"] != "ha_probe_write":
+    if kind == "sent" and value["operation"] not in {"ha_probe_write", "ha_probe_idempotent_write"}:
         raise ValueError("unexpected operation")
     if kind == "acknowledged" and type(value["http_status"]) is not int or \
        kind == "acknowledged" and value["http_status"] != 201:

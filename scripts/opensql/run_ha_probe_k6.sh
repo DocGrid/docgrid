@@ -14,11 +14,13 @@ purpose_code="${6:-baseline-write}"
 initial_vus="${7:-40}"
 case "$purpose_code" in
   baseline-write) purpose='HA probe 정상 쓰기 기준선' ;;
+  baseline-idempotent) purpose='HA probe 멱등 쓰기·재전송 정상 기준선' ;;
   proxy-a-fault) purpose='OpenProxy A 지속 장애 중 쓰기' ;;
   proxy-b-fault) purpose='OpenProxy B 지속 장애 중 쓰기' ;;
   primary-switchover) purpose='OpenSQL 계획 역할 이전 중 쓰기' ;;
   primary-process-fault) purpose='OpenSQL primary PostgreSQL 종료 중 쓰기' ;;
   primary-vm-fault) purpose='OpenSQL primary VM 상실 중 쓰기' ;;
+  primary-vm-idempotent) purpose='OpenSQL primary VM 상실 중 멱등 쓰기' ;;
   etcd-one-fault) purpose='etcd 한 멤버 중단 중 앱 HTTP 쓰기' ;;
   etcd-quorum-fault) purpose='etcd 정족수 상실 중 앱 HTTP 쓰기' ;;
   sync-standby-link-fault) purpose='OpenSQL 동기 standby 복제 연결 상실 중 앱 HTTP 쓰기' ;;
@@ -30,12 +32,20 @@ max_vus=160
 if [[ "$purpose_code" == primary-switchover ||
       "$purpose_code" == primary-process-fault ||
       "$purpose_code" == primary-vm-fault ||
+      "$purpose_code" == primary-vm-idempotent ||
       "$purpose_code" == sync-standby-link-fault ||
       "$purpose_code" == etcd-quorum-fault ]]; then max_vus=800; fi
+idempotent=0
+target_path='/api/ha-probe/writes'
+if [[ "$purpose_code" == baseline-idempotent || "$purpose_code" == primary-vm-idempotent ]]; then
+  idempotent=1
+  target_path='/api/ha-probe/idempotent-writes'
+fi
 if [[ ! "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$ ]] ||
    [[ ! "$rate" =~ ^[0-9]+$ ]] || (( rate < 1 || rate > 500 )) ||
    [[ ! "$duration" =~ ^[0-9]+s$ ]] ||
-   [[ ! "$target" =~ ^http://[0-9.]+/api/ha-probe/writes$ ]] ||
+   [[ ! "$target" =~ ^http://[0-9.]+/api/ha-probe/(idempotent-)?writes$ ]] ||
+   [[ "$target" != *"$target_path" ]] ||
    [[ ! "$initial_vus" =~ ^[0-9]+$ ]] || (( initial_vus < 1 || initial_vus > max_vus )) ||
    [[ ! -f "$token_file" ]] || [[ "$(stat -c '%a' "$token_file")" != 600 ]]; then
   echo '실행 입력 또는 토큰 파일 권한이 잘못되었습니다' >&2
@@ -56,6 +66,8 @@ export HA_RUN_ID="$run_id" HA_RATE="$rate" HA_DURATION="$duration"
 export HA_TARGET_URL="$target" HA_JWT="$(< "$token_file")"
 export HA_SUMMARY_FILE="$run_dir/k6-summary.json"
 export HA_VUS="$initial_vus" HA_MAX_VUS="$max_vus" HA_TIMEOUT=10s
+export HA_IDEMPOTENT="$idempotent"
+printf '멱등 쓰기 경로=%s\n' "$idempotent" >> "$run_dir/실행-기록.txt"
 printf '초기 VU=%s\n설정 최대 VU=%s\n계측 간격=1초\n지표 태그=모두 비활성\n' \
   "$HA_VUS" "$HA_MAX_VUS" >> "$run_dir/실행-기록.txt"
 outputs=(--out "json=$run_dir/k6-metrics.jsonl")

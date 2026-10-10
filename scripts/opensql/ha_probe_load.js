@@ -9,6 +9,7 @@ const target = __ENV.HA_TARGET_URL;
 const token = __ENV.HA_JWT;
 const rate = Number(__ENV.HA_RATE || 10);
 const duration = __ENV.HA_DURATION || '60s';
+const idempotent = __ENV.HA_IDEMPOTENT === '1';
 
 // Keep outcome metrics tag-free so the existing JSONL evidence gate stays strict.
 const outcome201 = new Counter('ha_outcome_201');
@@ -49,14 +50,16 @@ function event(requestId, kind, fields = {}) {
 
 export default function () {
   const requestId = `${runId}-v${exec.vu.idInTest}-i${exec.vu.iterationInScenario}`;
-  event(requestId, 'sent', { operation: 'ha_probe_write' });
+  event(requestId, 'sent', { operation: idempotent ? 'ha_probe_idempotent_write' : 'ha_probe_write' });
   let response;
   try {
     // The optional synthetic query ID lets short-lived LB logs join this external ledger.
     const requestTarget = __ENV.HA_TRACE_QUERY === '1'
       ? `${target}${target.includes('?') ? '&' : '?'}ha_request_id=${encodeURIComponent(requestId)}`
       : target;
-    response = http.post(requestTarget, JSON.stringify({ runId, requestId }), {
+    // The synthetic payload is derived only from the stable ID, so a replay sends identical bytes.
+    const body = idempotent ? { runId, requestId, payload: requestId } : { runId, requestId };
+    response = http.post(requestTarget, JSON.stringify(body), {
       // The profile-gated app diagnostic joins sanitized failure logs to this external ledger.
       headers: {
         Authorization: `Bearer ${token}`,
