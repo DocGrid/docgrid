@@ -71,8 +71,14 @@ public class EmbeddingJobClaimService {
         // 3. 저장 상태뿐 아니라 마지막 Heartbeat를 반영한 실질 상태가 ACTIVE/IDLE인지 확인한다.
         validateClaimable(workerNode, claimedAt);
 
-        // 4. 잠기지 않은 최우선 PENDING Job을 가져오고, 존재할 때만 Lease 발급 흐름을 계속한다.
-        return embeddingJobRepository.findNextPendingForUpdate(claimedAt)
+        // 4. 시험 프로필의 문서 버전 범위가 있으면 그 Queue만 조회한다. 기본 운영 경로는 그대로 유지한다.
+        Long documentVersionIdFilter = indexingWorkerProperties.getDocumentVersionIdFilter();
+        Optional<EmbeddingJob> candidate = documentVersionIdFilter == null
+            ? embeddingJobRepository.findNextPendingForUpdate(claimedAt)
+            : embeddingJobRepository.findNextPendingForDocumentVersionForUpdate(claimedAt, documentVersionIdFilter);
+
+        // 5. 잠금을 획득한 Job이 있을 때만 Lease 발급 흐름을 계속한다.
+        return candidate
             .map(job -> claim(job, workerNode, claimedAt));
     }
 

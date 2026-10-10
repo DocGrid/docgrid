@@ -149,6 +149,26 @@ public interface EmbeddingJobRepository extends JpaRepository<EmbeddingJob, Long
     Optional<EmbeddingJob> findNextPendingForUpdate(@Param("claimedAt") LocalDateTime claimedAt);
 
     /**
+     * 시험 프로필에서 지정한 문서 버전의 PENDING Job만 잠그고, 다른 버전의 Queue는 건드리지 않는다.
+     */
+    @Query(value = """
+        SELECT job.*
+        FROM embedding_jobs job
+        WHERE job.status = 'PENDING'
+          AND job.document_version_id = :documentVersionId
+          AND (job.next_retry_at IS NULL OR job.next_retry_at <= :claimedAt)
+        ORDER BY job.priority DESC,
+                 job.created_at ASC,
+                 job.id ASC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED
+        """, nativeQuery = true)
+    Optional<EmbeddingJob> findNextPendingForDocumentVersionForUpdate(
+        @Param("claimedAt") LocalDateTime claimedAt,
+        @Param("documentVersionId") Long documentVersionId
+    );
+
+    /**
      * 만료 Lease 복구 대상인 PROCESSING Job ID를 오래 만료된 순서대로 제한 조회한다.
      *
      * <p>이 결과는 작업 분배용 Snapshot일 뿐 정확성 경계가 아니다. 각 후보는 복구 Transaction에서 다시
@@ -167,6 +187,26 @@ public interface EmbeddingJobRepository extends JpaRepository<EmbeddingJob, Long
     List<Long> findExpiredProcessingJobIds(
         @Param("recoveredAt") LocalDateTime recoveredAt,
         @Param("batchSize") int batchSize
+    );
+
+    /**
+     * 시험 문서 버전에 속하는 만료 Lease만 복구 후보로 제공한다.
+     */
+    @Query(value = """
+        SELECT job.id
+        FROM embedding_jobs job
+        WHERE job.status = 'PROCESSING'
+          AND job.document_version_id = :documentVersionId
+          AND job.lock_expires_at IS NOT NULL
+          AND job.lock_expires_at <= :recoveredAt
+        ORDER BY job.lock_expires_at ASC,
+                 job.id ASC
+        LIMIT :batchSize
+        """, nativeQuery = true)
+    List<Long> findExpiredProcessingJobIdsForDocumentVersion(
+        @Param("recoveredAt") LocalDateTime recoveredAt,
+        @Param("batchSize") int batchSize,
+        @Param("documentVersionId") Long documentVersionId
     );
 
     /**
