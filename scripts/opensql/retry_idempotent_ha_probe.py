@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Replay only failed/unknown synthetic HA writes after preserving pre-retry DB evidence.
+"""Preserve pre-retry DB evidence and verify synthetic HA replay attempts.
 
-The command never retries an original 201 or a 4xx. It records every retry attempt without
-URLs, tokens, exception text, or response bodies; final DB state is checked separately.
+The original bounded HTTP retry still excludes 201 and 4xx. The separate k6-all mode
+intentionally replays every sent ID to audit idempotency, without altering that policy.
+Neither mode records URLs, tokens, exception text, or response bodies.
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
 import csv
 import hashlib
 import ipaddress
@@ -111,6 +113,29 @@ def prepare(events_path: Path, summary_path: Path, db_before: Path, run_id: str)
     return rows, pre_result
 
 
+def prepare_k6_all(args) -> dict:
+    """Freeze every original sent ID and the new primary's pre-replay DB snapshot."""
+    # 1. Validate both independent sources before k6 can send any HTTP request.
+    rows, pre_result = prepare(args.events, args.summary, args.db_before, args.run_id)
+    if pre_result["db_duplicate_ids_before_retry"]:
+        raise ValueError("재전송 전에 DB 중복이 발견돼 중단합니다")
+    manifest = {"schema_version": 1, "run_id": args.run_id,
+                "events_sha256": pre_result["events_sha256"],
+                "request_ids": [row["request_id"] for row in sorted(rows.values(),
+                                                              key=lambda row: row["sent_at"])]}
+    pre_result["scope"] = "all_sent"
+    pre_result["retry_candidates"] = len(rows)
+    pre_result["not_retried_4xx_or_3xx"] = 0
+    args.output_dir.mkdir(mode=0o700, parents=True, exist_ok=False)
+    # 2. Exclusive private files prevent a repeated recording from replacing evidence.
+    write_private(args.output_dir / "재전송-전-대조.json",
+                  json.dumps(pre_result, ensure_ascii=False, indent=2) + "\n", exclusive=True)
+    write_private(args.output_dir / "재전송-전체-목록.json",
+                  json.dumps(manifest, ensure_ascii=True, separators=(",", ":")) + "\n", exclusive=True)
+    return {"run_id": args.run_id, "scope": "all_sent", "request_count": len(rows),
+            "initial_201_missing_before_retry": pre_result["initial_201_missing_before_retry"]}
+
+
 def validate_target(target: str) -> None:
     parsed = urllib.parse.urlsplit(target)
     if (parsed.scheme != "http" or parsed.path != "/api/ha-probe/idempotent-writes"
@@ -133,6 +158,21 @@ def read_token(path: Path) -> str:
     if not token or "\n" in token:
         raise ValueError("JWT 파일 형식이 올바르지 않습니다")
     return token
+
+
+def validate_token_lifetime(token: str, minimum_seconds: int) -> None:
+    """Fail closed before a long k6 replay when the JWT cannot outlive the run."""
+    # This is only a scheduling check; the backend still verifies the signature and roles.
+    parts = token.split(".")
+    if len(parts) != 3 or minimum_seconds < 1:
+        raise ValueError("JWT 만료 시각을 확인할 수 없습니다")
+    try:
+        payload = json.loads(base64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)))
+    except (ValueError, TypeError, UnicodeDecodeError) as error:
+        raise ValueError("JWT 만료 시각을 확인할 수 없습니다") from error
+    expiry = payload.get("exp") if isinstance(payload, dict) else None
+    if type(expiry) is not int or expiry < time.time() + minimum_seconds:
+        raise ValueError("JWT 남은 시간이 전체 재전송에 부족합니다")
 
 
 def send(target: str, token: str, run_id: str, request_id: str) -> int | None:
@@ -228,9 +268,19 @@ def verify_after(args) -> dict:
     """Compare first replies, replay replies, and the final primary DB without merging them."""
     rows, pre_result = prepare(args.events, args.summary, args.db_before, args.run_id)
     saved_pre = json.loads((args.replay_dir / "재전송-전-대조.json").read_text(encoding="utf-8"))
+    scope = saved_pre.get("scope", "failed_or_unknown")
+    if scope not in {"failed_or_unknown", "all_sent"}:
+        raise ValueError("재전송 범위가 올바르지 않습니다")
     for key in ("run_id", "events_sha256", "db_before_sha256", "initial_201_missing_before_retry"):
         if saved_pre.get(key) != pre_result[key]:
             raise ValueError("재전송 전 증거가 실행 이후 변경되었습니다")
+    if scope == "all_sent":
+        manifest = json.loads((args.replay_dir / "재전송-전체-목록.json").read_text(encoding="utf-8"))
+        if (manifest.get("schema_version") != 1 or manifest.get("run_id") != args.run_id
+                or manifest.get("events_sha256") != pre_result["events_sha256"]
+                or manifest.get("request_ids") != [row["request_id"] for row in sorted(
+                    rows.values(), key=lambda row: row["sent_at"])]):
+            raise ValueError("재전송 목록이 원본 원장과 일치하지 않습니다")
     before = read_db_counts(args.db_before, args.run_id, set(rows))
     after = read_db_counts(args.db_after, args.run_id, set(rows))
     terminal = {}
@@ -241,8 +291,15 @@ def verify_after(args) -> dict:
             request_id = event.get("request_id")
             key = (request_id, event.get("attempt"))
             if event.get("run_id") != args.run_id or request_id not in rows or \
-               event.get("kind") not in {"sent", "result"} or not isinstance(event.get("attempt"), int):
+               event.get("kind") not in {"sent", "result"} or type(event.get("attempt")) is not int or \
+               (scope == "all_sent" and event["attempt"] != 2):
                 raise ValueError("재전송 원장에 다른 실행 또는 잘못된 시도가 섞였습니다")
+            if scope == "all_sent":
+                expected_keys = {"run_id", "request_id", "attempt", "kind", "at"}
+                if event["kind"] == "result":
+                    expected_keys.add("http_status")
+                if set(event) != expected_keys or not isinstance(event["at"], str):
+                    raise ValueError("재전송 원장에 허용되지 않은 필드가 있습니다")
             if event["kind"] == "sent":
                 if key in outstanding or key in terminal:
                     raise ValueError("재전송 시도 ID가 중복되었습니다")
@@ -253,9 +310,10 @@ def verify_after(args) -> dict:
                     raise ValueError("재전송 결과가 해당 시도와 맞지 않습니다")
                 outstanding.remove(key)
                 terminal[key] = event["http_status"]
-    candidates = {request_id for request_id, row in rows.items() if row["outcome"] == "UNKNOWN"
-                  or row["outcome"] == "FAILED" and isinstance(row["http_status"], int)
-                  and 500 <= row["http_status"] < 600}
+    candidates = set(rows) if scope == "all_sent" else {
+        request_id for request_id, row in rows.items() if row["outcome"] == "UNKNOWN"
+        or row["outcome"] == "FAILED" and isinstance(row["http_status"], int)
+        and 500 <= row["http_status"] < 600}
     if any(key[0] not in candidates for key in set(terminal) | outstanding):
         raise ValueError("재전송 대상이 아닌 ID를 다시 보냈습니다")
     last_status = {request_id: status for (request_id, _), status in terminal.items()}
@@ -274,13 +332,45 @@ def verify_after(args) -> dict:
         "retry_200_not_present_before": sum(last_status.get(request_id) == 200 and request_id not in before
                                              for request_id in candidates),
         "retry_201_new": sum(last_status.get(request_id) == 201 for request_id in candidates),
+        "retry_201_was_present_before": sum(last_status.get(request_id) == 201 and request_id in before
+                                             for request_id in candidates),
         "retry_conflict_409": sum(last_status.get(request_id) == 409 for request_id in candidates),
         "resolved_missing_from_final_db": sum(request_id not in after for request_id in resolved),
+        "final_missing_sent_ids": sum(request_id not in after for request_id in rows),
+        "db_before_rows": sum(before.values()),
         "final_db_rows": sum(after.values()),
+        "db_rows_added": sum(after.values()) - sum(before.values()),
+        "db_unique_ids_added": len(set(after) - set(before)),
         "db_duplicate_ids_after_retry": sum(count > 1 for count in after.values()),
         "sent_attempt_without_result": len(outstanding),
         "db_after_sha256": hashlib.sha256(args.db_after.read_bytes()).hexdigest(),
+        "scope": scope,
     }
+    k6_valid = True
+    if scope == "all_sent":
+        # 3. Reject gaps, extra requests, or a dropped k6 iteration independently of DB state.
+        k6_summary = json.loads(args.replay_summary.read_text(encoding="utf-8"))
+        observed = {"200": sum(status == 200 for status in last_status.values()),
+                    "201": sum(status == 201 for status in last_status.values()),
+                    "other": sum(status not in (None, 200, 201) for status in last_status.values()),
+                    "unknown": sum(status is None for status in last_status.values())}
+        k6_valid = (k6_summary.get("source_run_id") == args.run_id
+                    and k6_summary.get("manifest_requests") == len(rows)
+                    and k6_summary.get("http_requests") == len(rows)
+                    and k6_summary.get("dropped_iterations") == 0
+                    and k6_summary.get("status_counts") == observed
+                    and len(terminal) == len(rows) and not outstanding)
+        result["k6_replay_evidence_valid"] = k6_valid
+        result["k6_replay_status_counts"] = observed
+    result["idempotency_pass"] = (scope == "all_sent" and k6_valid
+                                   and result["retry_http_unresolved"] == 0
+                                   and result["retry_conflict_409"] == 0
+                                   and result["retry_201_was_present_before"] == 0
+                                   and result["retry_200_not_present_before"] == 0
+                                   and result["final_missing_sent_ids"] == 0
+                                   and result["db_rows_added"] == result["retry_201_new"]
+                                   and result["db_unique_ids_added"] == result["retry_201_new"]
+                                   and result["db_duplicate_ids_after_retry"] == 0)
     result["final_pass"] = (result["initial_201_missing_before_retry"] == 0
                             and result["initial_201_missing_after_retry"] == 0
                             and pre_result["db_duplicate_ids_before_retry"] == 0
@@ -289,7 +379,8 @@ def verify_after(args) -> dict:
                             and result["retry_conflict_409"] == 0
                             and result["resolved_missing_from_final_db"] == 0
                             and result["sent_attempt_without_result"] == 0
-                            and pre_result["k6_dropped_iterations"] == 0)
+                            and pre_result["k6_dropped_iterations"] == 0
+                            and (scope != "all_sent" or result["idempotency_pass"]))
     write_private(args.replay_dir / "재전송-최종-대조.json",
                   json.dumps(result, ensure_ascii=False, indent=2) + "\n", exclusive=True)
     return result
@@ -298,7 +389,8 @@ def verify_after(args) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    for command in (commands.add_parser("run"), commands.add_parser("verify")):
+    for command in (commands.add_parser("run"), commands.add_parser("verify"),
+                    commands.add_parser("prepare-k6-all"), commands.add_parser("verify-k6-all")):
         command.add_argument("--run-id", required=True)
         command.add_argument("--events", type=Path, required=True)
         command.add_argument("--summary", type=Path, required=True)
@@ -312,16 +404,30 @@ def main() -> int:
     verify = commands.choices["verify"]
     verify.add_argument("--db-after", type=Path, required=True)
     verify.add_argument("--replay-dir", type=Path, required=True)
+    prepare_k6 = commands.choices["prepare-k6-all"]
+    prepare_k6.add_argument("--output-dir", type=Path, required=True)
+    verify_k6 = commands.choices["verify-k6-all"]
+    verify_k6.add_argument("--db-after", type=Path, required=True)
+    verify_k6.add_argument("--replay-dir", type=Path, required=True)
+    verify_k6.add_argument("--replay-summary", type=Path, required=True)
     args = parser.parse_args()
     try:
-        result = run_retries(args, progress=lambda line: print(line, flush=True)) \
-            if args.command == "run" else verify_after(args)
+        if args.command == "run":
+            result = run_retries(args, progress=lambda line: print(line, flush=True))
+        elif args.command == "prepare-k6-all":
+            result = prepare_k6_all(args)
+        else:
+            if args.command == "verify-k6-all":
+                saved = json.loads((args.replay_dir / "재전송-전-대조.json").read_text(encoding="utf-8"))
+                if saved.get("scope") != "all_sent":
+                    raise ValueError("전체 재전송의 사전 증거가 아닙니다")
+            result = verify_after(args)
     except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
         # Never copy an exception message: a URL, token, or private path may be inside it.
         print("HA_RETRY_INVALID_OR_INCOMPLETE_EVIDENCE", file=sys.stderr)
         return 2
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
-    return 0 if args.command == "run" or result["final_pass"] else 1
+    return 0 if args.command in {"run", "prepare-k6-all"} or result["final_pass"] else 1
 
 
 if __name__ == "__main__":
