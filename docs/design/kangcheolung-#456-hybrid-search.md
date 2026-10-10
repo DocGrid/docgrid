@@ -56,7 +56,7 @@ SearchFacade
 
 - **벡터가 순위를 주도하고 단어 일치는 작은 보너스**다(α = 0.1). 단어가 겹친다는 이유만으로 벡터 1위 정답이 밀리지 않고, `OM`처럼 벡터가 의미로 못 잡는 용어는 그 단어를 가진 청크가 커버리지로 결과에 들어온다.
 - 흔한 단어(`STOMP`가 22개 청크)는 가치가 낮고 드문 단어(`OM`이 1개 청크)는 높아서, "주제만 같은 청크"보다 "질문의 드문 단어까지 가진 청크"가 위로 간다. 검색엔진의 TF-IDF/BM25 아이디어를 직접 구현했고 새 의존성은 없다.
-- 키워드 방식으로 `tsvector('simple')`는 "고구려는", "@MessageMapping으로"처럼 조사가 붙은 토큰을 통째로 한 단어로 봐서 쓰지 않았다. 단어 일치는 PostgreSQL 정규식(`~*`)으로 하고 `pg_trgm` GIN 인덱스(V45)가 후보 조회를 돕는다.
+- 키워드 방식으로 `tsvector('simple')`는 "고구려는", "@MessageMapping으로"처럼 조사가 붙은 토큰을 통째로 한 단어로 봐서 쓰지 않았다. 단어 일치는 PostgreSQL 정규식(`~*`)으로 하고 `pg_trgm` GIN 인덱스(V46)가 후보 조회를 돕는다.
 - 키워드로만 잡힌 청크도 쿼리가 벡터 거리를 함께 계산해 응답·저장의 `similarityScore`를 모든 후보가 가진다. 응답 스키마와 `search_results` 변경은 없다.
 
 ### 3.1 설정 (`search.hybrid.*`)
@@ -74,7 +74,7 @@ SearchFacade
 ### 3.2 API·스키마 영향
 
 - 엔드포인트와 응답 스키마 변경 없음. 결과가 0건일 수 있는 것도 기존과 같다(`200` + 빈 결과, RAG는 고정 안내 문구).
-- DB: Flyway V45 — `pg_trgm` 확장과 `document_chunks.chunk_text` GIN 인덱스만 추가한다. 테이블·컬럼 변경과 재임베딩은 없다.
+- DB: Flyway V46 — `pg_trgm` 확장과 `document_chunks.chunk_text` GIN 인덱스만 추가한다. 테이블·컬럼 변경과 재임베딩은 없다.
 - 에러 케이스는 기존과 같다(임베딩 서버 지연 504 `SEARCH-004` 등). 단어 쿼리 실패는 기존 검색 실패 처리(`search_queries` FAILED 확정)를 따른다.
 
 ## 4. 검증
@@ -128,10 +128,10 @@ AI 답변은 매번 조금씩 달라서(번역문이 덧붙거나 말투가 바�
 
 ## 6. 배포·운영 주의
 
-- **`pg_trgm` 확장은 DB 관리자가 미리 설치하는 것이 안전하다.** `vector` 확장도 마이그레이션이 아니라 사전 설치 방식이다. V45의 `CREATE EXTENSION IF NOT EXISTS`는 이미 설치돼 있으면 변경 없이 통과하지만,
+- **`pg_trgm` 확장은 DB 관리자가 미리 설치하는 것이 안전하다.** `vector` 확장도 마이그레이션이 아니라 사전 설치 방식이다. V46의 `CREATE EXTENSION IF NOT EXISTS`는 이미 설치돼 있으면 변경 없이 통과하지만,
   마이그레이션 계정에 DB `CREATE` 권한이 없고 확장이 없으면 앱 기동이 막힌다. `pg_trgm`은 trusted 확장이라 `CREATE` 권한만 있으면 설치할 수 있다(공유 OpenSQL에서 `pg_trgm` 1.6 사용 가능·trusted·미설치 확인).
 - GIN 인덱스 생성은 `document_chunks`의 쓰기를 잠시 막는다(`CONCURRENTLY`는 Flyway 트랜잭션 안에서 쓸 수 없다). 청크 수가 많은 환경에서는 점검 시간에 적용한다.
-- 이 브랜치의 백엔드를 공유 DB(`opensql-ha`)로 실행하면 V45가 공유 DB에 적용된다. 합의 전에는 로컬 DB로만 실행한다.
+- 이 브랜치의 백엔드를 공유 DB(`opensql-ha`)로 실행하면 V46이 공유 DB에 적용된다. 합의 전에는 로컬 DB로만 실행한다.
 - **기본값이 켜짐이므로 배포하면 검색 동작이 바뀐다.** 결과 순서가 달라지고 문서에 없는 질문은 결과가 줄거나 없어질 수 있다. 롤백은 `SEARCH_HYBRID_ENABLED=false`(재시작 필요)이며 확장과 인덱스는 남아도 해롭지 않다.
 - 기본값 변경(`search.vector.min-similarity` 포함)은 이번 범위가 아니다(#190). 하이브리드의 `vector-min-similarity`(0.45)는 하이브리드 경로에서만 쓰인다.
 - 단어 일치는 정규식이라 질문에 정규식 특수 문자가 있어도 이스케이프해서 전달한다(`QueryTermExtractorTest`).
