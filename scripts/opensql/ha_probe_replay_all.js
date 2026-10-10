@@ -53,7 +53,7 @@ export const options = {
       executor: 'constant-arrival-rate', rate, timeUnit: '1s',
       // One extra second lets every frozen ID start without inventing another HTTP request.
       duration: `${Math.ceil(requests.length / rate) + 1}s`,
-      preAllocatedVUs: vus, maxVUs,
+      preAllocatedVUs: vus, maxVUs: maxVus,
     },
   },
   thresholds: { http_req_failed: ['rate==0'], dropped_iterations: ['count==0'] },
