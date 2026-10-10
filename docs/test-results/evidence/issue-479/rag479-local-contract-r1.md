@@ -12,4 +12,3 @@
 | `./backend/gradlew -p backend bootJar --no-daemon` | JAR 생성 성공, SHA-256 `153bb7f1cb343784112e3b6652955870e84d18361fd56521e2228b0e25144120` | GCP A/B에 동일 파일 적용 |
 
 첫 로컬 `python3 -m pytest`는 호스트 Python에 pytest가 없어 종료 코드 1이었다. 시험 코드를 변경한 실패가 아니라 실행 환경 의존성 문제였고, 기존 BGE 이미지 안에서 pytest를 설치해 재실행했다. 이어서 기존 이미지의 TestClient가 `client=` 인자를 지원하지 않아 최초 단독 점검이 `TypeError`로 실패했다. 테스트는 해당 런타임이 지원하는 기본 클라이언트로 수정했고 최종 23건이 통과했다. 이 파일은 시험 도구 출력에서 확인한 비식별 요약이며 실시간 raw 터미널 로그 파일은 아니다.
-
