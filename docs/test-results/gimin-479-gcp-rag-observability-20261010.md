@@ -90,5 +90,6 @@ RagFacade → OllamaClient.generate(prompt)
 - 앱 A/B의 적용 JAR SHA-256은 동일하다. 두 앱의 공개 `/departments`가 **각각 200**이고 Worker가 **둘 다 비활성**인 상태로 끝났다.
 - 첫 GCP 지표 시험의 Worker 설정은 필수 `worker-scope-test` 프로필 누락으로 기동에 실패했다. 반복된 공개 503을 서비스 실패 표본으로 남기고 원인을 보완한 뒤 동일 문서 버전만 다시 처리했다.
 - Grafana 값은 인증 API의 Prometheus 자료원을 통한 **실제 질의**로 확인했다. 새 전용 대시보드 패널은 만들지 않았다.
+- BGE VM에는 기존 CPU 호환 이미지에 수정 소스를 덮은 로컬 이미지를 적용했다. 저장소 Dockerfile로 의존성을 포함해 완전한 새 이미지를 빌드·기동하는 검증은 이 실행의 범위 밖이다.
 - `complete`·`failure` 지표 분기는 로컬 테스트에서 확인했고, GCP 실요청에서는 `partial`만 발생했다. 이 차이를 성공·실패 집계에 숨기지 않는다.
 - 관측 VM은 시험 전 실행 상태로 복귀했고 BGE·Ollama는 중지했다. 따라서 지금 공개 RAG 질문은 Ollama VM을 재시작하지 않으면 성공하지 않는다. CPU VM의 중지 후에도 부팅 디스크 보관 요금은 남는다.

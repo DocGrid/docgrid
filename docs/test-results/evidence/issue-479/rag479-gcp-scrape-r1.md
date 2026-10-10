@@ -13,5 +13,7 @@
 | Prometheus `up{job="embedding-provider"}`와 요청 Counter 조회 | `up` **1/1**, 실제 PDF 인덱싱·검색 뒤 BGE 요청 **2건** | 대상이 단순 등록만 된 것이 아니라 실제 작업 지표가 증가 |
 | Grafana 인증 API의 `ha-prometheus` 자료원 `/api/ds/query`로 같은 PromQL 조회 | BGE `up=1`, 요청 **2건** | Prometheus 값과 Grafana 경유 값 일치 |
 
+BGE 배포는 이미 시험 VM에 있던 CPU 호환 이미지의 컨테이너에 수정 `main.py`를 넣고 새 로컬 Docker 이미지로 저장한 뒤, 기존 컨테이너를 보존한 상태에서 재생성했다. **저장소 Dockerfile로 이미지 전체를 처음부터 다시 빌드한 검증은 아니다.** VM 재생성 시에는 소스에서 이미지 빌드·배포가 별도로 필요하다.
+
 BGE `/metrics`와 `/embed`는 동일 TCP 포트다. 방화벽만으로 URL 경로를 분리했다고 주장하지 않는다. 방화벽은 관측 VM의 포트 접근만 추가했고, 애플리케이션의 클라이언트 주소 검사가 `/metrics`를 제한한다. 관측 종료 후 BGE VM을 원래의 `TERMINATED` 상태로 되돌렸으므로 현재 시점의 `up=1`을 보장하지 않는다. 이 문서의 값은 시험 중 수집한 시계열이다.
 
