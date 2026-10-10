@@ -109,7 +109,7 @@ public class VectorSearchQueryService {
     /**
      * float 배열을 pgvector Native Query가 CAST할 수 있는 대괄호 Vector 문자열로 직렬화한다.
      */
-    private String toVectorString(float[] vector) {
+    static String toVectorString(float[] vector) {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < vector.length; i++) {
             if (i > 0) sb.append(",");

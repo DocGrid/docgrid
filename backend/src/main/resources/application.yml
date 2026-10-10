@@ -178,6 +178,17 @@ search:
     max-chunks-per-document: ${SEARCH_VECTOR_MAX_CHUNKS_PER_DOCUMENT:2}
     # HNSW 순서를 유지하면서 문서 다양성 필터에 필요한 후보만 제한적으로 추가 조회한다.
     candidate-pool-multiplier: ${SEARCH_VECTOR_CANDIDATE_POOL_MULTIPLIER:4}
+  hybrid:
+    # 벡터 + 질문 단어(희귀할수록 비중 큼) 일치를 점수로 결합한다. SEARCH_HYBRID_ENABLED=false로 끄면 위 search.vector 설정의
+    # 벡터 단독 검색으로 즉시 돌아간다(문제가 생겼을 때의 롤백 스위치).
+    enabled: ${SEARCH_HYBRID_ENABLED:true}
+    # 벡터 유사도가 이 값 이상이면 질문 단어가 겹치지 않아도 결과로 인정한다. (하이브리드에서만 사용)
+    vector-min-similarity: ${SEARCH_HYBRID_VECTOR_MIN_SIMILARITY:0.45}
+    # 질문 단어(가중치 합) 중 이 비율 이상을 청크가 가지면 벡터 유사도가 낮아도 결과로 인정한다.
+    min-coverage: ${SEARCH_HYBRID_MIN_COVERAGE:0.50}
+    # 순위 점수 = 벡터 유사도 + 이 값 × 커버리지. 벡터 순서가 주도하고 단어 일치는 보너스다.
+    coverage-weight: ${SEARCH_HYBRID_COVERAGE_WEIGHT:0.10}
+    lexical-candidate-pool-multiplier: ${SEARCH_HYBRID_LEXICAL_CANDIDATE_POOL_MULTIPLIER:4}
 
 ollama:
   server:

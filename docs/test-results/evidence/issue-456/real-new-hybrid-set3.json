@@ -1,0 +1,1394 @@
+[
+ {
+  "id": "T01",
+  "type": "IDENTIFIER",
+  "question": "cd /test1은 어디로 이동해?",
+  "firstRelevantRank": 1,
+  "returned": 6,
+  "ms": 321.9,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 200,
+    "doc": "디렉토리 명령어",
+    "score": 0.6531
+   },
+   {
+    "rank": 2,
+    "chunkId": 201,
+    "doc": "디렉토리 명령어",
+    "score": 0.6026
+   },
+   {
+    "rank": 3,
+    "chunkId": 154,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4878
+   },
+   {
+    "rank": 4,
+    "chunkId": 153,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4733
+   },
+   {
+    "rank": 5,
+    "chunkId": 186,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4581
+   },
+   {
+    "rank": 6,
+    "chunkId": 185,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4516
+   }
+  ]
+ },
+ {
+  "id": "T02",
+  "type": "IDENTIFIER",
+  "question": "ls ../test2는 뭘 출력해?",
+  "firstRelevantRank": 1,
+  "returned": 6,
+  "ms": 281.5,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 202,
+    "doc": "디렉토리 명령어",
+    "score": 0.6866
+   },
+   {
+    "rank": 2,
+    "chunkId": 201,
+    "doc": "디렉토리 명령어",
+    "score": 0.6499
+   },
+   {
+    "rank": 3,
+    "chunkId": 174,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4807
+   },
+   {
+    "rank": 4,
+    "chunkId": 173,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4577
+   },
+   {
+    "rank": 5,
+    "chunkId": 136,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4562
+   },
+   {
+    "rank": 6,
+    "chunkId": 135,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4518
+   }
+  ]
+ },
+ {
+  "id": "T03",
+  "type": "IDENTIFIER",
+  "question": "mv ../test1 . 하면 어떻게 돼?",
+  "firstRelevantRank": 1,
+  "returned": 8,
+  "ms": 313.4,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 201,
+    "doc": "디렉토리 명령어",
+    "score": 0.674
+   },
+   {
+    "rank": 2,
+    "chunkId": 200,
+    "doc": "디렉토리 명령어",
+    "score": 0.6036
+   },
+   {
+    "rank": 3,
+    "chunkId": 123,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5054
+   },
+   {
+    "rank": 4,
+    "chunkId": 165,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4913
+   },
+   {
+    "rank": 5,
+    "chunkId": 154,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4901
+   },
+   {
+    "rank": 6,
+    "chunkId": 153,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4898
+   },
+   {
+    "rank": 7,
+    "chunkId": 177,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4853
+   },
+   {
+    "rank": 8,
+    "chunkId": 139,
+    "doc": "SOLID-공부_자료",
+    "score": 0.472
+   }
+  ]
+ },
+ {
+  "id": "T04",
+  "type": "IDENTIFIER",
+  "question": "ls 파일1은 뭘 보여줘?",
+  "firstRelevantRank": 1,
+  "returned": 2,
+  "ms": 281.2,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 201,
+    "doc": "디렉토리 명령어",
+    "score": 0.568
+   },
+   {
+    "rank": 2,
+    "chunkId": 202,
+    "doc": "디렉토리 명령어",
+    "score": 0.5837
+   }
+  ]
+ },
+ {
+  "id": "T05",
+  "type": "IDENTIFIER",
+  "question": "cd ../test1/test2는 어디로 가?",
+  "firstRelevantRank": 1,
+  "returned": 6,
+  "ms": 281.9,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 200,
+    "doc": "디렉토리 명령어",
+    "score": 0.6533
+   },
+   {
+    "rank": 2,
+    "chunkId": 201,
+    "doc": "디렉토리 명령어",
+    "score": 0.6267
+   },
+   {
+    "rank": 3,
+    "chunkId": 154,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4996
+   },
+   {
+    "rank": 4,
+    "chunkId": 153,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4891
+   },
+   {
+    "rank": 5,
+    "chunkId": 167,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4836
+   },
+   {
+    "rank": 6,
+    "chunkId": 186,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4809
+   }
+  ]
+ },
+ {
+  "id": "T06",
+  "type": "IDENTIFIER",
+  "question": "Sparrow 클래스는 어떤 예시에 나와?",
+  "firstRelevantRank": 1,
+  "returned": 2,
+  "ms": 381.7,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 133,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5824
+   },
+   {
+    "rank": 2,
+    "chunkId": 134,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5736
+   }
+  ]
+ },
+ {
+  "id": "T07",
+  "type": "IDENTIFIER",
+  "question": "Calculator 클래스가 OCP를 위반하는 이유는?",
+  "firstRelevantRank": 1,
+  "returned": 2,
+  "ms": 268.2,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 128,
+    "doc": "SOLID-공부_자료",
+    "score": 0.6905
+   },
+   {
+    "rank": 2,
+    "chunkId": 127,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5782
+   }
+  ]
+ },
+ {
+  "id": "T08",
+  "type": "IDENTIFIER",
+  "question": "의존성 주입이 뭐야?",
+  "firstRelevantRank": 1,
+  "returned": 2,
+  "ms": 282.5,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 141,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5841
+   },
+   {
+    "rank": 2,
+    "chunkId": 140,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5031
+   }
+  ]
+ },
+ {
+  "id": "T09",
+  "type": "IDENTIFIER",
+  "question": "DataService는 어떤 문제가 있어?",
+  "firstRelevantRank": 1,
+  "returned": 6,
+  "ms": 254.5,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 139,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5514
+   },
+   {
+    "rank": 2,
+    "chunkId": 140,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4734
+   },
+   {
+    "rank": 3,
+    "chunkId": 188,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4975
+   },
+   {
+    "rank": 4,
+    "chunkId": 187,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4942
+   },
+   {
+    "rank": 5,
+    "chunkId": 150,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4669
+   },
+   {
+    "rank": 6,
+    "chunkId": 144,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4601
+   }
+  ]
+ },
+ {
+  "id": "T10",
+  "type": "IDENTIFIER",
+  "question": "SOLID 원칙의 이점이 뭐야?",
+  "firstRelevantRank": 1,
+  "returned": 2,
+  "ms": 295.0,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 121,
+    "doc": "SOLID-공부_자료",
+    "score": 0.796
+   },
+   {
+    "rank": 2,
+    "chunkId": 120,
+    "doc": "SOLID-공부_자료",
+    "score": 0.6762
+   }
+  ]
+ },
+ {
+  "id": "T11",
+  "type": "IDENTIFIER",
+  "question": "MultiFunctionPrinter는 뭐야?",
+  "firstRelevantRank": 1,
+  "returned": 1,
+  "ms": 237.7,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 136,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5759
+   }
+  ]
+ },
+ {
+  "id": "T12",
+  "type": "IDENTIFIER",
+  "question": "Faxable 인터페이스는 어떤 기능이야?",
+  "firstRelevantRank": 1,
+  "returned": 2,
+  "ms": 584.7,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 136,
+    "doc": "SOLID-공부_자료",
+    "score": 0.643
+   },
+   {
+    "rank": 2,
+    "chunkId": 135,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5137
+   }
+  ]
+ },
+ {
+  "id": "T13",
+  "type": "IDENTIFIER",
+  "question": "언제 SOLID를 적용하면 좋아?",
+  "firstRelevantRank": null,
+  "returned": 3,
+  "ms": 573.0,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 120,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5983
+   },
+   {
+    "rank": 2,
+    "chunkId": 142,
+    "doc": "SOLID-공부_자료",
+    "score": 0.6092
+   },
+   {
+    "rank": 3,
+    "chunkId": 181,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4628
+   }
+  ]
+ },
+ {
+  "id": "T16",
+  "type": "IDENTIFIER",
+  "question": "SSE는 자동 재연결을 지원해?",
+  "firstRelevantRank": 3,
+  "returned": 4,
+  "ms": 819.1,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 182,
+    "doc": "🥔교육팀🥔",
+    "score": 0.6729
+   },
+   {
+    "rank": 2,
+    "chunkId": 181,
+    "doc": "🥔교육팀🥔",
+    "score": 0.6053
+   },
+   {
+    "rank": 3,
+    "chunkId": 149,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5706
+   },
+   {
+    "rank": 4,
+    "chunkId": 148,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.6104
+   }
+  ]
+ },
+ {
+  "id": "T17",
+  "type": "IDENTIFIER",
+  "question": "WebSocket은 구현 복잡도가 어때?",
+  "firstRelevantRank": 1,
+  "returned": 6,
+  "ms": 595.2,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 149,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.6018
+   },
+   {
+    "rank": 2,
+    "chunkId": 182,
+    "doc": "🥔교육팀🥔",
+    "score": 0.5947
+   },
+   {
+    "rank": 3,
+    "chunkId": 181,
+    "doc": "🥔교육팀🥔",
+    "score": 0.5773
+   },
+   {
+    "rank": 4,
+    "chunkId": 145,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.628
+   },
+   {
+    "rank": 5,
+    "chunkId": 120,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4683
+   },
+   {
+    "rank": 6,
+    "chunkId": 142,
+    "doc": "SOLID-공부_자료",
+    "score": 0.403
+   }
+  ]
+ },
+ {
+  "id": "T19",
+  "type": "IDENTIFIER",
+  "question": "STOMP의 목적지는 몇 가지로 나뉘어?",
+  "firstRelevantRank": 1,
+  "returned": 4,
+  "ms": 563.8,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 152,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.7466
+   },
+   {
+    "rank": 2,
+    "chunkId": 167,
+    "doc": "🥔교육팀🥔",
+    "score": 0.7166
+   },
+   {
+    "rank": 3,
+    "chunkId": 165,
+    "doc": "🥔교육팀🥔",
+    "score": 0.7194
+   },
+   {
+    "rank": 4,
+    "chunkId": 151,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.656
+   }
+  ]
+ },
+ {
+  "id": "T20",
+  "type": "IDENTIFIER",
+  "question": "HTTP는 응답이 오면 연결이 어떻게 돼?",
+  "firstRelevantRank": 2,
+  "returned": 4,
+  "ms": 335.4,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 172,
+    "doc": "🥔교육팀🥔",
+    "score": 0.7208
+   },
+   {
+    "rank": 2,
+    "chunkId": 158,
+    "doc": "🥔교육팀🥔",
+    "score": 0.6597
+   },
+   {
+    "rank": 3,
+    "chunkId": 145,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.6346
+   },
+   {
+    "rank": 4,
+    "chunkId": 147,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5901
+   }
+  ]
+ },
+ {
+  "id": "T24",
+  "type": "IDENTIFIER",
+  "question": "/topic/chat/room/1은 무슨 뜻이야?",
+  "firstRelevantRank": 1,
+  "returned": 4,
+  "ms": 277.1,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 154,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5587
+   },
+   {
+    "rank": 2,
+    "chunkId": 152,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.522
+   },
+   {
+    "rank": 3,
+    "chunkId": 186,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4792
+   },
+   {
+    "rank": 4,
+    "chunkId": 185,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4777
+   }
+  ]
+ },
+ {
+  "id": "T26",
+  "type": "IDENTIFIER",
+  "question": "프론트엔드 파트장은 누구야?",
+  "firstRelevantRank": 1,
+  "returned": 4,
+  "ms": 314.9,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 195,
+    "doc": "cotato-regulation-sample",
+    "score": 0.5682
+   },
+   {
+    "rank": 2,
+    "chunkId": 177,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4837
+   },
+   {
+    "rank": 3,
+    "chunkId": 178,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4829
+   },
+   {
+    "rank": 4,
+    "chunkId": 196,
+    "doc": "cotato-regulation-sample",
+    "score": 0.3119
+   }
+  ]
+ },
+ {
+  "id": "T27",
+  "type": "IDENTIFIER",
+  "question": "디자인 파트장은 누구야?",
+  "firstRelevantRank": 1,
+  "returned": 1,
+  "ms": 265.3,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 195,
+    "doc": "cotato-regulation-sample",
+    "score": 0.5729
+   }
+  ]
+ },
+ {
+  "id": "T29",
+  "type": "IDENTIFIER",
+  "question": "교육팀장은 누구야?",
+  "firstRelevantRank": 1,
+  "returned": 2,
+  "ms": 272.3,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 194,
+    "doc": "cotato-regulation-sample",
+    "score": 0.5006
+   },
+   {
+    "rank": 2,
+    "chunkId": 195,
+    "doc": "cotato-regulation-sample",
+    "score": 0.4714
+   }
+  ]
+ },
+ {
+  "id": "T30",
+  "type": "IDENTIFIER",
+  "question": "출석은 언제부터 인정돼?",
+  "firstRelevantRank": 1,
+  "returned": 1,
+  "ms": 237.5,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 199,
+    "doc": "cotato-regulation-sample",
+    "score": 0.4845
+   }
+  ]
+ },
+ {
+  "id": "T31",
+  "type": "IDENTIFIER",
+  "question": "스터디를 중도 탈퇴하면 벌점이 몇 점이야?",
+  "firstRelevantRank": 1,
+  "returned": 3,
+  "ms": 288.5,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 199,
+    "doc": "cotato-regulation-sample",
+    "score": 0.6134
+   },
+   {
+    "rank": 2,
+    "chunkId": 196,
+    "doc": "cotato-regulation-sample",
+    "score": 0.4691
+   },
+   {
+    "rank": 3,
+    "chunkId": 123,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4508
+   }
+  ]
+ },
+ {
+  "id": "T33",
+  "type": "IDENTIFIER",
+  "question": "회칙은 어떻게 바뀔 수 있어?",
+  "firstRelevantRank": 2,
+  "returned": 4,
+  "ms": 247.6,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 196,
+    "doc": "cotato-regulation-sample",
+    "score": 0.4756
+   },
+   {
+    "rank": 2,
+    "chunkId": 199,
+    "doc": "cotato-regulation-sample",
+    "score": 0.4683
+   },
+   {
+    "rank": 3,
+    "chunkId": 143,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5099
+   },
+   {
+    "rank": 4,
+    "chunkId": 124,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4324
+   }
+  ]
+ },
+ {
+  "id": "T34",
+  "type": "IDENTIFIER",
+  "question": "코테이토의 창립 목적이 뭐야?",
+  "firstRelevantRank": 1,
+  "returned": 1,
+  "ms": 281.4,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 193,
+    "doc": "cotato-regulation-sample",
+    "score": 0.6207
+   }
+  ]
+ },
+ {
+  "id": "T14",
+  "type": "PARAPHRASE",
+  "question": "하위 클래스가 상위 클래스의 기능을 약하게 만들면 안 된다는 규칙은?",
+  "firstRelevantRank": null,
+  "returned": 2,
+  "ms": 357.0,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 138,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4762
+   },
+   {
+    "rank": 2,
+    "chunkId": 122,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4953
+   }
+  ]
+ },
+ {
+  "id": "T15",
+  "type": "PARAPHRASE",
+  "question": "한 번만 쓰는 단순한 코드에도 원칙을 꼭 지켜야 해?",
+  "firstRelevantRank": 2,
+  "returned": 4,
+  "ms": 266.9,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 122,
+    "doc": "SOLID-공부_자료",
+    "score": 0.6748
+   },
+   {
+    "rank": 2,
+    "chunkId": 143,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5981
+   },
+   {
+    "rank": 3,
+    "chunkId": 184,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4739
+   },
+   {
+    "rank": 4,
+    "chunkId": 173,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4638
+   }
+  ]
+ },
+ {
+  "id": "T21",
+  "type": "PARAPHRASE",
+  "question": "주기적으로 계속 물어보는 방식은 사용자가 늘면 왜 문제야?",
+  "firstRelevantRank": 1,
+  "returned": 4,
+  "ms": 284.0,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 159,
+    "doc": "🥔교육팀🥔",
+    "score": 0.605
+   },
+   {
+    "rank": 2,
+    "chunkId": 146,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5772
+   },
+   {
+    "rank": 3,
+    "chunkId": 174,
+    "doc": "🥔교육팀🥔",
+    "score": 0.6105
+   },
+   {
+    "rank": 4,
+    "chunkId": 145,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4673
+   }
+  ]
+ },
+ {
+  "id": "T22",
+  "type": "PARAPHRASE",
+  "question": "실시간 양방향 통신은 처음 연결할 때 어떤 방식으로 시작해?",
+  "firstRelevantRank": 1,
+  "returned": 4,
+  "ms": 406.1,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 161,
+    "doc": "🥔교육팀🥔",
+    "score": 0.541
+   },
+   {
+    "rank": 2,
+    "chunkId": 147,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5011
+   },
+   {
+    "rank": 3,
+    "chunkId": 171,
+    "doc": "🥔교육팀🥔",
+    "score": 0.5302
+   },
+   {
+    "rank": 4,
+    "chunkId": 148,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4536
+   }
+  ]
+ },
+ {
+  "id": "T23",
+  "type": "PARAPHRASE",
+  "question": "날것의 문자열 통신은 서버가 왜 직접 해석 규칙을 만들어야 해?",
+  "firstRelevantRank": 1,
+  "returned": 6,
+  "ms": 286.3,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 164,
+    "doc": "🥔교육팀🥔",
+    "score": 0.6166
+   },
+   {
+    "rank": 2,
+    "chunkId": 188,
+    "doc": "🥔교육팀🥔",
+    "score": 0.616
+   },
+   {
+    "rank": 3,
+    "chunkId": 150,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5739
+   },
+   {
+    "rank": 4,
+    "chunkId": 151,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4945
+   },
+   {
+    "rank": 5,
+    "chunkId": 139,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4923
+   },
+   {
+    "rank": 6,
+    "chunkId": 135,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4705
+   }
+  ]
+ },
+ {
+  "id": "T25",
+  "type": "PARAPHRASE",
+  "question": "메시지 앞에 주소와 명령이 붙어서 의미가 분명해지는 규칙은?",
+  "firstRelevantRank": 1,
+  "returned": 6,
+  "ms": 328.3,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 151,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5516
+   },
+   {
+    "rank": 2,
+    "chunkId": 166,
+    "doc": "🥔교육팀🥔",
+    "score": 0.5583
+   },
+   {
+    "rank": 3,
+    "chunkId": 167,
+    "doc": "🥔교육팀🥔",
+    "score": 0.5632
+   },
+   {
+    "rank": 4,
+    "chunkId": 152,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5201
+   },
+   {
+    "rank": 5,
+    "chunkId": 120,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4804
+   },
+   {
+    "rank": 6,
+    "chunkId": 126,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4667
+   }
+  ]
+ },
+ {
+  "id": "T28",
+  "type": "PARAPHRASE",
+  "question": "회비 내역을 공개하고 관리하는 사람은 누구야?",
+  "firstRelevantRank": 1,
+  "returned": 1,
+  "ms": 254.9,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 198,
+    "doc": "cotato-regulation-sample",
+    "score": 0.4654
+   }
+  ]
+ },
+ {
+  "id": "T32",
+  "type": "PARAPHRASE",
+  "question": "주간 진행 상황을 늦게 올리면 어떤 불이익이 있어?",
+  "firstRelevantRank": 1,
+  "returned": 4,
+  "ms": 280.7,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 199,
+    "doc": "cotato-regulation-sample",
+    "score": 0.4961
+   },
+   {
+    "rank": 2,
+    "chunkId": 197,
+    "doc": "cotato-regulation-sample",
+    "score": 0.4319
+   },
+   {
+    "rank": 3,
+    "chunkId": 174,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4559
+   },
+   {
+    "rank": 4,
+    "chunkId": 173,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4553
+   }
+  ]
+ },
+ {
+  "id": "T35",
+  "type": "PARAPHRASE",
+  "question": "모은 회비는 우선 어디에 써야 해?",
+  "firstRelevantRank": 1,
+  "returned": 3,
+  "ms": 306.1,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 198,
+    "doc": "cotato-regulation-sample",
+    "score": 0.5146
+   },
+   {
+    "rank": 2,
+    "chunkId": 185,
+    "doc": "🥔교육팀🥔",
+    "score": 0.5011
+   },
+   {
+    "rank": 3,
+    "chunkId": 186,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4909
+   }
+  ]
+ },
+ {
+  "id": "T36",
+  "type": "PARAPHRASE",
+  "question": "새로 들어온 사람은 프로젝트에 반드시 참여해야 해?",
+  "firstRelevantRank": 1,
+  "returned": 2,
+  "ms": 260.4,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 196,
+    "doc": "cotato-regulation-sample",
+    "score": 0.4885
+   },
+   {
+    "rank": 2,
+    "chunkId": 127,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4579
+   }
+  ]
+ },
+ {
+  "id": "T37",
+  "type": "MIXED",
+  "question": "SSE는 HTTP 위에서 동작해?",
+  "firstRelevantRank": 1,
+  "returned": 4,
+  "ms": 281.6,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 162,
+    "doc": "🥔교육팀🥔",
+    "score": 0.7536
+   },
+   {
+    "rank": 2,
+    "chunkId": 148,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.7377
+   },
+   {
+    "rank": 3,
+    "chunkId": 160,
+    "doc": "🥔교육팀🥔",
+    "score": 0.7808
+   },
+   {
+    "rank": 4,
+    "chunkId": 149,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.7048
+   }
+  ]
+ },
+ {
+  "id": "T38",
+  "type": "MIXED",
+  "question": "STOMP를 쓰면 WebSocket은 어떻게 달라져?",
+  "firstRelevantRank": 1,
+  "returned": 4,
+  "ms": 310.9,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 170,
+    "doc": "🥔교육팀🥔",
+    "score": 0.7348
+   },
+   {
+    "rank": 2,
+    "chunkId": 166,
+    "doc": "🥔교육팀🥔",
+    "score": 0.7322
+   },
+   {
+    "rank": 3,
+    "chunkId": 151,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.7287
+   },
+   {
+    "rank": 4,
+    "chunkId": 150,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.6738
+   }
+  ]
+ },
+ {
+  "id": "T39",
+  "type": "MIXED",
+  "question": "LSP 위반 예시에서 Ostrich의 fly()는 어떻게 구현했어?",
+  "firstRelevantRank": 1,
+  "returned": 2,
+  "ms": 277.2,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 132,
+    "doc": "SOLID-공부_자료",
+    "score": 0.7366
+   },
+   {
+    "rank": 2,
+    "chunkId": 134,
+    "doc": "SOLID-공부_자료",
+    "score": 0.6181
+   }
+  ]
+ },
+ {
+  "id": "T40",
+  "type": "MIXED",
+  "question": "Zoo 클래스의 makeFly 메서드는 뭘 받아?",
+  "firstRelevantRank": null,
+  "returned": 2,
+  "ms": 268.9,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 134,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5652
+   },
+   {
+    "rank": 2,
+    "chunkId": 132,
+    "doc": "SOLID-공부_자료",
+    "score": 0.5508
+   }
+  ]
+ },
+ {
+  "id": "N01",
+  "type": "NO_ANSWER",
+  "question": "WebSocket 서버를 AWS에 배포하는 방법",
+  "firstRelevantRank": null,
+  "returned": 4,
+  "ms": 280.1,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 182,
+    "doc": "🥔교육팀🥔",
+    "score": 0.5904
+   },
+   {
+    "rank": 2,
+    "chunkId": 160,
+    "doc": "🥔교육팀🥔",
+    "score": 0.6358
+   },
+   {
+    "rank": 3,
+    "chunkId": 149,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5742
+   },
+   {
+    "rank": 4,
+    "chunkId": 147,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.5553
+   }
+  ]
+ },
+ {
+  "id": "N02",
+  "type": "NO_ANSWER",
+  "question": "SOLID 원칙을 쉽게 외우는 순서가 뭐야?",
+  "firstRelevantRank": null,
+  "returned": 2,
+  "ms": 238.4,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 120,
+    "doc": "SOLID-공부_자료",
+    "score": 0.685
+   },
+   {
+    "rank": 2,
+    "chunkId": 121,
+    "doc": "SOLID-공부_자료",
+    "score": 0.6265
+   }
+  ]
+ },
+ {
+  "id": "N03",
+  "type": "NO_ANSWER",
+  "question": "동아리 회장 선거는 언제 해?",
+  "firstRelevantRank": null,
+  "returned": 2,
+  "ms": 270.1,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 194,
+    "doc": "cotato-regulation-sample",
+    "score": 0.5137
+   },
+   {
+    "rank": 2,
+    "chunkId": 196,
+    "doc": "cotato-regulation-sample",
+    "score": 0.5351
+   }
+  ]
+ },
+ {
+  "id": "N04",
+  "type": "NO_ANSWER",
+  "question": "리눅스에서 파일 권한을 숫자로 표시하는 법",
+  "firstRelevantRank": null,
+  "returned": 4,
+  "ms": 371.3,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 200,
+    "doc": "디렉토리 명령어",
+    "score": 0.4939
+   },
+   {
+    "rank": 2,
+    "chunkId": 202,
+    "doc": "디렉토리 명령어",
+    "score": 0.4635
+   },
+   {
+    "rank": 3,
+    "chunkId": 135,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4407
+   },
+   {
+    "rank": 4,
+    "chunkId": 134,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4032
+   }
+  ]
+ },
+ {
+  "id": "N05",
+  "type": "NO_ANSWER",
+  "question": "자바스크립트 비동기 처리 방법",
+  "firstRelevantRank": null,
+  "returned": 7,
+  "ms": 313.0,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 185,
+    "doc": "🥔교육팀🥔",
+    "score": 0.45
+   },
+   {
+    "rank": 2,
+    "chunkId": 168,
+    "doc": "🥔교육팀🥔",
+    "score": 0.4438
+   },
+   {
+    "rank": 3,
+    "chunkId": 135,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4201
+   },
+   {
+    "rank": 4,
+    "chunkId": 136,
+    "doc": "SOLID-공부_자료",
+    "score": 0.4165
+   },
+   {
+    "rank": 5,
+    "chunkId": 153,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.4061
+   },
+   {
+    "rank": 6,
+    "chunkId": 152,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.3716
+   },
+   {
+    "rank": 7,
+    "chunkId": 199,
+    "doc": "cotato-regulation-sample",
+    "score": 0.3245
+   }
+  ]
+ },
+ {
+  "id": "N06",
+  "type": "NO_ANSWER",
+  "question": "파스타 면 삶는 시간이 얼마야?",
+  "firstRelevantRank": null,
+  "returned": 4,
+  "ms": 323.0,
+  "items": [
+   {
+    "rank": 1,
+    "chunkId": 146,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.2771
+   },
+   {
+    "rank": 2,
+    "chunkId": 145,
+    "doc": "WebSocket - 공부 자료",
+    "score": 0.2592
+   },
+   {
+    "rank": 3,
+    "chunkId": 159,
+    "doc": "🥔교육팀🥔",
+    "score": 0.2556
+   },
+   {
+    "rank": 4,
+    "chunkId": 158,
+    "doc": "🥔교육팀🥔",
+    "score": 0.2539
+   }
+  ]
+ }
+]
