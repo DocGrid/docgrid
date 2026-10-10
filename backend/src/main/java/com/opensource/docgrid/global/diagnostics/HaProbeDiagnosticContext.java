@@ -27,7 +27,8 @@ public final class HaProbeDiagnosticContext {
     }
 
     public static boolean isProbeRequest(HttpServletRequest request) {
-        return "/api/ha-probe/writes".equals(request.getRequestURI());
+        return "/api/ha-probe/writes".equals(request.getRequestURI())
+            || "/api/ha-probe/idempotent-writes".equals(request.getRequestURI());
     }
 
     public static void begin(String runId, String requestId) {

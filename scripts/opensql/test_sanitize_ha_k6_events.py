@@ -41,6 +41,10 @@ class SanitizedHaK6EventsTest(unittest.TestCase):
         self.assertEqual([self.sent, acknowledged],
                          [json.loads(line) for line in self.output.read_text().splitlines()])
 
+    def test_idempotent_probe_operation_is_allowlisted(self):
+        self.write({**self.sent, "operation": "ha_probe_idempotent_write"})
+        self.assertEqual(1, SANITIZER.sanitize(self.source, self.output, "ha391b100"))
+
     def test_extra_url_rejects_entire_export(self):
         leaked = {**self.sent, "target_url": "http://private.invalid"}
         self.write(self.sent, leaked)
