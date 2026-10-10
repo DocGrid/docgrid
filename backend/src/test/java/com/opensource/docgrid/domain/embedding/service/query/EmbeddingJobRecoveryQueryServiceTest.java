@@ -39,6 +39,19 @@ class EmbeddingJobRecoveryQueryServiceTest {
     }
 
     @Test
+    @DisplayName("문서 버전 범위를 지정하면 해당 버전의 만료 Lease만 조회한다")
+    void findExpiredJobIdsForDocumentVersion_returnsScopedSnapshot() {
+        EmbeddingJobRecoveryQueryService queryService =
+            new EmbeddingJobRecoveryQueryService(embeddingJobRepository);
+        given(embeddingJobRepository.findExpiredProcessingJobIdsForDocumentVersion(RECOVERED_AT, 100, 42L))
+            .willReturn(List.of(10L));
+
+        assertThat(queryService.findExpiredJobIdsForDocumentVersion(RECOVERED_AT, 100, 42L))
+            .containsExactly(10L);
+        then(embeddingJobRepository).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
     @DisplayName("복구 기준 시각이 없거나 Batch 크기가 양수가 아니면 조회하지 않는다")
     void findExpiredJobIds_throws_when_inputIsInvalid() {
         EmbeddingJobRecoveryQueryService queryService =
@@ -47,6 +60,8 @@ class EmbeddingJobRecoveryQueryServiceTest {
         assertThatThrownBy(() -> queryService.findExpiredJobIds(null, 100))
             .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> queryService.findExpiredJobIds(RECOVERED_AT, 0))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> queryService.findExpiredJobIdsForDocumentVersion(RECOVERED_AT, 100, 0L))
             .isInstanceOf(IllegalArgumentException.class);
         then(embeddingJobRepository).shouldHaveNoInteractions();
     }

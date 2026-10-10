@@ -32,4 +32,22 @@ public class EmbeddingJobRecoveryQueryService {
         }
         return embeddingJobRepository.findExpiredProcessingJobIds(recoveredAt, batchSize);
     }
+
+    /**
+     * 시험 문서 버전에 속하는 만료 Job ID만 Snapshot으로 조회한다.
+     */
+    public List<Long> findExpiredJobIdsForDocumentVersion(
+        LocalDateTime recoveredAt,
+        int batchSize,
+        Long documentVersionId
+    ) {
+        if (recoveredAt == null || batchSize < 1 || documentVersionId == null || documentVersionId < 1) {
+            throw new IllegalArgumentException("복구 기준 시각, 양수 Batch 크기와 문서 버전 ID가 필요합니다.");
+        }
+        return embeddingJobRepository.findExpiredProcessingJobIdsForDocumentVersion(
+            recoveredAt,
+            batchSize,
+            documentVersionId
+        );
+    }
 }

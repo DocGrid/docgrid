@@ -22,6 +22,7 @@ from sanitize_ha_k6_events import RUN_ID, safe_event
 
 
 OUTCOMES = ("201", "500", "503", "other_failed", "unknown")
+HTTP_CLASSES = ("2xx", "3xx", "4xx", "5xx")
 PRIVATE_NETWORKS = tuple(ipaddress.ip_network(cidr) for cidr in (
     "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"
 ))
@@ -43,8 +44,8 @@ def query_base(write_url: str) -> str:
     return f"http://{address}:9090/api/v1/query"
 
 
-def expected_outcomes(events_path: Path, run_id: str) -> dict[str, int]:
-    """Count exactly one terminal outcome per sent request in the safe ledger."""
+def expected_counts(events_path: Path, run_id: str) -> dict[str, int]:
+    """Count terminal outcomes and received HTTP classes in the safe ledger."""
     if not RUN_ID.fullmatch(run_id):
         raise ValueError("실행 ID가 올바르지 않습니다")
     seen: dict[str, set[str]] = {}
@@ -60,19 +61,30 @@ def expected_outcomes(events_path: Path, run_id: str) -> dict[str, int]:
             kinds.add(kind)
             if kind == "acknowledged":
                 counts["201"] += 1
+                counts["http_2xx"] += 1
             elif kind == "failed":
                 status = item["http_status"]
                 counts[str(status) if status in (500, 503) else "other_failed"] += 1
+                counts[f"http_{status // 100}xx"] += 1
             elif kind == "unknown":
                 counts["unknown"] += 1
     if not seen or any(len(kinds) != 2 or "sent" not in kinds for kinds in seen.values()):
         raise ValueError("요청 원장에 전송 또는 종료 이벤트가 빠졌습니다")
+    return {name: counts[name] for name in OUTCOMES} | {
+        f"http_{name}": counts[f"http_{name}"] for name in HTTP_CLASSES
+    }
+
+
+def expected_outcomes(events_path: Path, run_id: str) -> dict[str, int]:
+    """Retain the outcome-only view for existing callers."""
+    counts = expected_counts(events_path, run_id)
     return {name: counts[name] for name in OUTCOMES}
 
 
 def remote_count(query_url: str, run_id: str, outcome: str) -> int:
     """Read the last non-stale counter in a bounded window after final flush."""
-    metric = f"k6_ha_outcome_{outcome}_total"
+    metric = (f"k6_ha_{outcome}_total" if outcome.startswith("http_")
+              else f"k6_ha_outcome_{outcome}_total")
     expression = f'last_over_time({metric}{{run_id="{run_id}"}}[10m])'
     url = f"{query_url}?{urlencode({'query': expression})}"
     # 1. Do not send a private endpoint through local proxy environment variables.
@@ -95,10 +107,10 @@ def remote_count(query_url: str, run_id: str, outcome: str) -> int:
 def verify(events_path: Path, run_id: str, write_url: str) -> dict:
     """Compare dashboard totals with the ledger, not with final DB rows."""
     query_url = query_base(write_url)
-    expected = expected_outcomes(events_path, run_id)
+    expected = expected_counts(events_path, run_id)
     # 2. Allow a bounded ingestion delay after k6's final remote-write flush.
     for attempt in range(1, 5):
-        observed = {name: remote_count(query_url, run_id, name) for name in OUTCOMES}
+        observed = {name: remote_count(query_url, run_id, name) for name in expected}
         if observed == expected or attempt == 4:
             break
         time.sleep(2)

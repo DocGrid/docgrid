@@ -24,6 +24,11 @@ export function useRagAnswerSocket(enabled: boolean, onMessage: () => void): Rag
 
     const socketUrl = `${WS_BASE_URL.replace(/^http/, "ws")}/ws/websocket`;
     const socket = new WebSocket(socketUrl);
+    let heartbeatTimer: number | null = null;
+    const stopHeartbeat = () => {
+      if (heartbeatTimer !== null) window.clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    };
     socket.onopen = () => socket.send(
       `CONNECT\naccept-version:1.2\nAuthorization:Bearer ${token}\nheart-beat:10000,10000\n\n\0`,
     );
@@ -32,14 +37,29 @@ export function useRagAnswerSocket(enabled: boolean, onMessage: () => void): Rag
       if (frame.startsWith("CONNECTED")) {
         // /user/** 목적지는 클라이언트가 이 형태로 그대로 구독하고, 서버가 세션별로 실제 큐를 연결한다.
         socket.send("SUBSCRIBE\nid:rag-answer\ndestination:/user/queue/rag-answer\nack:auto\n\n\0");
+        // 협상한 heartbeat를 실제로 보내 유휴 프록시가 알림 대기 연결을 끊지 않게 한다.
+        if (heartbeatTimer === null) {
+          heartbeatTimer = window.setInterval(() => {
+            if (socket.readyState === WebSocket.OPEN) socket.send("\n");
+          }, 10_000);
+        }
         setLiveStatus("LIVE");
         return;
       }
       if (frame.startsWith("MESSAGE")) onMessage();
     };
-    socket.onerror = () => setLiveStatus("POLLING");
-    socket.onclose = () => setLiveStatus("POLLING");
-    return () => socket.close();
+    socket.onerror = () => {
+      stopHeartbeat();
+      setLiveStatus("POLLING");
+    };
+    socket.onclose = () => {
+      stopHeartbeat();
+      setLiveStatus("POLLING");
+    };
+    return () => {
+      stopHeartbeat();
+      socket.close();
+    };
   }, [enabled, onMessage]);
 
   if (!enabled) return "CONNECTING";

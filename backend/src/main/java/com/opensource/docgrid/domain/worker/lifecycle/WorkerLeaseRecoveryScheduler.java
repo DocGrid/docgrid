@@ -24,7 +24,8 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>후보 ID 조회는 잠금 없는 Snapshot으로 수행하고 각 후보는 독립 Transaction에 위임한다. DEAD 확정,
  * 후보 조회 또는 한 후보 복구의 실패가 다른 안전한 복구 실행을 Rollback하거나 Scheduler 자체를 중단하지
- * 않도록 단계별로 예외 경계를 둔다.
+ * 않도록 단계별로 예외 경계를 둔다. 시험 문서 버전 범위가 설정되면 다른 Worker의 DEAD 상태 변경과 다른
+ * 문서의 Lease 복구를 건너뛴다.
  */
 @Slf4j
 @Component
@@ -46,7 +47,7 @@ public class WorkerLeaseRecoveryScheduler {
         initialDelayString = "${indexing.worker.lease-recovery-interval:30s}"
     )
     public void recoverExpiredLeases() {
-        // 1. DEAD 상태 확정 실패는 기록하되 Lease 만료만으로 안전하게 판단할 수 있는 Job 복구는 계속한다.
+        // 1. 시험 범위가 지정된 경우 다른 Worker의 전역 DEAD 상태를 변경하지 않는다.
         int deadWorkerCount = markDeadWorkers();
 
         // 2. DB TIMESTAMP 정밀도와 맞춘 한 기준 시각으로 후보 Snapshot과 후보별 만료 재검증을 수행한다.
@@ -93,6 +94,9 @@ public class WorkerLeaseRecoveryScheduler {
      * Heartbeat 만료 Worker의 일괄 상태 전이를 시도하고 실패 시 이번 주기의 Job 복구는 계속 허용한다.
      */
     private int markDeadWorkers() {
+        if (workerProperties.getDocumentVersionIdFilter() != null) {
+            return 0;
+        }
         try {
             return workerNodeCommandService.markDeadWorkers(workerProperties.getDeadThreshold());
         } catch (RuntimeException exception) {
@@ -111,10 +115,15 @@ public class WorkerLeaseRecoveryScheduler {
      */
     private List<Long> findCandidateJobIds(LocalDateTime recoveredAt) {
         try {
-            return recoveryQueryService.findExpiredJobIds(
-                recoveredAt,
-                workerProperties.getLeaseRecoveryBatchSize()
-            );
+            Long documentVersionIdFilter = workerProperties.getDocumentVersionIdFilter();
+            if (documentVersionIdFilter != null) {
+                return recoveryQueryService.findExpiredJobIdsForDocumentVersion(
+                    recoveredAt,
+                    workerProperties.getLeaseRecoveryBatchSize(),
+                    documentVersionIdFilter
+                );
+            }
+            return recoveryQueryService.findExpiredJobIds(recoveredAt, workerProperties.getLeaseRecoveryBatchSize());
         } catch (RuntimeException exception) {
             log.error(
                 "만료 Embedding Job Lease 후보를 조회하지 못했습니다. cause={}",

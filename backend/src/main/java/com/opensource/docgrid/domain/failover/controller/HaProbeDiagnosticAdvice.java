@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Profile("ha-probe")
 @ConditionalOnProperty(name = "docgrid.ha-probe.enabled", havingValue = "true")
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(assignableTypes = HaProbeWriteController.class)
+@RestControllerAdvice(assignableTypes = {HaProbeWriteController.class, HaProbeIdempotentWriteController.class})
 public class HaProbeDiagnosticAdvice {
 
     @ExceptionHandler(DataIntegrityViolationException.class)

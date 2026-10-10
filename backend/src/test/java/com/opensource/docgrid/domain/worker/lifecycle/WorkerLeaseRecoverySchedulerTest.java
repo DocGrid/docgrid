@@ -2,6 +2,7 @@ package com.opensource.docgrid.domain.worker.lifecycle;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -77,6 +78,23 @@ class WorkerLeaseRecoverySchedulerTest {
         then(recoveryQueryService).should().findExpiredJobIds(NOW, 100);
         then(leaseRecoveryService).should().recover(10L, NOW);
         then(leaseRecoveryService).should().recover(11L, NOW);
+    }
+
+    @Test
+    @DisplayName("문서 버전 범위를 지정하면 다른 Worker의 DEAD 상태와 다른 Job을 건드리지 않는다")
+    void recoverExpiredLeases_scopesCandidateAndSkipsGlobalDeadUpdate() {
+        workerProperties.setDocumentVersionIdFilter(42L);
+        given(recoveryQueryService.findExpiredJobIdsForDocumentVersion(NOW, 100, 42L))
+            .willReturn(List.of(10L));
+        given(leaseRecoveryService.recover(10L, NOW))
+            .willReturn(new RecoveryResult(10L, true, EmbeddingJobStatus.PENDING));
+
+        scheduler.recoverExpiredLeases();
+
+        then(workerNodeCommandService).shouldHaveNoInteractions();
+        then(recoveryQueryService).should().findExpiredJobIdsForDocumentVersion(NOW, 100, 42L);
+        then(recoveryQueryService).should(never()).findExpiredJobIds(NOW, 100);
+        then(leaseRecoveryService).should().recover(10L, NOW);
     }
 
     @Test

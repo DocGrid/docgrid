@@ -11,3 +11,5 @@ torch==2.4.1 ; sys_platform != "linux" or platform_machine != "x86_64"
 transformers==4.44.2
 peft==0.12.0
 numpy==1.26.4
+# datasets의 상위 제약만으로는 NumPy 2.x 전용 pyarrow가 설치될 수 있다.
+pyarrow==21.0.0

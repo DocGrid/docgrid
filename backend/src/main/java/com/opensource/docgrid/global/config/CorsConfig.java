@@ -18,6 +18,7 @@ public class CorsConfig implements WebMvcConfigurer {
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:8080",
+        "https://zippy-lute-8okpbzh.vercel.app",
         "http://52.79.212.118:3000",
         "http://52.79.212.118:5173",
         "http://52.79.212.118:8080"

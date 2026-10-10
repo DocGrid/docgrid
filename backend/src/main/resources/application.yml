@@ -74,6 +74,8 @@ s3:
 indexing:
   worker:
     enabled: ${INDEXING_WORKER_ENABLED:false}
+    # 시험 프로필에서만 지정한 문서 버전의 Job을 처리하며, 빈 값은 기존 전체 Queue 동작이다.
+    document-version-id-filter: ${INDEXING_WORKER_DOCUMENT_VERSION_ID_FILTER:}
     name: ${INDEXING_WORKER_NAME:indexing-worker}
     heartbeat-interval: ${INDEXING_WORKER_HEARTBEAT_INTERVAL:10s}
     dead-threshold: ${INDEXING_WORKER_DEAD_THRESHOLD:30s}

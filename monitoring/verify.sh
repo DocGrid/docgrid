@@ -61,6 +61,7 @@ done
 # 4. Grafana Dashboard 불변식과 격리 E2E Compose를 검증한다.
 python3 "$ROOT_DIR/monitoring/grafana/validate_dashboard.py" \
   "$ROOT_DIR/monitoring/grafana/dashboards/docgrid-operations.json"
+python3 "$ROOT_DIR/monitoring/grafana/tests/test_ha_dashboard.py"
 sh -n "$ROOT_DIR/monitoring/grafana/tests/run-e2e.sh"
 GRAFANA_TEST_PORT=13000 docker compose \
   -f "$ROOT_DIR/monitoring/grafana/tests/docker-compose.yml" config --quiet
