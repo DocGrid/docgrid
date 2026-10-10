@@ -1,0 +1,576 @@
+[
+ {
+  "id": "T01",
+  "type": "IDENTIFIER",
+  "question": "cd /test1은 어디로 이동해?",
+  "evidence": [
+   [
+    "cd /test1",
+    "루트 디렉토리 아래의 test1 디렉토리로 이동한다"
+   ]
+  ],
+  "relevantChunkIds": [
+   200
+  ]
+ },
+ {
+  "id": "T02",
+  "type": "IDENTIFIER",
+  "question": "ls ../test2는 뭘 출력해?",
+  "evidence": [
+   [
+    "ls ../test2",
+    "내용을 출력한다"
+   ]
+  ],
+  "relevantChunkIds": [
+   201,
+   202
+  ]
+ },
+ {
+  "id": "T03",
+  "type": "IDENTIFIER",
+  "question": "mv ../test1 . 하면 어떻게 돼?",
+  "evidence": [
+   [
+    "mv ../test1 .",
+    "현재 디렉토리로 옮긴다"
+   ]
+  ],
+  "relevantChunkIds": [
+   201
+  ]
+ },
+ {
+  "id": "T04",
+  "type": "IDENTIFIER",
+  "question": "ls 파일1은 뭘 보여줘?",
+  "evidence": [
+   [
+    "ls 파일1",
+    "파일1에 대한 정보만 출력한다"
+   ]
+  ],
+  "relevantChunkIds": [
+   201
+  ]
+ },
+ {
+  "id": "T05",
+  "type": "IDENTIFIER",
+  "question": "cd ../test1/test2는 어디로 가?",
+  "evidence": [
+   [
+    "cd ../test1/test2",
+    "test2 디렉토리로 이동한다"
+   ]
+  ],
+  "relevantChunkIds": [
+   200
+  ]
+ },
+ {
+  "id": "T06",
+  "type": "IDENTIFIER",
+  "question": "Sparrow 클래스는 어떤 예시에 나와?",
+  "evidence": [
+   [
+    "class Sparrow implements Flyable"
+   ]
+  ],
+  "relevantChunkIds": [
+   133
+  ]
+ },
+ {
+  "id": "T07",
+  "type": "IDENTIFIER",
+  "question": "Calculator 클래스가 OCP를 위반하는 이유는?",
+  "evidence": [
+   [
+    "Calculator",
+    "새로운 연산을 추가하려면"
+   ]
+  ],
+  "relevantChunkIds": [
+   128
+  ]
+ },
+ {
+  "id": "T08",
+  "type": "IDENTIFIER",
+  "question": "의존성 주입이 뭐야?",
+  "evidence": [
+   [
+    "의존성 주입(Dependency Injection)"
+   ]
+  ],
+  "relevantChunkIds": [
+   141
+  ]
+ },
+ {
+  "id": "T09",
+  "type": "IDENTIFIER",
+  "question": "DataService는 어떤 문제가 있어?",
+  "evidence": [
+   [
+    "DataService",
+    "강한 결합"
+   ]
+  ],
+  "relevantChunkIds": [
+   139
+  ]
+ },
+ {
+  "id": "T10",
+  "type": "IDENTIFIER",
+  "question": "SOLID 원칙의 이점이 뭐야?",
+  "evidence": [
+   [
+    "SOLID 원칙의 이점"
+   ]
+  ],
+  "relevantChunkIds": [
+   121
+  ]
+ },
+ {
+  "id": "T11",
+  "type": "IDENTIFIER",
+  "question": "MultiFunctionPrinter는 뭐야?",
+  "evidence": [
+   [
+    "MultiFunctionPrinter"
+   ]
+  ],
+  "relevantChunkIds": [
+   136
+  ]
+ },
+ {
+  "id": "T12",
+  "type": "IDENTIFIER",
+  "question": "Faxable 인터페이스는 어떤 기능이야?",
+  "evidence": [
+   [
+    "interface Faxable"
+   ]
+  ],
+  "relevantChunkIds": [
+   136
+  ]
+ },
+ {
+  "id": "T13",
+  "type": "IDENTIFIER",
+  "question": "언제 SOLID를 적용하면 좋아?",
+  "evidence": [
+   [
+    "언제 적용할까"
+   ]
+  ],
+  "relevantChunkIds": [
+   143
+  ]
+ },
+ {
+  "id": "T16",
+  "type": "IDENTIFIER",
+  "question": "SSE는 자동 재연결을 지원해?",
+  "evidence": [
+   [
+    "자동 재연결",
+    "브라우저가 기본 지원"
+   ]
+  ],
+  "relevantChunkIds": [
+   149
+  ]
+ },
+ {
+  "id": "T17",
+  "type": "IDENTIFIER",
+  "question": "WebSocket은 구현 복잡도가 어때?",
+  "evidence": [
+   [
+    "구현 복잡도 | 간단 | 복잡"
+   ]
+  ],
+  "relevantChunkIds": [
+   149
+  ]
+ },
+ {
+  "id": "T19",
+  "type": "IDENTIFIER",
+  "question": "STOMP의 목적지는 몇 가지로 나뉘어?",
+  "evidence": [
+   [
+    "두 가지로 나뉜다"
+   ]
+  ],
+  "relevantChunkIds": [
+   152,
+   167
+  ]
+ },
+ {
+  "id": "T20",
+  "type": "IDENTIFIER",
+  "question": "HTTP는 응답이 오면 연결이 어떻게 돼?",
+  "evidence": [
+   [
+    "응답이 오면",
+    "연결이 끊긴다"
+   ]
+  ],
+  "relevantChunkIds": [
+   145,
+   158
+  ]
+ },
+ {
+  "id": "T24",
+  "type": "IDENTIFIER",
+  "question": "/topic/chat/room/1은 무슨 뜻이야?",
+  "evidence": [
+   [
+    "/topic/chat/room/1",
+    "브로드캐스트"
+   ]
+  ],
+  "relevantChunkIds": [
+   154
+  ]
+ },
+ {
+  "id": "T26",
+  "type": "IDENTIFIER",
+  "question": "프론트엔드 파트장은 누구야?",
+  "evidence": [
+   [
+    "프론트엔드 파트장: 박다인"
+   ]
+  ],
+  "relevantChunkIds": [
+   195
+  ]
+ },
+ {
+  "id": "T27",
+  "type": "IDENTIFIER",
+  "question": "디자인 파트장은 누구야?",
+  "evidence": [
+   [
+    "디자인 파트장: 공은서"
+   ]
+  ],
+  "relevantChunkIds": [
+   195
+  ]
+ },
+ {
+  "id": "T29",
+  "type": "IDENTIFIER",
+  "question": "교육팀장은 누구야?",
+  "evidence": [
+   [
+    "교육팀장: 임유미"
+   ]
+  ],
+  "relevantChunkIds": [
+   194
+  ]
+ },
+ {
+  "id": "T30",
+  "type": "IDENTIFIER",
+  "question": "출석은 언제부터 인정돼?",
+  "evidence": [
+   [
+    "세션 시작 10분 전부터"
+   ]
+  ],
+  "relevantChunkIds": [
+   199
+  ]
+ },
+ {
+  "id": "T31",
+  "type": "IDENTIFIER",
+  "question": "스터디를 중도 탈퇴하면 벌점이 몇 점이야?",
+  "evidence": [
+   [
+    "중도 탈퇴한 회원에게는 벌점 7점"
+   ]
+  ],
+  "relevantChunkIds": [
+   199
+  ]
+ },
+ {
+  "id": "T33",
+  "type": "IDENTIFIER",
+  "question": "회칙은 어떻게 바뀔 수 있어?",
+  "evidence": [
+   [
+    "운영진 회의를 거쳐 조정될 수 있다"
+   ]
+  ],
+  "relevantChunkIds": [
+   199
+  ]
+ },
+ {
+  "id": "T34",
+  "type": "IDENTIFIER",
+  "question": "코테이토의 창립 목적이 뭐야?",
+  "evidence": [
+   [
+    "지식 습득 및 친목 활동의 기회"
+   ]
+  ],
+  "relevantChunkIds": [
+   193
+  ]
+ },
+ {
+  "id": "T14",
+  "type": "PARAPHRASE",
+  "question": "하위 클래스가 상위 클래스의 기능을 약하게 만들면 안 된다는 규칙은?",
+  "evidence": [
+   [
+    "부모 클래스의 기능을",
+    "약화시키면 안 됨"
+   ]
+  ],
+  "relevantChunkIds": [
+   134,
+   135
+  ]
+ },
+ {
+  "id": "T15",
+  "type": "PARAPHRASE",
+  "question": "한 번만 쓰는 단순한 코드에도 원칙을 꼭 지켜야 해?",
+  "evidence": [
+   [
+    "한 번만 사용되는 단순한 코드"
+   ]
+  ],
+  "relevantChunkIds": [
+   143
+  ]
+ },
+ {
+  "id": "T21",
+  "type": "PARAPHRASE",
+  "question": "주기적으로 계속 물어보는 방식은 사용자가 늘면 왜 문제야?",
+  "evidence": [
+   [
+    "사용자가 늘어날수록 서버 요청이 폭발적으로 증가"
+   ]
+  ],
+  "relevantChunkIds": [
+   146,
+   159,
+   174
+  ]
+ },
+ {
+  "id": "T22",
+  "type": "PARAPHRASE",
+  "question": "실시간 양방향 통신은 처음 연결할 때 어떤 방식으로 시작해?",
+  "evidence": [
+   [
+    "최초 연결 시 HTTP로 시작"
+   ]
+  ],
+  "relevantChunkIds": [
+   147,
+   161
+  ]
+ },
+ {
+  "id": "T23",
+  "type": "PARAPHRASE",
+  "question": "날것의 문자열 통신은 서버가 왜 직접 해석 규칙을 만들어야 해?",
+  "evidence": [
+   [
+    "서버가 직접 모든 파싱 로직을 만들어야 한다"
+   ]
+  ],
+  "relevantChunkIds": [
+   150,
+   164
+  ]
+ },
+ {
+  "id": "T25",
+  "type": "PARAPHRASE",
+  "question": "메시지 앞에 주소와 명령이 붙어서 의미가 분명해지는 규칙은?",
+  "evidence": [
+   [
+    "목적지(destination)",
+    "명령어"
+   ]
+  ],
+  "relevantChunkIds": [
+   151,
+   166
+  ]
+ },
+ {
+  "id": "T28",
+  "type": "PARAPHRASE",
+  "question": "회비 내역을 공개하고 관리하는 사람은 누구야?",
+  "evidence": [
+   [
+    "부회장은 회비를 관리하며"
+   ]
+  ],
+  "relevantChunkIds": [
+   198
+  ]
+ },
+ {
+  "id": "T32",
+  "type": "PARAPHRASE",
+  "question": "주간 진행 상황을 늦게 올리면 어떤 불이익이 있어?",
+  "evidence": [
+   [
+    "목요일 자정 이후에 업로드"
+   ]
+  ],
+  "relevantChunkIds": [
+   199
+  ]
+ },
+ {
+  "id": "T35",
+  "type": "PARAPHRASE",
+  "question": "모은 회비는 우선 어디에 써야 해?",
+  "evidence": [
+   [
+    "정규 세션 준비 및 진행에 필요한 비용을 우선"
+   ]
+  ],
+  "relevantChunkIds": [
+   198
+  ]
+ },
+ {
+  "id": "T36",
+  "type": "PARAPHRASE",
+  "question": "새로 들어온 사람은 프로젝트에 반드시 참여해야 해?",
+  "evidence": [
+   [
+    "신입 부원은 반드시 하나 이상의 프로젝트에 참여해야 한다"
+   ]
+  ],
+  "relevantChunkIds": [
+   196
+  ]
+ },
+ {
+  "id": "T37",
+  "type": "MIXED",
+  "question": "SSE는 HTTP 위에서 동작해?",
+  "evidence": [
+   [
+    "HTTP 위에서 동작하기 때문에"
+   ]
+  ],
+  "relevantChunkIds": [
+   148,
+   162,
+   187,
+   188
+  ]
+ },
+ {
+  "id": "T38",
+  "type": "MIXED",
+  "question": "STOMP를 쓰면 WebSocket은 어떻게 달라져?",
+  "evidence": [
+   [
+    "단순한 문자열 통신이 아닌"
+   ]
+  ],
+  "relevantChunkIds": [
+   170
+  ]
+ },
+ {
+  "id": "T39",
+  "type": "MIXED",
+  "question": "LSP 위반 예시에서 Ostrich의 fly()는 어떻게 구현했어?",
+  "evidence": [
+   [
+    "UnsupportedOperationException"
+   ]
+  ],
+  "relevantChunkIds": [
+   132,
+   135
+  ]
+ },
+ {
+  "id": "T40",
+  "type": "MIXED",
+  "question": "Zoo 클래스의 makeFly 메서드는 뭘 받아?",
+  "evidence": [
+   [
+    "makeFly(Flyable bird)"
+   ]
+  ],
+  "relevantChunkIds": [
+   133
+  ]
+ },
+ {
+  "id": "N01",
+  "type": "NO_ANSWER",
+  "question": "WebSocket 서버를 AWS에 배포하는 방법",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "N02",
+  "type": "NO_ANSWER",
+  "question": "SOLID 원칙을 쉽게 외우는 순서가 뭐야?",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "N03",
+  "type": "NO_ANSWER",
+  "question": "동아리 회장 선거는 언제 해?",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "N04",
+  "type": "NO_ANSWER",
+  "question": "리눅스에서 파일 권한을 숫자로 표시하는 법",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "N05",
+  "type": "NO_ANSWER",
+  "question": "자바스크립트 비동기 처리 방법",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "N06",
+  "type": "NO_ANSWER",
+  "question": "파스타 면 삶는 시간이 얼마야?",
+  "evidence": [],
+  "relevantChunkIds": []
+ }
+]

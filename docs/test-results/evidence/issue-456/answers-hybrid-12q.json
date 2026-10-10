@@ -1,0 +1,407 @@
+[
+ {
+  "id": "I11",
+  "q": "OM은 뭐야?",
+  "results": [
+   [
+    1,
+    196,
+    "cotato-r",
+    0.32,
+    "## 제4조 회원 1. 본 동아리의 정식 모집 절차를 통해 선발되어 "
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " OM은 코테이토 동아리에서 활동 기간 내에 퇴출되지 않고 벌점 14점 이하를 받은 회원을 의미합니다. OM 회원들은 코테이토 활동 후 다음 기수의 동아리 활동에 지원할 수 있습니다. OM 지위는 운영진의 심사 결과에 따라 결정됩니다. 관련 문서에서는 OM의 정확한 의미와 선정 과정에 대해 설명하고 있습니다. \n\nOM (Outstanding Member)은 코테이토 동아리에서 특정 기준을 충족한 회원을 가리킵니다. 이는 회칙에 따르면, 모든 활동 기간 내에 퇴출되지 않았으며 벌점이 14점을 넘지 않은 회원에게 부여되는 지위입니다. OM 지위는 운영진의 심사를 통해 확정되며, 해당 회원은 코테이토 활동 종료 후 다음 기수 동아리 활동에 지원할 수 있는 특권을 얻게 됩니다. 이 정보는 위에서 언급된 'cotato-regulation-sample' 문서에서 직접 추출되었습니다. \n\nOM은 코테이토 동아리에서 활동 기간 내에 퇴출되지 않고 벌점 14점 이하를 받은 회원을 의미하며, 운영진의 심사를 통과해야만 획득할 수 있는 지위입니다. OM 지위는 다음 기수 동아리 활동 참여 시 중요한 요소가 되며, 이를 통해 회원들은 추가적인 책임과 권리를 얻게 됩니다. 관련 내용은 위에서 제시된 'cotato-regulation-sample' 문서에서 확인 가능합니다. \n\nOM은 코테이토 동아리에서 특정 기준을 충족한 회원을 가리킵니다.\n\n(※ 답변이 길어 일부 내용이 생략됐을 수 있습니다. 자세한 내용은 문서를 확인해주세요.)",
+  "citationChunkIds": [
+   196
+  ]
+ },
+ {
+  "id": "I14",
+  "q": "SSE는 무슨 약자야?",
+  "results": [
+   [
+    1,
+    175,
+    "🥔교육팀🥔",
+    0.59,
+    "Q3 SSE와 WebSocket에 대해 옳은 것은? SSE와 WebS"
+   ],
+   [
+    2,
+    176,
+    "🥔교육팀🥔",
+    0.59,
+    "A3 SSE와 WebSocket에 대해 옳은 것은? SSE와 WebS"
+   ],
+   [
+    3,
+    148,
+    "WebSocke",
+    0.59,
+    "## SSE(Server-Sent Events)란?  - 서버 → 클"
+   ],
+   [
+    4,
+    149,
+    "WebSocke",
+    0.53,
+    "## 정리  ## SSE vs WebSocket  | 구분 | SSE"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " SSE는 Server-Sent Events의 약자입니다. 관련 문서들은 모두 이를 동일하게 설명하고 있습니다. 이는 서버에서 클라이언트에게 실시간으로 정보를 보내는 기술을 나타냅니다.번역: SSE stands for Server-Sent Events, which is a technology that allows servers to push real-time information to clients. This is mentioned consistently across the provided documents. (답변 완료)",
+  "citationChunkIds": [
+   175,
+   176,
+   148
+  ]
+ },
+ {
+  "id": "M04",
+  "q": "STOMP는 뭐의 약자야?",
+  "results": [
+   [
+    1,
+    165,
+    "🥔교육팀🥔",
+    0.82,
+    "🌐 STOMP"
+   ],
+   [
+    2,
+    151,
+    "WebSocke",
+    0.72,
+    "## STOMP란?  - **STOMP(Simple Text Orie"
+   ],
+   [
+    3,
+    166,
+    "🥔교육팀🥔",
+    0.7,
+    "🌐 STOMP STOMP란? STOMP(Simple Text Orie"
+   ],
+   [
+    4,
+    152,
+    "WebSocke",
+    0.67,
+    "## STOMP — Destination이란?  - STOMP에서 모"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " \nSTOMP는 Simple Text Oriented Messaging Protocol의 약자입니다. 관련 문서에서는 이 점을 직접적으로 언급하고 있지 않지만, STOMP(Simple Text Oriented Messaging Protocol)라는 표현을 통해 알 수 있습니다. 이는 웹소켓 위에서 작동하는 메시징 표준 규칙을 나타냅니다. \n\nSTOMP의 정의와 특징에 대해 간략히 설명하면 다음과 같습니다:\n- **약자**: Simple Text Oriented Messaging Protocol\n- **정의**: WebSocket 위에서 동작하는 메시징 표준 규칙\n- **특징**: 모든 메시지에 목적지(destination)와 명령어가 붙어 있어 의미가 명확해집니다.\n- **목적지 종류**: /app과 /topic 등으로 구분됩니다.\n\n번역이나 추가적인 내용은 없습니다. 이 답변만으로 충분합니다.",
+  "citationChunkIds": [
+   165,
+   151,
+   166
+  ]
+ },
+ {
+  "id": "I02",
+  "q": "rm -rf의 -f 옵션은 뭐야?",
+  "results": [
+   [
+    1,
+    200,
+    "디렉토리 명령어",
+    0.46,
+    "디렉토리 명령어   pwd 현재 내가 어느 디렉토리에 있는지를 출력함"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " \n`-f` 옵션은 `rm -rf` 명령에서 강제 실행을 의미합니다. 이 옵션을 사용하면, 대상 파일이나 디렉토리가 이미 존재하더라도 무조건 삭제됩니다. 또한 `-r` 옵션이 함께 사용되면, 디렉토리와 그 하위 항목들을 모두 재귀적으로 삭제하게 됩니다. 이를 통해 안전하지 않은 파일 또는 디렉토리를 무력화하고 제거할 수 있습니다. 그러나 이 명령은 매우 위험하기 때문에 주의해야 합니다.",
+  "citationChunkIds": [
+   200
+  ]
+ },
+ {
+  "id": "M03",
+  "q": "STOMP에서 /app은 어느 방향이야?",
+  "results": [
+   [
+    1,
+    153,
+    "WebSocke",
+    0.77,
+    "## STOMP — Destination: `/app`  - 클라이언"
+   ],
+   [
+    2,
+    168,
+    "🥔교육팀🥔",
+    0.74,
+    "🌐 STOMP — Destination: /app 클라이언트 → 서버"
+   ],
+   [
+    3,
+    170,
+    "🥔교육팀🥔",
+    0.72,
+    "🌐 STOMP — /app, /topic 정리  STOMP를 사용하면"
+   ],
+   [
+    4,
+    152,
+    "WebSocke",
+    0.69,
+    "## STOMP — Destination이란?  - STOMP에서 모"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " STOMP에서 `/app`은 **클라이언트 → 서버** 방향의 목적지입니다. 클라이언트가 서버에 처리를 요청할 때 사용되며, 이때 클라이언트는 `send()` 또는 `publish()` 메서드를 통해 메시지를 보내고, 서버는 `@MessageMapping` 어노테이션을 사용하여 이를 수신합니다. \n\n---\n\n/App en direction client → serveur dans STOMP. Lorsque le client souhaite envoyer une requête de traitement au serveur, il utilise la méthode send() ou publish(). Le serveur reçoit cette demande via l'annotation @MessageMapping. --- (번역 내용은 제거했습니다.)",
+  "citationChunkIds": [
+   153,
+   168,
+   170
+  ]
+ },
+ {
+  "id": "N01",
+  "q": "오늘 점심 뭐 먹지",
+  "results": [
+   [
+    1,
+    165,
+    "🥔교육팀🥔",
+    0.45,
+    "🌐 STOMP"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " \n관련 문서를 찾지 못했습니다. \n\n오늘 점심 메뉴에 대해 말씀해주실 수 있으신가요? 아니면 개인의 취향과 상황 등에 따라 다를 수 있습니다. 오늘 특별한 계획이 있으신가요? 또는 주변 식당들을 검토해보는 것도 좋을 것 같습니다. 좋은 식사 시간 되시길 바랍니다! 🍽️😊\n번역: Can you suggest a lunch option for today? Or, depending on personal preferences and circumstances, it can vary. Do you have any special plans today? Alternatively, checking nearby restaurants could be a good idea as well. I hope you have a great meal time! 🍽️😊\n번역: Heute Mittag was ich essen soll, können Sie mir empfehlen? Oder je nach persönlichen Vorlieben und Umständen kann es variieren. Haben Sie heute spezielle Pläne? Alternativ könnte es eine gute Idee sein, sich um die nahegelegenen Restaurants zu kümmern. Ich hoffe, Sie haben einen wunderbaren Mittagessen! 🍽️😊\n번역: ¿Qué puedo comer para el almuerzo hoy? O dependiendo de tus preferencias personales y circunstancias, puede variar. ¿Tienes planes especiales para hoy? Otra opción sería revisar los restaurantes cercanos. ¡Espero que tengas un gran almuerzo! 🍽️😊\n번역: Heute Mittag was ich essen soll, können Sie mir empfehlen? Oder je nach persönlichen Vorlieben und Umständen kann es variieren. Haben Sie heute spezielle Pläne? Alternativ könnte es eine gute Idee sein, sich um die nahegelegenen Restaurants zu kümmern.\n\n(※ 답변이 길어 일부 내용이 생략됐을 수 있습니다. 자세한 내용은 문서를 확인해주세요.)",
+  "citationChunkIds": []
+ },
+ {
+  "id": "T04",
+  "q": "ls 파일1은 뭘 보여줘?",
+  "results": [
+   [
+    1,
+    201,
+    "디렉토리 명령어",
+    0.57,
+    "름을 변경하거나, 옮긴다.  mv test1 test2 현재 디렉토리"
+   ],
+   [
+    2,
+    202,
+    "디렉토리 명령어",
+    0.58,
+    "리1의 내용이 아니고, 디렉토리1에 대한 정보만 출력한다.  예 ls"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " \n`ls 파일1` 명령어는 현재 디렉토리 아래에 있는 `파일1` 파일에 대한 정보를 출력합니다.\n\n(※ 답변이 길어 일부 내용이 생략됐을 수 있습니다. 자세한 내용은 문서를 확인해주세요.)",
+  "citationChunkIds": [
+   201,
+   202
+  ]
+ },
+ {
+  "id": "T15",
+  "q": "한 번만 쓰는 단순한 코드에도 원칙을 꼭 지켜야 해?",
+  "results": [
+   [
+    1,
+    122,
+    "SOLID-공부",
+    0.67,
+    "## 단일 책임 원칙 (SRP)  > \"클래스는 하나의 책임만 가져야"
+   ],
+   [
+    2,
+    143,
+    "SOLID-공부",
+    0.6,
+    "### 언제 적용할까?  - ✅ 코드가 자주 변경되는 부분 - ✅ 여"
+   ],
+   [
+    3,
+    184,
+    "🥔교육팀🥔",
+    0.47,
+    "A7 [O/X] WebSocket은 연결을 맺는 비용이 한 번뿐이라 "
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " 관련 문서를 찾지 못했습니다. 하지만, 질문에 대한 답변은 다음과 같습니다.\n\n한 번만 사용되는 단순한 코드에도 원칙을 꼭 지켜야 할 필요는 없습니다. SOLID 원칙 중 단일 책임 원칙(SRP)은 주로 코드의 복잡성을 줄이고 유지보수성을 높이기 위해 적용됩니다. 따라서 자주 변경되거나 재사용 가능한 부분에서는 SRP를 따르는 것이 좋지만, 매우 간단하고 일회성인 코드에서는 이를 무리하게 적용할 필요가 없습니다. 중요한 것은 프로그램의 전체적인 구조와 유지보수성을 고려하는 것입니다.",
+  "citationChunkIds": []
+ },
+ {
+  "id": "T17",
+  "q": "WebSocket은 구현 복잡도가 어때?",
+  "results": [
+   [
+    1,
+    149,
+    "WebSocke",
+    0.6,
+    "## 정리  ## SSE vs WebSocket  | 구분 | SSE"
+   ],
+   [
+    2,
+    182,
+    "🥔교육팀🥔",
+    0.59,
+    "A6  다음 중 기술 선택 기준으로 가장 적절하지 않은 것은? 배달 "
+   ],
+   [
+    3,
+    181,
+    "🥔교육팀🥔",
+    0.58,
+    "Q6  다음 중 기술 선택 기준으로 가장 적절하지 않은 것은? 배달 "
+   ],
+   [
+    4,
+    145,
+    "WebSocke",
+    0.63,
+    "# 1. WebSocket이 왜 필요한가?  ## HTTP의 한계 —"
+   ],
+   [
+    5,
+    142,
+    "SOLID-공부",
+    0.4,
+    "### ⚠️ SOLID 원칙 적용 시 주의사항  ### 과도한 적용 "
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " WebSocket은 구현 복잡도가 상대적으로 높습니다. 이는 웹소켓 프로토콜을 통해 양방향 통신을 가능하게 하기 위해 추가적인 코드와 로직이 필요하기 때문입니다. 또한, 직접적인 연결 유지와 관리를 위해 서버 측에서도 별도의 처리가 필요합니다. 이러한 이유들 때문에 WebSocket은 일반적으로 SSE보다 더 복잡한 구현이 필요한 경우에 선택됩니다. 관련 문서에서는 WebSocket의 구현 복잡도가 SSE보다 높다는 점을 명시하고 있습니다. #번역/반복 금지# 관련 정보를 모두 포함하면서도 추가적인 설명이나 번역 없이 답변을 마칩니다. #번역/반복 금지# 관련 문서에서 WebSocket의 구현 복잡도가 SSE보다 높다는 점을 확인할 수 있습니다. #번역/반복 금지#",
+  "citationChunkIds": [
+   149,
+   182,
+   181
+  ]
+ },
+ {
+  "id": "T33",
+  "q": "회칙은 어떻게 바뀔 수 있어?",
+  "results": [
+   [
+    1,
+    196,
+    "cotato-r",
+    0.48,
+    "## 제4조 회원 1. 본 동아리의 정식 모집 절차를 통해 선발되어 "
+   ],
+   [
+    2,
+    199,
+    "cotato-r",
+    0.47,
+    "## 제7조 벌점 1. 모든 정규 일정에 관하여 다음과 같은 조항이 "
+   ],
+   [
+    3,
+    143,
+    "SOLID-공부",
+    0.51,
+    "### 언제 적용할까?  - ✅ 코드가 자주 변경되는 부분 - ✅ 여"
+   ],
+   [
+    4,
+    124,
+    "SOLID-공부",
+    0.43,
+    "### 문제점:  Computer 클래스가 **여러 가지 책임**을 "
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " 관련 문서를 찾지 못했습니다.",
+  "citationChunkIds": []
+ },
+ {
+  "id": "T25",
+  "q": "메시지 앞에 주소와 명령이 붙어서 의미가 분명해지는 규칙은?",
+  "results": [
+   [
+    1,
+    151,
+    "WebSocke",
+    0.55,
+    "## STOMP란?  - **STOMP(Simple Text Orie"
+   ],
+   [
+    2,
+    166,
+    "🥔교육팀🥔",
+    0.56,
+    "🌐 STOMP STOMP란? STOMP(Simple Text Orie"
+   ],
+   [
+    3,
+    167,
+    "🥔교육팀🥔",
+    0.56,
+    "🌐 STOMP — Destination STOMP에서 모든 메시지에는"
+   ],
+   [
+    4,
+    152,
+    "WebSocke",
+    0.52,
+    "## STOMP — Destination이란?  - STOMP에서 모"
+   ],
+   [
+    5,
+    120,
+    "SOLID-공부",
+    0.48,
+    "# 공부자료  ## SOLID란?  - **로버트 마틴(Uncle B"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " STOMP(Simple Text Oriented Messaging Protocol)는 WebSocket 위에서 동작하는 메시징 표준 규칙으로, 모든 메시지에 목적지(destination)와 명령어가 붙어 있어 의미가 분명해집니다. 이러한 특성 때문에 메시지의 출처와 목적지, 그리고 어떤 작업을 수행해야 하는지 명확하게 알 수 있습니다. STOMP에서는 목적지에는 크게 /app과 /topic 두 가지가 있으며, Spring은 이러한 목적지를 통해 메시지를 적절히 처리합니다. 이처럼 STOMP는 메시지 앞에 주소와 명령이 붙어 의미가 분명해지는 규칙입니다.",
+  "citationChunkIds": [
+   151,
+   166,
+   167
+  ]
+ },
+ {
+  "id": "T37",
+  "q": "SSE는 HTTP 위에서 동작해?",
+  "results": [
+   [
+    1,
+    162,
+    "🥔교육팀🥔",
+    0.75,
+    "🌐 SSE vs WebSocket SSE(Server-Sent Eve"
+   ],
+   [
+    2,
+    148,
+    "WebSocke",
+    0.74,
+    "## SSE(Server-Sent Events)란?  - 서버 → 클"
+   ],
+   [
+    3,
+    160,
+    "🥔교육팀🥔",
+    0.78,
+    "🌐 SSE vs WebSocket"
+   ],
+   [
+    4,
+    149,
+    "WebSocke",
+    0.7,
+    "## 정리  ## SSE vs WebSocket  | 구분 | SSE"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " SSE는 HTTP 위에서 동작합니다.\n\nSSE는 HTTP 프로토콜 위에서 작동하므로 별도의 프로토콜 없이 간단하게 구현할 수 있습니다. 이 특성 때문에 실시간 통신 요구사항이 있는 웹 애플리케이션 개발자들에게 인기가 있습니다. 특히 클라이언트가 서버에게 메시지를 보내는 것이 아니라 서버가 클라이언트에게 정보를 주기 위한 상황에서는 유용합니다. 예를 들어 가격 변동 알림이나 뉴스 피드 업데이트와 같은 서비스를 제공하는 데 사용될 수 있습니다. 연결을 유지하면서 서버가 이벤트를 스트림 형태로 전송하고, 클라이언트는 이를 자동으로 수신하게 됩니다. 이러한 방식으로 SSE는 실시간 데이터 전달에 적합하며, 이는 WebSocket과 달리 단방향 통신 방식입니다. #SSE #WebSocket #실시간통신 #웹기술\n\n(번역 및 추가 내용은 포함되지 않았습니다.) SSE는 HTTP 위에서 동작합니다. 이는 별도의 프로토콜 없이 간편한 구현이 가능하다는 장점이 있으며, 특히 서버로부터 정보를 받는 경우 유용합니다. 예시로 가격 변동 알림, 뉴스피드 업데이트 등이 있습니다. 연결을 유지하면서 서버가 이벤트를 스트림 형태로 push하고, 클라이언트는 자동으로 수신합니다. #SSE #실시간통신 #웹기술\n\n(번역 및 추가 내용은 포함되지 않았습니다.) SSE는 HTTP 위에서 작동합니다.\n\n(※ 답변이 길어 일부 내용이 생략됐을 수 있습니다. 자세한 내용은 문서를 확인해주세요.)",
+  "citationChunkIds": [
+   162,
+   148,
+   160
+  ]
+ }
+]

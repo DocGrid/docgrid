@@ -1,0 +1,516 @@
+[
+ {
+  "id": "I11",
+  "q": "OM은 뭐야?",
+  "results": [
+   [
+    1,
+    151,
+    "WebSocke",
+    0.41,
+    "## STOMP란?  - **STOMP(Simple Text Orie"
+   ],
+   [
+    2,
+    166,
+    "🥔교육팀🥔",
+    0.4,
+    "🌐 STOMP STOMP란? STOMP(Simple Text Orie"
+   ],
+   [
+    3,
+    127,
+    "SOLID-공부",
+    0.4,
+    "## 개방-폐쇄 원칙 (OCP)  > \"확장에는 열려 있고, 수정에는"
+   ],
+   [
+    4,
+    152,
+    "WebSocke",
+    0.38,
+    "## STOMP — Destination이란?  - STOMP에서 모"
+   ],
+   [
+    5,
+    165,
+    "🥔교육팀🥔",
+    0.37,
+    "🌐 STOMP"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " 관련 문서를 찾지 못했습니다.",
+  "citationChunkIds": []
+ },
+ {
+  "id": "I14",
+  "q": "SSE는 무슨 약자야?",
+  "results": [
+   [
+    1,
+    160,
+    "🥔교육팀🥔",
+    0.64,
+    "🌐 SSE vs WebSocket"
+   ],
+   [
+    2,
+    175,
+    "🥔교육팀🥔",
+    0.59,
+    "Q3 SSE와 WebSocket에 대해 옳은 것은? SSE와 WebS"
+   ],
+   [
+    3,
+    148,
+    "WebSocke",
+    0.59,
+    "## SSE(Server-Sent Events)란?  - 서버 → 클"
+   ],
+   [
+    4,
+    149,
+    "WebSocke",
+    0.53,
+    "## 정리  ## SSE vs WebSocket  | 구분 | SSE"
+   ],
+   [
+    5,
+    125,
+    "SOLID-공부",
+    0.32,
+    "### ✅ 좋은 예시  ```java // 각자 하나의 책임만 가짐 "
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " SSE는 Server-Sent Events의 약자입니다. 이는 서버로부터 클라이언트로 단방향으로 실시간으로 정보를 전송하는 기술입니다. 관련 문헌에서는 SSE가 HTTP 위에서 동작하며 별도의 프로토콜 없이 간단하게 구현할 수 있다고 설명하고 있습니다.",
+  "citationChunkIds": [
+   160,
+   175,
+   148
+  ]
+ },
+ {
+  "id": "M04",
+  "q": "STOMP는 뭐의 약자야?",
+  "results": [
+   [
+    1,
+    165,
+    "🥔교육팀🥔",
+    0.82,
+    "🌐 STOMP"
+   ],
+   [
+    2,
+    151,
+    "WebSocke",
+    0.72,
+    "## STOMP란?  - **STOMP(Simple Text Orie"
+   ],
+   [
+    3,
+    166,
+    "🥔교육팀🥔",
+    0.7,
+    "🌐 STOMP STOMP란? STOMP(Simple Text Orie"
+   ],
+   [
+    4,
+    152,
+    "WebSocke",
+    0.67,
+    "## STOMP — Destination이란?  - STOMP에서 모"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " STOMP는 Simple Text Oriented Messaging Protocol의 약자입니다. 이는 웹소켓 위에서 작동하는 메시징 표준 규칙입니다.",
+  "citationChunkIds": [
+   165,
+   151,
+   166
+  ]
+ },
+ {
+  "id": "I02",
+  "q": "rm -rf의 -f 옵션은 뭐야?",
+  "results": [
+   [
+    1,
+    200,
+    "디렉토리 명령어",
+    0.46,
+    "디렉토리 명령어   pwd 현재 내가 어느 디렉토리에 있는지를 출력함"
+   ],
+   [
+    2,
+    123,
+    "SOLID-공부",
+    0.43,
+    "### ❌ 나쁜 예시  ```java // SRP 위반: 너무 많은 "
+   ],
+   [
+    3,
+    135,
+    "SOLID-공부",
+    0.41,
+    "는 타입이 달라서 makeFly에 넣을 수 없음 (컴파일 에러로 미리"
+   ],
+   [
+    4,
+    152,
+    "WebSocke",
+    0.41,
+    "## STOMP — Destination이란?  - STOMP에서 모"
+   ],
+   [
+    5,
+    151,
+    "WebSocke",
+    0.4,
+    "## STOMP란?  - **STOMP(Simple Text Orie"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " \nrm -rf의 -f 옵션은 'force'를 의미하며, 이 옵션을 설정하면 명령어가 실행 중 오류나 문제 발생 시 강제로 계속 진행하도록 합니다. 즉, 파일이나 디렉토리 삭제 시 권한 부족 등의 이유로 실패하더라도 무시하고 지우려는 의도를 나타냅니다. 이를 통해 강제로 폴더와 그 안에 있는 모든 파일들을 한 번에 삭제할 수 있습니다. \n\n이 옵션과 함께 '-r' 또는 '--recursive' 옵션이 필요합니다. '-r' 옵션은 재귀적으로 폴더 내부의 모든 파일 및 하위 폴더까지 포함하여 삭제한다는 의미입니다. 따라서 'rm -rf' 명령어는 '-r' 옵션으로 인해 폴더와 그 안의 모든 파일을 포함하여 완전히 삭제하는 것을 강제하게 됩니다. \n- 'rm -rf' : 폴더와 그 안의 모든 파일을 포함하여 완전히 삭제\n- '-r' : 재귀적(하위 폴더 포함)\n- '-f' : 강제로 삭제 (권한 부족 등으로 실패하더라도 무시) ```java\n```java\n// ISP 위반: 너무 많은 기능이 한 인터페이스에\ninterface Machine {\n    void print();\n    void scan();\n    void fax();\n}\n\nclass SimplePrinter implements Machine {\n    public void print() { \n        System.out.\n\n(※ 답변이 길어 일부 내용이 생략됐을 수 있습니다. 자세한 내용은 문서를 확인해주세요.)",
+  "citationChunkIds": [
+   200,
+   123,
+   135
+  ]
+ },
+ {
+  "id": "M03",
+  "q": "STOMP에서 /app은 어느 방향이야?",
+  "results": [
+   [
+    1,
+    153,
+    "WebSocke",
+    0.77,
+    "## STOMP — Destination: `/app`  - 클라이언"
+   ],
+   [
+    2,
+    168,
+    "🥔교육팀🥔",
+    0.74,
+    "🌐 STOMP — Destination: /app 클라이언트 → 서버"
+   ],
+   [
+    3,
+    170,
+    "🥔교육팀🥔",
+    0.72,
+    "🌐 STOMP — /app, /topic 정리  STOMP를 사용하면"
+   ],
+   [
+    4,
+    152,
+    "WebSocke",
+    0.69,
+    "## STOMP — Destination이란?  - STOMP에서 모"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " STOMP의 `/app`은 클라이언트로부터 서버로의 방향성을 가집니다. 클라이언트가 서버에게 처리를 요청할 때 사용되며, 이때 클라이언트는 `send()`나 `publish()` 메서드를 통해 데이터를 보내고, 서버는 `@MessageMapping` 어노테이션을 통해 이를 수신합니다. 이러한 방식으로 웹소켓을 활용해 구조화된 메시지를 전송하고 받을 수 있습니다. \n\n---\n\nThe `/app` in STOMP is used for the client-to-server direction. When a client requests processing from the server, it uses methods like `send()` or `publish()`, and the server receives this data through the `@MessageMapping` annotation. This allows for structured message-based communication using websockets. (번역 포함하지 않고 위 내용을 그대로 유지)",
+  "citationChunkIds": [
+   153,
+   168,
+   170
+  ]
+ },
+ {
+  "id": "N01",
+  "q": "오늘 점심 뭐 먹지",
+  "results": [
+   [
+    1,
+    165,
+    "🥔교육팀🥔",
+    0.45,
+    "🌐 STOMP"
+   ],
+   [
+    2,
+    186,
+    "🥔교육팀🥔",
+    0.43,
+    "A8 다음은 프로젝트에 STOMP를 적용하기 위해 대화를 나누고 있는"
+   ],
+   [
+    3,
+    201,
+    "디렉토리 명령어",
+    0.39,
+    "름을 변경하거나, 옮긴다.  mv test1 test2 현재 디렉토리"
+   ],
+   [
+    4,
+    202,
+    "디렉토리 명령어",
+    0.39,
+    "리1의 내용이 아니고, 디렉토리1에 대한 정보만 출력한다.  예 ls"
+   ],
+   [
+    5,
+    132,
+    "SOLID-공부",
+    0.38,
+    "### ❌ 나쁜 예시  ```java // LSP 위반 예시 clas"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " 관련 문서를 찾지 못했습니다.",
+  "citationChunkIds": []
+ },
+ {
+  "id": "T04",
+  "q": "ls 파일1은 뭘 보여줘?",
+  "results": [
+   [
+    1,
+    202,
+    "디렉토리 명령어",
+    0.58,
+    "리1의 내용이 아니고, 디렉토리1에 대한 정보만 출력한다.  예 ls"
+   ],
+   [
+    2,
+    201,
+    "디렉토리 명령어",
+    0.57,
+    "름을 변경하거나, 옮긴다.  mv test1 test2 현재 디렉토리"
+   ],
+   [
+    3,
+    134,
+    "SOLID-공부",
+    0.43,
+    "ew Zoo();                  // 날 수 있는 새"
+   ],
+   [
+    4,
+    135,
+    "SOLID-공부",
+    0.42,
+    "는 타입이 달라서 makeFly에 넣을 수 없음 (컴파일 에러로 미리"
+   ],
+   [
+    5,
+    188,
+    "🥔교육팀🥔",
+    0.39,
+    "A9 순수 WebSocket만 사용했을 때 발생하는 문제점으로 가장 "
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " \n`ls 파일1` 명령어는 현재 디렉토리 아래의 `파일1` 파일에 대한 정보를 출력합니다. 이 명령어를 사용하면 파일1의 크기, 수정 날짜, 권한 설정 등의 정보가 표시됩니다. 만약 파일1이 존재하지 않는다면 해당 경로가 존재하는지 확인하거나 파일 이름이 올바른지 확인해야 합니다.",
+  "citationChunkIds": [
+   202,
+   201,
+   134
+  ]
+ },
+ {
+  "id": "T15",
+  "q": "한 번만 쓰는 단순한 코드에도 원칙을 꼭 지켜야 해?",
+  "results": [
+   [
+    1,
+    122,
+    "SOLID-공부",
+    0.67,
+    "## 단일 책임 원칙 (SRP)  > \"클래스는 하나의 책임만 가져야"
+   ],
+   [
+    2,
+    142,
+    "SOLID-공부",
+    0.62,
+    "### ⚠️ SOLID 원칙 적용 시 주의사항  ### 과도한 적용 "
+   ],
+   [
+    3,
+    184,
+    "🥔교육팀🥔",
+    0.47,
+    "A7 [O/X] WebSocket은 연결을 맺는 비용이 한 번뿐이라 "
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " 관련 문서를 찾지 못했습니다. 하지만 질문과 관련된 정보를 추론해보면, SRP(Single Responsibility Principle) 원칙은 클래스가 하나의 책임만 가지도록 하는 것이므로, 매우 작은 규모의 코드에서도 이 원칙을 따르는 것이 좋습니다. 그러나 모든 상황에서 무조건적으로 적용해야 한다는 것은 아닙니다. 프로젝트의 규모와 복잡도를 고려하여 적절히 적용하는 것이 중요합니다. 따라서, 한 번만 사용되는 단순한 코드에서도 반드시 원칙을 지키는 것은 아니지만, 필요하다고 판단될 때는 지키는 것이 좋습니다.",
+  "citationChunkIds": []
+ },
+ {
+  "id": "T17",
+  "q": "WebSocket은 구현 복잡도가 어때?",
+  "results": [
+   [
+    1,
+    160,
+    "🥔교육팀🥔",
+    0.65,
+    "🌐 SSE vs WebSocket"
+   ],
+   [
+    2,
+    145,
+    "WebSocke",
+    0.63,
+    "# 1. WebSocket이 왜 필요한가?  ## HTTP의 한계 —"
+   ],
+   [
+    3,
+    161,
+    "🥔교육팀🥔",
+    0.61,
+    "🌐 SSE vs WebSocket WebSocket이란? 한 번 연결"
+   ],
+   [
+    4,
+    149,
+    "WebSocke",
+    0.6,
+    "## 정리  ## SSE vs WebSocket  | 구분 | SSE"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " 관련 문서를 찾지 못했습니다. 웹소켓의 구현 복잡도에 대한 정보는 주어진 문서에서 확인할 수 없습니다. 웹소켓 구현의 복잡성은 프로젝트 규모와 요구사항에 따라 다르므로 정확한 평가는 제공하기 어렵습니다. 일반적으로 웹소켓은 실시간 통신을 필요로 하는 애플리케이션에 이상적이지만, 초기 설정과 관리에는 추가적인 노력이 필요합니다.",
+  "citationChunkIds": []
+ },
+ {
+  "id": "T33",
+  "q": "회칙은 어떻게 바뀔 수 있어?",
+  "results": [
+   [
+    1,
+    143,
+    "SOLID-공부",
+    0.51,
+    "### 언제 적용할까?  - ✅ 코드가 자주 변경되는 부분 - ✅ 여"
+   ],
+   [
+    2,
+    131,
+    "SOLID-공부",
+    0.49,
+    "## 리스코프 치환 원칙 (LSP)  > \"자식 클래스는 언제나 부모"
+   ],
+   [
+    3,
+    196,
+    "cotato-r",
+    0.48,
+    "## 제4조 회원 1. 본 동아리의 정식 모집 절차를 통해 선발되어 "
+   ],
+   [
+    4,
+    199,
+    "cotato-r",
+    0.47,
+    "## 제7조 벌점 1. 모든 정규 일정에 관하여 다음과 같은 조항이 "
+   ],
+   [
+    5,
+    201,
+    "디렉토리 명령어",
+    0.44,
+    "름을 변경하거나, 옮긴다.  mv test1 test2 현재 디렉토리"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " 관련 문서를 찾지 못했습니다.",
+  "citationChunkIds": []
+ },
+ {
+  "id": "T25",
+  "q": "메시지 앞에 주소와 명령이 붙어서 의미가 분명해지는 규칙은?",
+  "results": [
+   [
+    1,
+    167,
+    "🥔교육팀🥔",
+    0.56,
+    "🌐 STOMP — Destination STOMP에서 모든 메시지에는"
+   ],
+   [
+    2,
+    166,
+    "🥔교육팀🥔",
+    0.56,
+    "🌐 STOMP STOMP란? STOMP(Simple Text Orie"
+   ],
+   [
+    3,
+    151,
+    "WebSocke",
+    0.55,
+    "## STOMP란?  - **STOMP(Simple Text Orie"
+   ],
+   [
+    4,
+    152,
+    "WebSocke",
+    0.52,
+    "## STOMP — Destination이란?  - STOMP에서 모"
+   ],
+   [
+    5,
+    120,
+    "SOLID-공부",
+    0.48,
+    "# 공부자료  ## SOLID란?  - **로버트 마틴(Uncle B"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " STOMP(Simple Text Oriented Messaging Protocol)는 메시지 앞에 목적지(destination)와 명령어가 붙어서 의미가 분명해지는 웹소켓 위의 메시징 표준 규칙입니다. 이 규칙은 Spring 등에서 사용되어 메시지 처리를 자동으로 수행합니다. 목적지는 /app과 /topic 두 가지로 구분됩니다. 관련 문서에서는 이러한 STOMP의 특징들이 설명되어 있습니다.",
+  "citationChunkIds": [
+   167,
+   166,
+   151
+  ]
+ },
+ {
+  "id": "T37",
+  "q": "SSE는 HTTP 위에서 동작해?",
+  "results": [
+   [
+    1,
+    160,
+    "🥔교육팀🥔",
+    0.78,
+    "🌐 SSE vs WebSocket"
+   ],
+   [
+    2,
+    162,
+    "🥔교육팀🥔",
+    0.75,
+    "🌐 SSE vs WebSocket SSE(Server-Sent Eve"
+   ],
+   [
+    3,
+    148,
+    "WebSocke",
+    0.74,
+    "## SSE(Server-Sent Events)란?  - 서버 → 클"
+   ],
+   [
+    4,
+    149,
+    "WebSocke",
+    0.7,
+    "## 정리  ## SSE vs WebSocket  | 구분 | SSE"
+   ]
+  ],
+  "status": "SUCCESS",
+  "answer": " 네, SSE(Server-Sent Events)는 HTTP 위에서 동작합니다. 이는 별도의 프로토콜 없이 구현이 간편하며, 서버가 클라이언트에게 실시간으로 이벤트를 전송할 수 있게 합니다.",
+  "citationChunkIds": [
+   160,
+   162,
+   148
+  ]
+ }
+]
