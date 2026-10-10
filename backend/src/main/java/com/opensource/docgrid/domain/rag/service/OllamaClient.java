@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,13 +27,15 @@ import com.opensource.docgrid.domain.rag.dto.response.OllamaGenerateResponse;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Ollama {@code /api/generate}를 호출해 프롬프트로부터 답변을 생성하는 순수 HTTP 클라이언트 (F-RAG-02).
  *
  * <p>검색 결과가 있는지, LLM 호출을 생략할지(NO_CONTEXT) 판단하지 않는다 — 항상 주어진 프롬프트를 그대로
- * 전송한다. 그 판단은 이 클라이언트를 호출하는 쪽(RagFacade)의 책임이다.
+ * 전송한다. 그 판단은 이 클라이언트를 호출하는 쪽(RagFacade)의 책임이다. HTTP 호출 결과만
+ * 낮은 카디널리티의 Micrometer 지표로 기록하며 프롬프트·답변·사용자 식별자는 기록하지 않는다.
  */
 @Slf4j
 @Service
@@ -71,6 +74,7 @@ public class OllamaClient {
     private final int repeatLastN;
     private final Duration generateDeadline;
     private final RestClient restClient;
+    private final MeterRegistry meterRegistry;
 
     public OllamaClient(
         @Value("${ollama.model}") String model,
@@ -81,7 +85,8 @@ public class OllamaClient {
         @Value("${ollama.repeat-penalty}") double repeatPenalty,
         @Value("${ollama.repeat-last-n}") int repeatLastN,
         @Value("${ollama.generate-deadline}") Duration generateDeadline,
-        @Qualifier("ollamaRestClient") RestClient restClient
+        @Qualifier("ollamaRestClient") RestClient restClient,
+        MeterRegistry meterRegistry
     ) {
         this.model = model;
         this.keepAlive = keepAlive;
@@ -92,6 +97,39 @@ public class OllamaClient {
         this.repeatLastN = repeatLastN;
         this.generateDeadline = generateDeadline;
         this.restClient = restClient;
+        this.meterRegistry = meterRegistry;
+    }
+
+    /**
+     * 생성 호출 하나를 완료·부분 답변·실패 중 정확히 한 결과로 계측한다.
+     * RAG Job의 최종 상태와 달리 이 지표는 Ollama HTTP 호출 자체만 나타낸다.
+     */
+    public OllamaGenerateResult generate(String prompt) {
+        long startNanos = System.nanoTime();
+        String outcome = "failure";
+        OllamaGenerateResult result = null;
+        try {
+            // 1. 기존 스트림 처리와 예외 계약을 바꾸지 않고 답변 생성만 수행한다.
+            result = generateAnswer(prompt);
+            outcome = result.answerText().endsWith(TRUNCATION_NOTICE) ? "partial" : "complete";
+            return result;
+        } finally {
+            // 2. 예외가 나도 호출 건수와 체감 시간을 남긴다. 본문·모델명은 레이블로 쓰지 않는다.
+            meterRegistry.counter("docgrid.ollama.generate.requests", "outcome", outcome).increment();
+            meterRegistry.timer("docgrid.ollama.generate.duration", "outcome", outcome)
+                .record(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
+            if (result != null) {
+                // 3. Ollama 응답이 실제로 제공한 토큰 수만 기록한다. 부분 스트림의 null은 0으로 꾸미지 않는다.
+                recordTokens("input", result.inputTokenCount());
+                recordTokens("output", result.outputTokenCount());
+            }
+        }
+    }
+
+    private void recordTokens(String kind, Integer count) {
+        if (count != null && count >= 0) {
+            meterRegistry.summary("docgrid.ollama.generate.tokens", "kind", kind).record(count);
+        }
     }
 
     /**
@@ -105,7 +143,7 @@ public class OllamaClient {
      * 뒤바뀌면 안 된다 — 예를 들어 트리밍을 언어 혼입 제거보다 먼저 하면 아직 안 지워진 외국어
      * 글자를 문장 경계로 착각할 수 있다.
      */
-    public OllamaGenerateResult generate(String prompt) {
+    private OllamaGenerateResult generateAnswer(String prompt) {
         long start = System.currentTimeMillis();
         long deadline = start + generateDeadline.toMillis();
 
