@@ -30,47 +30,72 @@ OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합�
 
 ![DocGrid 최종 아키텍처: Vercel, Cloud Run, GCP 앱 A/B, OpenSQL 3노드와 관측 VM](docs/images/docgrid-final-architecture.png)
 
-위 그림은 **2026-10-10 기준 최종 배포 구성**입니다. 웹은 Vercel에서 제공하고, 브라우저의
-`/api/backend/*` 요청은 프런트엔드 서버 프록시를 거쳐 백엔드로 전달합니다. 브라우저의 STOMP
-WebSocket은 별도 WSS 경로를 사용합니다. 그림의 Cloud Run Nginx 공개 게이트웨이는 두 경로를
-GCP 내부 HTTP 로드 밸런서로 보내고, 로드 밸런서는 readiness를 통과한 백엔드 A/B로 요청을
-분배합니다. 로컬 개발·시험에서는 아래 [빠른 실행](#빠른-실행)의 단일 백엔드와 Compose 서비스를
-사용합니다.
+위 그림은 **2026-10-10 기준 최종 배포 구성**입니다. 사용자 요청이 백엔드에 도착하는 경로와
+백엔드가 사용하는 저장소·AI·DB·관측 구성을 보여줍니다. 그림에 표시된 전체 경로가 하나의
+E2E 시험으로 검증됐다는 뜻은 아닙니다.
 
-백엔드 A/B는 GCS에 원본을 저장하고, FastAPI/BGE-M3에서 문서·질문 임베딩을, Ollama에서
-RAG 답변 생성을 수행합니다. 공용 Redis는 역할 캐시와 대시보드 갱신 신호에 사용합니다.
-대시보드의 A/B 간 Pub/Sub 전송은 `DASHBOARD_CROSS_NODE_ENABLED=true`로 켰을 때 동작하며,
-각 앱은 수신한 신호를 바탕으로 자기 DB에서 상태를 다시 계산해 자신의 STOMP 구독자에게 보냅니다.
-Pub/Sub 신호 자체는 내구성 있는 메시지 큐가 아닙니다.
+### 사용자 요청 경로
 
-OpenSQL은 한 시점에 primary 1개와 standby 2개로 운영되며 역할이 바뀔 수 있습니다. 앱의 일반
-JDBC는 DB node2·node3에 함께 배치된 OpenProxy A/B를 사용하고, Flyway는 별도 계정·경로로
-DB 3주소 중 현재 primary를 찾습니다. `loadBalanceHosts=true`는 새 JDBC 연결이 사용할 프록시
-후보를 분산하며 HTTP 요청이나 SQL을 균등하게 나누는 설정이 아닙니다. Patroni는 각 노드의
-역할과 복제를 관리하고, etcd 3개 멤버는 정족수 2/3으로 상태를 조정합니다. GCS는 VM 디스크가
-아닌 Google 관리형 버킷입니다.
+- **REST API:** 브라우저의 `/api/backend/*` 요청은 Vercel 프런트엔드 서버 프록시 →
+  Cloud Run Nginx 공개 게이트웨이 → GCP 내부 HTTP 로드 밸런서 → 백엔드 A/B 순서로 전달됩니다.
+- **STOMP WebSocket:** 브라우저는 별도 WSS 경로로 Cloud Run 공개 게이트웨이에 연결합니다.
+  이후 내부 로드 밸런서를 거쳐 백엔드 A/B에 도착합니다.
 
-별도 관측 VM의 Prometheus·Grafana·Blackbox Exporter는 앱·DB·프록시·임베딩 경로를
-관측하고, k6 부하 VM은 시험 지표를 Remote Write로 전송하는 구성으로 그림에 표시했습니다.
-**그림은 구성도이며 전체 공개 진입 경로의 E2E 통과를 뜻하지 않습니다.** 저장소의 실행 기록에서는
-[GCP 앱 A/B·OpenSQL·GCS의 PDF 저장·조회](docs/test-results/gimin-387-gcp-app-gcs-opensql-baseline-20261002.md),
-[A/B 대시보드 갱신](docs/test-results/gimin-382-dashboard-cross-backend-refresh-20261002.md),
-[DB 장애 시험](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md)을 각각 확인할 수
-있습니다. Vercel → Cloud Run → 내부 LB를 모두 통과하는 최신 기능 E2E 결과는 이 기록들과
-구분합니다.
+내부 로드 밸런서는 readiness 검사를 통과한 백엔드로 요청을 보냅니다. 로컬 개발·시험에서는
+이 배포 경로 대신 [단일 백엔드와 Compose 서비스](#빠른-실행)를 사용합니다.
+
+### 데이터 저장과 AI 처리
+
+백엔드 A/B는 문서 원본을 **GCS 버킷**에 저장하고, 문서·인덱싱 작업·검색 데이터는 **OpenSQL**에
+기록합니다. GCS는 VM 디스크가 아닌 Google 관리형 저장소입니다.
+
+문서와 질문의 임베딩은 **FastAPI/BGE-M3**가 생성합니다. 검색된 문서를 바탕으로 답변을 만들 때는
+**Ollama**를 사용합니다. 공용 **Redis**는 역할 캐시와 백엔드 간 대시보드 갱신 신호에 사용합니다.
+
+### OpenSQL 연결과 역할 전환
+
+OpenSQL 3노드는 한 시점에 **primary 1개와 standby 2개**로 운영되며, 장애나 역할 전환에 따라
+primary가 바뀔 수 있습니다.
+
+- 일반 앱의 JDBC 연결은 DB node2·node3에 각각 배치된 **OpenProxy A/B**를 사용합니다.
+- **Flyway**는 별도 계정과 경로로 DB 3개 주소를 확인해 현재 primary에 연결합니다.
+- **Patroni**는 노드의 역할과 복제를 관리하고, **etcd 3개 멤버**는 정족수 2/3으로 상태를
+  조정합니다.
+
+`loadBalanceHosts=true`는 새 JDBC 연결이 사용할 **프록시 후보**를 분산하는 설정입니다.
+HTTP 요청이나 개별 SQL을 균등하게 나누는 설정은 아닙니다.
+
+### 대시보드 갱신
+
+`DASHBOARD_CROSS_NODE_ENABLED=true`일 때 백엔드 A/B는 공용 Redis Pub/Sub으로 갱신 신호를
+주고받습니다. 신호를 받은 백엔드는 **자신의 DB에서 상태를 다시 조회**한 뒤, 자신의 STOMP
+구독자에게 결과를 보냅니다.
+
+Pub/Sub 신호는 재조회 계기이며, 내구성 있는 메시지 큐로 사용하지 않습니다. 단일 로컬 백엔드는
+자체 STOMP SimpleBroker로 대시보드 메시지를 전송합니다.
 
 ### 문서와 검색의 내부 흐름
 
-1. `DocumentUploadFacade`가 파일 형식·해시를 확인하고 선택된 저장소에 원본을 기록한 다음,
-   `opensql-ha` 프로필에서 OpenProxy 경유 DB 트랜잭션으로 문서·버전·인덱싱 Job을 만듭니다.
-   DB 저장 실패 시 미사용 객체 삭제를 시도합니다.
-2. `INDEXING_WORKER_ENABLED=true`인 백엔드가 Job을 선점하고 원본을 읽어 Parsing·Chunking →
-   FastAPI/BGE-M3 Embedding → pgvector 저장을 진행합니다. Lease 갱신·재시도·복구 상태는 DB에 남습니다.
-3. `SearchFacade`는 질문을 임베딩한 뒤 문서 권한을 먼저 거르고, pgvector 후보를 조회한 후 권한을
-   다시 확인합니다. RAG Worker는 검색 문맥을 Ollama에 보내 답변과 인용을 저장합니다.
-4. 단일 로컬 백엔드는 자체 STOMP SimpleBroker에서 대시보드 메시지를 전송합니다. GCP 백엔드
-   A/B의 대시보드 갱신은 공용 Redis Pub/Sub 신호로 반대쪽 앱의 재조회와 자체 구독자 전송을
-   유도하며, [양방향 수신을 별도로 검증했습니다](docs/test-results/gimin-382-dashboard-cross-backend-refresh-20261002.md).
+1. **문서 접수:** `DocumentUploadFacade`가 파일 형식과 해시를 확인하고 선택된 저장소에 원본을
+   기록합니다. `opensql-ha` 프로필에서는 OpenProxy를 경유하는 DB 트랜잭션으로 문서·버전·
+   인덱싱 Job을 만듭니다. DB 저장에 실패하면 미사용 원본 객체의 삭제를 시도합니다.
+2. **인덱싱:** `INDEXING_WORKER_ENABLED=true`인 백엔드가 Job을 선점합니다. 원본 읽기 →
+   Parsing·Chunking → FastAPI/BGE-M3 Embedding → pgvector 저장 순서로 처리하며,
+   Lease·재시도·복구 상태를 DB에 남깁니다.
+3. **검색과 답변:** `SearchFacade`가 질문을 임베딩하고 문서 권한을 확인한 뒤 pgvector 후보를
+   조회합니다. 후보의 권한을 다시 확인하고, RAG Worker가 검색 문맥을 Ollama에 보내 답변과
+   인용을 저장합니다.
+
+### 관측 구성과 검증 범위
+
+별도 관측 VM의 **Prometheus·Grafana·Blackbox Exporter**가 앱·DB·프록시·임베딩 경로를
+관측합니다. **k6 부하 VM**은 시험 지표를 Remote Write로 전송하는 구성입니다.
+
+저장소에는 다음 경로의 실행 기록이 있습니다.
+
+- [GCP 앱 A/B·OpenSQL·GCS의 PDF 저장·조회](docs/test-results/gimin-387-gcp-app-gcs-opensql-baseline-20261002.md)
+- [백엔드 A/B 간 대시보드 갱신](docs/test-results/gimin-382-dashboard-cross-backend-refresh-20261002.md)
+- [OpenSQL 3노드 장애 시험](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md)
 
 ## 기술 스택
 
