@@ -43,9 +43,10 @@ class QueryTermExtractorTest {
     }
 
     @Test
-    @DisplayName("정상 케이스: 문장부호와 따옴표를 떼고 같은 단어가 반복되면 그대로 둔다")
-    void extract_stripsPunctuationAndKeepsDuplicates() {
-        assertThat(texts("`rmdir` 'rmdir' 뭐야?")).containsExactly("rmdir", "rmdir");
+    @DisplayName("정상 케이스: 문장부호와 따옴표를 떼고 같은 단어가 반복되면 처음 한 번만 남긴다")
+    void extract_stripsPunctuationAndRemovesDuplicates() {
+        assertThat(texts("`rmdir` 'rmdir' 뭐야?")).containsExactly("rmdir");
+        assertThat(texts("rmdir RMDIR 옵션 rmdir")).containsExactly("rmdir", "옵션");
     }
 
     @Test
