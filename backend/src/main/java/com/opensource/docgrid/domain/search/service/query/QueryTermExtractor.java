@@ -1,8 +1,10 @@
 package com.opensource.docgrid.domain.search.service.query;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,7 +13,7 @@ import java.util.regex.Pattern;
  * 질문에서 검색에 쓸 단어를 뽑아 DB 정규식 패턴으로 바꾼다.
  *
  * <p>소문자로 바꾸고 공백·문장부호로 나눈 뒤, 끝에 붙은 조사를 떼고 질문 말투 단어(불용어)와 한 글자 단어를 버린다.
- * 같은 단어가 여러 번 나오면 그대로 여러 개를 돌려주며 중복을 제거하지 않는다. 형태소 분석기를 쓰지 않는 단순 규칙이라
+ * 같은 단어가 여러 번 나오면 처음 한 번만 남겨서, 반복 입력으로 가중치가 중복 합산되는 것을 막는다. 형태소 분석기를 쓰지 않는 단순 규칙이라
  * 조사 목록에 없는 어미나 복합어는 그대로 남는다. DB 조회나 가중치 계산은 하지 않는 순수 계산이고,
  * 단어별 가중치는 {@link HybridSearchQueryService}가 문서 빈도로 계산한다.
  */
@@ -41,19 +43,20 @@ public final class QueryTermExtractor {
      * 질문에서 검색 단어 목록을 뽑는다. 공백이거나 뽑을 단어가 없으면 빈 목록이다.
      */
     public static List<QueryTerm> extract(String question) {
-        List<QueryTerm> terms = new ArrayList<>();
         if (question == null || question.isBlank()) {
-            return terms;
+            return new ArrayList<>();
         }
+        // 같은 단어를 반복해서 입력해도 가중치가 한 번만 반영되도록 처음 나온 순서대로 한 번만 담는다.
+        Map<String, QueryTerm> terms = new LinkedHashMap<>();
         Matcher matcher = SPLIT.matcher(question.toLowerCase(Locale.ROOT));
         while (matcher.find()) {
             String term = stripQuotes(matcher.group());
             term = stripParticle(term);
             if (codePointLength(term) >= MIN_TERM_LENGTH && !STOP_WORDS.contains(term)) {
-                terms.add(new QueryTerm(term, ASCII_WORD.matcher(term).matches()));
+                terms.putIfAbsent(term, new QueryTerm(term, ASCII_WORD.matcher(term).matches()));
             }
         }
-        return terms;
+        return new ArrayList<>(terms.values());
     }
 
     private static String stripQuotes(String token) {
