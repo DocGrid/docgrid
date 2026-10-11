@@ -1,0 +1,562 @@
+[
+ {
+  "id": "H01",
+  "type": "IDENTIFIER",
+  "question": "mkdir은 뭐 하는 명령어야?",
+  "evidence": [
+   [
+    "mkdir test1",
+    "디렉토리를 만든다"
+   ]
+  ],
+  "relevantChunkIds": [
+   200
+  ]
+ },
+ {
+  "id": "H02",
+  "type": "IDENTIFIER",
+  "question": "pwd 명령어는 뭘 출력해?",
+  "evidence": [
+   [
+    "pwd",
+    "어느 디렉토리에 있는지를 출력"
+   ]
+  ],
+  "relevantChunkIds": [
+   200
+  ]
+ },
+ {
+  "id": "H03",
+  "type": "IDENTIFIER",
+  "question": "ls -d는 뭘 해?",
+  "evidence": [
+   [
+    "ls -d 디렉토리1",
+    "정보만 출력"
+   ]
+  ],
+  "relevantChunkIds": [
+   201
+  ]
+ },
+ {
+  "id": "H04",
+  "type": "IDENTIFIER",
+  "question": "cd ..는 뭐야?",
+  "evidence": [
+   [
+    "cd ..",
+    "부모 디렉토리로 이동"
+   ]
+  ],
+  "relevantChunkIds": [
+   200
+  ]
+ },
+ {
+  "id": "H05",
+  "type": "IDENTIFIER",
+  "question": "mv test1 ~ 하면 어떻게 돼?",
+  "evidence": [
+   [
+    "mv test1 ~",
+    "홈 디렉토리로 옮긴다"
+   ]
+  ],
+  "relevantChunkIds": [
+   201
+  ]
+ },
+ {
+  "id": "H06",
+  "type": "IDENTIFIER",
+  "question": "DIP는 뭐의 약자야?",
+  "evidence": [
+   [
+    "DIP(Dependency Inversion Principle)"
+   ]
+  ],
+  "relevantChunkIds": [
+   120
+  ]
+ },
+ {
+  "id": "H07",
+  "type": "IDENTIFIER",
+  "question": "LSP가 뭐야?",
+  "evidence": [
+   [
+    "리스코프 치환 원칙 (LSP)"
+   ]
+  ],
+  "relevantChunkIds": [
+   131
+  ]
+ },
+ {
+  "id": "H08",
+  "type": "IDENTIFIER",
+  "question": "ISP는 뭐의 약자야?",
+  "evidence": [
+   [
+    "ISP(Interface Segregation Principle)"
+   ]
+  ],
+  "relevantChunkIds": [
+   120
+  ]
+ },
+ {
+  "id": "H09",
+  "type": "IDENTIFIER",
+  "question": "SRP는 어떤 원칙이야?",
+  "evidence": [
+   [
+    "단일 책임 원칙 (SRP)"
+   ]
+  ],
+  "relevantChunkIds": [
+   122
+  ]
+ },
+ {
+  "id": "H10",
+  "type": "IDENTIFIER",
+  "question": "MySQLDatabase 예시는 어떤 원칙 위반이야?",
+  "evidence": [
+   [
+    "DIP 위반",
+    "MySQLDatabase"
+   ]
+  ],
+  "relevantChunkIds": [
+   139
+  ]
+ },
+ {
+  "id": "H11",
+  "type": "IDENTIFIER",
+  "question": "Printable 인터페이스는 어디에 쓰여?",
+  "evidence": [
+   [
+    "interface Printable"
+   ]
+  ],
+  "relevantChunkIds": [
+   136
+  ]
+ },
+ {
+  "id": "H12",
+  "type": "IDENTIFIER",
+  "question": "Uncle Bob이 누구야?",
+  "evidence": [
+   [
+    "Uncle Bob"
+   ]
+  ],
+  "relevantChunkIds": [
+   120
+  ]
+ },
+ {
+  "id": "H13",
+  "type": "IDENTIFIER",
+  "question": "SSE 예시로 뭐가 있어?",
+  "evidence": [
+   [
+    "가격 변동 알림",
+    "뉴스피드",
+    "배달 상태 알림"
+   ]
+  ],
+  "relevantChunkIds": [
+   148,
+   162
+  ]
+ },
+ {
+  "id": "H14",
+  "type": "IDENTIFIER",
+  "question": "ws://는 뭐야?",
+  "evidence": [
+   [
+    "ws://",
+    "별도 프로토콜"
+   ]
+  ],
+  "relevantChunkIds": [
+   149
+  ]
+ },
+ {
+  "id": "H15",
+  "type": "IDENTIFIER",
+  "question": "Pub/Sub 기능이 없다는 게 무슨 뜻이야?",
+  "evidence": [
+   [
+    "Pub/Sub 기능이 없음"
+   ]
+  ],
+  "relevantChunkIds": [
+   150
+  ]
+ },
+ {
+  "id": "H16",
+  "type": "IDENTIFIER",
+  "question": "publish()는 어디에 써?",
+  "evidence": [
+   [
+    "publish()",
+    "수신"
+   ]
+  ],
+  "relevantChunkIds": [
+   168
+  ]
+ },
+ {
+  "id": "H17",
+  "type": "IDENTIFIER",
+  "question": "subscribe()는 뭐야?",
+  "evidence": [
+   [
+    "subscribe()로 구독"
+   ]
+  ],
+  "relevantChunkIds": [
+   169,
+   178
+  ]
+ },
+ {
+  "id": "H18",
+  "type": "IDENTIFIER",
+  "question": "Message Broker가 뭐야?",
+  "evidence": [
+   [
+    "Message Broker"
+   ]
+  ],
+  "relevantChunkIds": [
+   189,
+   190
+  ]
+ },
+ {
+  "id": "H19",
+  "type": "IDENTIFIER",
+  "question": "벌점 3점은 언제 받아?",
+  "evidence": [
+   [
+    "벌점 3점을 부과할 수 있다"
+   ]
+  ],
+  "relevantChunkIds": [
+   199
+  ]
+ },
+ {
+  "id": "H20",
+  "type": "IDENTIFIER",
+  "question": "회장은 누구야?",
+  "evidence": [
+   [
+    "회장: 김기민"
+   ]
+  ],
+  "relevantChunkIds": [
+   194
+  ]
+ },
+ {
+  "id": "H21",
+  "type": "IDENTIFIER",
+  "question": "백엔드 파트장은 누구야?",
+  "evidence": [
+   [
+    "백엔드 파트장: 강철웅"
+   ]
+  ],
+  "relevantChunkIds": [
+   195
+  ]
+ },
+ {
+  "id": "H22",
+  "type": "IDENTIFIER",
+  "question": "14기 활동 기간이 언제야?",
+  "evidence": [
+   [
+    "2026년 09월 04일부터 2027년 02월 19일"
+   ]
+  ],
+  "relevantChunkIds": [
+   192
+  ]
+ },
+ {
+  "id": "H23",
+  "type": "IDENTIFIER",
+  "question": "지각하면 벌점이 몇 점이야?",
+  "evidence": [
+   [
+    "지각 1회 시 벌점 4점"
+   ]
+  ],
+  "relevantChunkIds": [
+   199
+  ]
+ },
+ {
+  "id": "H24",
+  "type": "IDENTIFIER",
+  "question": "완전 무단 결석은 어떻게 처리돼?",
+  "evidence": [
+   [
+    "완전 무단 결석",
+    "결석 2회로 처리"
+   ]
+  ],
+  "relevantChunkIds": [
+   199
+  ]
+ },
+ {
+  "id": "H26",
+  "type": "PARAPHRASE",
+  "question": "서버가 클라이언트에게 먼저 소식을 밀어주는 단방향 방식은 뭐야?",
+  "evidence": [
+   [
+    "서버 → 클라이언트 **단방향** 실시간 통신 방식"
+   ],
+   [
+    "서버 → 클라이언트 단방향 실시간 통신 방식"
+   ]
+  ],
+  "relevantChunkIds": [
+   148,
+   162
+  ]
+ },
+ {
+  "id": "H27",
+  "type": "PARAPHRASE",
+  "question": "연결을 한 번 맺어두고 양쪽이 주고받는 통신 규약은?",
+  "evidence": [
+   [
+    "양방향 통신이 가능한 프로토콜"
+   ]
+  ],
+  "relevantChunkIds": [
+   147,
+   161
+  ]
+ },
+ {
+  "id": "H28",
+  "type": "PARAPHRASE",
+  "question": "한 번에 여러 명한테 같은 메시지를 보내는 건 일반 응답으로 왜 안 돼?",
+  "evidence": [
+   [
+    "요청한 사람에게만 1:1로"
+   ]
+  ],
+  "relevantChunkIds": [
+   155
+  ]
+ },
+ {
+  "id": "H29",
+  "type": "PARAPHRASE",
+  "question": "클래스를 고쳐야 하는 이유가 여러 개면 안 된다는 원칙은?",
+  "evidence": [
+   [
+    "단 하나의 변경 이유"
+   ]
+  ],
+  "relevantChunkIds": [
+   122
+  ]
+ },
+ {
+  "id": "H30",
+  "type": "PARAPHRASE",
+  "question": "상위 코드가 구체 구현에 직접 묶이지 않게 하는 원칙은?",
+  "evidence": [
+   [
+    "상위 모듈이 하위 모듈에 직접 의존하지 않고"
+   ]
+  ],
+  "relevantChunkIds": [
+   138
+  ]
+ },
+ {
+  "id": "H31",
+  "type": "PARAPHRASE",
+  "question": "설계 원칙을 너무 무리하게 적용하면 왜 안 돼?",
+  "evidence": [
+   [
+    "과도한 적용 주의"
+   ]
+  ],
+  "relevantChunkIds": [
+   142
+  ]
+ },
+ {
+  "id": "H32",
+  "type": "PARAPHRASE",
+  "question": "활동을 끝까지 마치고 벌점이 적으면 다음 기수에 다시 지원할 수 있어?",
+  "evidence": [
+   [
+    "벌점 14점 이하"
+   ]
+  ],
+  "relevantChunkIds": [
+   196
+  ]
+ },
+ {
+  "id": "H33",
+  "type": "PARAPHRASE",
+  "question": "동아리에서 쫓겨나면 낸 회비를 돌려받을 수 있어?",
+  "evidence": [
+   [
+    "회비 환급이 불가"
+   ]
+  ],
+  "relevantChunkIds": [
+   199
+  ]
+ },
+ {
+  "id": "H34",
+  "type": "PARAPHRASE",
+  "question": "운영진에는 어떤 팀들이 있어?",
+  "evidence": [
+   [
+    "회장, 부회장, 교육팀, 기획&운영팀, 홍보팀"
+   ]
+  ],
+  "relevantChunkIds": [
+   194
+  ]
+ },
+ {
+  "id": "H35",
+  "type": "PARAPHRASE",
+  "question": "새로 들어온 부원이 다른 파트 스터디에 들어갈 수 있어?",
+  "evidence": [
+   [
+    "타 파트 스터디에 참여할 수 없다"
+   ]
+  ],
+  "relevantChunkIds": [
+   196
+  ]
+ },
+ {
+  "id": "H36",
+  "type": "MIXED",
+  "question": "SRP 예시에서 Computer 클래스는 어떤 기능들을 가졌어?",
+  "evidence": [
+   [
+    "하드웨어 점검",
+    "OS 로딩",
+    "네트워크 연결"
+   ]
+  ],
+  "relevantChunkIds": [
+   124
+  ]
+ },
+ {
+  "id": "H37",
+  "type": "MIXED",
+  "question": "OCP 좋은 예시에서 쓰는 인터페이스 이름이 뭐야?",
+  "evidence": [
+   [
+    "interface Operation"
+   ]
+  ],
+  "relevantChunkIds": [
+   129
+  ]
+ },
+ {
+  "id": "H38",
+  "type": "MIXED",
+  "question": "WebSocket은 Polling이랑 뭐가 달라?",
+  "evidence": [
+   [
+    "Polling보다 훨씬 효율적"
+   ]
+  ],
+  "relevantChunkIds": [
+   147,
+   161,
+   184
+  ]
+ },
+ {
+  "id": "H39",
+  "type": "MIXED",
+  "question": "STOMP의 /topic은 어떤 방향이야?",
+  "evidence": [
+   [
+    "서버 → 클라이언트들 방향"
+   ]
+  ],
+  "relevantChunkIds": [
+   154,
+   169
+  ]
+ },
+ {
+  "id": "H40",
+  "type": "NO_ANSWER",
+  "question": "자바 람다식 문법 알려줘",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "H41",
+  "type": "NO_ANSWER",
+  "question": "MySQL 인덱스 튜닝 방법",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "H42",
+  "type": "NO_ANSWER",
+  "question": "리액트 상태관리 라이브러리 추천해줘",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "H43",
+  "type": "NO_ANSWER",
+  "question": "비밀번호를 잊어버렸을 때 복구하는 방법",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "H44",
+  "type": "NO_ANSWER",
+  "question": "도커 컨테이너 네트워크 설정은 어떻게 해?",
+  "evidence": [],
+  "relevantChunkIds": []
+ },
+ {
+  "id": "H45",
+  "type": "NO_ANSWER",
+  "question": "서울에서 부산까지 KTX 요금이 얼마야?",
+  "evidence": [],
+  "relevantChunkIds": []
+ }
+]

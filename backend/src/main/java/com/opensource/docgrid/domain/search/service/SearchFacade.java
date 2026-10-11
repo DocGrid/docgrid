@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.opensource.docgrid.domain.embedding.dto.EmbedResult;
 import com.opensource.docgrid.domain.embedding.service.query.QueryEmbeddingService;
 import com.opensource.docgrid.domain.permission.service.query.PermissionQueryService;
+import com.opensource.docgrid.domain.search.config.HybridSearchProperties;
 import com.opensource.docgrid.domain.search.dto.ConversationContext;
 import com.opensource.docgrid.domain.search.dto.SearchAdmission;
 import com.opensource.docgrid.domain.search.dto.SearchOutcome;
@@ -17,6 +18,7 @@ import com.opensource.docgrid.domain.search.entity.SearchResult;
 import com.opensource.docgrid.domain.search.service.command.SearchQueryCommandService;
 import com.opensource.docgrid.domain.search.service.command.SearchResultCommandService;
 import com.opensource.docgrid.domain.search.service.query.AccessibleDocumentQueryService;
+import com.opensource.docgrid.domain.search.service.query.HybridSearchQueryService;
 import com.opensource.docgrid.domain.search.service.query.SearchConversationQueryService;
 import com.opensource.docgrid.domain.search.service.query.VectorSearchQueryService;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +50,8 @@ public class SearchFacade {
     private final SearchQueryCommandService searchQueryCommandService;
     private final AccessibleDocumentQueryService accessibleDocumentQueryService;
     private final VectorSearchQueryService vectorSearchQueryService;
+    private final HybridSearchQueryService hybridSearchQueryService;
+    private final HybridSearchProperties hybridSearchProperties;
     private final PermissionQueryService permissionQueryService;
     private final SearchResultCommandService searchResultCommandService;
 
@@ -92,11 +96,16 @@ public class SearchFacade {
                 );
             }
 
-            // 5. pgvector Top-K 후보 추출 (F-SEARCH-05)
-            List<VectorSearchCandidate> candidates = vectorSearchQueryService.search(
-                embedResult.vector(), embedResult.model().getId(),
-                permittedIds, request.effectiveTopK()
-            );
+            // 5. 후보 추출 (F-SEARCH-05). 하이브리드가 켜져 있으면 벡터 유사도에 질문 단어 일치(희귀할수록 비중 큼)를
+            //    보너스로 더해 순위를 매기고, 꺼져 있으면 기존 pgvector 단독 검색을 그대로 쓴다.
+            //    단어는 문맥이 섞이지 않은 원문 질문에서 뽑는다.
+            List<VectorSearchCandidate> candidates = hybridSearchProperties.isEnabled()
+                ? hybridSearchQueryService.search(
+                    embedResult.vector(), request.queryText(), embedResult.model().getId(),
+                    permittedIds, request.effectiveTopK())
+                : vectorSearchQueryService.search(
+                    embedResult.vector(), embedResult.model().getId(),
+                    permittedIds, request.effectiveTopK());
 
             // 6. live check — 캐시 stale 방어 (F-SEARCH-06)
             long liveStart = System.currentTimeMillis();

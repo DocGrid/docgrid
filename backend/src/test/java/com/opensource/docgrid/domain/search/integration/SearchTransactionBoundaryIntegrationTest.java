@@ -46,11 +46,13 @@ import com.opensource.docgrid.domain.search.dto.request.SearchRequest;
 import com.opensource.docgrid.domain.search.entity.SearchQuery;
 import com.opensource.docgrid.domain.search.enums.ResultStatus;
 import com.opensource.docgrid.domain.search.repository.SearchQueryRepository;
+import com.opensource.docgrid.domain.search.config.HybridSearchProperties;
 import com.opensource.docgrid.domain.search.service.SearchFacade;
 import com.opensource.docgrid.domain.search.service.command.SearchConversationCommandService;
 import com.opensource.docgrid.domain.search.service.command.SearchQueryCommandService;
 import com.opensource.docgrid.domain.search.service.command.SearchResultCommandService;
 import com.opensource.docgrid.domain.search.service.query.AccessibleDocumentQueryService;
+import com.opensource.docgrid.domain.search.service.query.HybridSearchQueryService;
 import com.opensource.docgrid.domain.search.service.query.SearchConversationQueryService;
 import com.opensource.docgrid.domain.search.service.query.VectorSearchQueryService;
 import com.opensource.docgrid.domain.user.entity.User;
@@ -94,6 +96,9 @@ class SearchTransactionBoundaryIntegrationTest {
     @MockitoBean private SearchConversationQueryService searchConversationQueryService;
     @MockitoBean private AccessibleDocumentQueryService accessibleDocumentQueryService;
     @MockitoBean private VectorSearchQueryService vectorSearchQueryService;
+    // 하이브리드는 꺼진 상태(isEnabled=false)로 두어 이 테스트가 기존 벡터 검색 경로의 트랜잭션 경계를 그대로 검증한다.
+    @MockitoBean private HybridSearchQueryService hybridSearchQueryService;
+    @MockitoBean private HybridSearchProperties hybridSearchProperties;
     @MockitoBean private PermissionQueryService permissionQueryService;
 
     private JdbcTemplate jdbcTemplate;
