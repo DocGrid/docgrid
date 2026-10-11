@@ -11,8 +11,11 @@ Hit@k·MRR@10과 정답 없는 질문의 반환 수를 계산한다. 접속 정�
   BENCH_QUESTIONS    질문 파일 이름 (기본 questions-set1.json, 같은 폴더)
 
 사용: python3 run_search_benchmark.py <결과-파일-이름-접두사>
-정답은 청크 번호가 아니라 근거 문구(evidence)가 모두 들어 있는 청크로 판정한다. 질문 세트와 정답 청크 ID는
-측정 대상 문서가 같은 방식으로 청킹·인덱싱된 환경에서 questions.json과 함께 생성한 값이다.
+정답 청크는 질문 세트를 만들 때 근거 문구(evidence)가 모두 들어 있는 청크로 정했고, 이 스크립트는 그 청크의
+ID(relevantChunkIds)와 응답의 chunkId를 비교해 판정한다(evidence 문구를 응답과 직접 대조하지 않는다).
+따라서 다른 DB에 문서를 다시 색인하면 청크 ID가 달라지므로, 근거 문구로 청크 ID를 다시 찾아 질문 파일의
+relevantChunkIds를 갱신한 뒤 측정해야 한다. 정답 없는 질문의 반환 수는 topK=10으로 요청한 결과를 상위 5개로
+자른 값이다.
 """
 import json
 import os
@@ -79,7 +82,7 @@ def main():
     for kind in ("IDENTIFIER", "PARAPHRASE", "MIXED"):
         print(" ", kind, summarize([r for r in positives if r["type"] == kind]))
     returned = [min(5, r["returned"]) for r in negatives]
-    print("정답 없는 질문 반환 수(topK=5 기준)", returned, "평균", round(statistics.mean(returned), 2),
+    print("정답 없는 질문 반환 수(topK=10 요청 결과를 상위 5개로 자른 값)", returned, "평균", round(statistics.mean(returned), 2),
           "결과없음", sum(1 for x in returned if x == 0), "/", len(returned))
     print("응답시간 ms 중앙값", round(statistics.median(r["ms"] for r in results), 1))
 

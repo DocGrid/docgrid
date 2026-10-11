@@ -78,7 +78,7 @@ BUILD SUCCESSFUL — 19개 클래스, 105 tests, 0 failures, 0 errors, 0 skipped
 | E9 | 하이브리드 후보가 live check에서 권한을 잃음 | 결과에서 제외된다 | 통과 (`SearchFacadeTest`) |
 | E10 | `SEARCH_HYBRID_ENABLED=false` | 기존 벡터 단독 경로로 돌아간다 | 단위 테스트 통과(`SearchFacadeTest`). 실서버에서 끄고 재측정하지는 않음 |
 | E11 | 질문 임베딩이 제한 시간을 넘김 | 기존과 같은 `504 SEARCH-004` | 측정 중 RAG 생성이 CPU를 점유했을 때 실제로 발생해 확인(기존 동작). 이를 피하려고 순위 측정 때 생성을 막았다 |
-| E12 | 문서에 없는 질문 | 결과가 줄거나 없어진다 | 부분 통과. 평균 반환 5건 → 1.3~3.5건, 완전히 비는 비율은 3/8, 1/6, 0/6. 걸러내기는 이 설계의 강점이 아니다 |
+| E12 | 문서에 없는 질문 | 결과가 줄거나 없어진다 | 부분 통과. 평균 반환 5건 → 1.3~3.5건(topK=10 요청을 상위 5개로 자른 값), 완전히 비는 비율은 3/8, 1/6, 0/6. 걸러내기는 이 설계의 강점이 아니다 |
 
 ## 4. 검색 품질 측정 (실제 서버, 벡터 단독 → 하이브리드)
 
@@ -130,9 +130,14 @@ DB_HOST=localhost DB_PORT=5432 DB_NAME=docgrid DB_USER=docgrid DB_PASSWORD=<로�
 SPRING_DATA_REDIS_DATABASE=9 SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=3 \
 ./backend/gradlew -p backend test --tests '*domain.search*'
 
-# 검색 품질 측정 (로컬 서버를 띄운 뒤)
-BENCH_BASE_URL=... BENCH_EMAIL=... BENCH_PASSWORD=... BENCH_COLLECTION=... BENCH_QUESTIONS=questions-set3.json \
-python3 docs/test-results/evidence/issue-456/run_search_benchmark.py
+# 검색 품질 측정: 서버 설정마다 한 번씩, 결과 파일 접두사를 다르게 줘서 덮어쓰지 않게 한다 (접두사.json으로 저장됨)
+export BENCH_BASE_URL=... BENCH_EMAIL=... BENCH_PASSWORD=... BENCH_COLLECTION=... BENCH_QUESTIONS=questions-set3.json
+# 1) SEARCH_HYBRID_ENABLED=false로 띄운 서버에서 (벡터 단독)
+python3 docs/test-results/evidence/issue-456/run_search_benchmark.py real-vector-only-set3
+# 2) SEARCH_HYBRID_ENABLED=true(기본값)로 다시 띄운 서버에서 (하이브리드)
+python3 docs/test-results/evidence/issue-456/run_search_benchmark.py real-new-hybrid-set3
 ```
+
+다른 DB에 문서를 다시 색인했다면 청크 ID가 달라지므로 질문 파일의 `relevantChunkIds`를 근거 문구로 다시 찾아 갱신한 뒤 측정한다.
 
 통합 테스트는 반드시 로컬 DB로 지정해서 실행한다. 지정하지 않으면 기본 접속 정보로 다른 DB에 테스트 스키마를 만들 수 있다.
