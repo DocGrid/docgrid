@@ -26,7 +26,8 @@ import lombok.extern.slf4j.Slf4j;
  * <p>권한·파일·문서 상태를 사전 검증해 불필요한 저장소 쓰기를 피하고, 재사용할 FileObject가
  * 없을 때만 새 바이너리 후보를 저장한다. 이후 데이터베이스 변경은
  * {@link DocumentVersionUploadService}에 위임하며, 트랜잭션 실패나 동시 중복 경쟁으로 사용되지 않은
- * 저장소 객체는 보상 삭제한다.
+ * 저장소 객체는 보상 삭제한다. 멱등 키가 있으면 파일 저장 전에 완료 응답을 조회하고,
+ * 새 버전과 Job을 만들 때 같은 트랜잭션에서 요청 결과를 확정한다.
  */
 @Slf4j
 @Service
@@ -37,6 +38,7 @@ public class DocumentVersionUploadFacade {
     private final FileHashService fileHashService;
     private final FileStorageService fileStorageService;
     private final DocumentVersionUploadService documentVersionUploadService;
+    private final VersionUploadRequestService versionUploadRequestService;
 
     /**
      * 기존 문서에 새 파일 버전을 업로드하고 인덱싱 Job을 생성한다.
@@ -51,39 +53,85 @@ public class DocumentVersionUploadFacade {
         Long documentId,
         DocumentVersionUploadRequest request
     ) {
+        return upload(userId, documentId, request, null);
+    }
+
+    /** 같은 키·문서·파일의 재시도에는 최초 업로드 응답을 반환한다. */
+    public DocumentVersionUploadResponse upload(
+        Long userId,
+        Long documentId,
+        DocumentVersionUploadRequest request,
+        String idempotencyKey
+    ) {
         // 1. 저장 전에 파일을 검증하고 동일 바이너리 확인용 해시를 계산한다.
         ValidatedFile validatedFile = fileValidationService.validate(request.file());
         String fileHash = fileHashService.calculateSha256(request.file());
+        VersionUploadRequestService.Claim claim = null;
+        if (idempotencyKey != null) {
+            // 2. 완료된 요청은 상태가 이미 바뀌었더라도 버전 생성 검증 전에 재사용한다.
+            String fingerprint = versionUploadRequestService.fingerprint(validatedFile, fileHash);
+            claim = versionUploadRequestService.acquire(userId, documentId, idempotencyKey, fingerprint);
+            if (claim.completedResponse() != null) {
+                return claim.completedResponse();
+            }
+        }
+
+        // 3. 확인된 실패에는 처리권을 풀어 같은 키의 재시도를 허용한다.
+        try {
+            return uploadClaimed(userId, documentId, request, validatedFile, fileHash, claim);
+        } catch (RuntimeException exception) {
+            if (claim != null) {
+                try {
+                    versionUploadRequestService.release(claim);
+                } catch (RuntimeException releaseException) {
+                    exception.addSuppressed(releaseException);
+                }
+            }
+            throw exception;
+        }
+    }
+
+    private DocumentVersionUploadResponse uploadClaimed(
+        Long userId, Long documentId, DocumentVersionUploadRequest request,
+        ValidatedFile validatedFile, String fileHash, VersionUploadRequestService.Claim claim
+    ) {
         Optional<Long> existingFileObjectId = documentVersionUploadService.prepare(
             userId, documentId, validatedFile, fileHash
         );
 
-        // 2. 같은 바이너리가 이미 있으면 물리 파일 저장 없이 기존 FileObject로 DB Transaction을 실행한다.
+        // 1. 같은 바이너리가 이미 있으면 물리 파일 저장 없이 기존 FileObject로 DB Transaction을 실행한다.
         if (existingFileObjectId.isPresent()) {
-            return documentVersionUploadService.upload(createCommand(
+            return persist(createCommand(
                 userId, documentId, validatedFile, fileHash, existingFileObjectId.get(), null
-            )).response();
+            ), claim).response();
         }
 
-        // 3. 재사용 대상이 없을 때만 저장소에 새 후보 파일을 만든다.
+        // 2. 재사용 대상이 없을 때만 저장소에 새 후보 파일을 만든다.
         StoredFile candidate = storeCandidate(request, validatedFile);
         DocumentVersionUploadTransactionResult result;
 
-        // 4. DB Transaction이 실패하면 어느 버전에서도 참조하지 않는 후보를 보상 삭제한다.
+        // 3. DB Transaction이 실패하면 어느 버전에서도 참조하지 않는 후보를 보상 삭제한다.
         try {
-            result = documentVersionUploadService.upload(createCommand(
+            result = persist(createCommand(
                 userId, documentId, validatedFile, fileHash, null, candidate
-            ));
+            ), claim);
         } catch (RuntimeException exception) {
             cleanupCandidate(candidate);
             throw exception;
         }
 
-        // 5. 동시 요청이 기존 FileObject를 점유했다면 이번 요청이 만든 미사용 후보를 정리한다.
+        // 4. 동시 요청이 기존 FileObject를 점유했다면 이번 요청이 만든 미사용 후보를 정리한다.
         if (!result.candidateClaimed()) {
             cleanupCandidate(candidate);
         }
         return result.response();
+    }
+
+    private DocumentVersionUploadTransactionResult persist(
+        DocumentVersionUploadCommand command, VersionUploadRequestService.Claim claim
+    ) {
+        return claim == null ? documentVersionUploadService.upload(command)
+            : documentVersionUploadService.upload(command, claim);
     }
 
     /**

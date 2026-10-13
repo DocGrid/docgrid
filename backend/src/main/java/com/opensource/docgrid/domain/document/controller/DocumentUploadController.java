@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
  * 최초 문서와 기존 문서의 새 버전 파일을 접수하는 Multipart HTTP API를 제공한다.
  *
  * <p>요청 Bean Validation과 HTTP 응답 변환만 담당하고, 파일 검증·저장소 작업·DB 트랜잭션 및
- * 보상 삭제는 각 업로드 Facade에 위임한다. 최초 업로드의 선택적 멱등 키만 전달하며,
+ * 보상 삭제는 각 업로드 Facade에 위임한다. 최초·새 버전 업로드의 선택적 멱등 키를 전달하며,
  * 파싱과 임베딩은 이 요청에서 실행하지 않는다.
  */
 @Tag(name = "Document", description = "문서 관련 API")
@@ -65,14 +65,16 @@ public class DocumentUploadController {
     @Operation(
         summary = "문서 새 버전 업로드 접수",
         description = "기존 문서에 새 파일 버전을 등록하고 비동기 인덱싱 작업을 생성합니다. "
-            + "문서 소유자 또는 계산된 WRITE 권한이 필요합니다."
+            + "문서 소유자 또는 계산된 WRITE 권한이 필요합니다. "
+            + "Idempotency-Key를 보내면 같은 문서·입력의 재시도는 최초 결과를 반환합니다."
     )
     @PostMapping(value = "/{documentId}/versions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<DocumentVersionUploadResponse>> uploadVersion(
         @PathVariable Long documentId,
         @Valid @ModelAttribute DocumentVersionUploadRequest request,
-        @Parameter(hidden = true) @CurrentUser Long userId
+        @Parameter(hidden = true) @CurrentUser Long userId,
+        @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
     ) {
-        return ResponseUtils.created(documentVersionUploadFacade.upload(userId, documentId, request));
+        return ResponseUtils.created(documentVersionUploadFacade.upload(userId, documentId, request, idempotencyKey));
     }
 }

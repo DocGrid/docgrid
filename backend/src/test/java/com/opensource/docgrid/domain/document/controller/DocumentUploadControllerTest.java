@@ -104,11 +104,13 @@ class DocumentUploadControllerTest {
         given(documentVersionUploadFacade.upload(
             org.mockito.ArgumentMatchers.eq(10L),
             org.mockito.ArgumentMatchers.eq(1L),
-            org.mockito.ArgumentMatchers.any(DocumentVersionUploadRequest.class)
+            org.mockito.ArgumentMatchers.any(DocumentVersionUploadRequest.class),
+            org.mockito.ArgumentMatchers.eq("version-attempt-1")
         )).willReturn(response);
 
         mockMvc.perform(multipart("/api/documents/{documentId}/versions", 1L)
                 .file(file)
+                .header("Idempotency-Key", "version-attempt-1")
                 .with(csrf())
                 .with(authentication(authenticationWithUserId(10L))))
             .andExpect(status().isCreated())
