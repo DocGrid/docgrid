@@ -5,7 +5,7 @@ import { ApiError, apiRequest, errorMessage } from "../lib/api";
 import type { DocumentUploadResponse, DocumentVersionUploadResponse } from "../lib/api-types";
 import { formatBytes } from "./ui";
 
-type InitialUploadAttempt = { key: string; fields: FormData };
+type UploadAttempt = { key: string; fields: FormData };
 
 function mayHaveSavedUpload(reason: unknown): boolean {
   if (!(reason instanceof ApiError)) return true;
@@ -24,7 +24,7 @@ export function UploadModal({ documentId, onClose, onSuccess }: {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [retryAvailable, setRetryAvailable] = useState(false);
-  const attemptRef = useRef<InitialUploadAttempt | null>(null);
+  const attemptRef = useRef<UploadAttempt | null>(null);
   const inFlight = useRef(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -35,31 +35,32 @@ export function UploadModal({ documentId, onClose, onSuccess }: {
     setError("");
 
     try {
-      if (versionMode) {
+      // 1. 최초 업로드와 새 버전 모두 한 번의 시도에 키·파일·입력 본문을 고정한다.
+      if (!attemptRef.current) {
         const fields = new FormData(event.currentTarget);
         fields.set("file", file);
-        const result = await apiRequest<DocumentVersionUploadResponse>(`/api/documents/${documentId}/versions`, { method: "POST", body: fields });
+        attemptRef.current = { key: crypto.randomUUID(), fields };
+      }
+      const { key, fields } = attemptRef.current;
+
+      // 2. 응답 확인 실패 뒤에는 두 업로드 경로 모두 동일한 키와 본문을 재전송한다.
+      if (versionMode) {
+        const result = await apiRequest<DocumentVersionUploadResponse>(`/api/documents/${documentId}/versions`, {
+          method: "POST", body: fields, headers: { "Idempotency-Key": key },
+        });
         onSuccess(`v${result.versionNo} 업로드가 접수됐습니다. Job #${result.embeddingJobId}`);
       } else {
-        // 1. 새 시도에는 키를 한 번만 만들고, 결과가 불명확하면 같은 파일·입력과 키를 보관한다.
-        if (!attemptRef.current) {
-          const fields = new FormData(event.currentTarget);
-          fields.set("file", file);
-          attemptRef.current = { key: crypto.randomUUID(), fields };
-        }
-        const { key, fields } = attemptRef.current;
-        // 2. 같은 시도의 재전송은 최초 요청과 동일한 키·본문을 사용한다.
         const result = await apiRequest<DocumentUploadResponse>("/api/documents", {
           method: "POST", body: fields, headers: { "Idempotency-Key": key },
         });
-        attemptRef.current = null;
-        setRetryAvailable(false);
         onSuccess(`문서 #${result.documentId} 업로드가 접수됐습니다. Job #${result.embeddingJobId}`);
       }
+      attemptRef.current = null;
+      setRetryAvailable(false);
       onClose();
     } catch (reason) {
       // 3. 저장 여부를 모를 때만 입력을 잠그고 명시적인 동일 시도 재전송을 제공한다.
-      if (!versionMode && attemptRef.current && mayHaveSavedUpload(reason)) {
+      if (attemptRef.current && mayHaveSavedUpload(reason)) {
         setRetryAvailable(true);
         setError(`${errorMessage(reason)} 저장 여부를 확인하지 못했습니다. 같은 업로드를 다시 시도할 수 있습니다. 이 창을 닫으면 요청 키가 사라집니다.`);
       } else {
@@ -81,7 +82,9 @@ export function UploadModal({ documentId, onClose, onSuccess }: {
     setFile(null);
     setTitle("");
     setRetryAvailable(false);
-    setError("이전 업로드가 이미 저장됐을 수 있습니다. 같은 문서를 다시 올리기 전 문서 목록을 확인하세요.");
+    setError(versionMode
+      ? "이전 버전이 이미 저장됐을 수 있습니다. 새 버전을 올리기 전 버전 이력을 확인하세요."
+      : "이전 업로드가 이미 저장됐을 수 있습니다. 같은 문서를 다시 올리기 전 문서 목록을 확인하세요.");
   }
 
   return (

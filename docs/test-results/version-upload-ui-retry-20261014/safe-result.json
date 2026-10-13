@@ -1,0 +1,38 @@
+{
+  "runId": "VERSION-UI-BROWSER-20261014-01",
+  "events": [
+    {
+      "ordinal": 1,
+      "keyDigest": "d3870acdf76a",
+      "fileDigest": "de76c6bbedf8",
+      "fileBytes": 97,
+      "backendStatus": 201,
+      "browserStatus": 502,
+      "documentId": 3,
+      "versionId": 4,
+      "versionNo": 2,
+      "jobId": 2
+    },
+    {
+      "ordinal": 2,
+      "keyDigest": "d3870acdf76a",
+      "fileDigest": "de76c6bbedf8",
+      "fileBytes": 97,
+      "backendStatus": 201,
+      "browserStatus": 201,
+      "documentId": 3,
+      "versionId": 4,
+      "versionNo": 2,
+      "jobId": 2
+    }
+  ],
+  "db": {
+    "versionCount": 2,
+    "jobCount": 2,
+    "maxVersionNo": 2,
+    "completedRequestCount": 1,
+    "outboxCount": 2
+  },
+  "sameKeyAndFileAndResult": true,
+  "passed": true
+}
