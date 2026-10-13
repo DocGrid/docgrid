@@ -1,0 +1,3 @@
+attempt,client_outcome,server_status,documents,versions,jobs,file_objects,stored_candidates,deleted_candidates
+A1,서비스 성공,201,2,2,2,1,2,1
+A2,서비스 성공,201,2,2,2,1,2,1
