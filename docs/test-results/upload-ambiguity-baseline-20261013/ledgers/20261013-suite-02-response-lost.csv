@@ -1,0 +1,3 @@
+attempt,client_outcome,server_status,documents,versions,jobs,file_objects,stored_candidates,deleted_candidates
+A1,응답 폐기,201,1,1,1,1,1,0
+A2,201 수신,201,2,2,2,1,1,0
