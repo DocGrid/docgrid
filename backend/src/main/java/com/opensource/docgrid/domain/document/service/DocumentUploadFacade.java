@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>파일 검증·해시 계산·중복 조회 후 필요할 때만 바이너리를 저장하고,
  * {@link DocumentUploadService}에 데이터베이스 변경을 위임한다. 파일 저장소는 DB 트랜잭션에
  * 참여하지 않으므로 DB 저장 실패 또는 중복 경쟁에서 사용되지 않은 후보 객체를 보상 삭제한다.
+ * 멱등 키가 있는 요청은 저장소 작업 전에 별도 DB 원장에서 처리 소유권을 확보한다.
  * 이 클래스는 업로드 순서와 보상 동작을 책임지며 문서 Entity를 직접 저장하지 않는다.
  */
 @Slf4j
@@ -37,6 +38,7 @@ public class DocumentUploadFacade {
     private final FileHashService fileHashService;
     private final FileStorageService fileStorageService;
     private final DocumentUploadService documentUploadService;
+    private final InitialUploadRequestService initialUploadRequestService;
 
     /**
      * 업로드 파일을 검증하고 저장소와 데이터베이스에 최초 문서를 생성한다.
@@ -46,39 +48,81 @@ public class DocumentUploadFacade {
      * @return 생성된 문서·버전·인덱싱 Job 정보
      */
     public DocumentUploadResponse upload(Long userId, DocumentUploadRequest request) {
+        return upload(userId, request, null);
+    }
+
+    /**
+     * 선택적 멱등 키의 처리 소유권을 확보한 뒤 최초 문서를 생성하거나 확정된 원본 응답을 재사용한다.
+     */
+    public DocumentUploadResponse upload(Long userId, DocumentUploadRequest request, String idempotencyKey) {
         // 1. 저장 전에 파일 형식·크기·이름을 검증하고 동일 바이너리 판별용 해시를 계산한다.
         ValidatedFile validatedFile = fileValidationService.validate(request.file());
         String fileHash = fileHashService.calculateSha256(request.file());
+        InitialUploadRequestService.Claim claim = null;
+        if (idempotencyKey != null) {
+            // 2. 완료 응답은 즉시 반환하며, 진행 중이거나 다른 입력인 키는 저장소 작업 전에 거부한다.
+            String fingerprint = initialUploadRequestService.fingerprint(request, validatedFile, fileHash);
+            claim = initialUploadRequestService.acquire(userId, idempotencyKey, fingerprint);
+            if (claim.completedResponse() != null) {
+                return claim.completedResponse();
+            }
+        }
+
+        // 3. DB와 저장소 처리 중 확인된 실패는 현재 소유권을 풀어 같은 입력의 재시도를 허용한다.
+        try {
+            return uploadClaimed(userId, request, validatedFile, fileHash, claim);
+        } catch (RuntimeException e) {
+            if (claim != null) {
+                try {
+                    initialUploadRequestService.release(claim);
+                } catch (RuntimeException releaseException) {
+                    e.addSuppressed(releaseException);
+                }
+            }
+            throw e;
+        }
+    }
+
+    private DocumentUploadResponse uploadClaimed(
+        Long userId, DocumentUploadRequest request, ValidatedFile validatedFile, String fileHash,
+        InitialUploadRequestService.Claim claim
+    ) {
         Optional<Long> existingFileObjectId = documentUploadService.findReusableFileObjectId(
             fileHash, validatedFile.fileSize()
         );
 
-        // 2. 같은 바이너리의 FileObject가 있으면 물리 파일을 다시 저장하지 않고 바로 DB Transaction을 실행한다.
+        // 1. 같은 바이너리의 FileObject가 있으면 물리 파일을 다시 저장하지 않고 바로 DB Transaction을 실행한다.
         if (existingFileObjectId.isPresent()) {
-            return documentUploadService.upload(createCommand(
+            return persist(createCommand(
                 userId, request, validatedFile, fileHash, existingFileObjectId.get(), null
-            )).response();
+            ), claim).response();
         }
 
-        // 3. 중복 파일이 없으면 DB Transaction 밖에서 저장소 후보 객체를 먼저 생성한다.
+        // 2. 중복 파일이 없으면 DB Transaction 밖에서 저장소 후보 객체를 먼저 생성한다.
         StoredFile candidate = storeCandidate(request, validatedFile);
         DocumentUploadTransactionResult result;
 
-        // 4. DB 저장이 실패하면 참조되지 않는 후보 파일이 남지 않도록 보상 삭제한 뒤 원래 예외를 전달한다.
+        // 3. DB 저장이 실패하면 참조되지 않는 후보 파일이 남지 않도록 보상 삭제한 뒤 원래 예외를 전달한다.
         try {
-            result = documentUploadService.upload(createCommand(
+            result = persist(createCommand(
                 userId, request, validatedFile, fileHash, null, candidate
-            ));
+            ), claim);
         } catch (RuntimeException e) {
             cleanupCandidate(candidate);
             throw e;
         }
 
-        // 5. 동시 업로드가 같은 FileObject를 먼저 만들었다면 이번 요청의 미사용 후보만 정리한다.
+        // 4. 동시 업로드가 같은 FileObject를 먼저 만들었다면 이번 요청의 미사용 후보만 정리한다.
         if (!result.candidateClaimed()) {
             cleanupCandidate(candidate);
         }
         return result.response();
+    }
+
+    private DocumentUploadTransactionResult persist(
+        DocumentUploadCommand command, InitialUploadRequestService.Claim claim
+    ) {
+        return claim == null ? documentUploadService.upload(command) : documentUploadService.upload(command, claim);
     }
 
     /**

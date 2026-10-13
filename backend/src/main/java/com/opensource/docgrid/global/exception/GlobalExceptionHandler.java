@@ -2,6 +2,7 @@ package com.opensource.docgrid.global.exception;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -21,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
+/** API 예외를 공통 오류 응답으로 바꾸고 진행 중인 업로드의 재시도 간격을 알린다. */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -33,9 +35,11 @@ public class GlobalExceptionHandler {
             request.getMethod(), request.getRequestURI(),
             e.getErrorCode().getCode(), e.getMessage());
 
-        return ResponseEntity
-            .status(e.getErrorCode().getHttpStatus())
-            .body(ErrorResponse.of(e.getErrorCode(), e.getMessage(), request));
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(e.getErrorCode().getHttpStatus());
+        if (e.getErrorCode() == ErrorCode.DOCUMENT_UPLOAD_IN_PROGRESS) {
+            response.header(HttpHeaders.RETRY_AFTER, "5");
+        }
+        return response.body(ErrorResponse.of(e.getErrorCode(), e.getMessage(), request));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

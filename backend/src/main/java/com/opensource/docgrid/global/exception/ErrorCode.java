@@ -103,6 +103,18 @@ public enum ErrorCode {
         "DOCUMENT-UPLOAD-001",
         "파일 정보를 저장하지 못했습니다."
     ),
+    DOCUMENT_UPLOAD_KEY_INVALID(
+        HttpStatus.BAD_REQUEST, "DOCUMENT-UPLOAD-002", "유효하지 않은 Idempotency-Key입니다."
+    ),
+    DOCUMENT_UPLOAD_KEY_CONFLICT(
+        HttpStatus.CONFLICT, "DOCUMENT-UPLOAD-003", "같은 Idempotency-Key에 다른 업로드 입력을 사용할 수 없습니다."
+    ),
+    DOCUMENT_UPLOAD_IN_PROGRESS(
+        HttpStatus.CONFLICT, "DOCUMENT-UPLOAD-004", "같은 업로드 요청이 진행 중입니다. 잠시 후 다시 시도하세요."
+    ),
+    DOCUMENT_UPLOAD_OWNERSHIP_LOST(
+        HttpStatus.CONFLICT, "DOCUMENT-UPLOAD-005", "업로드 처리 권한이 만료되었습니다. 같은 키로 다시 시도하세요."
+    ),
     UNSUPPORTED_DOCUMENT_TYPE(
         HttpStatus.UNPROCESSABLE_ENTITY,
         "DOCUMENT-PARSING-001",

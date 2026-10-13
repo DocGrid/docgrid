@@ -43,6 +43,7 @@ class DocumentUploadFacadeTest {
     @Mock private FileHashService fileHashService;
     @Mock private FileStorageService fileStorageService;
     @Mock private DocumentUploadService documentUploadService;
+    @Mock private InitialUploadRequestService initialUploadRequestService;
 
     private DocumentUploadFacade documentUploadFacade;
     private DocumentUploadRequest request;
@@ -51,7 +52,8 @@ class DocumentUploadFacadeTest {
     @BeforeEach
     void setUp() {
         documentUploadFacade = new DocumentUploadFacade(
-            fileValidationService, fileHashService, fileStorageService, documentUploadService
+            fileValidationService, fileHashService, fileStorageService, documentUploadService,
+            initialUploadRequestService
         );
         MockMultipartFile file = new MockMultipartFile("file", "sample.txt", "text/plain", "text".getBytes());
         request = new DocumentUploadRequest(file, "title", "description", VisibilityType.PRIVATE);

@@ -55,7 +55,8 @@ class DocumentUploadControllerTest {
             1L, 2L, 3L, 4L, DocumentStatus.UPLOADED, EmbeddingJobStatus.PENDING
         );
         given(documentUploadFacade.upload(org.mockito.ArgumentMatchers.eq(10L),
-            org.mockito.ArgumentMatchers.any(DocumentUploadRequest.class))).willReturn(response);
+            org.mockito.ArgumentMatchers.any(DocumentUploadRequest.class),
+            org.mockito.ArgumentMatchers.isNull())).willReturn(response);
 
         mockMvc.perform(multipart("/api/documents")
                 .file(file)
