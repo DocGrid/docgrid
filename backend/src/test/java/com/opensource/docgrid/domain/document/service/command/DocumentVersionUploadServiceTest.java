@@ -27,6 +27,7 @@ import com.opensource.docgrid.domain.document.enums.DocumentVersionStatus;
 import com.opensource.docgrid.domain.document.repository.DocumentRepository;
 import com.opensource.docgrid.domain.document.repository.DocumentVersionRepository;
 import com.opensource.docgrid.domain.document.service.ValidatedFile;
+import com.opensource.docgrid.domain.document.service.VersionUploadRequestService;
 import com.opensource.docgrid.domain.embedding.repository.EmbeddingJobRepository;
 import com.opensource.docgrid.domain.embedding.service.query.EmbeddingModelQueryService;
 import com.opensource.docgrid.domain.permission.service.query.PermissionQueryService;
@@ -55,6 +56,7 @@ class DocumentVersionUploadServiceTest {
     @Mock private EmbeddingModelQueryService embeddingModelQueryService;
     @Mock private PermissionQueryService permissionQueryService;
     @Mock private SyncEventWriter syncEventWriter;
+    @Mock private VersionUploadRequestService versionUploadRequestService;
 
     @InjectMocks private DocumentVersionUploadService documentVersionUploadService;
 

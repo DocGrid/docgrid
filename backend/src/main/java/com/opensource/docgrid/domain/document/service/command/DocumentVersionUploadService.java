@@ -17,6 +17,7 @@ import com.opensource.docgrid.domain.document.enums.DocumentVersionStatus;
 import com.opensource.docgrid.domain.document.repository.DocumentRepository;
 import com.opensource.docgrid.domain.document.repository.DocumentVersionRepository;
 import com.opensource.docgrid.domain.document.service.ValidatedFile;
+import com.opensource.docgrid.domain.document.service.VersionUploadRequestService;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingJob;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingModel;
 import com.opensource.docgrid.domain.embedding.enums.EmbeddingJobStatus;
@@ -36,7 +37,8 @@ import lombok.RequiredArgsConstructor;
  * 기존 문서에 새 파일 버전을 추가하고 해당 버전의 최초 인덱싱 Job을 생성한다.
  *
  * <p>쓰기 권한, 문서 상태, 문서 형식, 동일 내용, 진행 중 버전 존재 여부를 검증하고
- * {@link DocumentVersion}, 동기화 Outbox Event, {@link EmbeddingJob}을 한 트랜잭션에 저장한다.
+ * {@link DocumentVersion}, 동기화 Outbox Event, {@link EmbeddingJob}과 멱등 키의 완료 응답을
+ * 한 트랜잭션에 저장한다.
  * 문서별 진행 중 버전은 하나만 허용하며, 애플리케이션 검증 이후 발생할 수 있는 동시 요청은
  * 데이터베이스 유일 제약까지 해석해 동일한 도메인 오류로 변환한다.
  *
@@ -66,6 +68,7 @@ public class DocumentVersionUploadService {
     private final EmbeddingModelQueryService embeddingModelQueryService;
     private final PermissionQueryService permissionQueryService;
     private final SyncEventWriter syncEventWriter;
+    private final VersionUploadRequestService versionUploadRequestService;
 
     /**
      * 새 버전 파일을 저장하기 전에 권한과 버전 생성 가능 여부를 검증하고 중복 파일을 조회한다.
@@ -104,6 +107,13 @@ public class DocumentVersionUploadService {
      * @return 생성된 버전·Job 정보와 후보 파일 점유 결과
      */
     public DocumentVersionUploadTransactionResult upload(DocumentVersionUploadCommand command) {
+        return upload(command, null);
+    }
+
+    /** 요청 소유권이 있으면 버전·Job 생성과 최초 응답 확정을 함께 커밋한다. */
+    public DocumentVersionUploadTransactionResult upload(
+        DocumentVersionUploadCommand command, VersionUploadRequestService.Claim claim
+    ) {
         // 1. 사용자와 쓰기 권한을 확인하고 문서 행을 잠가 버전 번호 및 상태 결정을 직렬화한다.
         userRepository.findById(command.userId())
             .orElseThrow(() -> new DocGridException(ErrorCode.USER_NOT_FOUND));
@@ -173,6 +183,10 @@ public class DocumentVersionUploadService {
             version.getStatus(),
             job.getStatus()
         );
+        if (claim != null) {
+            // 7. 리스 소유권을 잃었다면 버전·Outbox·Job 전체를 롤백한다.
+            versionUploadRequestService.complete(claim, response);
+        }
         return new DocumentVersionUploadTransactionResult(response, resolution.candidateClaimed());
     }
 

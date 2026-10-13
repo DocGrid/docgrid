@@ -48,6 +48,7 @@ class DocumentVersionUploadFacadeTest {
     @Mock private FileHashService fileHashService;
     @Mock private FileStorageService fileStorageService;
     @Mock private DocumentVersionUploadService documentVersionUploadService;
+    @Mock private VersionUploadRequestService versionUploadRequestService;
 
     private DocumentVersionUploadFacade facade;
     private DocumentVersionUploadRequest request;
@@ -56,7 +57,8 @@ class DocumentVersionUploadFacadeTest {
     @BeforeEach
     void setUp() {
         facade = new DocumentVersionUploadFacade(
-            fileValidationService, fileHashService, fileStorageService, documentVersionUploadService
+            fileValidationService, fileHashService, fileStorageService, documentVersionUploadService,
+            versionUploadRequestService
         );
         MockMultipartFile file = new MockMultipartFile(
             "file", "changed.txt", "text/plain", "text".getBytes()

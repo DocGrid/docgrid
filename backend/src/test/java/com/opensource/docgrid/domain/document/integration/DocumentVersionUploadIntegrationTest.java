@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,6 +73,7 @@ class DocumentVersionUploadIntegrationTest {
     @AfterEach
     void tearDown() {
         for (Long documentId : documentIds) {
+            jdbcTemplate.update("DELETE FROM version_upload_requests WHERE document_id = ?", documentId);
             List<Long> fileObjectIds = jdbcTemplate.queryForList(
                 "SELECT file_object_id FROM document_versions WHERE document_id = ? AND file_object_id IS NOT NULL",
                 Long.class,
@@ -94,6 +96,155 @@ class DocumentVersionUploadIntegrationTest {
                 fileObjectId
             ));
         }
+    }
+
+    @Test
+    @DisplayName("같은 사용자·문서·키·파일의 재시도는 최초 버전과 Job을 그대로 반환한다")
+    void upload_reusesOriginalVersionAndJob_whenSameKeyIsRetried() {
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+            ));
+        DocumentUploadResponse initial = createIndexedDocument("version-idempotency-base");
+        reset(fileStorageService);
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+            ));
+
+        DocumentVersionUploadRequest request = versionRequest("version-idempotency-new", "updated.txt");
+        DocumentVersionUploadResponse first = documentVersionUploadFacade.upload(
+            userId, initial.documentId(), request, "version-attempt-1"
+        );
+        // Worker가 완료해 문서 상태가 바뀐 뒤에도 재시도 응답은 최초 201 결과를 유지해야 한다.
+        jdbcTemplate.update("UPDATE document_versions SET status = 'INDEXED' WHERE id = ?", first.documentVersionId());
+        jdbcTemplate.update("UPDATE embedding_jobs SET status = 'INDEXED' WHERE id = ?", first.embeddingJobId());
+        jdbcTemplate.update("UPDATE documents SET status = 'INDEXED', current_version_id = ? WHERE id = ?",
+            first.documentVersionId(), initial.documentId());
+        DocumentVersionUploadResponse replay = documentVersionUploadFacade.upload(
+            userId, initial.documentId(), request, "version-attempt-1"
+        );
+
+        assertThat(replay).isEqualTo(first);
+        assertThat(countBy("SELECT COUNT(*) FROM document_versions WHERE document_id = ?", initial.documentId()))
+            .isEqualTo(2);
+        assertThat(countBy("""
+            SELECT COUNT(*) FROM embedding_jobs job
+            JOIN document_versions version ON version.id = job.document_version_id
+            WHERE version.document_id = ?
+            """, initial.documentId())).isEqualTo(2);
+        assertThat(countBy("""
+            SELECT COUNT(*) FROM sync_outbox_events event
+            JOIN document_versions version ON version.id = event.aggregate_id
+            WHERE event.aggregate_type = 'DOCUMENT_VERSION' AND version.document_id = ?
+            """, initial.documentId())).isEqualTo(2);
+        verify(fileStorageService, times(1))
+            .store(any(InputStream.class), anyLong(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("같은 키에 다른 파일을 보내면 새 버전을 만들지 않고 충돌을 반환한다")
+    void upload_rejectsDifferentFile_whenKeyIsReused() {
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+            ));
+        DocumentUploadResponse initial = createIndexedDocument("version-conflict-base");
+        documentVersionUploadFacade.upload(
+            userId, initial.documentId(), versionRequest("version-conflict-A", "updated.txt"),
+            "version-attempt-conflict"
+        );
+
+        assertThatThrownBy(() -> documentVersionUploadFacade.upload(
+            userId, initial.documentId(), versionRequest("version-conflict-B", "updated.txt"),
+            "version-attempt-conflict"
+        )).isInstanceOf(DocGridException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DOCUMENT_UPLOAD_KEY_CONFLICT);
+        assertThat(countBy("SELECT COUNT(*) FROM document_versions WHERE document_id = ?", initial.documentId()))
+            .isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("저장소 실패 뒤 같은 키로 재시도하면 처리권을 재획득해 버전 하나만 생성한다")
+    void upload_retriesSameKey_afterConfirmedStorageFailure() {
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+            ));
+        DocumentUploadResponse initial = createIndexedDocument("version-recovery-base");
+        reset(fileStorageService);
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willThrow(new DocGridException(ErrorCode.FILE_STORAGE_FAILED))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+            ));
+
+        DocumentVersionUploadRequest request = versionRequest("version-recovery-new", "updated.txt");
+        assertThatThrownBy(() -> documentVersionUploadFacade.upload(
+            userId, initial.documentId(), request, "version-attempt-recovery"
+        )).isInstanceOf(DocGridException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FILE_STORAGE_FAILED);
+
+        DocumentVersionUploadResponse response = documentVersionUploadFacade.upload(
+            userId, initial.documentId(), request, "version-attempt-recovery"
+        );
+        assertThat(response.versionNo()).isEqualTo(2);
+        assertThat(countBy("SELECT COUNT(*) FROM document_versions WHERE document_id = ?", initial.documentId()))
+            .isEqualTo(2);
+        assertThat(countBy("""
+            SELECT COUNT(*) FROM embedding_jobs job
+            JOIN document_versions version ON version.id = job.document_version_id
+            WHERE version.document_id = ?
+            """, initial.documentId())).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("같은 키의 동시 요청은 저장소에 함께 진입하지 않고 완료 뒤 같은 결과로 수렴한다")
+    void upload_serializesSameKey_beforeStorage() throws Exception {
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+            ));
+        DocumentUploadResponse initial = createIndexedDocument("version-concurrent-base");
+        reset(fileStorageService);
+        CountDownLatch firstAtStorage = new CountDownLatch(1);
+        CountDownLatch releaseFirst = new CountDownLatch(1);
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> {
+                firstAtStorage.countDown();
+                if (!releaseFirst.await(10, TimeUnit.SECONDS)) {
+                    throw new IllegalStateException("첫 업로드 저장 대기 시간 초과");
+                }
+                return new StoredFile(StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID());
+            });
+        DocumentVersionUploadRequest request = versionRequest("version-concurrent-new", "updated.txt");
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        DocumentVersionUploadResponse first;
+        try {
+            Future<DocumentVersionUploadResponse> pending = executor.submit(() -> documentVersionUploadFacade.upload(
+                userId, initial.documentId(), request, "version-attempt-concurrent"
+            ));
+            assertThat(firstAtStorage.await(10, TimeUnit.SECONDS)).isTrue();
+            assertThatThrownBy(() -> documentVersionUploadFacade.upload(
+                userId, initial.documentId(), request, "version-attempt-concurrent"
+            )).isInstanceOf(DocGridException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DOCUMENT_UPLOAD_IN_PROGRESS);
+            releaseFirst.countDown();
+            first = pending.get(15, TimeUnit.SECONDS);
+        } finally {
+            releaseFirst.countDown();
+            executor.shutdownNow();
+            assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+        }
+
+        assertThat(documentVersionUploadFacade.upload(
+            userId, initial.documentId(), request, "version-attempt-concurrent"
+        )).isEqualTo(first);
+        verify(fileStorageService, times(1))
+            .store(any(InputStream.class), anyLong(), anyString(), anyString());
+        assertThat(countBy("SELECT COUNT(*) FROM document_versions WHERE document_id = ?", initial.documentId()))
+            .isEqualTo(2);
     }
 
     @Test
