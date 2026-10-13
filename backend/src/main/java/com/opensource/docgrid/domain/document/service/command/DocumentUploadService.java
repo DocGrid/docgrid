@@ -33,8 +33,8 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>사용자와 파일 객체를 확인한 뒤 {@link Document}, 최초 {@link DocumentVersion},
  * 동기화 Outbox Event, 최초 {@link EmbeddingJob}과 멱등 키의 완료 응답을 함께 저장한다. 이 서비스의 책임은
- * 업로드 메타데이터와 인덱싱 의도를 원자적으로 기록하는 데 있으며, 실제 파일 바이너리 저장과
- * 실패한 후보 파일 정리는 {@code DocumentUploadFacade}가 담당한다.
+ * 업로드 메타데이터와 인덱싱 의도를 원자적으로 기록하는 데 있으며, 실제 파일 바이너리 저장은
+ * {@code DocumentUploadFacade}가 담당한다. 키가 있는 요청의 남은 후보는 별도 정리 서비스가 대조한다.
  *
  * <p>트랜잭션이 실패하면 문서·버전·Outbox·Job이 모두 Rollback되어 일부 데이터만 남지 않는다.
  */
@@ -153,7 +153,7 @@ public class DocumentUploadService {
             embeddingJob.getStatus()
         );
         if (claim != null) {
-            initialUploadRequestService.complete(claim, response);
+            initialUploadRequestService.complete(claim, response, resolution.candidateClaimed());
         }
 
         // 7. 커밋 후 외부 계층이 필요한 식별자와 후보 파일 정리 판단을 함께 반환한다.

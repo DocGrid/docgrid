@@ -14,7 +14,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Duration;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -43,9 +47,14 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opensource.docgrid.domain.document.dto.response.DocumentUploadResponse;
+import com.opensource.docgrid.domain.document.dto.request.DocumentUploadRequest;
 import com.opensource.docgrid.domain.document.enums.DocumentStatus;
 import com.opensource.docgrid.domain.document.enums.StorageProvider;
+import com.opensource.docgrid.domain.document.enums.VisibilityType;
+import com.opensource.docgrid.domain.document.service.DocumentUploadFacade;
+import com.opensource.docgrid.domain.document.service.InitialUploadCandidateCleanupService;
 import com.opensource.docgrid.domain.document.service.InitialUploadRequestService;
+import com.opensource.docgrid.domain.document.storage.CandidateObjectSnapshot;
 import com.opensource.docgrid.domain.document.storage.FileStorageService;
 import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.domain.embedding.enums.EmbeddingJobStatus;
@@ -58,7 +67,7 @@ import com.opensource.docgrid.global.exception.ErrorCode;
  * <p>파일 저장소는 시험용 Port로 대체하며 실제 GCS 또는 Cloud Run 장애는 포함하지 않는다.
  */
 @Tag("integration")
-@SpringBootTest
+@SpringBootTest(properties = "storage.bucket=test-bucket")
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DisplayName("최초 업로드 멱등 처리 통합 테스트")
@@ -68,6 +77,8 @@ class InitialUploadIdempotencyIntegrationTest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private JdbcTemplate jdbcTemplate;
     @Autowired private InitialUploadRequestService requestService;
+    @Autowired private InitialUploadCandidateCleanupService cleanupService;
+    @Autowired private DocumentUploadFacade uploadFacade;
     @Autowired private PlatformTransactionManager transactionManager;
     @MockitoBean private FileStorageService fileStorageService;
 
@@ -167,7 +178,7 @@ class InitialUploadIdempotencyIntegrationTest {
     void failedStorageReleasesClaim() throws Exception {
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willThrow(new DocGridException(ErrorCode.FILE_STORAGE_FAILED))
-            .willReturn(storedFile());
+            .willAnswer(invocation -> storedFile(invocation.getArgument(3)));
 
         MvcResult failed = send("same-content", title);
         MvcResult retried = send("same-content", title);
@@ -220,7 +231,7 @@ class InitialUploadIdempotencyIntegrationTest {
                 if (!continueStorage.await(10, TimeUnit.SECONDS)) {
                     throw new IllegalStateException("storage wait timed out");
                 }
-                return storedFile();
+                return storedFile(invocation.getArgument(3));
             });
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -261,13 +272,154 @@ class InitialUploadIdempotencyIntegrationTest {
         DocumentUploadResponse response = new DocumentUploadResponse(
             1L, 2L, 3L, 4L, DocumentStatus.UPLOADED, EmbeddingJobStatus.PENDING
         );
-        assertThatThrownBy(() -> transaction.executeWithoutResult(status -> requestService.complete(first, response)))
+        assertThatThrownBy(() -> transaction.executeWithoutResult(status -> requestService.complete(first, response, false)))
             .isInstanceOf(DocGridException.class)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DOCUMENT_UPLOAD_OWNERSHIP_LOST);
         assertThat(jdbcTemplate.queryForObject(
             "SELECT state FROM initial_upload_requests WHERE user_id = ? AND request_key = ?",
             String.class, userId, key
         )).isEqualTo("IN_PROGRESS");
+    }
+
+    @Test
+    @DisplayName("저장 직후 앱이 종료되어도 후보를 검사해 같은 객체로 한 번만 완료한다")
+    void crashAfterStoreReusesCandidate() throws Exception {
+        String body = "crash-" + UUID.randomUUID();
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        MockMultipartFile file = new MockMultipartFile("file", "sample.txt", "text/plain", bytes);
+        DocumentUploadRequest request = new DocumentUploadRequest(file, title, "test", VisibilityType.PRIVATE);
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> { throw new AssertionError("simulated process termination after object creation"); });
+
+        assertThatThrownBy(() -> uploadFacade.upload(userId, request, key)).isInstanceOf(AssertionError.class);
+        String candidateKey = jdbcTemplate.queryForObject("""
+            SELECT candidate_object_key FROM initial_upload_requests WHERE user_id = ? AND request_key = ?
+            """, String.class, userId, key);
+        assertThat(candidateKey).isNotBlank();
+        assertThat(count("documents", "title = ?", title)).isZero();
+
+        jdbcTemplate.update("""
+            UPDATE initial_upload_requests SET lease_expires_at = CURRENT_TIMESTAMP - INTERVAL '1 second'
+             WHERE user_id = ? AND request_key = ?
+            """, userId, key);
+        String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+        given(fileStorageService.inspectCandidate(any(StoredFile.class)))
+            .willReturn(Optional.of(new CandidateObjectSnapshot(bytes.length, hash, null)));
+
+        DocumentUploadResponse recovered = uploadFacade.upload(userId, request, key);
+
+        assertThat(recovered.documentId()).isNotNull();
+        assertThat(count("documents", "title = ?", title)).isOne();
+        assertThat(jdbcTemplate.queryForObject("""
+            SELECT object_key FROM file_objects WHERE id = ?
+            """, String.class, recovered.fileObjectId())).isEqualTo(candidateKey);
+        assertThat(jdbcTemplate.queryForObject("""
+            SELECT candidate_object_key FROM initial_upload_requests WHERE user_id = ? AND request_key = ?
+            """, String.class, userId, key)).isNull();
+        verify(fileStorageService, times(1)).store(any(InputStream.class), anyLong(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("정리는 기본 보고만 하고, 예약 뒤 미참조 GCS 후보만 조건부 삭제한다")
+    void cleanupReportsThenDeletesOnlyUnreferencedCandidate() {
+        InitialUploadRequestService.Claim claim = requestService.acquire(userId, key, "a".repeat(64));
+        StoredFile candidate = new StoredFile(StorageProvider.GCS, "test-bucket", "documents/test/cleanup-" + key);
+        requestService.registerCandidate(claim, candidate, "b".repeat(64), 4L);
+        jdbcTemplate.update("""
+            UPDATE initial_upload_requests
+               SET candidate_registered_at = CURRENT_TIMESTAMP - INTERVAL '25 hours',
+                   lease_expires_at = CURRENT_TIMESTAMP - INTERVAL '1 second'
+             WHERE user_id = ? AND request_key = ?
+            """, userId, key);
+
+        InitialUploadCandidateCleanupService.CleanupResult report = cleanupService.reconcile(
+            Duration.ofHours(24), 100, false
+        );
+        assertThat(report.found()).isEqualTo(1);
+        assertThat(report.deleted()).isZero();
+        assertThat(jdbcTemplate.queryForObject("""
+            SELECT candidate_object_key FROM initial_upload_requests WHERE user_id = ? AND request_key = ?
+            """, String.class, userId, key)).isEqualTo(candidate.objectKey());
+
+        given(fileStorageService.inspectCandidate(candidate))
+            .willReturn(Optional.of(new CandidateObjectSnapshot(4L, "b".repeat(64), 42L)));
+        given(fileStorageService.deleteCandidateIfGenerationMatches(candidate, 42L)).willReturn(true);
+        InitialUploadCandidateCleanupService.CleanupResult cleaned = cleanupService.reconcile(
+            Duration.ofHours(24), 100, true
+        );
+
+        assertThat(cleaned.deleted()).isOne();
+        assertThat(cleaned.failed()).isZero();
+        assertThat(jdbcTemplate.queryForObject("""
+            SELECT candidate_object_key FROM initial_upload_requests WHERE user_id = ? AND request_key = ?
+            """, String.class, userId, key)).isNull();
+        TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+        DocumentUploadResponse response = new DocumentUploadResponse(
+            1L, 2L, 3L, 4L, DocumentStatus.UPLOADED, EmbeddingJobStatus.PENDING
+        );
+        assertThatThrownBy(() -> transaction.executeWithoutResult(status -> requestService.complete(claim, response, false)))
+            .isInstanceOf(DocGridException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DOCUMENT_UPLOAD_OWNERSHIP_LOST);
+    }
+
+    @Test
+    @DisplayName("정리 중 FileObject가 참조하는 GCS 원본은 삭제하지 않는다")
+    void cleanupPreservesReferencedFileObject() {
+        InitialUploadRequestService.Claim claim = requestService.acquire(userId, key, "a".repeat(64));
+        StoredFile candidate = new StoredFile(StorageProvider.GCS, "test-bucket", "documents/test/referenced-" + key);
+        requestService.registerCandidate(claim, candidate, "b".repeat(64), 4L);
+        jdbcTemplate.update("""
+            UPDATE initial_upload_requests
+               SET candidate_registered_at = CURRENT_TIMESTAMP - INTERVAL '25 hours',
+                   lease_expires_at = CURRENT_TIMESTAMP - INTERVAL '1 second'
+             WHERE user_id = ? AND request_key = ?
+            """, userId, key);
+        jdbcTemplate.update("""
+            INSERT INTO file_objects (bucket_name, object_key, original_filename, content_type,
+                file_size, file_hash, storage_provider, uploaded_by, uploaded_at)
+            VALUES (?, ?, 'sample.txt', 'text/plain', 4, ?, 'GCS', ?, CURRENT_TIMESTAMP)
+            """, candidate.bucketName(), candidate.objectKey(), "b".repeat(64), userId);
+        try {
+            InitialUploadCandidateCleanupService.CleanupResult result = cleanupService.reconcile(
+                Duration.ofHours(24), 100, true
+            );
+
+            assertThat(result.referenced()).isOne();
+            assertThat(result.deleted()).isZero();
+            assertThat(jdbcTemplate.queryForObject("""
+                SELECT candidate_object_key FROM initial_upload_requests WHERE user_id = ? AND request_key = ?
+                """, String.class, userId, key)).isNull();
+            verify(fileStorageService, times(0)).deleteCandidateIfGenerationMatches(any(StoredFile.class), anyLong());
+        } finally {
+            jdbcTemplate.update("DELETE FROM file_objects WHERE storage_provider = 'GCS' AND bucket_name = ? AND object_key = ?",
+                candidate.bucketName(), candidate.objectKey());
+        }
+    }
+
+    @Test
+    @DisplayName("아직 없는 GCS 후보는 지연 저장 가능성을 위해 원장에 유지한다")
+    void cleanupRetainsAbsentCandidate() {
+        InitialUploadRequestService.Claim claim = requestService.acquire(userId, key, "a".repeat(64));
+        StoredFile candidate = new StoredFile(StorageProvider.GCS, "test-bucket", "documents/test/absent-" + key);
+        requestService.registerCandidate(claim, candidate, "b".repeat(64), 4L);
+        jdbcTemplate.update("""
+            UPDATE initial_upload_requests
+               SET candidate_registered_at = CURRENT_TIMESTAMP - INTERVAL '25 hours',
+                   lease_expires_at = CURRENT_TIMESTAMP - INTERVAL '1 second'
+             WHERE user_id = ? AND request_key = ?
+            """, userId, key);
+        given(fileStorageService.inspectCandidate(candidate)).willReturn(Optional.empty());
+
+        InitialUploadCandidateCleanupService.CleanupResult result = cleanupService.reconcile(
+            Duration.ofHours(24), 100, true
+        );
+
+        assertThat(result.absent()).isOne();
+        assertThat(result.failed()).isZero();
+        assertThat(jdbcTemplate.queryForObject("""
+            SELECT candidate_object_key FROM initial_upload_requests WHERE user_id = ? AND request_key = ?
+            """, String.class, userId, key)).isEqualTo(candidate.objectKey());
+        verify(fileStorageService, times(0)).deleteCandidateIfGenerationMatches(any(StoredFile.class), anyLong());
     }
 
     private MvcResult send(String content, String requestTitle) throws Exception {
@@ -299,10 +451,10 @@ class InitialUploadIdempotencyIntegrationTest {
 
     private void stubStorage() {
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
-            .willReturn(storedFile());
+            .willAnswer(invocation -> storedFile(invocation.getArgument(3)));
     }
 
-    private StoredFile storedFile() {
-        return new StoredFile(StorageProvider.LOCAL, "test-bucket", "documents/test/idempotency-" + key);
+    private StoredFile storedFile(String objectKey) {
+        return new StoredFile(StorageProvider.LOCAL, "test-bucket", objectKey);
     }
 }
