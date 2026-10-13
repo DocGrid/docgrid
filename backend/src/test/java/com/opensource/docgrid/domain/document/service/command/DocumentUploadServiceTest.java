@@ -31,6 +31,7 @@ import com.opensource.docgrid.domain.document.repository.DocumentRepository;
 import com.opensource.docgrid.domain.document.repository.DocumentVersionRepository;
 import com.opensource.docgrid.domain.document.repository.FileObjectRepository;
 import com.opensource.docgrid.domain.document.service.ValidatedFile;
+import com.opensource.docgrid.domain.document.service.InitialUploadRequestService;
 import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingJob;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingModel;
@@ -61,6 +62,7 @@ class DocumentUploadServiceTest {
     @Mock private EmbeddingJobRepository embeddingJobRepository;
     @Mock private EmbeddingModelQueryService embeddingModelQueryService;
     @Mock private SyncEventWriter syncEventWriter;
+    @Mock private InitialUploadRequestService initialUploadRequestService;
     @Mock private SyncOutboxEvent syncOutboxEvent;
 
     private DocumentUploadService documentUploadService;
@@ -80,7 +82,8 @@ class DocumentUploadServiceTest {
             documentVersionRepository,
             embeddingJobRepository,
             embeddingModelQueryService,
-            syncEventWriter
+            syncEventWriter,
+            initialUploadRequestService
         );
         user = User.builder()
             .email("user@test.com")

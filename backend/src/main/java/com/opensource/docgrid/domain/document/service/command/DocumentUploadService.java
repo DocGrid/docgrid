@@ -13,6 +13,7 @@ import com.opensource.docgrid.domain.document.enums.DocumentStatus;
 import com.opensource.docgrid.domain.document.enums.DocumentVersionStatus;
 import com.opensource.docgrid.domain.document.repository.DocumentRepository;
 import com.opensource.docgrid.domain.document.repository.DocumentVersionRepository;
+import com.opensource.docgrid.domain.document.service.InitialUploadRequestService;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingJob;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingModel;
 import com.opensource.docgrid.domain.embedding.enums.EmbeddingJobStatus;
@@ -31,7 +32,7 @@ import lombok.RequiredArgsConstructor;
  * 최초 문서 업로드에 필요한 데이터베이스 변경을 하나의 트랜잭션으로 처리한다.
  *
  * <p>사용자와 파일 객체를 확인한 뒤 {@link Document}, 최초 {@link DocumentVersion},
- * 동기화 Outbox Event, 최초 {@link EmbeddingJob}을 함께 저장한다. 이 서비스의 책임은
+ * 동기화 Outbox Event, 최초 {@link EmbeddingJob}과 멱등 키의 완료 응답을 함께 저장한다. 이 서비스의 책임은
  * 업로드 메타데이터와 인덱싱 의도를 원자적으로 기록하는 데 있으며, 실제 파일 바이너리 저장과
  * 실패한 후보 파일 정리는 {@code DocumentUploadFacade}가 담당한다.
  *
@@ -53,6 +54,7 @@ public class DocumentUploadService {
     private final EmbeddingJobRepository embeddingJobRepository;
     private final EmbeddingModelQueryService embeddingModelQueryService;
     private final SyncEventWriter syncEventWriter;
+    private final InitialUploadRequestService initialUploadRequestService;
 
     /**
      * 같은 해시와 크기를 가진 파일 객체가 현재 저장소에서 재사용 가능한지 조회한다.
@@ -79,6 +81,13 @@ public class DocumentUploadService {
      * @return 생성된 문서·버전·Job 정보와 후보 파일 점유 결과
      */
     public DocumentUploadTransactionResult upload(DocumentUploadCommand command) {
+        return upload(command, null);
+    }
+
+    /** 멱등 요청 소유권이 있으면 최초 업로드 결과를 같은 DB 트랜잭션에 확정한다. */
+    public DocumentUploadTransactionResult upload(
+        DocumentUploadCommand command, InitialUploadRequestService.Claim claim
+    ) {
         // 1. 존재하는 사용자만 문서를 소유할 수 있도록 확인한 뒤 파일 중복 경쟁 결과를 확정한다.
         userRepository.findById(command.userId())
             .orElseThrow(() -> new DocGridException(ErrorCode.USER_NOT_FOUND));
@@ -134,7 +143,7 @@ public class DocumentUploadService {
                 .build()
         );
 
-        // 6. 커밋 후 외부 계층이 필요한 식별자와 후보 파일 정리 판단을 함께 반환한다.
+        // 6. 소유권이 이미 교체됐다면 전체 업로드를 롤백하고, 아니면 원본 응답을 함께 커밋한다.
         DocumentUploadResponse response = new DocumentUploadResponse(
             document.getId(),
             documentVersion.getId(),
@@ -143,6 +152,11 @@ public class DocumentUploadService {
             document.getStatus(),
             embeddingJob.getStatus()
         );
+        if (claim != null) {
+            initialUploadRequestService.complete(claim, response);
+        }
+
+        // 7. 커밋 후 외부 계층이 필요한 식별자와 후보 파일 정리 판단을 함께 반환한다.
         return new DocumentUploadTransactionResult(response, resolution.candidateClaimed());
     }
 
