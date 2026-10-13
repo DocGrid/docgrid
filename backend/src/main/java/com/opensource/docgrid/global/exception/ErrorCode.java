@@ -115,6 +115,9 @@ public enum ErrorCode {
     DOCUMENT_UPLOAD_OWNERSHIP_LOST(
         HttpStatus.CONFLICT, "DOCUMENT-UPLOAD-005", "업로드 처리 권한이 만료되었습니다. 같은 키로 다시 시도하세요."
     ),
+    DOCUMENT_UPLOAD_CANDIDATE_MISMATCH(
+        HttpStatus.SERVICE_UNAVAILABLE, "DOCUMENT-UPLOAD-006", "저장된 업로드 후보가 원본 파일과 일치하지 않습니다."
+    ),
     UNSUPPORTED_DOCUMENT_TYPE(
         HttpStatus.UNPROCESSABLE_ENTITY,
         "DOCUMENT-PARSING-001",

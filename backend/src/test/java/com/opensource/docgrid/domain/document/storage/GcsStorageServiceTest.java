@@ -3,6 +3,7 @@ package com.opensource.docgrid.domain.document.storage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
@@ -10,6 +11,8 @@ import static org.mockito.Mockito.mock;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.google.cloud.WriteChannel;
+import com.google.cloud.ReadChannel;
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
@@ -125,6 +130,41 @@ class GcsStorageServiceTest {
         storageService.delete(STORED_FILE);
 
         then(storage).should().delete(BlobId.of(STORED_FILE.bucketName(), STORED_FILE.objectKey()));
+    }
+
+    @Test
+    @DisplayName("후보를 읽은 generation에 고정해 바이트 해시와 크기를 검사한다")
+    void inspectCandidate_readsSpecificGeneration() throws Exception {
+        byte[] content = "candidate".getBytes(StandardCharsets.UTF_8);
+        Blob blob = mock(Blob.class);
+        ReadChannel channel = mock(ReadChannel.class);
+        given(storage.get(BlobId.of(STORED_FILE.bucketName(), STORED_FILE.objectKey()))).willReturn(blob);
+        given(blob.getGeneration()).willReturn(42L);
+        given(storage.reader(eq(BlobId.of(STORED_FILE.bucketName(), STORED_FILE.objectKey(), 42L)),
+            any(Storage.BlobSourceOption.class))).willReturn(channel);
+        given(channel.read(any(ByteBuffer.class))).willAnswer(invocation -> {
+            ByteBuffer buffer = invocation.getArgument(0);
+            buffer.put(content);
+            return content.length;
+        }).willReturn(-1);
+
+        CandidateObjectSnapshot snapshot = storageService.inspectCandidate(STORED_FILE).orElseThrow();
+
+        assertThat(snapshot.fileSize()).isEqualTo(content.length);
+        assertThat(snapshot.sha256()).isEqualTo(HexFormat.of().formatHex(
+            MessageDigest.getInstance("SHA-256").digest(content)
+        ));
+        assertThat(snapshot.generation()).isEqualTo(42L);
+        then(channel).should().close();
+    }
+
+    @Test
+    @DisplayName("GCS generation 조건이 어긋나면 후보를 삭제하지 않은 것으로 보고한다")
+    void deleteCandidate_preservesChangedGeneration() {
+        given(storage.delete(eq(BlobId.of(STORED_FILE.bucketName(), STORED_FILE.objectKey())),
+            any(Storage.BlobSourceOption.class))).willThrow(new StorageException(412, "precondition failed"));
+
+        assertThat(storageService.deleteCandidateIfGenerationMatches(STORED_FILE, 42L)).isFalse();
     }
 
     @Test
