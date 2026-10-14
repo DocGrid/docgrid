@@ -1,0 +1,7 @@
+2026-10-14T20:09:52.908+09:00 단계=앱실행 source_revision=3644063 storage=isolated_gcs database=isolated_postgres worker=off
+2026-10-14T20:09:56.391+09:00 단계=앱오류분류 category=BEAN_CREATION
+2026-10-14T20:09:56.470+09:00 단계=앱오류분류 category=BEAN_CREATION
+2026-10-14T20:09:56.471+09:00 단계=앱오류분류 category=BEAN_CREATION
+2026-10-14T20:09:56.471+09:00 단계=앱오류분류 category=POSTGRES_CONNECTION
+2026-10-14T20:09:56.471+09:00 단계=DB오류원인 category=MISSING_TYPE
+2026-10-14T20:09:56.939+09:00 단계=앱종료 exit_code=1 phase=startup

@@ -1,0 +1,36 @@
+시험 ID=VU-GCS-DB-CRASH-20261014-R1
+목적=새 버전의 GCS 저장 성공 직후·DB persist 직전 JVM 강제 종료 재현
+위치=격리 Spring Boot/JVM, 루프백 PostgreSQL·Redis, 전용 GCS 버킷
+리비전=3644063388cd6fcf93eb38d503ca98250ce45444
+절차=합성 v1을 INDEXED 상태로 준비, v2 업로드, 지정 지점 중단, 5분 리스 후 동일 키 재시도, DB·GCS generation 대조
+합격 기준=중단 지점 확인, 재시도 후 DB v2·Job 각 1건, 미참조 GCS 객체 존재 여부 확정
+주의=합성 fixture의 v1 INDEXED 상태는 시험 DB에 직접 설정함
+2026-10-14T20:13:26.088+09:00 단계=first 요청시작 payload=synthetic_txt 동일키=true
+2026-10-14T20:14:41.987+09:00 단계=paused_before_db gcs_objects=2 file_objects=1 versions=1 jobs=1 unreferenced_gcs=1 request_state=IN_PROGRESS
+2026-10-14T20:15:10.112+09:00 단계=isolated_jvm_sigkill signal=SIGKILL stop_point=after_gcs_store_before_db_persist
+2026-10-14T20:15:10.146+09:00 단계=first 요청결과불명 exception_type=RemoteDisconnected
+2026-10-14T20:15:19.487+09:00 단계=after_crash_before_retry gcs_objects=2 file_objects=1 versions=1 jobs=1 unreferenced_gcs=1 request_state=IN_PROGRESS
+2026-10-14T20:15:31.420+09:00 단계=앱실행 source_revision=3644063 storage=isolated_gcs database=isolated_postgres worker=off
+2026-10-14T20:15:41.169+09:00 단계=앱시작로그
+2026-10-14T20:15:41.643+09:00 단계=앱준비완료 http_status=200
+2026-10-14T20:15:54.195+09:00 단계=pre_lease_retry 요청시작 payload=synthetic_txt 동일키=true
+2026-10-14T20:15:54.721+09:00 단계=pre_lease_retry http_status=409
+2026-10-14T20:16:03.258+09:00 단계=after_prelease_409 gcs_objects=2 file_objects=1 versions=1 jobs=1 unreferenced_gcs=1 request_state=IN_PROGRESS
+2026-10-14T20:16:31.611+09:00 단계=after_crash_hash_verification gcs_objects=2 file_objects=1 versions=1 jobs=1 unreferenced_gcs=1 request_state=IN_PROGRESS
+2026-10-14T20:18:39.103+09:00 단계=after_lease_retry 요청시작 payload=synthetic_txt 동일키=true
+2026-10-14T20:18:40.113+09:00 단계=after_lease_retry http_status=201 version_no=2
+2026-10-14T20:18:53.501+09:00 단계=after_lease_retry_success gcs_objects=3 file_objects=2 versions=2 jobs=2 unreferenced_gcs=1 request_state=COMPLETED
+2026-10-14T20:19:04.886+09:00 단계=completed_replay 요청시작 payload=synthetic_txt 동일키=true
+2026-10-14T20:19:04.905+09:00 단계=completed_replay http_status=201 version_no=2
+2026-10-14T20:19:18.823+09:00 단계=after_completed_replay gcs_objects=3 file_objects=2 versions=2 jobs=2 unreferenced_gcs=1 request_state=COMPLETED
+2026-10-14T20:20:12.793+09:00 단계=cleanup 격리앱종료 signal=SIGTERM
+2026-10-14T20:20:13.249+09:00 단계=앱종료 exit_code=143 phase=running
+2026-10-14T20:20:14.641+09:00 단계=cleanup 객체삭제완료 alias=O1 generation_condition=matched
+2026-10-14T20:20:15.961+09:00 단계=cleanup 객체삭제완료 alias=O2 generation_condition=matched
+2026-10-14T20:20:17.303+09:00 단계=cleanup 객체삭제완료 alias=O3 generation_condition=matched
+2026-10-14T20:20:17.696+09:00 단계=cleanup 버킷삭제보류 reason=objects_remaining
+2026-10-14T20:20:38.507+09:00 단계=cleanup 실제객체검증완료 live_objects=0
+2026-10-14T20:20:41.086+09:00 단계=cleanup 전용버킷삭제완료 remaining_objects=0
+2026-10-14T20:20:41.331+09:00 단계=cleanup 격리컨테이너정리완료 image_prefix=pgvector/pgvector
+2026-10-14T20:20:41.650+09:00 단계=cleanup 격리컨테이너정리완료 image_prefix=redis:
+2026-10-14T20:20:41.650+09:00 단계=cleanup 시험자원정리완료
