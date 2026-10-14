@@ -1,0 +1,39 @@
+{
+  "run_id": "VU-CANDIDATE-CLEANUP-20261014-R1",
+  "timestamp_kst": "2026-10-14T22:24:22.480418+09:00",
+  "stage": "after_crash",
+  "revision": "203692492c8e765c67735e7fab200140fd4c68de",
+  "db": {
+    "versions": 1,
+    "jobs": 1,
+    "file_objects": 1,
+    "request_state": "IN_PROGRESS",
+    "candidate_recorded": true
+  },
+  "gcs": {
+    "object_count": 2,
+    "unreferenced_count": 1,
+    "objects": [
+      {
+        "alias": "O1",
+        "bytes": 60,
+        "matches_v1": true,
+        "matches_v2": false,
+        "db_referenced": true,
+        "is_candidate": false,
+        "candidate_generation_matches": null,
+        "generation_alias": "GV1"
+      },
+      {
+        "alias": "O2",
+        "bytes": 60,
+        "matches_v1": false,
+        "matches_v2": true,
+        "db_referenced": false,
+        "is_candidate": true,
+        "candidate_generation_matches": true,
+        "generation_alias": "GV2"
+      }
+    ]
+  }
+}

@@ -1,0 +1,2 @@
+2026-10-14T22:26:05.348+09:00  INFO 24014 --- [docgrid] [MessageBroker-4] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=true, 발견=1, 예약=1, 삭제=1, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:26:43.473+09:00  INFO 24014 --- [docgrid] [MessageBroker-1] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=true, 발견=1, 예약=1, 삭제=0, 부재=0, 참조=1, 보류=0, 실패=0

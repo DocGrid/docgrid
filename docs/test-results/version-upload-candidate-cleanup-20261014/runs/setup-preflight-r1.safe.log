@@ -1,0 +1,7 @@
+시험 ID=VU-CANDIDATE-CLEANUP-20261014-SETUP-R1
+기록 시각=2026-10-14T22:36:54+09:00 (사후 기록; 실행 시각은 미수집)
+위치=로컬 작업트리
+명령=./backend/gradlew -p backend bootJar --offline
+목적=격리 앱 JAR 준비
+결과=FAIL: Gradle wrapper lock에 대한 샌드박스 권한 오류
+민감 정보=기록하지 않음

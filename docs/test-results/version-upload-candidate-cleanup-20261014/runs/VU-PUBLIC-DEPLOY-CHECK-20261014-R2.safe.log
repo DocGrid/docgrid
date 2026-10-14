@@ -1,0 +1,7 @@
+2026-10-14T22:35:34+09:00 | VU-PUBLIC-DEPLOY-CHECK-20261014-R2 | 목적=공개 앱 A/B 실행 JAR의 수정 코드 포함 여부; 위치=GCP 앱 A/B VM; 방법=30분 OS Login 키와 읽기 전용 JAR 검사; 성공 기준=두 앱 모두 실행 중이며 V50·cleanup·scheduler 클래스 존재, 키 즉시 삭제
+2026-10-14T22:35:36+09:00 | VU-PUBLIC-DEPLOY-CHECK-20261014-R2 | 대상 확인=앱 A/B 각각 1개
+2026-10-14T22:35:37+09:00 | VU-PUBLIC-DEPLOY-CHECK-20261014-R2 | OS Login 키 등록=30분 만료
+2026-10-14T22:35:42+09:00 | VU-PUBLIC-DEPLOY-CHECK-20261014-R2 | app-a: 실행=True V50=False cleanup=False scheduler=False JAR_SHA256=f39da6ca5cddcb0f7e149a2ad5f0eb24df70d75b744598149384ddeaeb2206ae 배포파일_수정시각_UTC=2026-10-14T05:13:47+00:00
+2026-10-14T22:35:46+09:00 | VU-PUBLIC-DEPLOY-CHECK-20261014-R2 | app-b: 실행=True V50=False cleanup=False scheduler=False JAR_SHA256=f39da6ca5cddcb0f7e149a2ad5f0eb24df70d75b744598149384ddeaeb2206ae 배포파일_수정시각_UTC=2026-10-14T05:15:25+00:00
+2026-10-14T22:35:48+09:00 | VU-PUBLIC-DEPLOY-CHECK-20261014-R2 | OS Login 키 삭제=성공; 로컬 임시 개인키=삭제 예정
+2026-10-14T22:35:48+09:00 | VU-PUBLIC-DEPLOY-CHECK-20261014-R2 | 확인 실패=missing_fixed_artifact:app-a,app-b

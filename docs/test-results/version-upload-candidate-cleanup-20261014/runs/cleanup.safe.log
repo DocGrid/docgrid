@@ -1,0 +1,8 @@
+시험 ID=VU-CANDIDATE-CLEANUP-20261014-R1
+2026-10-14T22:27:25.052962+09:00 isolated_app_stopped=SIGTERM
+2026-10-14T22:27:25.723346+09:00 gcs_objects_before_cleanup=1
+2026-10-14T22:27:26.973666+09:00 isolated_object_deleted generation_condition=matched
+2026-10-14T22:27:27.531839+09:00 gcs_objects_after_cleanup=0
+2026-10-14T22:27:29.318494+09:00 isolated_bucket_deleted=true
+2026-10-14T22:27:29.553670+09:00 pg_container_removed=true
+2026-10-14T22:27:29.767313+09:00 redis_container_removed=true

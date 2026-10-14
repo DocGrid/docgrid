@@ -1,0 +1,16 @@
+2026-10-14T22:25:18.452+09:00  INFO 23470 --- [docgrid] [MessageBroker-1] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:20.463+09:00  INFO 23470 --- [docgrid] [MessageBroker-3] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:22.469+09:00  INFO 23470 --- [docgrid] [MessageBroker-7] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:24.476+09:00  INFO 23470 --- [docgrid] [MessageBroker-4] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:26.484+09:00  INFO 23470 --- [docgrid] [MessageBroker-3] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:28.491+09:00  INFO 23470 --- [docgrid] [MessageBroker-2] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:30.498+09:00  INFO 23470 --- [docgrid] [MessageBroker-1] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:32.505+09:00  INFO 23470 --- [docgrid] [MessageBroker-3] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:34.515+09:00  INFO 23470 --- [docgrid] [MessageBroker-3] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:36.519+09:00  INFO 23470 --- [docgrid] [MessageBroker-8] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:38.522+09:00  INFO 23470 --- [docgrid] [MessageBroker-4] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:40.534+09:00  INFO 23470 --- [docgrid] [MessageBroker-4] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:42.542+09:00  INFO 23470 --- [docgrid] [MessageBroker-6] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:44.550+09:00  INFO 23470 --- [docgrid] [MessageBroker-4] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:46.555+09:00  INFO 23470 --- [docgrid] [MessageBroker-4] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
+2026-10-14T22:25:48.560+09:00  INFO 23470 --- [docgrid] [MessageBroker-6] s.VersionUploadCandidateCleanupScheduler : 새 버전 업로드 후보 정리: 삭제활성=false, 발견=1, 예약=0, 삭제=0, 부재=0, 참조=0, 보류=0, 실패=0
