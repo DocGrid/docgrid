@@ -1,0 +1,20 @@
+실행 ID: VERSION-GCP-RESPONSE-DROP-20261014-01
+시각: 2026-10-14T15:01:42.537597+09:00
+위치: 로컬 IAP 터널 → GCP 앱 A/B → OpenSQL/GCS; revision eb779acef4f0452446b4062cf583b6f62e4d4d0b
+명령: python3 -B version_gcp_response_drop.py
+성공 기준: 첫 v2 HTTP 응답 미수신, 재전송 전 DB 2|2|1, 같은 키 재전송 201·원장 결과 일치, 다른 파일 409, GCS 바이트 해시 2/2 일치
+2026-10-14T15:01:53.129+09:00 단계=시작 run_id=versiongcpdrop01 revision=eb779ace leader_count=1 app_paths=2 worker=disabled
+2026-10-14T15:01:55.083+09:00 단계=합성계정 signup_http=201 login_http=200
+2026-10-14T15:01:56.632+09:00 단계=v1접수 http=201 file_bytes=630 version_no=1
+2026-10-14T15:02:05.154+09:00 단계=v1합성완료준비 version_rows=1 job_rows=1 document_rows=1 actual_indexing=not_run
+2026-10-14T15:02:05.154+09:00 단계=v2최초응답유실 bytes_sent=1157 observed_http=none
+2026-10-14T15:02:12.683+09:00 단계=재전송전DB원장 version_job_request_counts=2|2|1
+2026-10-14T15:02:20.511+09:00 단계=v2동일키재시도 http=201 compared_fields=5 same_as_committed_result=True
+2026-10-14T15:02:21.088+09:00 단계=동일키다른파일 http=409 expected_conflict=True
+2026-10-14T15:02:28.366+09:00 단계=DB원장 version_job_request_counts=2|2|1
+2026-10-14T15:02:41.049+09:00 단계=DB_GCS대조 file_objects=2 gcs_objects=2 hash_matches=2
+2026-10-14T15:02:41.049+09:00 단계=종료 result=통과 synthetic_records_retained=True
+종료 코드: 0
+정리: 시험용 IAP SSH 터널 2/2 종료, 전용 OS Login 키 등록 해제·로컬 키쌍 삭제
+정리 한계: 기존 기본 OS Login 공개키의 유효기간을 1시간으로 갱신한 기록은 자동 만료 예정
+영속 상태: 합성 계정·문서·GCS 객체·대기 Job은 증거로 보존, 실제 Worker 인덱싱 미실행
