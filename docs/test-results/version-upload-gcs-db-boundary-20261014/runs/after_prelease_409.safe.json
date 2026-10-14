@@ -1,0 +1,47 @@
+{
+  "run_id": "VU-GCS-DB-CRASH-20261014-R1",
+  "phase": "after_prelease_409",
+  "timestamp": "2026-10-14T20:16:03.258+09:00",
+  "source_revision": "3644063388cd6fcf93eb38d503ca98250ce45444",
+  "environment": "isolated_app_postgres_redis_dedicated_gcs",
+  "gcs_objects": [
+    {
+      "alias": "O1",
+      "generation": "1791976407668897",
+      "size_bytes": 73,
+      "db_file_object_reference": false,
+      "db_file_object_id": null
+    },
+    {
+      "alias": "O2",
+      "generation": "1791976361326357",
+      "size_bytes": 73,
+      "db_file_object_reference": true,
+      "db_file_object_id": "1"
+    }
+  ],
+  "gcs_object_count": 2,
+  "db_file_object_count": 1,
+  "db_version_count": 1,
+  "db_versions": [
+    {
+      "version_no": 1,
+      "status": "INDEXED",
+      "file_object_id": "1"
+    }
+  ],
+  "db_job_count": 1,
+  "db_jobs": [
+    {
+      "version_no": 1,
+      "status": "COMPLETED"
+    }
+  ],
+  "request_rows": [
+    {
+      "state": "IN_PROGRESS",
+      "lease_remaining_seconds": 143
+    }
+  ],
+  "unreferenced_gcs_object_count": 1
+}

@@ -1,0 +1,4 @@
+2026-10-14T20:10:11.650+09:00 단계=앱실행 source_revision=3644063 storage=isolated_gcs database=isolated_postgres worker=off
+2026-10-14T20:10:19.499+09:00 단계=앱시작로그
+2026-10-14T20:10:19.827+09:00 단계=앱준비완료 http_status=200
+2026-10-14T20:15:10.145+09:00 단계=앱종료 exit_code=-9 phase=running
