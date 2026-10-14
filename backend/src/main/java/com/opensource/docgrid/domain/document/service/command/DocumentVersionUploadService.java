@@ -185,7 +185,7 @@ public class DocumentVersionUploadService {
         );
         if (claim != null) {
             // 7. 리스 소유권을 잃었다면 버전·Outbox·Job 전체를 롤백한다.
-            versionUploadRequestService.complete(claim, response);
+            versionUploadRequestService.complete(claim, response, resolution.candidateClaimed());
         }
         return new DocumentVersionUploadTransactionResult(response, resolution.candidateClaimed());
     }

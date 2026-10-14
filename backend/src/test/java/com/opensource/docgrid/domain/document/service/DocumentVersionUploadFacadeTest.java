@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
+import com.opensource.docgrid.domain.document.config.FileStorageProperties;
 import com.opensource.docgrid.domain.document.dto.request.DocumentVersionUploadRequest;
 import com.opensource.docgrid.domain.document.dto.response.DocumentVersionUploadResponse;
 import com.opensource.docgrid.domain.document.enums.StorageProvider;
@@ -49,6 +50,7 @@ class DocumentVersionUploadFacadeTest {
     @Mock private FileStorageService fileStorageService;
     @Mock private DocumentVersionUploadService documentVersionUploadService;
     @Mock private VersionUploadRequestService versionUploadRequestService;
+    @Mock private FileStorageProperties fileStorageProperties;
 
     private DocumentVersionUploadFacade facade;
     private DocumentVersionUploadRequest request;
@@ -58,7 +60,7 @@ class DocumentVersionUploadFacadeTest {
     void setUp() {
         facade = new DocumentVersionUploadFacade(
             fileValidationService, fileHashService, fileStorageService, documentVersionUploadService,
-            versionUploadRequestService
+            versionUploadRequestService, fileStorageProperties
         );
         MockMultipartFile file = new MockMultipartFile(
             "file", "changed.txt", "text/plain", "text".getBytes()

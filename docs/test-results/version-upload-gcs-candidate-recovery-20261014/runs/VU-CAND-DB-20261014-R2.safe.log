@@ -1,0 +1,9 @@
+시험 ID=VU-CAND-DB-20261014-R2
+기록 시각=2026-10-14T21:48:27+09:00
+위치=로컬 PostgreSQL 컨테이너, 전용 시험 스키마
+목적=PostgreSQL 시작 후 동일한 통합 테스트 재실행
+명령=TEST_DB_SCHEMA=docgrid_candidate_20261014 ./backend/gradlew -p backend test --tests com.opensource.docgrid.domain.document.integration.DocumentVersionUploadIntegrationTest --offline --console=plain --rerun-tasks
+합격 기준=통합 테스트 11건 통과, 실패 0건
+관측=Gradle 종료 코드 1, JUnit 11건 실패, 원인 PlaceholderResolutionException → JWT_SECRET 환경변수 누락
+판정=앱 Context 생성 실패. 테스트 본문과 신규 후보 로직은 실행되지 않음
+정리=전용 시험 스키마는 모든 실행 후 삭제했고 잔여 0개를 확인함

@@ -1,0 +1,11 @@
+시험 ID=VU-CAND-DB-20261014-R3
+기록 시각=2026-10-14T21:48:27+09:00
+위치=로컬 PostgreSQL 컨테이너, 별도 시험 스키마 docgrid_candidate_r3
+목적=앱 중단 후 같은 키의 후보 복구, v2·Job 중복 방지, 오래된 후보 정리와 참조 객체 보존
+절차=프로세스에서 임시 JWT_SECRET을 생성해 값은 기록하지 않고 TEST_DB_SCHEMA를 설정한 뒤 Gradle test --tests com.opensource.docgrid.domain.document.integration.DocumentVersionUploadIntegrationTest --offline --console=plain --rerun-tasks 실행
+합격 기준=통합 테스트 11건 통과, 신규 후보 복구·정리·참조 보존 시험 각각 통과
+관측=Gradle 종료 코드 0, JUnit 11건 통과·실패 0건·오류 0건·건너뜀 0건, JUnit 시험 본문 시간 0.531초
+관측=중단 모의 후 동일 키 재시도에서 기존 후보 재사용, v2·Job 각 1건, 추가 저장소 쓰기 0회
+관측=24시간 경과 미참조 GCS 후보 1건의 generation 조건부 삭제, DB 참조 후보 삭제 0건
+판정=로컬 DB 통합 검증 통과. 저장소는 모의 객체이므로 실제 GCS 결과는 미검증
+정리=시험 스키마 삭제·잔여 0개 확인, 임시 JWT_SECRET은 프로세스 종료로 폐기

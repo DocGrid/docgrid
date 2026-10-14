@@ -1,0 +1,9 @@
+시험 ID=VU-CAND-DB-20261014-R1
+기록 시각=2026-10-14T21:48:27+09:00
+위치=로컬 worktree, 기본 시험 PostgreSQL 연결 대상
+목적=새 버전 후보 복구·정리의 DB 통합 검증 첫 시도
+명령=./backend/gradlew -p backend test --tests com.opensource.docgrid.domain.document.integration.DocumentVersionUploadIntegrationTest --offline --console=plain --rerun-tasks
+합격 기준=통합 테스트 11건 통과, 실패 0건
+관측=Gradle 종료 코드 1, JUnit 11건 실패, 원인 java.net.ConnectException → PostgreSQL 연결 실패
+판정=시험 환경 미준비로 실패. 테스트 본문과 신규 후보 로직은 실행되지 않음
+정리=이 시도에서 시험 스키마·외부 객체 생성 없음

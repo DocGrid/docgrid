@@ -1,0 +1,10 @@
+시험 ID=VU-CAND-GCS-ADAPTER-20261014-R1
+기록 시각=2026-10-14T21:48:27+09:00
+위치=로컬 worktree, Google Storage SDK 모의 객체
+목적=GCS 후보 검사와 generation 조건부 삭제를 담당하는 기존 어댑터 확인
+명령=./backend/gradlew -p backend test --tests com.opensource.docgrid.domain.document.storage.GcsStorageServiceTest --offline --console=plain --rerun-tasks
+합격 기준=GCS 어댑터 단위 테스트 전건 통과
+관측=Gradle 종료 코드 0, JUnit 9건 통과·실패 0건·오류 0건·건너뜀 0건, JUnit 시험 본문 시간 0.586초
+판정=통과
+한계=실제 GCS 버킷 호출이나 앱 강제 종료 시험이 아님
+정리=외부 GCS 객체 생성 없음
