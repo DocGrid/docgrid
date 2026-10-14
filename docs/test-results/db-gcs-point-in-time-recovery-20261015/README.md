@@ -36,6 +36,7 @@
 | `DR-POST-RESTORE-HEALTH-20261015-R1` | 3 DB 노드와 백업 VM의 읽기 전용 사후 점검 | 리더 1·스트리밍 Standby 2, WAL 수신 1, 슬롯 active·reserved, 외부 IP 0·임시 NAT 없음 | 통과 · [기록](runs/post-restore-health-r1.md) |
 | `DR-REPORT-QA-20261015-R1` | 작업트리, 기존 준비 문서의 링크·민감 징후 검사 | 기존 문서 4개·상대 링크 8개, 발견 0건 | 당시 통과; 최신 문서 재검증은 별도 실행 · [기록](runs/report-qa-r1.md) |
 | `DR-REPORT-QA-20261015-R2` | 작업트리, 최신 기록의 링크·민감 징후·공백 검사 | 문서 25개·상대 링크 37개, 오류·민감 패턴 0건 | 통과 · [기록](runs/report-qa-r2.md) |
+| `DR-REPORT-QA-20261015-R3` | 작업트리, 설계 문서의 실행/미실행 범위 수정 후 재검사 | 문서 26개·상대 링크 38개, 오류·민감 패턴 0건 | 통과 · [기록](runs/report-qa-r3.md) |
 
 ## 핵심 결과와 해석
 
