@@ -1,0 +1,21 @@
+실행 ID: RELEASE-DBREDIS-20261014-02
+시각: 2026-10-14T14:02:25.780436+09:00
+위치: 로컬 격리 PostgreSQL 17/pgvector(max_connections=300) + Redis, revision eb779acef4f0452446b4062cf583b6f62e4d4d0b
+명령: ./backend/gradlew -p backend test bootJar --offline --no-daemon --max-workers=1
+성공 기준: tests 실패 0, 종료 코드 0, 컨테이너 제거
+DB·Redis 준비: True
+vector 확장: 성공
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :resolveMainClassName UP-TO-DATE
+> Task :bootJar UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :test
+BUILD SUCCESSFUL in 1m 10s
+Gradle 종료 코드: 0
+JUnit 집계: {"tests": 1471, "failures": 0, "errors": 0, "skipped": 5}
+Redis 제거: 성공
+DB 제거: 성공
