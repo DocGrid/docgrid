@@ -1,0 +1,20 @@
+시험 ID=VU-GCS-DB-RECOVERY-20261014-R1
+목적=새 버전 GCS 저장 직후·DB 저장 직전 격리 JVM 중단 후 같은 키 후보 재사용 검증
+위치=격리 Spring Boot JVM, 전용 PostgreSQL 17/pgvector·Redis 컨테이너, 전용 GCS 버킷
+리비전=203692492c8e765c67735e7fab200140fd4c68de
+표본=합성 TXT v1 1건 60바이트, v2 1건 60바이트, v2 HTTP 요청 4회
+절차=bootJar 빌드→격리 앱 기동→v1 업로드 및 시험 DB 상태 설정→121행 디버거 정지→SIGKILL→앱 재기동→리스 전/후 동일 키 재시도→DB·GCS·generation 대조
+합격 기준=중단 지점 확인; 리스 후 v2·Job 각 1건; GCS v1·v2 각 1객체·미참조 0건; 중단 전 v2 후보의 해시·generation 채택; 완료 재전송 불변
+주의=v1 INDEXED 상태는 Worker 결과가 아니라 시험 DB에서 직접 설정함
+2026-10-14T22:07:13.259031+09:00 단계=paused_before_db debugger_breakpoint_line=121 candidate_recorded=true candidate_generation_matches=true gcs_objects=2 versions=1 jobs=1 unreferenced=1
+시각_미수집 단계=isolated_jvm_sigkill pid_identity_verified=true stop_point=after_gcs_store_before_db_persist first_http_result=RemoteDisconnected
+2026-10-14T22:07:46.551740+09:00 단계=after_crash gcs_objects=2 versions=1 jobs=1 unreferenced=1 request_state=IN_PROGRESS
+시각_미수집 단계=prelease_retry http_status=409
+2026-10-14T22:08:31.269885+09:00 단계=after_prelease_retry gcs_objects=2 versions=1 jobs=1 unreferenced=1
+시각_미수집 단계=after_lease_retry http_status=201 version_no=2
+2026-10-14T22:11:12.104990+09:00 단계=after_lease_retry gcs_objects=2 versions=2 jobs=2 unreferenced=0 request_state=COMPLETED same_candidate_generation=true v2_sha256_match=true
+시각_미수집 단계=completed_replay http_status=201 version_no=2 same_response=true
+2026-10-14T22:11:45.677867+09:00 단계=after_completed_replay gcs_objects=2 versions=2 jobs=2 unreferenced=0
+2026-10-14T22:12:17.883068+09:00 단계=cleanup_complete deleted_objects=2 live_objects=0 dedicated_bucket_deleted=true isolated_containers_removed=true temporary_credentials_removed=true
+판정=통과. 실제 GCS에서 중단 전 후보 1개가 같은 generation으로 채택되고 최종 미참조 객체 0건
+한계=단일 합성 TXT 실행, 실제 PDF/DOCX·Primary/OpenProxy 장애·동시 업로드·Worker·자동 후보 삭제는 미검증

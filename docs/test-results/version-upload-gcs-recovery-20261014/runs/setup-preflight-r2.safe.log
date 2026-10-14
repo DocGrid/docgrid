@@ -1,0 +1,8 @@
+준비 실행 ID=VU-GCS-DB-RECOVERY-20261014-SETUP-R2
+목적=격리 PostgreSQL 준비
+위치=로컬 Docker Compose의 별도 프로젝트 이름
+명령=docker compose -p <격리 프로젝트> up -d --wait postgres
+관찰 시각=2026-10-14T22:01:55+09:00
+결과=실패. Compose 파일의 고정 컨테이너·볼륨 이름이 이미 존재하는 로컬 자원과 충돌함
+영향=기존 컨테이너·볼륨은 변경하지 않았으며 시험 본문 시작 전 실패
+후속=고유 이름과 임시 데이터 공간을 가진 새 PostgreSQL·Redis 컨테이너로 준비 완료

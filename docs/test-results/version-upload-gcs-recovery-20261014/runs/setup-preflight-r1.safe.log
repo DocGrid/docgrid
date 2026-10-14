@@ -1,0 +1,8 @@
+준비 실행 ID=VU-GCS-DB-RECOVERY-20261014-SETUP-R1
+목적=격리 PostgreSQL·Redis 준비
+위치=로컬 Docker Compose의 별도 프로젝트 이름
+명령=docker compose -p <격리 프로젝트> up -d --wait postgres redis
+기록 시각=2026-10-14T22:13:24+09:00 (실행 시각 별도 미수집)
+결과=실패. Compose 서비스 목록에 redis가 없어 대상 서비스 선택 단계에서 종료됨
+영향=시험 본문 시작 전 실패; DB·GCS 시험 표본 없음
+후속=PostgreSQL만 Compose로 분리 준비 시도

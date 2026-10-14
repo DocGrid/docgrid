@@ -1,0 +1,9 @@
+시험 ID=VU-GCS-DB-RECOVERY-20261014-R1
+2026-10-14T22:12:11.687037+09:00 isolated_app_stopped=SIGTERM
+2026-10-14T22:12:12.381677+09:00 gcs_objects_before_cleanup=2
+2026-10-14T22:12:13.653190+09:00 isolated_object_deleted generation_condition=matched
+2026-10-14T22:12:15.008253+09:00 isolated_object_deleted generation_condition=matched
+2026-10-14T22:12:15.429501+09:00 gcs_objects_after_cleanup=0
+2026-10-14T22:12:17.449667+09:00 isolated_bucket_deleted=true
+2026-10-14T22:12:17.683121+09:00 pg_container_removed=true
+2026-10-14T22:12:17.883068+09:00 redis_container_removed=true
