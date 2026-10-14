@@ -1,0 +1,7 @@
+실행 ID: CLOUD-DEPLOY-FINALIZE-20261014-01
+시각: 2026-10-14T14:41:35.794381+09:00
+위치: GCP 앱 A/B
+목적: 성공한 새 JAR을 유지하고 80분 자동 원복 타이머를 해제
+성공 기준: 타이머 inactive, 새 JAR SHA 일치, readiness 200
+{"app_index": 1, "ssh_exit": 0, "result": {"timer": "inactive", "sha": "f39da6ca5cddcb0f", "health": "200"}}
+{"app_index": 2, "ssh_exit": 0, "result": {"timer": "inactive", "sha": "f39da6ca5cddcb0f", "health": "200"}}

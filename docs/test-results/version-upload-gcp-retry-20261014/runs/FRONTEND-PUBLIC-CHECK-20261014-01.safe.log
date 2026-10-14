@@ -1,0 +1,12 @@
+실행 ID: FRONTEND-PUBLIC-CHECK-20261014-01
+시각: 2026-10-14T14:47:12.802915+09:00
+위치: 공개 Vercel 정적 번들 읽기 전용 조회
+방법: 공개 로그인 HTML의 DocGridApp 정적 청크를 새로 내려받아 병합 소스의 고유 문자열과 대조
+성공 기준: 공개 번들에 #493 새 버전 업로드 재시도 문자열 포함; 실제 배포 SHA는 별도 관리 화면에서 확인
+공개 번들 크기: 138614 bytes
+공개 번들 SHA-256: 5bfcb7fb483059df1e57107098ee1ce211cbb6a589937d06744e9796e9e123c7
+고유 문자열 Idempotency-Key: source=True, public_bundle=False
+고유 문자열 이전 버전이 이미 저장됐을 수 있습니다: source=True, public_bundle=False
+고유 문자열 같은 업로드 다시 시도: source=True, public_bundle=False
+판정: #493 코드의 공개 제공 확인 실패
+한계: Vercel 배포 SHA·자동 배포 설정 미확인, 인증 브라우저의 실제 업로드 버튼 경로 미실행

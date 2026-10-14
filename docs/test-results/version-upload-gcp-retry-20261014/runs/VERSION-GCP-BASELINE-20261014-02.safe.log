@@ -1,0 +1,16 @@
+실행 ID: VERSION-GCP-BASELINE-20261014-02
+시각: 2026-10-14T14:37:05.917880+09:00
+위치: 로컬 IAP 터널 → GCP 앱 A/B → OpenSQL/GCS; revision eb779acef4f0452446b4062cf583b6f62e4d4d0b
+명령: python3 -B version_gcp_baseline.py (리더 명칭 매핑 수정)
+성공 기준: v2 201×2·응답 5필드 동일·다른 파일 409·DB 2/2/1·GCS 2해시 일치
+2026-10-14T14:37:16.250+09:00 단계=시작 run_id=versiongcpbase02 revision=eb779ace leader_count=1 app_paths=2 worker=disabled
+2026-10-14T14:37:18.460+09:00 단계=합성계정 signup_http=201 login_http=200
+2026-10-14T14:37:20.720+09:00 단계=v1접수 http=201 file_bytes=630 version_no=1
+2026-10-14T14:37:28.050+09:00 단계=v1합성완료준비 version_rows=1 job_rows=1 document_rows=1 actual_indexing=not_run
+2026-10-14T14:37:29.087+09:00 단계=v2최초 http=201 version_no=2 file_bytes=630
+2026-10-14T14:37:30.190+09:00 단계=v2동일키재시도 http=201 compared_fields=5 same_result=True
+2026-10-14T14:37:30.898+09:00 단계=동일키다른파일 http=409 expected_conflict=True
+2026-10-14T14:37:38.070+09:00 단계=DB원장 version_job_request_counts=2|2|1
+2026-10-14T14:37:48.195+09:00 단계=DB_GCS대조 file_objects=2 gcs_objects=2 hash_matches=2
+2026-10-14T14:37:48.196+09:00 단계=종료 result=통과 synthetic_records_retained=True
+종료 코드: 0

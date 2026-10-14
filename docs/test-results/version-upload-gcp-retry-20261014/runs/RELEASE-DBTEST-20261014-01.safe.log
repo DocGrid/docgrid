@@ -1,0 +1,29 @@
+실행 ID: RELEASE-DBTEST-20261014-01
+시각: 2026-10-14T13:58:26.584665+09:00
+위치: 로컬 격리 PostgreSQL 17/pgvector, revision eb779acef4f0452446b4062cf583b6f62e4d4d0b
+방법: 임시 DB 시작 → vector 확장 → Gradle test --offline --no-daemon → XML 집계 → 컨테이너 제거
+성공 기준: 종료 0, 전체 테스트 failures/errors 0, JAR V49 포함
+컨테이너 시작: 성공
+DB 준비: 성공
+vector 확장: 성공
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :resolveMainClassName UP-TO-DATE
+> Task :bootJar UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :test
+> Task :test
+> Task :test
+> Task :test FAILED
+FAILURE: Build failed with an exception.
+* What went wrong:
+Execution failed for task ':test'.
+BUILD FAILED in 1m 2s
+Gradle 종료 코드: 1
+JUnit 집계: {"tests": 1450, "failures": 66, "errors": 0, "skipped": 5}
+JAR 수: 1
+V49 포함: True
+임시 DB 제거: 성공
