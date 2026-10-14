@@ -11,8 +11,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -41,6 +46,9 @@ import com.opensource.docgrid.domain.document.enums.StorageProvider;
 import com.opensource.docgrid.domain.document.enums.VisibilityType;
 import com.opensource.docgrid.domain.document.service.DocumentUploadFacade;
 import com.opensource.docgrid.domain.document.service.DocumentVersionUploadFacade;
+import com.opensource.docgrid.domain.document.service.VersionUploadCandidateCleanupService;
+import com.opensource.docgrid.domain.document.service.VersionUploadRequestService;
+import com.opensource.docgrid.domain.document.storage.CandidateObjectSnapshot;
 import com.opensource.docgrid.domain.document.storage.FileStorageService;
 import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.domain.user.repository.UserRepository;
@@ -55,6 +63,8 @@ class DocumentVersionUploadIntegrationTest {
 
     @Autowired private DocumentUploadFacade documentUploadFacade;
     @Autowired private DocumentVersionUploadFacade documentVersionUploadFacade;
+    @Autowired private VersionUploadRequestService versionUploadRequestService;
+    @Autowired private VersionUploadCandidateCleanupService candidateCleanupService;
     @Autowired private UserRepository userRepository;
     @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -103,13 +113,13 @@ class DocumentVersionUploadIntegrationTest {
     void upload_reusesOriginalVersionAndJob_whenSameKeyIsRetried() {
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
         DocumentUploadResponse initial = createIndexedDocument("version-idempotency-base");
         reset(fileStorageService);
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
 
         DocumentVersionUploadRequest request = versionRequest("version-idempotency-new", "updated.txt");
@@ -147,7 +157,7 @@ class DocumentVersionUploadIntegrationTest {
     void upload_rejectsDifferentFile_whenKeyIsReused() {
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
         DocumentUploadResponse initial = createIndexedDocument("version-conflict-base");
         documentVersionUploadFacade.upload(
@@ -169,14 +179,14 @@ class DocumentVersionUploadIntegrationTest {
     void upload_retriesSameKey_afterConfirmedStorageFailure() {
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
         DocumentUploadResponse initial = createIndexedDocument("version-recovery-base");
         reset(fileStorageService);
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willThrow(new DocGridException(ErrorCode.FILE_STORAGE_FAILED))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
 
         DocumentVersionUploadRequest request = versionRequest("version-recovery-new", "updated.txt");
@@ -199,11 +209,167 @@ class DocumentVersionUploadIntegrationTest {
     }
 
     @Test
+    @DisplayName("저장 직후 중단돼도 같은 키의 재시도는 원래 후보로 v2와 Job을 한 번만 만든다")
+    void upload_reusesCandidate_afterCrashBeforeDatabasePersist() throws Exception {
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
+            ));
+        DocumentUploadResponse initial = createIndexedDocument("version-crash-base-" + UUID.randomUUID());
+        reset(fileStorageService);
+        String content = "version-crash-new-" + UUID.randomUUID();
+        DocumentVersionUploadRequest request = versionRequest(content, "updated.txt");
+        String key = "version-crash-" + UUID.randomUUID();
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
+            ));
+        given(fileStorageService.candidateGeneration(any(StoredFile.class)))
+            .willThrow(new AssertionError("simulated process termination after object creation"));
+
+        // 1. 원본 저장이 반환된 다음 DB 버전 저장 전에 프로세스가 멈춘 상황을 만든다.
+        assertThatThrownBy(() -> documentVersionUploadFacade.upload(
+            userId, initial.documentId(), request, key
+        )).isInstanceOf(AssertionError.class);
+        String candidateKey = jdbcTemplate.queryForObject("""
+            SELECT candidate_object_key FROM version_upload_requests
+             WHERE user_id = ? AND document_id = ? AND request_key = ?
+            """, String.class, userId, initial.documentId(), key);
+        assertThat(candidateKey).isNotBlank();
+        assertThat(countBy("SELECT COUNT(*) FROM document_versions WHERE document_id = ?", initial.documentId()))
+            .isOne();
+
+        // 2. 리스 만료 뒤 원래 후보의 실제 바이트가 입력과 일치함을 확인해 재사용한다.
+        jdbcTemplate.update("""
+            UPDATE version_upload_requests SET lease_expires_at = CURRENT_TIMESTAMP - INTERVAL '1 second'
+             WHERE user_id = ? AND document_id = ? AND request_key = ?
+            """, userId, initial.documentId(), key);
+        reset(fileStorageService);
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+        String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+        given(fileStorageService.inspectCandidate(any(StoredFile.class)))
+            .willReturn(Optional.of(new CandidateObjectSnapshot(bytes.length, hash, 42L)));
+
+        DocumentVersionUploadResponse recovered = documentVersionUploadFacade.upload(
+            userId, initial.documentId(), request, key
+        );
+
+        // 3. DB에는 v2와 Job이 하나씩 생기고, 새 물리 객체는 저장하지 않는다.
+        assertThat(recovered.versionNo()).isEqualTo(2);
+        assertThat(countBy("SELECT COUNT(*) FROM document_versions WHERE document_id = ?", initial.documentId()))
+            .isEqualTo(2);
+        assertThat(countBy("""
+            SELECT COUNT(*) FROM embedding_jobs job
+            JOIN document_versions version ON version.id = job.document_version_id
+            WHERE version.document_id = ?
+            """, initial.documentId())).isEqualTo(2);
+        assertThat(jdbcTemplate.queryForObject("""
+            SELECT object_key FROM file_objects WHERE id = (
+                SELECT file_object_id FROM document_versions WHERE id = ?)
+            """, String.class, recovered.documentVersionId())).isEqualTo(candidateKey);
+        assertThat(jdbcTemplate.queryForObject("""
+            SELECT candidate_object_key FROM version_upload_requests
+             WHERE user_id = ? AND document_id = ? AND request_key = ?
+            """, String.class, userId, initial.documentId(), key)).isNull();
+        verify(fileStorageService, times(0)).store(any(InputStream.class), anyLong(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("오래된 새 버전 후보는 기본 보고만 하고 삭제 활성화 때 미참조 GCS 객체만 삭제한다")
+    void cleanup_deletesOnlyOldUnreferencedGcsCandidate() {
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
+            ));
+        DocumentUploadResponse initial = createIndexedDocument("version-cleanup-base-" + UUID.randomUUID());
+        String key = "version-cleanup-" + UUID.randomUUID();
+        VersionUploadRequestService.Claim claim = versionUploadRequestService.acquire(
+            userId, initial.documentId(), key, "a".repeat(64)
+        );
+        StoredFile candidate = new StoredFile(StorageProvider.GCS, "test-bucket", "documents/test/" + key);
+        versionUploadRequestService.registerCandidate(claim, candidate, "b".repeat(64), 4L);
+        jdbcTemplate.update("""
+            UPDATE version_upload_requests
+               SET candidate_registered_at = CURRENT_TIMESTAMP - INTERVAL '25 hours',
+                   lease_expires_at = CURRENT_TIMESTAMP - INTERVAL '1 second'
+             WHERE user_id = ? AND document_id = ? AND request_key = ?
+            """, userId, initial.documentId(), key);
+
+        VersionUploadCandidateCleanupService.CleanupResult report = candidateCleanupService.reconcile(
+            Duration.ofHours(24), 100, false
+        );
+        assertThat(report.found()).isOne();
+        assertThat(report.deleted()).isZero();
+
+        given(fileStorageService.inspectCandidate(candidate))
+            .willReturn(Optional.of(new CandidateObjectSnapshot(4L, "b".repeat(64), 42L)));
+        given(fileStorageService.deleteCandidateIfGenerationMatches(candidate, 42L)).willReturn(true);
+        VersionUploadCandidateCleanupService.CleanupResult cleaned = candidateCleanupService.reconcile(
+            Duration.ofHours(24), 100, true
+        );
+
+        assertThat(cleaned.deleted()).isOne();
+        assertThat(cleaned.failed()).isZero();
+        assertThat(jdbcTemplate.queryForObject("""
+            SELECT candidate_object_key FROM version_upload_requests
+             WHERE user_id = ? AND document_id = ? AND request_key = ?
+            """, String.class, userId, initial.documentId(), key)).isNull();
+    }
+
+    @Test
+    @DisplayName("정리 시 DB가 참조하는 새 버전 GCS 원본은 삭제하지 않는다")
+    void cleanup_preservesReferencedCandidate() {
+        given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
+            .willAnswer(invocation -> new StoredFile(
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
+            ));
+        DocumentUploadResponse initial = createIndexedDocument("version-referenced-base-" + UUID.randomUUID());
+        reset(fileStorageService);
+        String key = "version-referenced-" + UUID.randomUUID();
+        String hash = UUID.randomUUID().toString().replace("-", "").repeat(2);
+        VersionUploadRequestService.Claim claim = versionUploadRequestService.acquire(
+            userId, initial.documentId(), key, "a".repeat(64)
+        );
+        StoredFile candidate = new StoredFile(StorageProvider.GCS, "test-bucket", "documents/test/" + key);
+        versionUploadRequestService.registerCandidate(claim, candidate, hash, 4L);
+        jdbcTemplate.update("""
+            UPDATE version_upload_requests
+               SET candidate_registered_at = CURRENT_TIMESTAMP - INTERVAL '25 hours',
+                   lease_expires_at = CURRENT_TIMESTAMP - INTERVAL '1 second'
+             WHERE user_id = ? AND document_id = ? AND request_key = ?
+            """, userId, initial.documentId(), key);
+        jdbcTemplate.update("""
+            INSERT INTO file_objects (bucket_name, object_key, original_filename, content_type,
+                file_size, file_hash, storage_provider, uploaded_by, uploaded_at)
+            VALUES (?, ?, 'sample.txt', 'text/plain', 4, ?, 'GCS', ?, CURRENT_TIMESTAMP)
+            """, candidate.bucketName(), candidate.objectKey(), hash, userId);
+        try {
+            VersionUploadCandidateCleanupService.CleanupResult result = candidateCleanupService.reconcile(
+                Duration.ofHours(24), 100, true
+            );
+
+            assertThat(result.referenced()).isOne();
+            assertThat(result.deleted()).isZero();
+            assertThat(jdbcTemplate.queryForObject("""
+                SELECT candidate_object_key FROM version_upload_requests
+                 WHERE user_id = ? AND document_id = ? AND request_key = ?
+                """, String.class, userId, initial.documentId(), key)).isNull();
+            verify(fileStorageService, times(0))
+                .deleteCandidateIfGenerationMatches(any(StoredFile.class), anyLong());
+        } finally {
+            jdbcTemplate.update("""
+                DELETE FROM file_objects
+                 WHERE storage_provider = 'GCS' AND bucket_name = ? AND object_key = ?
+                """, candidate.bucketName(), candidate.objectKey());
+        }
+    }
+
+    @Test
     @DisplayName("같은 키의 동시 요청은 저장소에 함께 진입하지 않고 완료 뒤 같은 결과로 수렴한다")
     void upload_serializesSameKey_beforeStorage() throws Exception {
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
         DocumentUploadResponse initial = createIndexedDocument("version-concurrent-base");
         reset(fileStorageService);
@@ -215,7 +381,7 @@ class DocumentVersionUploadIntegrationTest {
                 if (!releaseFirst.await(10, TimeUnit.SECONDS)) {
                     throw new IllegalStateException("첫 업로드 저장 대기 시간 초과");
                 }
-                return new StoredFile(StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID());
+                return new StoredFile(StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3));
             });
         DocumentVersionUploadRequest request = versionRequest("version-concurrent-new", "updated.txt");
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -252,7 +418,7 @@ class DocumentVersionUploadIntegrationTest {
     void upload_createsVersion_when_sameSizeButContentDiffers() {
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
         DocumentUploadResponse initial = createIndexedDocument("AAAA");
 
@@ -291,7 +457,7 @@ class DocumentVersionUploadIntegrationTest {
     void upload_rejectsSameCurrentFile_beforeStorage() {
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
         DocumentUploadResponse initial = createIndexedDocument("same-content");
         reset(fileStorageService);
@@ -318,7 +484,7 @@ class DocumentVersionUploadIntegrationTest {
     void upload_reusesHistoricalFileObject_when_revertingContent() {
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
         DocumentUploadResponse initial = createIndexedDocument("version-A");
         DocumentVersionUploadResponse second = documentVersionUploadFacade.upload(
@@ -358,7 +524,7 @@ class DocumentVersionUploadIntegrationTest {
         String suffix = UUID.randomUUID().toString();
         given(fileStorageService.store(any(InputStream.class), anyLong(), anyString(), anyString()))
             .willAnswer(invocation -> new StoredFile(
-                StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
             ));
         DocumentUploadResponse initial = createIndexedDocument("concurrent-base-" + suffix);
         // v1은 인덱싱을 마친 상태이므로 이전 Job을 종료 상태로 두고 새 Job만 살아 있게 만든다.
@@ -375,7 +541,7 @@ class DocumentVersionUploadIntegrationTest {
             .willAnswer(invocation -> {
                 storageBarrier.await(10, TimeUnit.SECONDS);
                 return new StoredFile(
-                    StorageProvider.LOCAL, "test-bucket", "documents/test/" + UUID.randomUUID()
+                    StorageProvider.LOCAL, "test-bucket", invocation.getArgument(3)
                 );
             });
         ExecutorService executor = Executors.newFixedThreadPool(2);

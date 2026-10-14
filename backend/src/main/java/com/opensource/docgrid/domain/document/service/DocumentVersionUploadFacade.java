@@ -7,11 +7,14 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.opensource.docgrid.domain.document.config.FileStorageProperties;
 import com.opensource.docgrid.domain.document.dto.request.DocumentVersionUploadRequest;
 import com.opensource.docgrid.domain.document.dto.response.DocumentVersionUploadResponse;
+import com.opensource.docgrid.domain.document.enums.StorageProvider;
 import com.opensource.docgrid.domain.document.service.command.DocumentVersionUploadCommand;
 import com.opensource.docgrid.domain.document.service.command.DocumentVersionUploadService;
 import com.opensource.docgrid.domain.document.service.command.DocumentVersionUploadTransactionResult;
+import com.opensource.docgrid.domain.document.storage.CandidateObjectSnapshot;
 import com.opensource.docgrid.domain.document.storage.FileStorageService;
 import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.global.exception.DocGridException;
@@ -25,9 +28,9 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>권한·파일·문서 상태를 사전 검증해 불필요한 저장소 쓰기를 피하고, 재사용할 FileObject가
  * 없을 때만 새 바이너리 후보를 저장한다. 이후 데이터베이스 변경은
- * {@link DocumentVersionUploadService}에 위임하며, 트랜잭션 실패나 동시 중복 경쟁으로 사용되지 않은
- * 저장소 객체는 보상 삭제한다. 멱등 키가 있으면 파일 저장 전에 완료 응답을 조회하고,
- * 새 버전과 Job을 만들 때 같은 트랜잭션에서 요청 결과를 확정한다.
+ * {@link DocumentVersionUploadService}에 위임한다. 키 없는 요청은 사용되지 않은 저장소 객체를
+ * 보상 삭제한다. 멱등 키가 있으면 저장 전에 후보 위치를 원장에 기록하고, 중단 후 동일 키의
+ * 재시도에서 후보 바이트를 확인해 재사용한다. 새 버전·Job·요청 결과는 함께 확정한다.
  */
 @Slf4j
 @Service
@@ -39,6 +42,7 @@ public class DocumentVersionUploadFacade {
     private final FileStorageService fileStorageService;
     private final DocumentVersionUploadService documentVersionUploadService;
     private final VersionUploadRequestService versionUploadRequestService;
+    private final FileStorageProperties fileStorageProperties;
 
     /**
      * 기존 문서에 새 파일 버전을 업로드하고 인덱싱 Job을 생성한다.
@@ -56,7 +60,7 @@ public class DocumentVersionUploadFacade {
         return upload(userId, documentId, request, null);
     }
 
-    /** 같은 키·문서·파일의 재시도에는 최초 업로드 응답을 반환한다. */
+    /** 같은 키·문서·파일의 재시도에는 확정된 새 버전 업로드 응답을 반환한다. */
     public DocumentVersionUploadResponse upload(
         Long userId,
         Long documentId,
@@ -106,22 +110,26 @@ public class DocumentVersionUploadFacade {
             ), claim).response();
         }
 
-        // 2. 재사용 대상이 없을 때만 저장소에 새 후보 파일을 만든다.
-        StoredFile candidate = storeCandidate(request, validatedFile);
+        // 2. 키가 있으면 저장소 호출 전에 후보 위치를 기록하고 중단된 시도의 후보를 검사한다.
+        StoredFile candidate = claim == null
+            ? storeCandidate(request, validatedFile, newObjectKey(validatedFile))
+            : recoverOrStoreCandidate(claim, request, validatedFile, fileHash);
         DocumentVersionUploadTransactionResult result;
 
-        // 3. DB Transaction이 실패하면 어느 버전에서도 참조하지 않는 후보를 보상 삭제한다.
+        // 3. 키가 있는 후보는 실패 후 같은 키의 재시도가 사용할 수 있으므로 즉시 삭제하지 않는다.
         try {
             result = persist(createCommand(
                 userId, documentId, validatedFile, fileHash, null, candidate
             ), claim);
         } catch (RuntimeException exception) {
-            cleanupCandidate(candidate);
+            if (claim == null) {
+                cleanupCandidate(candidate);
+            }
             throw exception;
         }
 
-        // 4. 동시 요청이 기존 FileObject를 점유했다면 이번 요청이 만든 미사용 후보를 정리한다.
-        if (!result.candidateClaimed()) {
+        // 4. 키 없는 동시 요청의 미사용 후보만 즉시 정리한다. 키가 있으면 정리 원장에 남긴다.
+        if (!result.candidateClaimed() && claim == null) {
             cleanupCandidate(candidate);
         }
         return result.response();
@@ -134,13 +142,75 @@ public class DocumentVersionUploadFacade {
             : documentVersionUploadService.upload(command, claim);
     }
 
-    /**
-     * 검증된 새 버전 파일을 임의 객체 키로 파일 저장소에 기록한다.
-     */
-    private StoredFile storeCandidate(DocumentVersionUploadRequest request, ValidatedFile validatedFile) {
-        String objectKey = "documents/%s/%s.%s".formatted(
-            UUID.randomUUID(), UUID.randomUUID(), validatedFile.extension()
+    /** 만료된 후보를 확인해 재사용하고, 첫 시도라면 위치를 DB에 기록한 뒤 저장한다. */
+    private StoredFile recoverOrStoreCandidate(
+        VersionUploadRequestService.Claim claim, DocumentVersionUploadRequest request,
+        ValidatedFile file, String fileHash
+    ) {
+        VersionUploadRequestService.Candidate previous = claim.candidate();
+        if (previous != null) {
+            if (!fileHash.equals(previous.fileHash()) || file.fileSize() != previous.fileSize()) {
+                throw new DocGridException(ErrorCode.DOCUMENT_UPLOAD_CANDIDATE_MISMATCH);
+            }
+            if (inspectMatchingCandidate(claim, previous.storedFile(), fileHash, file.fileSize())) {
+                return previous.storedFile();
+            }
+            // 이전 소유자의 지연 저장과 겹쳐도 추적되지 않는 두 번째 키를 만들지 않는다.
+            try {
+                StoredFile stored = storeCandidate(request, file, previous.storedFile().objectKey());
+                if (!stored.equals(previous.storedFile())) {
+                    throw new DocGridException(ErrorCode.FILE_STORAGE_CONFIGURATION_MISMATCH);
+                }
+            } catch (DocGridException exception) {
+                if (!inspectMatchingCandidate(claim, previous.storedFile(), fileHash, file.fileSize())) {
+                    throw exception;
+                }
+            }
+            fileStorageService.candidateGeneration(previous.storedFile()).ifPresent(
+                generation -> versionUploadRequestService.recordCandidateGeneration(
+                    claim, previous.storedFile(), generation
+                )
+            );
+            return previous.storedFile();
+        }
+
+        StoredFile planned = new StoredFile(
+            StorageProvider.valueOf(fileStorageProperties.getType().name()),
+            fileStorageProperties.getBucket(), newObjectKey(file)
         );
+        // 첫 후보의 DB 기록이 성공해야 외부 저장소에 원본을 쓴다.
+        versionUploadRequestService.registerCandidate(claim, planned, fileHash, file.fileSize());
+        StoredFile stored = storeCandidate(request, file, planned.objectKey());
+        if (!stored.equals(planned)) {
+            throw new DocGridException(ErrorCode.FILE_STORAGE_CONFIGURATION_MISMATCH);
+        }
+        fileStorageService.candidateGeneration(stored).ifPresent(
+            generation -> versionUploadRequestService.recordCandidateGeneration(claim, stored, generation)
+        );
+        return stored;
+    }
+
+    private boolean inspectMatchingCandidate(
+        VersionUploadRequestService.Claim claim, StoredFile candidate, String fileHash, long fileSize
+    ) {
+        Optional<CandidateObjectSnapshot> snapshot = fileStorageService.inspectCandidate(candidate);
+        if (snapshot.isEmpty()) {
+            return false;
+        }
+        CandidateObjectSnapshot actual = snapshot.get();
+        if (!fileHash.equals(actual.sha256()) || fileSize != actual.fileSize()) {
+            throw new DocGridException(ErrorCode.DOCUMENT_UPLOAD_CANDIDATE_MISMATCH);
+        }
+        if (actual.generation() != null) {
+            versionUploadRequestService.recordCandidateGeneration(claim, candidate, actual.generation());
+        }
+        return true;
+    }
+
+    /** 검증된 새 버전 파일을 지정된 객체 키로 저장한다. */
+    private StoredFile storeCandidate(
+        DocumentVersionUploadRequest request, ValidatedFile validatedFile, String objectKey
+    ) {
         try (InputStream inputStream = request.file().getInputStream()) {
             return fileStorageService.store(
                 inputStream, validatedFile.fileSize(), validatedFile.contentType(), objectKey
@@ -149,6 +219,10 @@ public class DocumentVersionUploadFacade {
             log.error("파일 저장소 업로드용 원본 Stream을 열지 못했습니다.", exception);
             throw new DocGridException(ErrorCode.FILE_STORAGE_FAILED, exception);
         }
+    }
+
+    private String newObjectKey(ValidatedFile file) {
+        return "documents/%s/%s.%s".formatted(UUID.randomUUID(), UUID.randomUUID(), file.extension());
     }
 
     /**

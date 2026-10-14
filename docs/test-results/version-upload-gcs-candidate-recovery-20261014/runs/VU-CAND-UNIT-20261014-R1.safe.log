@@ -1,0 +1,10 @@
+시험 ID=VU-CAND-UNIT-20261014-R1
+기록 시각=2026-10-14T21:48:27+09:00
+위치=로컬 worktree, Java 17, Gradle 오프라인 실행
+목적=키 없는 새 버전 업로드의 기존 저장·보상 삭제 동작 유지 확인
+명령=./backend/gradlew -p backend test --tests com.opensource.docgrid.domain.document.service.DocumentVersionUploadFacadeTest --offline --console=plain --rerun-tasks
+합격 기준=Facade 단위 테스트 전건 통과
+관측=Gradle 종료 코드 0, JUnit 6건 통과·실패 0건·오류 0건·건너뜀 0건, JUnit 시험 본문 시간 0.531초
+판정=통과
+한계=외부 저장소와 DB를 연결하는 통합 시험이 아님
+정리=외부 자원 사용 없음
