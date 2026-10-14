@@ -1,0 +1,4 @@
+2026-10-14T22:44:59+09:00 | VU-PUBLIC-DB-GCS-20261014-R1 | 목적=공개 브라우저 합성 PDF v2의 OpenSQL·GCS 독립 대조; 위치=GCP DB Primary/GCS; 방법=30분 OS Login 키, 읽기 전용 SELECT 및 GCS 원본 해시; 성공 기준=v2·Job·완료 요청 각 1건, 파일 637B, SHA-256 일치, 키 즉시 삭제
+2026-10-14T22:45:02+09:00 | VU-PUBLIC-DB-GCS-20261014-R1 | OS Login 키=30분 만료 등록
+2026-10-14T22:45:10+09:00 | VU-PUBLIC-DB-GCS-20261014-R1 | OS Login 키=즉시 삭제 성공
+2026-10-14T22:45:10+09:00 | VU-PUBLIC-DB-GCS-20261014-R1 | 판정=FAIL command_failed:gcloud:exit=127
