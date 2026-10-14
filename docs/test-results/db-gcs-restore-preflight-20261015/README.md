@@ -10,6 +10,7 @@
 |---|---|---|---|
 | DB 3노드 디스크 | 로컬 GCP CLI에서 인스턴스·스냅샷·정책 목록 읽기 | READY 스냅샷 5·3·3개, 최신본 2026-10-10 12:55~12:58 KST, 자동 일정 연결 0/3 | 디스크 복구 후보는 존재하지만 최신 시점 복원 근거가 아니다. 실행 중인 DB의 물리 백업 일관성도 이 조회로 확인하지 못했다. |
 | WAL 보관 | 30분 만료 OS Login 키로 3노드 PostgreSQL 설정·`pg_stat_archiver`·복제 슬롯/연결 읽기 | Primary 1·Standby 2, 모두 `archive_mode=on`, 아카이브 명령 비활성·보관 수 0. Primary의 슬롯/연결 각 2개, 백업 이름 0개 | 별도 WAL 백업 경로를 확인하지 못해 PITR 준비 NO-GO. |
+| 백업 수신자 용량 기준 | 3노드 읽기 전용 SQL과 기존 디스크 스냅샷 메타데이터 | 슬롯 한도 10·현재 2, WAL 송신 한도 10, `docgrid` DB 약 82 MB. DB 디스크 30 GB씩, 최근 스냅샷 저장 바이트 약 1.72~1.77 GB | 설정상 수신자 1개를 추가할 여유는 있으나 실제 백업 크기·WAL 보존량·복원 성공은 미검증. |
 | GCS 원본 버킷 | 로컬 GCP CLI 버킷 설정 읽기 | soft delete 604,800초(7일), Object Versioning 비활성 | 삭제 사고의 단기 보호 설정이다. 별도 버킷·계정의 독립 백업 또는 시점별 원본 보존을 입증하지 않는다. |
 | 격리 대상 | 이번 실행에서 생성·조회하지 않음 | 미확인 | 운영 DB·버킷을 복원 대상으로 사용하지 않는다. |
 
@@ -26,8 +27,13 @@
 | `DR-WAL-PREFLIGHT-20261015-R1` | 첫 DB 노드의 WAL 설정 | 아카이브 명령 비활성; 당시 역할은 수집하지 않음 | [WAL R1](runs/wal-r1.md) |
 | `DR-WAL-PREFLIGHT-20261015-R2` | Primary를 포함한 3노드의 WAL 설정 | Primary·Standby 모두 아카이브 명령 비활성, 보관 수 0 | [WAL R2](runs/wal-r2.md) |
 | `DR-WAL-STREAM-20261015-R1` | 스트리밍 WAL 백업 가능성 점검 | Primary의 활성 물리 슬롯·복제 연결 각 2개, 백업 이름 0개 | [WAL 수신 점검](runs/wal-stream-r1.md) |
+| `DR-CAPACITY-20261015-R1` | 3노드 복제 한도·DB 용량 확인 | SSH 입력 소비로 1노드만 시도, 유효 샘플 0/3 | [용량 R1](runs/capacity-r1.md) |
+| `DR-CAPACITY-20261015-R2` | SSH 반복 수정 후 재조회 | SQL 인용 오류로 유효 샘플 0/3 | [용량 R2](runs/capacity-r2.md) |
+| `DR-CAPACITY-20261015-R3` | SQL 인자 분리 후 재조회 | 3/3 성공, 슬롯·송신 한도 각 10, DB 약 82 MB | [용량 R3](runs/capacity-r3.md) |
+| `DR-CAPACITY-SNAPSHOT-20261015-R1` | 기존 DB 스냅샷 저장 바이트 확인 | 최근본 약 1.72·1.74·1.77 GB | [스냅샷 용량](runs/capacity-snapshot-r1.md) |
 | `DR-REPORT-QA-20261015-R1` | 제출 문서의 링크·공백·민감 식별자 점검 | 8개 파일, 상대 링크 11개, 발견 문제 0개 | [문서 QA](runs/report-qa-r1.md) |
 | `DR-REPORT-QA-20261015-R2` | 추가 WAL 수신 기록과 수정 요약 점검 | 변경 파일 2개, 상대 링크 8개, 발견 문제 0개 | [추가 QA](runs/report-qa-r2.md) |
+| `DR-REPORT-QA-20261015-R3` | 용량 점검 기록의 링크·공백·민감 징후 점검 | 변경 파일 5개, 상대 링크 13개, 발견 문제 0개 | [용량 기록 QA](runs/report-qa-r3.md) |
 
 ## 다음 관문
 
