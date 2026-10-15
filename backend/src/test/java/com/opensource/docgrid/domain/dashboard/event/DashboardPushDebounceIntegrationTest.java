@@ -30,6 +30,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import com.opensource.docgrid.domain.dashboard.service.query.DashboardQueryService;
 import com.opensource.docgrid.domain.embedding.event.EmbeddingJobStatusChangedEvent;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -84,7 +85,7 @@ class DashboardPushDebounceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE embedding_jobs, document_versions, documents, users
             RESTART IDENTITY CASCADE
             """);

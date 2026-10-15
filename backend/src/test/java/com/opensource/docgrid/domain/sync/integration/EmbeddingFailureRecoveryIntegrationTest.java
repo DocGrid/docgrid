@@ -39,6 +39,7 @@ import com.opensource.docgrid.domain.embedding.service.command.DocumentIndexingC
 import com.opensource.docgrid.domain.sync.dto.SyncReconciliationBatchResult;
 import com.opensource.docgrid.domain.sync.enums.SyncReconciliationMode;
 import com.opensource.docgrid.domain.sync.service.SyncReconciliationOrchestrator;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 /**
  * Embedding Set 저장 중 프로세스 중단을 주입하고 Worker Lease Recovery부터 최종 정합성까지 검증한다.
@@ -81,7 +82,7 @@ class EmbeddingFailureRecoveryIntegrationTest {
     @BeforeEach
     void resetState() {
         dropEmbeddingFailureTrigger();
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 sync_admin_actions,
                 sync_consistency_issues,

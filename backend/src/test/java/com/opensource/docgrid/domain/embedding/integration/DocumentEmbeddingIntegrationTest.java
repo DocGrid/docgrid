@@ -46,6 +46,7 @@ import com.opensource.docgrid.domain.embedding.service.DocumentEmbeddingService;
 import com.opensource.docgrid.domain.embedding.service.DocumentEmbeddingService.EmbeddingResult;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
@@ -86,7 +87,7 @@ class DocumentEmbeddingIntegrationTest {
     @BeforeEach
     void resetState() {
         embeddingClient.reset();
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 embeddings,
                 indexing_events,

@@ -21,6 +21,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 import com.opensource.docgrid.domain.dashboard.dto.response.RetryAllJobsResponse;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 /**
  * 전체 재처리 중 한 Job이 실패해도 다른 Job의 성공한 재처리는 실제로 커밋되는지 실제 PostgreSQL로
@@ -57,7 +58,7 @@ class EmbeddingJobRetryTransactionIsolationIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 embedding_jobs,
                 document_versions,

@@ -61,6 +61,7 @@ import com.opensource.docgrid.domain.sync.service.command.SyncEventClaimService;
 import com.opensource.docgrid.domain.sync.service.command.SyncEventDispatchService;
 import com.opensource.docgrid.domain.sync.service.command.SyncEventWriter;
 import com.opensource.docgrid.domain.user.repository.UserRepository;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 /**
  * at-least-once Event 재전달과 다중 Dispatcher 경쟁이 단일 파생 데이터 Set으로 수렴하는지 검증한다.
@@ -114,7 +115,7 @@ class SyncIdempotencyConcurrencyIntegrationTest {
     @BeforeEach
     void resetState() {
         reset(fileStorageService);
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 sync_admin_actions,
                 sync_consistency_issues,
