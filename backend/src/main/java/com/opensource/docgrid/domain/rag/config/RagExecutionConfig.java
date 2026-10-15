@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * RAG 답변 생성을 동시에 몇 건까지 처리할지 제한하는 실행 자원을 구성한다 (#340).
@@ -31,6 +33,12 @@ public class RagExecutionConfig {
 
     public static final String RAG_WORKER_JOB_EXECUTOR = "ragWorkerJobExecutor";
     public static final String RAG_WORKER_SLOTS = "ragWorkerSlots";
+
+    /** 모델 호출 전후의 짧은 DB 작업만 별도 트랜잭션으로 묶는다. */
+    @Bean
+    public TransactionTemplate ragTransactionTemplate(PlatformTransactionManager transactionManager) {
+        return new TransactionTemplate(transactionManager);
+    }
 
     /**
      * 실제로 Ollama를 호출하고 기다리는 RAG 전용 스레드 N개.
