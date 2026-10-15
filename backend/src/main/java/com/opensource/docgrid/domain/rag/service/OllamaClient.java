@@ -138,7 +138,8 @@ public class OllamaClient {
      *
      * <p>성공 판정 이후 처리 순서: ①한 청크도 못 받았으면 실패 ②{@code done} 없이 끝났으면
      * 조기 종료로 기록(#210 PEG 파서 버그 추적용) ③언어 혼입 제거({@link #sanitizeAnswer}) ④
-     * 정제 후 텍스트가 비었으면 실패 ⑤토큰 상한 도달·조기 종료·혼입 대량 컷 중 하나라도 해당하면
+     * 정제 후 텍스트가 비었으면 실패 ⑤혼입 대량 컷이면 남은 데드라인 안에서 1회 재생성
+     * ({@link #regenerateAfterMixingCut}) ⑥토큰 상한 도달·조기 종료·혼입 대량 컷 중 하나라도 해당하면
      * 문장 경계로 트리밍({@link #trimToSentenceBoundary}) + 잘림 안내 문구 부착. 이 순서가
      * 뒤바뀌면 안 된다 — 예를 들어 트리밍을 언어 혼입 제거보다 먼저 하면 아직 안 지워진 외국어
      * 글자를 문장 경계로 착각할 수 있다.
@@ -147,6 +148,45 @@ public class OllamaClient {
         long start = System.currentTimeMillis();
         long deadline = start + generateDeadline.toMillis();
 
+        Attempt attempt = attempt(prompt, deadline);
+        if (attempt.sanitized().cutAtMixing() && System.currentTimeMillis() < deadline) {
+            attempt = regenerateAfterMixingCut(prompt, deadline, attempt);
+        }
+
+        String answerText = attempt.sanitized().text();
+        if (attempt.truncated()) {
+            answerText = trimToSentenceBoundary(answerText) + TRUNCATION_NOTICE;
+        }
+
+        int latencyMs = (int) (System.currentTimeMillis() - start);
+        OllamaGenerateResponse last = attempt.last();
+        return new OllamaGenerateResult(
+            last.model(), answerText, last.promptEvalCount(), last.evalCount(), latencyMs
+        );
+    }
+
+    /**
+     * 대량 혼입 컷은 답변이 길어서가 아니라 모델이 단어 중간에서 중국어로 넘어가 생긴다(예: "지원금을 받"
+     * 다음 "을 수 있습니다" 대신 "可以…"). 한 문장짜리 답변이면 되돌아갈 문장 경계도 없어 단어 중간에서
+     * 끊긴 채 안내가 붙는다. 전환은 샘플링 확률로 생기므로 같은 데드라인 안에서 한 번 새로 생성하고,
+     * 재생성 답변이 잘림 없이 끝났을 때만 그것을 쓴다. 재생성도 잘리거나 실패하면 첫 답변을 그대로 쓴다.
+     * 잘린 지점부터 이어 쓰게 하면 같은 토큰에서 다시 전환될 확률이 더 높아 새로 생성한다.
+     */
+    private Attempt regenerateAfterMixingCut(String prompt, long deadline, Attempt first) {
+        try {
+            Attempt retry = attempt(prompt, deadline);
+            log.warn("한자/가나 대량 혼입 컷으로 1회 재생성함: 재생성 답변 사용={}", !retry.truncated());
+            return retry.truncated() ? first : retry;
+        } catch (DocGridException e) {
+            log.warn("한자/가나 대량 혼입 컷 후 재생성 실패, 첫 답변을 사용함");
+            return first;
+        }
+    }
+
+    /**
+     * 생성 요청 한 번을 보내 정제된 답변과 잘림 여부를 돌려준다. 받은 답변이 없거나 정제 후 비면 예외를 던진다.
+     */
+    private Attempt attempt(String prompt, long deadline) {
         StreamChunks chunks;
         try {
             chunks = restClient.post()
@@ -197,16 +237,12 @@ public class OllamaClient {
             throw new DocGridException(ErrorCode.RAG_SERVICE_UNAVAILABLE);
         }
 
-        String answerText = sanitized.text();
         boolean hitTokenLimit = chunks.last().evalCount() != null && chunks.last().evalCount() >= numPredict;
-        if (hitTokenLimit || prematureEnd || sanitized.cutAtMixing()) {
-            answerText = trimToSentenceBoundary(answerText) + TRUNCATION_NOTICE;
-        }
+        return new Attempt(chunks.last(), sanitized, hitTokenLimit || prematureEnd || sanitized.cutAtMixing());
+    }
 
-        int latencyMs = (int) (System.currentTimeMillis() - start);
-        return new OllamaGenerateResult(
-            chunks.last().model(), answerText, chunks.last().promptEvalCount(), chunks.last().evalCount(), latencyMs
-        );
+    /** 생성 요청 한 번의 결과. {@code truncated}는 토큰 상한·조기 종료·혼입 대량 컷 중 하나라도 해당하는지다. */
+    private record Attempt(OllamaGenerateResponse last, SanitizedAnswer sanitized, boolean truncated) {
     }
 
     /**
