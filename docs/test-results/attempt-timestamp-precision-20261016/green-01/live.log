@@ -1,0 +1,11 @@
+[2026-10-16T03:25:07+09:00] 실행 시작: green-01 / 수정 후 동일 고정 Clock·실제 PostgreSQL 회귀 시험
+[2026-10-16T03:25:14+09:00] > Task :compileJava
+[2026-10-16T03:25:14+09:00] > Task :processResources
+[2026-10-16T03:25:14+09:00] > Task :classes
+[2026-10-16T03:25:18+09:00] > Task :compileTestJava
+[2026-10-16T03:25:18+09:00] > Task :processTestResources
+[2026-10-16T03:25:18+09:00] > Task :testClasses
+[2026-10-16T03:25:24+09:00] > Task :test
+[2026-10-16T03:25:24+09:00] BUILD SUCCESSFUL in 16s
+[2026-10-16T03:25:24+09:00] ATTEMPT_PRECISION_EVIDENCE clock=2026-10-16T00:00:00.123456789Z created=2026-10-16T00:00:00.123456 persisted=2026-10-16T00:00:00.123456 replayed=2026-10-16T00:00:00.123456 attempts=1 independentTransactions=true
+[2026-10-16T03:25:24+09:00] 종료: 코드=0, 실행=1, 실패=0, 오류=0, 건너뜀=0, 소요=16.595초, 안전하게 생략한 출력=11줄
