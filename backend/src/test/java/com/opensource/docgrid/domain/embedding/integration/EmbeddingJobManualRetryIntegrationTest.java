@@ -35,6 +35,7 @@ import com.opensource.docgrid.domain.search.dto.VectorSearchCandidate;
 import com.opensource.docgrid.domain.search.service.query.VectorSearchQueryService;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 /**
  * 실제 PostgreSQL에서 최종 실패 Job 수동 재처리의 상태 전이, 검색 보호와 동시 요청 수렴을 검증한다.
@@ -73,7 +74,7 @@ class EmbeddingJobManualRetryIntegrationTest {
 
     @BeforeEach
     void resetState() {
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 search_results,
                 search_queries,

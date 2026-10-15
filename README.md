@@ -1,5 +1,7 @@
 # DocGrid
 
+[![CI](https://github.com/DocGrid/docgrid/actions/workflows/ci.yml/badge.svg?branch=develop&event=push)](https://github.com/DocGrid/docgrid/actions/workflows/ci.yml?query=branch%3Adevelop+event%3Apush)
+
 > 팀의 지식에서 권한을 지키며 근거가 포함된 답을 찾는 오픈소스 문서 검색 워크스페이스
 
 DocGrid는 조직의 PDF·DOCX·HWP 5.x·HWPX 문서를 저장·인덱싱하고, 사용자가 열람할 수 있는 문서만 벡터 검색과
