@@ -16,7 +16,7 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 15
     services:
       # test 프로필 기본 접속값(localhost:55432, app/local_password)에 맞춘다.
       # OpenSqlCompatibilityIntegrationTest가 서버 17.8·pgvector 0.8.1을 단언하므로 태그가 아닌 digest로 고정한다.
@@ -84,7 +84,7 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
