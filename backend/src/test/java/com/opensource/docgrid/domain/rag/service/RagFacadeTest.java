@@ -219,11 +219,11 @@ class RagFacadeTest {
         given(ollamaClient.generate("조립된 프롬프트"))
             .willReturn(new OllamaGenerateResult("qwen2.5:7b", "정상 답변", 100, 20, 900));
         given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(searchResults);
-        given(ragResponseCommandService.completeSuccess(eq(job), any())).willReturn(true);
+        given(ragResponseCommandService.completeSuccessOwned(eq(job), eq("test-token"), any())).willReturn(true);
 
         // 2. 접수와 비동기 완료를 순차 실행해 두 단계의 후보 선택을 함께 검증한다.
         ragFacade.enqueue(CONVERSATION_ID, QUERY_ID, "질문", candidates);
-        boolean completed = ragFacade.processJob(JOB_ID);
+        boolean completed = ragFacade.processJob(JOB_ID, "test-token");
 
         // 3. 개수뿐 아니라 프롬프트 후보, 청크 ID, 검색 결과 ID의 순서까지 일치해야 한다.
         int expectedCount = Math.min(candidateCount, 3);
@@ -255,14 +255,14 @@ class RagFacadeTest {
 
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "인사규정", new BigDecimal("0.9"));
         given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
-        given(ragResponseCommandService.completeSuccess(eq(job), any())).willReturn(true);
+        given(ragResponseCommandService.completeSuccessOwned(eq(job), eq("test-token"), any())).willReturn(true);
 
-        boolean completed = ragFacade.processJob(JOB_ID);
+        boolean completed = ragFacade.processJob(JOB_ID, "test-token");
 
         assertThat(completed).isTrue();
-        then(ragResponseCommandService).should(times(1)).completeSuccess(eq(job), any());
+        then(ragResponseCommandService).should(times(1)).completeSuccessOwned(eq(job), eq("test-token"), any());
         then(responseCitationCommandService).should(times(1)).saveAll(eq(job), any(), eq(List.of(searchResult)));
-        then(ragResponseCommandService).should(never()).completeFailed(any(), anyString(), anyString());
+        then(ragResponseCommandService).should(never()).completeFailedOwned(any(), anyString(), anyString(), anyString());
         then(applicationEventPublisher).should()
             .publishEvent(new RagJobCompletionMetricEvent(Outcome.SUCCESS));
     }
@@ -274,12 +274,12 @@ class RagFacadeTest {
         RagResponse job = RagResponse.builder().query(queryRef).promptText("조립된 프롬프트").status(ResultStatus.FAILED).build();
         given(ragResponseRepository.findById(JOB_ID)).willReturn(Optional.of(job));
 
-        boolean completed = ragFacade.processJob(JOB_ID);
+        boolean completed = ragFacade.processJob(JOB_ID, "test-token");
 
         assertThat(completed).isFalse();
         then(ollamaClient).should(never()).generate(anyString());
-        then(ragResponseCommandService).should(never()).completeSuccess(any(), any());
-        then(ragResponseCommandService).should(never()).completeFailed(any(), anyString(), anyString());
+        then(ragResponseCommandService).should(never()).completeSuccessOwned(any(), anyString(), any());
+        then(ragResponseCommandService).should(never()).completeFailedOwned(any(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -292,9 +292,9 @@ class RagFacadeTest {
 
         OllamaGenerateResult ollamaResult = new OllamaGenerateResult("qwen2.5:7b", "연차는 15일입니다.", 100, 20, 900);
         given(ollamaClient.generate("조립된 프롬프트")).willReturn(ollamaResult);
-        given(ragResponseCommandService.completeSuccess(eq(job), any())).willReturn(false);
+        given(ragResponseCommandService.completeSuccessOwned(eq(job), eq("test-token"), any())).willReturn(false);
 
-        boolean completed = ragFacade.processJob(JOB_ID);
+        boolean completed = ragFacade.processJob(JOB_ID, "test-token");
 
         assertThat(completed).isFalse();
         then(responseCitationCommandService).should(never()).saveAll(any(), any(), any());
@@ -315,13 +315,13 @@ class RagFacadeTest {
 
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "인사규정", new BigDecimal("0.9"));
         given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
-        given(ragResponseCommandService.completeFailed(eq(job), anyString(), anyString())).willReturn(true);
+        given(ragResponseCommandService.completeFailedOwned(eq(job), eq("test-token"), anyString(), anyString())).willReturn(true);
 
-        boolean completed = ragFacade.processJob(JOB_ID);
+        boolean completed = ragFacade.processJob(JOB_ID, "test-token");
 
         assertThat(completed).isTrue();
-        then(ragResponseCommandService).should(times(1)).completeFailed(
-            eq(job), argThatFallbackContains("AI 답변 생성이 지연", "청크 내용", "인사규정"), anyString()
+        then(ragResponseCommandService).should(times(1)).completeFailedOwned(
+            eq(job), eq("test-token"), argThatFallbackContains("AI 답변 생성이 지연", "청크 내용", "인사규정"), anyString()
         );
         then(responseCitationCommandService).should(never()).saveAll(any(), any(), any());
         then(applicationEventPublisher).should()
@@ -337,9 +337,9 @@ class RagFacadeTest {
         given(ragResponseRepository.findById(JOB_ID)).willReturn(Optional.of(job));
         given(ollamaClient.generate("조립된 프롬프트"))
             .willThrow(new DocGridException(ErrorCode.RAG_SERVICE_UNAVAILABLE));
-        given(ragResponseCommandService.completeFailed(eq(job), anyString(), anyString())).willReturn(false);
+        given(ragResponseCommandService.completeFailedOwned(eq(job), eq("test-token"), anyString(), anyString())).willReturn(false);
 
-        boolean completed = ragFacade.processJob(JOB_ID);
+        boolean completed = ragFacade.processJob(JOB_ID, "test-token");
 
         assertThat(completed).isFalse();
         then(applicationEventPublisher).shouldHaveNoInteractions();
@@ -358,11 +358,11 @@ class RagFacadeTest {
         given(ollamaClient.generate("조립된 프롬프트")).willReturn(ollamaResult);
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "인사규정", new BigDecimal("0.9"));
         given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
-        given(ragResponseCommandService.completeSuccess(eq(job), any())).willReturn(true);
+        given(ragResponseCommandService.completeSuccessOwned(eq(job), eq("test-token"), any())).willReturn(true);
 
-        ragFacade.processJob(JOB_ID);
+        ragFacade.processJob(JOB_ID, "test-token");
 
-        then(ragResponseCommandService).should(times(1)).completeSuccess(eq(job), any());
+        then(ragResponseCommandService).should(times(1)).completeSuccessOwned(eq(job), eq("test-token"), any());
         then(responseCitationCommandService).should(never()).saveAll(any(), any(), any());
         then(searchResultRepository).should(never()).findByQuery_IdOrderByRankNo(any());
     }
@@ -381,11 +381,11 @@ class RagFacadeTest {
         given(ollamaClient.generate("조립된 프롬프트")).willReturn(ollamaResult);
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "디렉토리 명령어", new BigDecimal("0.9"));
         given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
-        given(ragResponseCommandService.completeSuccess(eq(job), any())).willReturn(true);
+        given(ragResponseCommandService.completeSuccessOwned(eq(job), eq("test-token"), any())).willReturn(true);
 
-        ragFacade.processJob(JOB_ID);
+        ragFacade.processJob(JOB_ID, "test-token");
 
-        then(ragResponseCommandService).should(times(1)).completeSuccess(eq(job),
+        then(ragResponseCommandService).should(times(1)).completeSuccessOwned(eq(job), eq("test-token"),
             org.mockito.ArgumentMatchers.<OllamaGenerateResult>argThat(result ->
                 result.answerText().equals("pwd는 현재 디렉토리를 출력합니다.")
             ));
@@ -399,10 +399,10 @@ class RagFacadeTest {
     void markUnexpectedFailure_completed_publishesMetricEvent() {
         RagResponse job = RagResponse.builder().status(ResultStatus.PROCESSING).build();
         given(ragResponseRepository.findById(JOB_ID)).willReturn(Optional.of(job));
-        given(ragResponseCommandService.completeFailed(job, "답변 생성 중 예상치 못한 오류가 발생했습니다.", "bug"))
+        given(ragResponseCommandService.completeFailedOwned(job, "test-token", "답변 생성 중 예상치 못한 오류가 발생했습니다.", "bug"))
             .willReturn(true);
 
-        boolean completed = ragFacade.markUnexpectedFailure(JOB_ID, "bug");
+        boolean completed = ragFacade.markUnexpectedFailure(JOB_ID, "test-token", "bug");
 
         assertThat(completed).isTrue();
         then(applicationEventPublisher).should()
@@ -414,10 +414,10 @@ class RagFacadeTest {
     void markUnexpectedFailure_losesRace_doesNotPublishMetricEvent() {
         RagResponse job = RagResponse.builder().status(ResultStatus.PROCESSING).build();
         given(ragResponseRepository.findById(JOB_ID)).willReturn(Optional.of(job));
-        given(ragResponseCommandService.completeFailed(job, "답변 생성 중 예상치 못한 오류가 발생했습니다.", "bug"))
+        given(ragResponseCommandService.completeFailedOwned(job, "test-token", "답변 생성 중 예상치 못한 오류가 발생했습니다.", "bug"))
             .willReturn(false);
 
-        boolean completed = ragFacade.markUnexpectedFailure(JOB_ID, "bug");
+        boolean completed = ragFacade.markUnexpectedFailure(JOB_ID, "test-token", "bug");
 
         assertThat(completed).isFalse();
         then(applicationEventPublisher).shouldHaveNoInteractions();

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,17 +52,18 @@ class RagResponseCommandServiceTest {
     }
 
     @Test
-    @DisplayName("completeSuccess: 조건부 UPDATE(completeSuccessIfProcessing)로 확정을 요청하고, 반영되면 true를 반환한다")
+    @DisplayName("completeSuccessOwned: 현재 token과 유효한 lease로 확정하면 true를 반환한다")
     void completeSuccess_requestsConditionalUpdateAndReturnsTrueWhenApplied() {
         RagResponse pending = RagResponse.builder().status(ResultStatus.PROCESSING).promptText("조립된 프롬프트").build();
         OllamaGenerateResult result = new OllamaGenerateResult(
             "qwen2.5:7b", "연차는 입사 1년 기준 15일 부여됩니다.", 120, 45, 1800
         );
-        given(ragResponseRepository.completeSuccessIfProcessing(
-            eq(pending.getId()), eq("연차는 입사 1년 기준 15일 부여됩니다."), eq("qwen2.5:7b"), eq(120), eq(45), eq(1800)
+        given(ragResponseRepository.completeSuccessIfOwned(
+            eq(pending.getId()), eq("token-a"), any(LocalDateTime.class),
+            eq("연차는 입사 1년 기준 15일 부여됩니다."), eq("qwen2.5:7b"), eq(120), eq(45), eq(1800)
         )).willReturn(1);
 
-        boolean completed = ragResponseCommandService.completeSuccess(pending, result);
+        boolean completed = ragResponseCommandService.completeSuccessOwned(pending, "token-a", result);
 
         assertThat(completed).isTrue();
     }
@@ -71,24 +73,25 @@ class RagResponseCommandServiceTest {
     void completeSuccess_conditionalUpdateAppliesToNoRows_returnsFalse() {
         RagResponse pending = RagResponse.builder().status(ResultStatus.PROCESSING).promptText("조립된 프롬프트").build();
         OllamaGenerateResult result = new OllamaGenerateResult("qwen2.5:7b", "답변", 10, 5, 100);
-        given(ragResponseRepository.completeSuccessIfProcessing(any(), any(), any(), any(), any(), any()))
+        given(ragResponseRepository.completeSuccessIfOwned(any(), any(), any(), any(), any(), any(), any(), any()))
             .willReturn(0);
 
-        boolean completed = ragResponseCommandService.completeSuccess(pending, result);
+        boolean completed = ragResponseCommandService.completeSuccessOwned(pending, "token-a", result);
 
         assertThat(completed).isFalse();
     }
 
     @Test
-    @DisplayName("completeFailed: 조건부 UPDATE(forceFailIfProcessing)로 확정을 요청하고, 반영되면 true를 반환한다")
+    @DisplayName("completeFailedOwned: 현재 token의 실패 확정만 true를 반환한다")
     void completeFailed_requestsConditionalUpdateAndReturnsTrueWhenApplied() {
         RagResponse pending = RagResponse.builder().status(ResultStatus.PROCESSING).promptText("조립된 프롬프트").build();
-        given(ragResponseRepository.forceFailIfProcessing(
-            eq(pending.getId()), eq("extractive fallback 텍스트"), eq("Ollama 서버 연결 실패")
+        given(ragResponseRepository.completeFailureIfOwned(
+            eq(pending.getId()), eq("token-a"), any(LocalDateTime.class),
+            eq("extractive fallback 텍스트"), eq("Ollama 서버 연결 실패")
         )).willReturn(1);
 
-        boolean completed = ragResponseCommandService.completeFailed(
-            pending, "extractive fallback 텍스트", "Ollama 서버 연결 실패");
+        boolean completed = ragResponseCommandService.completeFailedOwned(
+            pending, "token-a", "extractive fallback 텍스트", "Ollama 서버 연결 실패");
 
         assertThat(completed).isTrue();
     }
@@ -97,9 +100,9 @@ class RagResponseCommandServiceTest {
     @DisplayName("completeFailed: 조건부 UPDATE가 영향받은 행 0건이면(#288, 스위퍼가 이미 확정함) false를 반환한다")
     void completeFailed_conditionalUpdateAppliesToNoRows_returnsFalse() {
         RagResponse pending = RagResponse.builder().status(ResultStatus.PROCESSING).promptText("조립된 프롬프트").build();
-        given(ragResponseRepository.forceFailIfProcessing(any(), any(), any())).willReturn(0);
+        given(ragResponseRepository.completeFailureIfOwned(any(), any(), any(), any(), any())).willReturn(0);
 
-        boolean completed = ragResponseCommandService.completeFailed(pending, "fallback", "error");
+        boolean completed = ragResponseCommandService.completeFailedOwned(pending, "token-a", "fallback", "error");
 
         assertThat(completed).isFalse();
     }

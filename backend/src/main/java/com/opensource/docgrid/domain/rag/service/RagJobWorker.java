@@ -1,13 +1,12 @@
 package com.opensource.docgrid.domain.rag.service;
 
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -17,6 +16,7 @@ import com.opensource.docgrid.domain.rag.controller.RagWebSocketController;
 import com.opensource.docgrid.domain.rag.entity.RagResponse;
 import com.opensource.docgrid.domain.rag.repository.RagResponseRepository;
 import com.opensource.docgrid.domain.rag.service.command.RagResponseClaimService;
+import com.opensource.docgrid.domain.rag.service.command.RagJobClaim;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,21 +24,18 @@ import lombok.extern.slf4j.Slf4j;
  * PROCESSING 상태인 RagResponse를 최대 {@code rag.worker.max-concurrency}건까지 동시에 꺼내
  * 처리하는 경량 Worker (#218, 병렬화는 #340).
  *
- * <p>{@code embedding_jobs}용 Worker(heartbeat·lease 복구 등 분산 처리 안전장치 포함, 수십 파일
- * 규모)와 달리, 이 Worker는 백엔드 인스턴스가 1개뿐이라는 전제 위에서 만들어졌다 — 여러 인스턴스
- * 간 조율(락·lease)은 필요 없다. 다만 GPU/Ollama 하나가 실제로 감당 가능한 병렬 슬롯 수만큼은
- * 이 프로세스 안에서 동시에 처리할 수 있다는 것이 #340의 전제다.
+ * <p>여러 백엔드 인스턴스가 같은 DB 큐를 소비한다. 각 claim의 token·lease를 heartbeat로
+ * 유지하고, 완료 쓰기에서도 token을 검사해 잃어버린 소유권의 늦은 결과를 폐기한다.
  *
  * <p>동시성은 두 계층으로 제한된다: ① {@link #ragWorkerSlots}(로컬 {@link Semaphore})를 먼저
  * 확보해야 DB claim을 시도하고 — 이 순서 덕분에 "claim은 됐는데 실행할 스레드가 없는" 상태가
  * 생기지 않는다. ② claim 자체는 {@link RagResponseClaimService}가 {@code FOR UPDATE SKIP
- * LOCKED} + {@code claimed_at}으로 여러 스레드가 동시에 같은 job을 집지 못하게 막는다. 실제
+ * LOCKED} + token·lease로 여러 스레드가 동시에 같은 job을 집지 못하게 막는다. 실제
  * 처리는 {@link #ragWorkerJobExecutor}(전용 {@link ThreadPoolExecutor})에서 실행되어,
  * {@link #processNext()} 자체는 claim만 하고 즉시 반환한다 — Ollama 호출(최대
  * {@code ollama.generate-deadline})로 폴링 스레드가 막히지 않는다.
  *
- * <p>{@link #recoverStaleClaimsOnStartup()}은 재시작 전 프로세스가 claim한 채 남긴 job의
- * claim을 앱 시작 시 1회 풀어준다 — "인스턴스 1개" 전제를 유지하는 한 안전한 최소한의 복구다.
+ * <p>다른 앱의 기동은 유효한 claim을 지우지 않는다. 죽은 앱의 작업만 lease 만료 뒤 재획득한다.
  */
 @Component
 @Slf4j
@@ -50,6 +47,7 @@ public class RagJobWorker {
     private final RagWebSocketController ragWebSocketController;
     private final Semaphore ragWorkerSlots;
     private final ThreadPoolExecutor ragWorkerJobExecutor;
+    private final ConcurrentHashMap<Long, RagJobClaim> activeClaims = new ConcurrentHashMap<>();
 
     public RagJobWorker(
         RagResponseRepository ragResponseRepository,
@@ -67,20 +65,18 @@ public class RagJobWorker {
         this.ragWorkerJobExecutor = ragWorkerJobExecutor;
     }
 
-    /**
-     * 앱 준비 완료 시 1회, 이전 프로세스가 claim한 채 완료하지 못한 job의 claim을 전부 풀어
-     * 재시작 뒤에도 다시 시도될 수 있게 한다(#340 CodeRabbit 리뷰 반영). 이 복구가 없으면
-     * {@code claimed_at}이 남아있는 job은 {@link RagResponseClaimService#claimNext}가 영원히
-     * 다시 집어주지 않아, 실제로 한 번도 재시도되지 않고 {@code RagJobTimeoutSweeper}의
-     * fallback만 기다리게 된다(#218 이전 방식은 이런 job을 자동으로 재시도했으므로 이 복구가
-     * 없으면 퇴보다). "인스턴스는 항상 1개"라는 전제 위에서만 안전 — 이 시점엔 다른 프로세스가
-     * 진짜로 처리 중일 수 없다.
-     */
-    @EventListener(ApplicationReadyEvent.class)
-    public void recoverStaleClaimsOnStartup() {
-        int recovered = ragResponseClaimService.recoverStaleClaimsOnStartup();
-        if (recovered > 0) {
-            log.warn("[RAG-WORKER] 재시작 복구: 이전 프로세스가 claim한 채 방치된 job {}건의 claim을 해제함", recovered);
+    /** 실행 중인 작업만 5초마다 연장한다. 실패하면 이전 token의 완료 쓰기는 DB에서 거부된다. */
+    @Scheduled(fixedDelayString = "${rag.worker.lease-heartbeat-interval:5s}")
+    public void renewActiveClaims() {
+        for (RagJobClaim claim : activeClaims.values()) {
+            try {
+                if (!ragResponseClaimService.renew(claim)) {
+                    activeClaims.remove(claim.jobId(), claim);
+                    log.warn("[RAG-WORKER] lease 소유권 상실 jobId={}", claim.jobId());
+                }
+            } catch (RuntimeException e) {
+                log.warn("[RAG-WORKER] lease 연장 실패 jobId={}", claim.jobId(), e);
+            }
         }
     }
 
@@ -101,30 +97,33 @@ public class RagJobWorker {
     @Scheduled(fixedDelayString = "${rag.worker.polling-interval:1s}")
     public void processNext() {
         while (ragWorkerSlots.tryAcquire()) {
-            Optional<Long> claimedJobId;
+            Optional<RagJobClaim> claimedJob;
             try {
-                claimedJobId = ragResponseClaimService.claimNext();
+                claimedJob = ragResponseClaimService.claimNext();
             } catch (RuntimeException e) {
                 ragWorkerSlots.release();
                 log.error("[RAG-WORKER] claim 중 예외 발생", e);
                 return;
             }
 
-            if (claimedJobId.isEmpty()) {
+            if (claimedJob.isEmpty()) {
                 // 대기 중인 job이 없다 — 미리 확보한 슬롯을 돌려주고 이번 폴링을 끝낸다.
                 ragWorkerSlots.release();
                 return;
             }
 
-            Long jobId = claimedJobId.get();
+            RagJobClaim claim = claimedJob.get();
+            Long jobId = claim.jobId();
+            activeClaims.put(jobId, claim);
             try {
-                ragWorkerJobExecutor.execute(() -> executeClaimedJob(jobId));
+                ragWorkerJobExecutor.execute(() -> executeClaimedJob(claim));
             } catch (RejectedExecutionException e) {
                 /**
                  * 슬롯을 먼저 확보했으므로 이론상 도달하지 않아야 하지만(Executor 정원 =
                  * Semaphore 총 permit 수), 종료 절차 중 등 극단적 상황에 대비한 방어다.
                  */
                 ragWorkerSlots.release();
+                activeClaims.remove(jobId, claim);
                 log.warn("[RAG-WORKER] 실행 제출이 거부됨 jobId={}", jobId);
                 return;
             }
@@ -148,7 +147,8 @@ public class RagJobWorker {
      * <p>어떤 경로로 끝나든 {@code finally}에서 반드시 슬롯을 반환한다 — 안 그러면 이 Worker가
      * 처리 가능한 동시성이 영구히 줄어든다.
      */
-    private void executeClaimedJob(Long jobId) {
+    private void executeClaimedJob(RagJobClaim claim) {
+        Long jobId = claim.jobId();
         try {
             RagResponse job = ragResponseRepository.findWithQueryAndUserById(jobId).orElse(null);
             if (job == null) {
@@ -163,18 +163,19 @@ public class RagJobWorker {
             String userEmail = job.getQuery().getUser().getEmail();
 
             try {
-                if (ragFacade.processJob(jobId)) {
+                if (ragFacade.processJob(jobId, claim.token())) {
                     ragWebSocketController.notifyAnswerReady(userEmail, queryId);
                 }
             } catch (OptimisticLockingFailureException e) {
                 log.warn("[RAG-WORKER] job이 이미 다른 트랜잭션에서 처리된 것으로 보임(경합) queryId={}", queryId);
             } catch (Exception e) {
                 log.error("[RAG-WORKER] job 처리 중 예상치 못한 예외 queryId={}", queryId, e);
-                if (ragFacade.markUnexpectedFailure(jobId, e.getMessage())) {
+                if (ragFacade.markUnexpectedFailure(jobId, claim.token(), e.getMessage())) {
                     ragWebSocketController.notifyAnswerReady(userEmail, queryId);
                 }
             }
         } finally {
+            activeClaims.remove(jobId, claim);
             ragWorkerSlots.release();
         }
     }

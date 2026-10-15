@@ -93,12 +93,19 @@ public class RagResponse extends BaseEntity {
     private String errorMessage;
 
     /**
-     * 병렬 Worker가 이 job을 이미 집었는지 표시한다(#340). status만으로는 "대기 중"과 "누가 이미
-     * 처리 중"을 구분할 수 없어서(둘 다 PROCESSING) 별도로 둔다. RagResponseClaimService의 짧은
-     * claim 트랜잭션 안에서만 채워지며, 그 밖의 완료 확정 경로(조건부 UPDATE)는 이 컬럼을 건드리지 않는다.
+     * 선점 시각은 진단용으로 남기고, 실제 소유권은 owner·token·lease 만료 시각으로 판정한다.
      */
     @Column(name = "claimed_at")
     private LocalDateTime claimedAt;
+
+    @Column(name = "claim_owner", length = 80)
+    private String claimOwner;
+
+    @Column(name = "claim_token", length = 80)
+    private String claimToken;
+
+    @Column(name = "claim_lease_until")
+    private LocalDateTime claimLeaseUntil;
 
     @Builder
     public RagResponse(SearchQuery query, String answerText, String llmProvider, String llmModelName,
@@ -121,7 +128,10 @@ public class RagResponse extends BaseEntity {
      * 짧은 claim 트랜잭션 안에서만 호출되어야 한다 — dirty checking으로 반영되므로, 이 엔티티가
      * detached된 뒤(다른 트랜잭션/스레드로 넘어간 뒤)에 호출하면 반영되지 않는다.
      */
-    public void markClaimed(LocalDateTime claimedAt) {
+    public void markClaimed(LocalDateTime claimedAt, String owner, String token, LocalDateTime leaseUntil) {
         this.claimedAt = claimedAt;
+        this.claimOwner = owner;
+        this.claimToken = token;
+        this.claimLeaseUntil = leaseUntil;
     }
 }
