@@ -27,6 +27,7 @@ import com.opensource.docgrid.domain.embedding.enums.EmbeddingJobManualRetryElig
 import com.opensource.docgrid.domain.embedding.enums.EmbeddingJobStatus;
 import com.opensource.docgrid.domain.embedding.service.query.IndexingJobAdminQueryService;
 import com.opensource.docgrid.global.common.response.PageResponse;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 /**
  * 실제 PostgreSQL에서 관리자 Job 필터·고정 정렬과 Attempt·Event Pagination Query를 검증한다.
@@ -57,7 +58,7 @@ class IndexingJobAdminQueryIntegrationTest {
 
     @BeforeEach
     void resetState() {
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 indexing_events,
                 embedding_job_attempts,

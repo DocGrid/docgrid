@@ -43,6 +43,7 @@ import com.opensource.docgrid.domain.search.dto.VectorSearchCandidate;
 import com.opensource.docgrid.domain.search.service.query.VectorSearchQueryService;
 import com.opensource.docgrid.domain.worker.config.IndexingWorkerProperties;
 import com.opensource.docgrid.global.exception.DocGridException;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 /**
  * 실제 PostgreSQL에서 인덱싱 실패의 예약 Queue, 최종 검색 상태, 멱등성과 완료 경쟁을 검증한다.
@@ -85,7 +86,7 @@ class DocumentIndexingFailureIntegrationTest {
 
     @BeforeEach
     void resetState() {
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 search_results,
                 search_queries,

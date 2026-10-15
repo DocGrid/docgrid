@@ -52,6 +52,7 @@ import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.domain.embedding.dto.request.CreateDocumentChunksRequest;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 /**
  * 실제 OpenSQL에서 문서 Chunk 저장의 상태·이벤트·멱등성과 동시 Transaction 수렴을 검증한다.
@@ -88,7 +89,7 @@ class DocumentChunkingIntegrationTest {
     @BeforeEach
     void resetState() {
         fileStorage.reset();
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 indexing_events,
                 document_chunks,

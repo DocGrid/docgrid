@@ -50,6 +50,7 @@ import com.opensource.docgrid.domain.sync.service.command.SyncEventDispatchServi
 import com.opensource.docgrid.domain.sync.service.command.SyncEventFailureService;
 import com.opensource.docgrid.domain.sync.service.command.SyncEventLeaseRecoveryService;
 import com.opensource.docgrid.domain.user.repository.UserRepository;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 /**
  * Sync Event Claim부터 완료까지 주요 중단 지점에서 Retry와 Lease Recovery 수렴을 검증한다.
@@ -98,7 +99,7 @@ class SyncDispatchFailureRecoveryIntegrationTest {
     void resetState() {
         reset(fileStorageService);
         dropFailureTriggers();
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 sync_admin_actions,
                 sync_consistency_issues,

@@ -31,6 +31,7 @@ import com.opensource.docgrid.domain.embedding.dto.response.DocumentIndexingComp
 import com.opensource.docgrid.domain.embedding.service.command.DocumentIndexingCompletionService;
 import com.opensource.docgrid.domain.search.dto.VectorSearchCandidate;
 import com.opensource.docgrid.domain.search.service.query.VectorSearchQueryService;
+import com.opensource.docgrid.global.support.TruncateDeadlockRetry;
 
 /**
  * 실제 OpenSQL에서 문서 인덱싱 완료가 검색 가시성과 Version별 Embedding 상태를 원자적으로 전환하는지 검증한다.
@@ -67,7 +68,7 @@ class DocumentIndexingCompletionIntegrationTest {
 
     @BeforeEach
     void resetState() {
-        jdbcTemplate.execute("""
+        TruncateDeadlockRetry.execute(jdbcTemplate, """
             TRUNCATE TABLE
                 search_results,
                 search_queries,
