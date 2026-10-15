@@ -8,6 +8,16 @@ RAG 답변에 활용합니다. 문서·컬렉션 관리, 인용 근거, MCP 연�
 Vercel 프런트엔드, Cloud Run 공개 게이트웨이, GCP의 백엔드 A/B·AI·캐시 VM,
 OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합니다.
 
+## 시연 영상
+
+썸네일을 누르면 YouTube에서 재생됩니다.
+
+| 1. 서비스 사용 흐름·인덱싱 장애 대응 | 2. OpenProxy A 장애 중 k6 부하·HTTP 응답 |
+|---|---|
+| [![서비스 사용 흐름 및 인덱싱 장애 대응 시연](https://img.youtube.com/vi/t2JHrvTSC-w/mqdefault.jpg)](https://youtu.be/t2JHrvTSC-w) | [![OpenProxy A 장애 중 k6 부하·HTTP 응답 시연](https://img.youtube.com/vi/hwP4-J86BqE/mqdefault.jpg)](https://youtu.be/hwP4-J86BqE) |
+| **3. OpenProxy A 장애 중 실제 웹 기능** | **4. Primary VM 장애·Failover·멱등 재전송** |
+| [![OpenProxy A 장애 중 실제 웹 기능 시연](https://img.youtube.com/vi/i9-LmozKqu4/mqdefault.jpg)](https://youtu.be/i9-LmozKqu4) | [![Primary VM 장애·Failover·멱등 재전송 시연](https://img.youtube.com/vi/NWlwwDB0a94/mqdefault.jpg)](https://youtu.be/NWlwwDB0a94) |
+
 ## 주요 기능
 
 - **문서 인덱싱 파이프라인**: PDF·DOCX 원본을 저장하고 본문 Parsing, Chunk 분할, BGE-M3 Batch
@@ -25,6 +35,29 @@ OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합�
 - **환경별 저장소와 OpenSQL 연결**: 로컬·MinIO·GCS 저장소 Adapter와 OpenProxy A/B를 통한
   OpenSQL 3노드 연결을 지원합니다. AWS S3 Adapter도 코드에 남아 있지만 현재 GCP 시험 저장소는
   GCS입니다.
+
+## 검증된 범위
+
+아래 수치는 `docs/test-results`에 기록된 **실행별 관측값이며 보장이 아닙니다.** 행마다 환경·부하·실행
+시점이 달라 서로 합산하거나 비교하지 않습니다. OpenSQL 장애 시험은 DB 밖 요청 원장의 `request_id`와
+최종 primary의 DB 행을 실행 ID별로 대조했습니다.
+
+| 검증 | 조건 (실행 ID·날짜) | 관측값 | 실패·한계 |
+|---|---|---|---|
+| [OpenProxy 한쪽 중단](docs/test-results/gimin-391-openproxy-ab-fault-load-20261003.md) | GCP, 100 req/s × 130초, A `ha391fa20001`·B `ha391fb20001`, 2026-10-03 | A 13,000건 중 201 **12,997**, B 13,001건 중 201 **12,993**. 201 응답의 DB 누락·중복 **0** | HTTP 500 A 3건·B 8건으로 **무오류 기준 실패**. 앞선 실행은 A 0건·B 10건 |
+| [계획 switchover](docs/test-results/issue-412-opensql-switchover-vu-telemetry-20261004.md) | GCP, 70 req/s × 180초, `ha412sw400c`, 2026-10-04 | 12,601건 전송·미전송 0. 201 **12,516**건의 DB 누락·중복 **0** | HTTP 500 85건, 연속 201 최대 공백 6.204초 |
+| [리더 VM 즉시 상실](docs/test-results/opensql-primary-unplanned-fault-load-20261004.md) | GCP, 30 req/s × 180초, `ha420vm00001`, 2026-10-04 | 새 primary 승격(timeline 12→13), 옛 노드 replica 재합류. 201 **4,349**건의 DB 누락·중복 **0** | HTTP 500 467·503 582·결과 불명 3건(1건 DB 반영). 같은 VM의 OpenProxy A도 함께 상실. 옛 VM은 자동 재시작 가드 실패로 수동 시작 |
+| [etcd 두 멤버 중단](docs/test-results/opensql-etcd-http-failsafe-20261004.md) | GCP, 30 req/s × 150초 중 약 100초 정족수 상실, `e428htwo01`, 2026-10-04 | **4,500/4,500** HTTP 201·미전송 0, DB 4,500 ID 각 1행. TTL 이후 보수적 구간에서도 201 2,100건 | `failsafe_mode=true`에서 이 실행의 관측. 매 순간 split-brain 0은 증명하지 못했고 네트워크 분할은 미시험 |
+| [DB 장애 중 인덱싱 Worker](docs/test-results/opensql-worker-primary-fault-20261004.md) | GCP, PDF 12 + DOCX 12 선접수 후 처리 중 postmaster 종료, `ha424fault003`, 2026-10-04 | **24/24** `INDEXED`, 청크 36·활성 임베딩 36, 청크·임베딩·Outbox 멱등 키 중복 **0** | 첫 Attempt는 lease 만료, 재시도로 성공. 약 5분 43초는 Worker 최종 복구 시간이며 DB RTO가 아님. Outbox 외부 전달은 미측정 |
+| 권한 회수 복제 지연 ([재현](docs/test-results/opensql-permission-replica-lag-safety-20261001.md) → [수정 후](docs/test-results/opensql-admin-role-primary-consistency-20261001.md)) | 두 standby에 120초 apply delay 후 ADMIN 회수. 로컬 격리 JVM 2개 → SSH 터널 → GCP OpenSQL, `53688fbe7475` → `2075ca4865f1`, 2026-10-01 | 수정 전 OpenProxy 경유 `/admin/**` 요청 **200** → 관리자 인가를 primary 트랜잭션으로 고정한 뒤 같은 조건에서 **403** | HTTP 관리자 경로에 한정. 일반 API·WebSocket 권한의 최신성과 GCP 앱 A/B 경로 재시험은 범위 밖 |
+| [하이브리드 검색 품질](docs/test-results/kangcheolung-%23456-hybrid-search.md) | 로컬 백엔드 + BGE-M3, 문서 5개·청크 83개, topK 10, 질문 세트 3개, 증빙 커밋 2026-10-10 | 벡터 단독 → 하이브리드: 111문항에서 1위 정답 **82 → 92**. 사전에 기준을 고정한 세트 3(39문항) MRR@10 **0.784 → 0.868** | 작은 코퍼스와 직접 작성한 질문. 세트 1·2는 설계에 영향을 줬고 고정 후 검증은 세트 3 한 번. 나빠진 질문 1개 |
+| [DB·GCS 시점 복원](docs/test-results/db-gcs-point-in-time-recovery-20261015/) | OpenSQL 기준 백업 + 연속 WAL을 격리 경로에서 지정 시점 T로 복원, GCS 독립 사본, 2026-10-15 | T 이전 쓰기 A 1건·이후 B 0건. 복원 DB가 참조하는 파일 91건이 모두 사본에 있고, 복원 버킷 92객체 SHA-256 **92/92** 일치 | RPO·RTO 미측정, GCS 사본은 일회성 복사. 복원본에 백엔드를 연결한 [후속 시험](docs/test-results/db-gcs-service-recovery-20261015/)은 실제 모델 없이 일부 경로만 확인 |
+| [PDF·DOCX 인덱싱 E2E](docs/test-results/gimin-%23145-final-performance-report.md) | 로컬 Apple Silicon 1대, PostgreSQL 17.8·MinIO·CPU BGE-M3, Worker Slot 2, 50·100문서 각 2회, 2026-08-11 | **31.046·32.063**문서/분. 합계 300문서·1,200 Vector에서 실패·재시도·미완료·중복 **0** | 로컬 개발 기준선이며 OpenSQL 원격 서버 성능이나 운영 SLO가 아님. OCR 제외 |
+
+장애 중 HTTP 500·503과 결과 불명이 실제로 발생했고, 결과 불명 일부는 DB에 반영됐습니다. 따라서 위 결과는
+무중단 가용성이나 모든 장애에서의 RPO 0을 입증하지 않습니다. postmaster 종료, 동기 standby 링크 차단 등
+다른 장애 유형과 시험별 세부 조건은 [OpenSQL 핵심 부하·장애 검증](#opensql-핵심-부하장애-검증)과
+[3노드 HA 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md)에 있습니다.
 
 ## 아키텍처
 
