@@ -39,25 +39,39 @@ OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합�
 ## 검증된 범위
 
 아래 수치는 `docs/test-results`에 기록된 **실행별 관측값이며 보장이 아닙니다.** 행마다 환경·부하·실행
-시점이 달라 서로 합산하거나 비교하지 않습니다. OpenSQL 장애 시험은 DB 밖 요청 원장의 `request_id`와
-최종 primary의 DB 행을 실행 ID별로 대조했습니다.
+시점이 달라 서로 합산하거나 비교하지 않습니다. 다른 기능·호환성 시험은 [전체 실행 기록](docs/test-results/)에
+보존되어 있습니다.
 
-| 검증 | 조건 (실행 ID·날짜) | 관측값 | 실패·한계 |
-|---|---|---|---|
-| [OpenProxy 한쪽 중단](docs/test-results/gimin-391-openproxy-ab-fault-load-20261003.md) | GCP, 100 req/s × 130초, A `ha391fa20001`·B `ha391fb20001`, 2026-10-03 | A 13,000건 중 201 **12,997**, B 13,001건 중 201 **12,993**. 201 응답의 DB 누락·중복 **0** | HTTP 500 A 3건·B 8건으로 **무오류 기준 실패**. 앞선 실행은 A 0건·B 10건 |
-| [계획 switchover](docs/test-results/issue-412-opensql-switchover-vu-telemetry-20261004.md) | GCP, 70 req/s × 180초, `ha412sw400c`, 2026-10-04 | 12,601건 전송·미전송 0. 201 **12,516**건의 DB 누락·중복 **0** | HTTP 500 85건, 연속 201 최대 공백 6.204초 |
-| [리더 VM 즉시 상실](docs/test-results/opensql-primary-unplanned-fault-load-20261004.md) | GCP, 30 req/s × 180초, `ha420vm00001`, 2026-10-04 | 새 primary 승격(timeline 12→13), 옛 노드 replica 재합류. 201 **4,349**건의 DB 누락·중복 **0** | HTTP 500 467·503 582·결과 불명 3건(1건 DB 반영). 같은 VM의 OpenProxy A도 함께 상실. 옛 VM은 자동 재시작 가드 실패로 수동 시작 |
-| [etcd 두 멤버 중단](docs/test-results/opensql-etcd-http-failsafe-20261004.md) | GCP, 30 req/s × 150초 중 약 100초 정족수 상실, `e428htwo01`, 2026-10-04 | **4,500/4,500** HTTP 201·미전송 0, DB 4,500 ID 각 1행. TTL 이후 보수적 구간에서도 201 2,100건 | `failsafe_mode=true`에서 이 실행의 관측. 매 순간 split-brain 0은 증명하지 못했고 네트워크 분할은 미시험 |
-| [DB 장애 중 인덱싱 Worker](docs/test-results/opensql-worker-primary-fault-20261004.md) | GCP, PDF 12 + DOCX 12 선접수 후 처리 중 postmaster 종료, `ha424fault003`, 2026-10-04 | **24/24** `INDEXED`, 청크 36·활성 임베딩 36, 청크·임베딩·Outbox 멱등 키 중복 **0** | 첫 Attempt는 lease 만료, 재시도로 성공. 약 5분 43초는 Worker 최종 복구 시간이며 DB RTO가 아님. Outbox 외부 전달은 미측정 |
-| 권한 회수 복제 지연 ([재현](docs/test-results/opensql-permission-replica-lag-safety-20261001.md) → [수정 후](docs/test-results/opensql-admin-role-primary-consistency-20261001.md)) | 두 standby에 120초 apply delay 후 ADMIN 회수. 로컬 격리 JVM 2개 → SSH 터널 → GCP OpenSQL, `53688fbe7475` → `2075ca4865f1`, 2026-10-01 | 수정 전 OpenProxy 경유 `/admin/**` 요청 **200** → 관리자 인가를 primary 트랜잭션으로 고정한 뒤 같은 조건에서 **403** | HTTP 관리자 경로에 한정. 일반 API·WebSocket 권한의 최신성과 GCP 앱 A/B 경로 재시험은 범위 밖 |
-| [하이브리드 검색 품질](docs/test-results/kangcheolung-%23456-hybrid-search.md) | 로컬 백엔드 + BGE-M3, 문서 5개·청크 83개, topK 10, 질문 세트 3개, 증빙 커밋 2026-10-10 | 벡터 단독 → 하이브리드: 111문항에서 1위 정답 **82 → 92**. 사전에 기준을 고정한 세트 3(39문항) MRR@10 **0.784 → 0.868** | 작은 코퍼스와 직접 작성한 질문. 세트 1·2는 설계에 영향을 줬고 고정 후 검증은 세트 3 한 번. 나빠진 질문 1개 |
-| [DB·GCS 시점 복원](docs/test-results/db-gcs-point-in-time-recovery-20261015/) | OpenSQL 기준 백업 + 연속 WAL을 격리 경로에서 지정 시점 T로 복원, GCS 독립 사본, 2026-10-15 | T 이전 쓰기 A 1건·이후 B 0건. 복원 DB가 참조하는 파일 91건이 모두 사본에 있고, 복원 버킷 92객체 SHA-256 **92/92** 일치 | RPO·RTO 미측정, GCS 사본은 일회성 복사. 복원본에 백엔드를 연결한 [후속 시험](docs/test-results/db-gcs-service-recovery-20261015/)은 실제 모델 없이 일부 경로만 확인 |
-| [PDF·DOCX 인덱싱 E2E](docs/test-results/gimin-%23145-final-performance-report.md) | 로컬 Apple Silicon 1대, PostgreSQL 17.8·MinIO·CPU BGE-M3, Worker Slot 2, 50·100문서 각 2회, 2026-08-11 | **31.046·32.063**문서/분. 합계 300문서·1,200 Vector에서 실패·재시도·미완료·중복 **0** | 로컬 개발 기준선이며 OpenSQL 원격 서버 성능이나 운영 SLO가 아님. OCR 제외 |
+### OpenSQL 3노드 부하·장애
 
-장애 중 HTTP 500·503과 결과 불명이 실제로 발생했고, 결과 불명 일부는 DB에 반영됐습니다. 따라서 위 결과는
-무중단 가용성이나 모든 장애에서의 RPO 0을 입증하지 않습니다. postmaster 종료, 동기 standby 링크 차단 등
-다른 장애 유형과 시험별 세부 조건은 [OpenSQL 핵심 부하·장애 검증](#opensql-핵심-부하장애-검증)과
-[3노드 HA 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md)에 있습니다.
+| 시험 | 실행 목적 | 실행 조건 | 관측 결과 | 실행 기록 |
+|---|---|---|---|---|
+| **정상 쓰기 부하** | 이후 장애 시험을 같은 잣대로 비교할 정상 상태 기준선 확보 | GCP 내부 LB → 백엔드 A/B → OpenProxy A/B → OpenSQL 3노드, 150 req/s × 60초 × 3회, 2026-10-02 | 회차마다 HTTP 201 **9,001건**, DB 누락·중복·실패·드롭 **0건**. 200·250 req/s는 안정 기준선에서 제외 | [GCP HTTP 쓰기 기준선](docs/test-results/gimin-389-opensql-ha-http-write-baseline-20261002.md) |
+| **OpenProxy 한쪽 장애** | 프록시 한 대가 멈췄을 때 기존 연결이 어떻게 실패하고 전환되는지 확인 | A와 B를 각각 중단, 100 req/s × 130초, `ha391fa20001`·`ha391fb20001`, 2026-10-03 | 살아 있는 프록시로 새 JDBC 연결 전환. 201 **12,997·12,993건**의 DB 누락·중복 **0건**. 장애 순간 HTTP 500 A 3건·B 8건 | [장애 부하](docs/test-results/gimin-391-openproxy-ab-fault-load-20261003.md), [500 원장 재분석](docs/test-results/gimin-393-openproxy-http-500-analysis-20261003.md) |
+| **Patroni 계획 역할 전환** | 계획 switchover 뒤 이전 리더가 `Replica:stopping`에 머무는 문제를 고치고 자동 재합류 확인 | 3노드에서 양방향 계획 switchover, HTTP 부하 없음, 2026-10-03 | 이전 리더가 replica로 자동 재합류, streaming 복귀 **19초·18초**, 수동 컨테이너 재시작 **0회** | [3노드 재합류 검증](docs/test-results/gimin-401-patroni-auto-rejoin-20261003.md) |
+| **부하 중 계획 switchover** | 부하 발생기의 미전송과 서버 실패를 분리해 전환 중 실제 응답을 측정 | 70 req/s × 180초, `ha412sw400c`, 2026-10-04 | 12,601건 전송·미전송 0, 201 **12,516건**의 DB 누락·중복 **0건**. 전환 중 HTTP 500 85건, 201 최대 공백 6.204초 | [switchover 재시험](docs/test-results/issue-412-opensql-switchover-vu-telemetry-20261004.md) |
+| **primary 프로세스 장애** | 계획 전환과 구분해 비계획 장애 중 쓰기 회복과 데이터 보존 측정 | PostgreSQL `postmaster` 종료, 30 req/s × 120초, `ha420proc001`, 2026-10-04 | DB가 같은 노드에서 재시작. 201 **3,372건**의 DB 누락·중복 **0건**. 장애 중 HTTP 500 227건·결과 불명 2건(1건 DB 반영) | [비계획 장애 실측](docs/test-results/opensql-primary-unplanned-fault-load-20261004.md) |
+| **리더 VM 즉시 상실** | 계획 전환과 구분해 비계획 장애 중 쓰기 회복과 데이터 보존 측정 | 리더 VM과 같은 VM의 OpenProxy A가 함께 상실, 30 req/s × 180초, `ha420vm00001`, 2026-10-04 | 새 primary 승격(timeline 12→13) 후 옛 노드 재합류. 201 **4,349건**의 DB 누락·중복 **0건**. 전환 중 HTTP 500 467·503 582건·결과 불명 3건 | [비계획 장애 실측](docs/test-results/opensql-primary-unplanned-fault-load-20261004.md) |
+| **etcd 두 멤버 중단** | etcd 정족수 상실 시 Patroni failsafe 동작과 앱 HTTP 쓰기 결과 확인 | 약 100초 정족수 상실, 30 req/s × 150초, `failsafe_mode=true`, `e428htwo01`, 2026-10-04 | **4,500/4,500** HTTP 201, DB 4,500 ID 각 1행. TTL(30초) 이후 구간에서도 201 2,100건 | [etcd HTTP failsafe](docs/test-results/opensql-etcd-http-failsafe-20261004.md) |
+| **DB 장애 중 인덱싱 복구** | 문서 인덱싱 중 primary 장애가 나도 Worker lease·재처리로 최종 정합성이 맞는지 검증 | PDF 12건·DOCX 12건 선접수 후 primary 프로세스 종료, 시험 전용 Worker 유지, `ha424fault003`, 2026-10-04 | 최종 **24/24건** `INDEXED`, Chunk 36·ACTIVE Vector 36·자연키·Outbox 멱등 키 중복 **0**. Lease 만료 뒤 두 번째 Attempt 성공(약 5분 43초, 기본 Lease 5분 포함) | [Worker 장애 복구](docs/test-results/opensql-worker-primary-fault-20261004.md) |
+| **복제 지연·권한 안전성** | 권한 조회가 standby로 가는 경로에서, 회수한 ADMIN이 뒤처진 standby 때문에 다시 허용되는지 확인 | standby 적용을 지연시킨 뒤 ADMIN 회수, OpenProxy 경유 관리자 요청 재시험, 2026-09-29 재현 → 2026-10-01 수정 후 | 수정 전 HTTP 200 재현 → 관리자 인가를 primary 트랜잭션으로 고정한 뒤 **403**. 적용 범위는 HTTP 관리자 경로 | [문제 재현](docs/test-results/opensql-permission-replica-lag-20260929.md), [수정 후 검증](docs/test-results/opensql-admin-role-primary-consistency-20261001.md) |
+
+장애 시험은 DB 밖 요청 원장의 `request_id`와 최종 primary의 DB 행을 실행 ID별로 대조했습니다. 이 표가
+검증한 것은 **성공 응답(201)을 받은 쓰기가 DB에 정확히 한 번 남는지**이며, 장애 순간의 HTTP 500·503과
+결과 불명도 그대로 적었습니다. 무중단 가용성이나 모든 장애에서의 RPO 0을 주장하지 않으며, 리더 VM 상실의
+안정화 관측 구간 약 52.9초도 일반적인 RTO로 해석하지 않습니다. 동기 standby 링크 차단 시험과 시간 값의
+해석은 [3노드 HA 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md)에 있습니다.
+
+### 검색 품질·복원·성능
+
+| 시험 | 실행 목적 | 실행 조건 | 관측 결과 | 실행 기록 |
+|---|---|---|---|---|
+| **하이브리드 검색 품질** | 짧은 용어·약어 질문을 벡터 검색만으로 찾지 못하는 문제 개선(예: `OM은 뭐야?` 정답 7위) | 로컬 백엔드 + BGE-M3, 문서 5개·청크 83개, topK 10, 질문 3세트 111문항, 증빙 커밋 2026-10-10 | 벡터 단독 → 하이브리드: 1위 정답 **82 → 92**. 사전에 기준을 고정한 세트 3(39문항) MRR@10 **0.784 → 0.868** | [검색 품질 측정](docs/test-results/kangcheolung-%23456-hybrid-search.md) |
+| **DB·GCS 시점 복원** | DB가 보관한 문서 기록과 GCS 원본을 같은 시점으로 복원해 서로 맞는지 확인 | OpenSQL 기준 백업 + 연속 WAL을 격리 경로에서 지정 시점 T로 복원, GCS 독립 사본, 2026-10-15 | T 이전 쓰기 A 1건·이후 B 0건. 복원 DB가 참조하는 파일 91건 모두 사본에 존재, 복원 버킷 92객체 SHA-256 **92/92** 일치 | [시점 복원](docs/test-results/db-gcs-point-in-time-recovery-20261015/), [서비스 경로 후속 시험](docs/test-results/db-gcs-service-recovery-20261015/) |
+| **PDF·DOCX 인덱싱 E2E** | 실제 PDF·DOCX 여러 건을 함께 접수했을 때의 처리량과 데이터 완전성 측정 | 로컬 Apple Silicon 1대, PostgreSQL 17.8·MinIO·CPU BGE-M3, Worker Slot 2, 50·100문서 각 2회, 2026-08-11 | **31.046·32.063**문서/분. 합계 300문서·1,200 Vector에서 실패·재시도·미완료·중복 **0** | [최종 성능 리포트](docs/test-results/gimin-%23145-final-performance-report.md), [원본 측정](docs/test-results/gimin-%23143-pdf-docx-indexing-e2e-load-benchmark.md) |
+
+검색 품질은 직접 작성한 질문과 작은 코퍼스, 성능은 로컬 개발 장비의 기준선입니다. 시점 복원은 RPO·RTO를
+측정하지 않았고, 서비스 경로 후속 시험은 실제 모델 대신 고정 벡터 스텁으로 검색·인덱싱을 확인했습니다.
 
 ## 아키텍처
 
@@ -323,28 +337,6 @@ docker compose up -d --build --wait postgres minio valkey embedding-server
 DB_HOST=127.0.0.1 DB_PORT=55432 \
   ./backend/gradlew -p backend storageWorkerE2eTest
 ```
-
-## OpenSQL 핵심 부하·장애 검증
-
-**OpenSQL 3노드의 실제 앱 쓰기 부하와 장애 대응**을 중심으로
-정리했습니다. 아래 결과는 실행 시점·환경이 서로 달라 하나의 서비스 가용성 수치로 합칠 수 없습니다.
-
-| 시험 | 실행 조건 | 관측 결과와 한계 | 실행 기록 |
-|---|---|---|---|
-| **정상 쓰기 부하** | GCP 내부 LB → 백엔드 A/B → OpenProxy A/B → OpenSQL 3노드, 150 req/s × 60초 × 3회 | 회차마다 HTTP 201 **9,001건**, DB 누락·중복·실패·드롭 **0건**. 200·250 req/s는 안정 기준선에서 제외 | [GCP HTTP 쓰기 기준선](docs/test-results/gimin-389-opensql-ha-http-write-baseline-20261002.md) |
-| **OpenProxy 한쪽 장애** | GCP에서 A와 B를 각각 중단하고, 살아 있는 프록시로 새 JDBC 연결이 이동하는지 측정 | 새 연결 전환은 확인했지만 재실행에서 HTTP 500 **A 3건·B 8건**. 201 응답의 DB 누락·중복은 0건이어도 **무중단 시험은 실패** | [장애 부하](docs/test-results/gimin-391-openproxy-ab-fault-load-20261003.md), [500 원장 재분석](docs/test-results/gimin-393-openproxy-http-500-analysis-20261003.md) |
-| **Patroni 계획 역할 전환** | GCP OpenSQL 3노드에서 양방향 계획 switchover 후 이전 리더의 replica 자동 재합류 확인 | streaming 복귀 **19초·18초**, 수동 컨테이너 재시작 0회. HTTP 부하를 건 리더 강제 상실이나 서비스 RTO/RPO 측정은 아님 | [3노드 재합류 검증](docs/test-results/gimin-401-patroni-auto-rejoin-20261003.md) |
-| **primary 프로세스 장애** | GCP 3노드에서 PostgreSQL `postmaster` 종료, 30 req/s × 120초 | HTTP 201 **3,372건·500 227건·결과 불명 2건**. DB가 같은 노드에서 재시작했고 관측한 201 ID 누락·중복은 0건; 불명 1건은 DB에 반영 | [비계획 장애 실측](docs/test-results/opensql-primary-unplanned-fault-load-20261004.md) |
-| **리더 VM 즉시 상실** | GCP 리더 VM과 같은 VM의 OpenProxy A가 함께 상실, 30 req/s × 180초 | HTTP 201 **4,349건·500 467건·503 582건·결과 불명 3건**. 새 primary 승격 후 옛 노드 재합류; 201 ID 누락·중복 0건은 해당 실행의 관측값 | [비계획 장애 실측](docs/test-results/opensql-primary-unplanned-fault-load-20261004.md) |
-| **DB 장애 중 인덱싱 복구** | GCP에서 PDF 12건·DOCX 12건 선접수 후 primary 프로세스 종료, 시험 전용 Worker 유지 | 최종 **24/24건 `INDEXED`**, Chunk 36개·ACTIVE Vector 36개·자연키 중복 0. Lease 만료 후 두 번째 Attempt 성공; 약 5분 43초는 DB RTO가 아님 | [Worker 장애 복구](docs/test-results/opensql-worker-primary-fault-20261004.md) |
-| **복제 지연·권한 안전성** | GCP 3노드 standby 적용을 지연시킨 뒤 ADMIN 회수, OpenProxy 경유 관리자 요청 재시험 | 수정 전 뒤처진 standby 때문에 HTTP 200을 재현했고, 수정 후 primary 확인 경로는 **403**. 일반 API 전체의 최신성 보장은 아님 | [문제 재현](docs/test-results/opensql-permission-replica-lag-20260929.md), [수정 후 검증](docs/test-results/opensql-admin-role-primary-consistency-20261001.md) |
-
-etcd 두 멤버 중단과 동기 standby 링크 차단도 각각 앱 HTTP 경로에서 시험했습니다. 두 결과와
-성공 응답 사이 공백·결과 불명의 해석은 [3노드 HA 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md)에
-따로 기록했습니다. **관측된 201 응답의 DB 행 보존**은 해당 표본의 결과이며 무중단 운영이나
-모든 장애에서의 RPO 0 보장이 아닙니다. 비계획 리더 VM 상실의 안정화 관측 구간 약 52.9초도
-연속 쓰기 중단 시간이나 일반적인 RTO로 해석하지 않습니다. 다른 기능·호환성 시험은
-[전체 실행 기록](docs/test-results/)에 보존되어 있습니다.
 
 ## 문서
 
