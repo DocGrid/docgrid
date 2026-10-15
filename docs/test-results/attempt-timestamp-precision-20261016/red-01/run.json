@@ -1,0 +1,50 @@
+{
+  "실행_ID": "red-01",
+  "목적": "수정 전 고정 Clock·실제 PostgreSQL 응답 불일치 재현",
+  "시작_시각": "2026-10-16T03:24:09+09:00",
+  "환경": "로컬 Darwin arm64 / Temurin 17.0.18 / PostgreSQL 17.8 / pgvector 0.8.1",
+  "기준_커밋": "560c4f74867e8ac5d5b272b34d5c4a178464e646",
+  "입력_서비스_SHA256": "064c61b6d631d227d6833fa072151e083b02d18711f8fc5d211ccea10074b4a0",
+  "입력_테스트_SHA256": "8cbda299d67207d12e78b67b44a8d5e91214be94125235d2f2c45659cf273f23",
+  "명령": [
+    "./backend/gradlew",
+    "-p",
+    "backend",
+    "test",
+    "--tests",
+    "com.opensource.docgrid.domain.embedding.integration.EmbeddingJobAttemptIntegrationTest.start_replaysSameBodyAfterDatabaseRoundTrip_withSubMicrosecondClock",
+    "--no-daemon",
+    "--rerun-tasks",
+    "--console=plain"
+  ],
+  "성공_기준": "테스트 1건 실행·응답 본문 시각 불일치 실패 1건·설정 오류 0건",
+  "Clock": "2026-10-16T00:00:00.123456789Z / UTC",
+  "표본": [
+    "com.opensource.docgrid.domain.embedding.integration.EmbeddingJobAttemptIntegrationTest.start_replaysSameBodyAfterDatabaseRoundTrip_withSubMicrosecondClock"
+  ],
+  "로그_정책": "Gradle 상태·시험 결과·숫자와 시각으로 구성된 전용 증거 줄만 허용. 나머지 출력은 저장하지 않음. 전체 JUnit XML 대신 안전한 구조화 요약을 보존.",
+  "종료_시각": "2026-10-16T03:24:27+09:00",
+  "총_소요_초": 17.642,
+  "종료_코드": 1,
+  "실행": 1,
+  "실패": 1,
+  "오류": 0,
+  "건너뜀": 0,
+  "관측": [
+    {
+      "Clock": "2026-10-16T00:00:00.123456789Z",
+      "최초_startedAt": "2026-10-16T00:00:00.123456789",
+      "DB_startedAt": "2026-10-16T00:00:00.123457",
+      "재전송_startedAt": "2026-10-16T00:00:00.123457",
+      "Attempt_건수": 1,
+      "독립_Transaction": true
+    }
+  ],
+  "생략한_출력_줄": 27,
+  "정리_확인": {
+    "시각": "2026-10-16T03:25:09+09:00",
+    "방법": "PostgreSQL information_schema에서 docgrid_attempt_test_ 접두 스키마 수 조회",
+    "남은_격리_스키마_수": 0
+  },
+  "관측_출처": "Gradle 상태 줄은 수신 즉시 기록. 전용 시각·건수 증거는 실행 종료 후 JUnit XML system-out에서 추출. 로그 시각은 수집 시각."
+}

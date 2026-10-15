@@ -1,0 +1,12 @@
+[2026-10-16T03:24:09+09:00] 실행 시작: red-01 / 수정 전 고정 Clock·실제 PostgreSQL 응답 불일치 재현
+[2026-10-16T03:24:16+09:00] > Task :compileJava
+[2026-10-16T03:24:17+09:00] > Task :processResources
+[2026-10-16T03:24:17+09:00] > Task :classes
+[2026-10-16T03:24:21+09:00] > Task :compileTestJava
+[2026-10-16T03:24:21+09:00] > Task :processTestResources
+[2026-10-16T03:24:21+09:00] > Task :testClasses
+[2026-10-16T03:24:26+09:00] > Task :test
+[2026-10-16T03:24:27+09:00] > Task :test FAILED
+[2026-10-16T03:24:27+09:00] BUILD FAILED in 17s
+[2026-10-16T03:24:27+09:00] ATTEMPT_PRECISION_EVIDENCE clock=2026-10-16T00:00:00.123456789Z created=2026-10-16T00:00:00.123456789 persisted=2026-10-16T00:00:00.123457 replayed=2026-10-16T00:00:00.123457 attempts=1 independentTransactions=true
+[2026-10-16T03:24:27+09:00] 종료: 코드=1, 실행=1, 실패=1, 오류=0, 건너뜀=0, 소요=17.642초, 안전하게 생략한 출력=27줄
