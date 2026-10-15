@@ -23,6 +23,8 @@ services:
   minio:
     image: minio/minio
     container_name: docgrid-minio
+    # 공식 이미지를 새로 받을 수 없어 기본 실행에서 제외하고 STORAGE_TYPE=minio를 쓸 때만 명시적으로 기동한다.
+    profiles: ["minio"]
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin1234
