@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 현재 문서 버전의 Chunk 중복을 제거해 복원한 정규화 Text 전체를 반환한다.
- * 원본 PDF·DOCX의 Binary, Layout, Image와 Font 정보는 이 응답에 포함하지 않는다.
+ * 원본 PDF·DOCX·HWP·HWPX의 Binary, Layout, Image와 Font 정보는 이 응답에 포함하지 않는다.
  */
 @Schema(description = "문서에서 추출한 전체 텍스트")
 public record DocumentContentResponse(

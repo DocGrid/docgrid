@@ -40,6 +40,8 @@ dependencies {
 	implementation 'software.amazon.awssdk:s3'
 	implementation 'org.apache.pdfbox:pdfbox:3.0.8'
 	implementation 'org.apache.poi:poi-ooxml:5.5.1'
+	implementation 'kr.dogfoot:hwplib:1.1.11'
+	implementation 'kr.dogfoot:hwpxlib:1.0.9'
 	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.flywaydb:flyway-database-postgresql'
 	implementation 'com.github.ben-manes.caffeine:caffeine'
@@ -64,6 +66,13 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform {
 		excludeTags 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract', 'opensql-outbox-isolated'
+	}
+}
+
+tasks.named('bootJar') {
+	// 실행 JAR에도 Apache-2.0 사본을 포함해 새 HWP/HWPX 라이브러리의 배포 고지를 유지한다.
+	from(rootProject.projectDir.parentFile.toPath().resolve('LICENSE')) {
+		into 'META-INF'
 	}
 }
 

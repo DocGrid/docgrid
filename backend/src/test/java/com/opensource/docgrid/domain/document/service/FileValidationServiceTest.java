@@ -3,6 +3,8 @@ package com.opensource.docgrid.domain.document.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,9 @@ import com.opensource.docgrid.domain.document.enums.DocumentType;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
 
+/**
+ * 업로드 형식별 MIME·이름·크기와 HWP/HWPX 컨테이너 구조 검증 계약을 확인한다.
+ */
 @DisplayName("FileValidationService 단위 테스트")
 class FileValidationServiceTest {
 
@@ -79,6 +84,42 @@ class FileValidationServiceTest {
         ));
 
         assertThat(result.documentType()).isEqualTo(DocumentType.DOCX);
+    }
+
+    @Test
+    @DisplayName("HWP 5.x 샘플은 브라우저의 범용 MIME으로도 허용한다")
+    void validate_succeeds_forHwp() throws IOException {
+        ValidatedFile result = fileValidationService.validate(file(
+            "table.hwp", "application/octet-stream", fixture("table.hwp")
+        ));
+
+        assertThat(result.documentType()).isEqualTo(DocumentType.HWP);
+    }
+
+    @Test
+    @DisplayName("HWPX 샘플은 ZIP MIME으로도 허용한다")
+    void validate_succeeds_forHwpx() throws IOException {
+        ValidatedFile result = fileValidationService.validate(file(
+            "table.hwpx", "application/zip", fixture("table.hwpx")
+        ));
+
+        assertThat(result.documentType()).isEqualTo(DocumentType.HWPX);
+    }
+
+    @Test
+    @DisplayName("한글 확장자만 붙인 위장 파일은 구조 검사에서 거부한다")
+    void validate_rejectsDisguisedHancomFiles() {
+        assertError(file("fake.hwp", "application/octet-stream", "not hwp"),
+            ErrorCode.DOCUMENT_PARSING_FAILED);
+        assertError(file("fake.hwpx", "application/zip", "not hwpx"),
+            ErrorCode.DOCUMENT_PARSING_FAILED);
+    }
+
+    @Test
+    @DisplayName("HWPX ZIP이더라도 문서 mimetype이 없으면 거부한다")
+    void validate_rejectsOrdinaryZip() {
+        assertError(file("fake.hwpx", "application/zip", new byte[] {'P', 'K', 3, 4, 0}),
+            ErrorCode.DOCUMENT_PARSING_FAILED);
     }
 
     @Test
@@ -154,6 +195,12 @@ class FileValidationServiceTest {
 
     private MockMultipartFile file(String filename, String contentType, String content) {
         return file(filename, contentType, content.getBytes());
+    }
+
+    private byte[] fixture(String name) throws IOException {
+        try (var input = getClass().getResourceAsStream("/hancom/" + name)) {
+            return input.readAllBytes();
+        }
     }
 
     private MockMultipartFile file(String filename, String contentType, byte[] content) {
