@@ -130,9 +130,13 @@ Pub/Sub 신호는 재조회 계기이며, 내구성 있는 메시지 큐로 사�
 git clone https://github.com/DocGrid/docgrid.git
 cd docgrid
 cp .env.example .env
+echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env
 cp frontend/.env.example frontend/.env.local
 npm --prefix frontend ci
 ```
+
+로그인 토큰 서명 키 `JWT_SECRET`은 기본값이 없는 필수 값이므로 저장소에 두지 않고 두 번째 명령으로 로컬에서
+생성합니다.
 
 `.env.example`은 로컬 PostgreSQL·MinIO 접속값을 제공하지만 인덱싱 Worker는 기본값으로 **꺼져
 있습니다**. 업로드 후 자동 인덱싱까지 확인하려면 로컬 `.env`에
