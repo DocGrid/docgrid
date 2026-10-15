@@ -50,4 +50,3 @@ Linux CI의 기존 `EmbeddingJobAttemptIntegrationTest`에서 최초 응답의
 5. 동일 시험이 수정 전 코드에서 실패하고 수정 후 통과하는지 각각 기록한다.
 
 후속 시험 코드는 이번 PR 분리 요청에 포함하지 않는다.
-
