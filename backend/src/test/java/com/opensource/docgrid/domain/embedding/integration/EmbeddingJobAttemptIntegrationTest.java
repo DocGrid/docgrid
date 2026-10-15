@@ -3,6 +3,11 @@ package com.opensource.docgrid.domain.embedding.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.BrokenBarrierException;
@@ -24,6 +29,10 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
@@ -46,26 +55,30 @@ import com.opensource.docgrid.domain.worker.repository.EmbeddingJobAttemptReposi
  * 실제 OpenSQL에서 Embedding Job Attempt의 Migration, Repository, 잠금과 멱등 동시성을 검증한다.
  *
  * <p>격리 Schema와 독립 Thread·Transaction을 사용해 V34 제약 및 Job 행 잠금이 같은 Claim의 중복
- * Insert와 Job별 Attempt 번호 충돌을 실제 DB 경계에서 차단하는지 확인한다.
+ * Insert와 Job별 Attempt 번호 충돌을 실제 DB 경계에서 차단하는지 확인한다. 고정된 고정밀 Clock으로
+ * 최초 응답과 DB 왕복 후 재전송 응답의 시각 동일성을 OS 시계 정밀도와 무관하게 검증한다.
  */
 @Tag("integration")
 @ActiveProfiles("test")
 @SpringBootTest
+@Import(EmbeddingJobAttemptIntegrationTest.FixedClockConfig.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Embedding Job Attempt OpenSQL 통합 테스트")
 class EmbeddingJobAttemptIntegrationTest {
 
-    private static final String TEST_SCHEMA = "docgrid_embedding_job_attempt_test";
+    private static final String TEST_SCHEMA = "docgrid_attempt_test_" + UUID.randomUUID().toString().replace("-", "");
     private static final long TIMEOUT_SECONDS = 10;
     private static final String CLAIM_TOKEN = "34c19d16-6ae1-4f6a-a35d-0123456789ab";
     private static final String NEXT_CLAIM_TOKEN = "8d242ac5-0916-4e1c-a781-1f7b932f989b";
+    private static final Instant FIXED_INSTANT = Instant.parse("2026-10-16T00:00:00.123456789Z");
 
     @Autowired private JdbcTemplate jdbcTemplate;
     @Autowired private PlatformTransactionManager transactionManager;
     @Autowired private EmbeddingJobRepository embeddingJobRepository;
     @Autowired private EmbeddingJobAttemptRepository embeddingJobAttemptRepository;
     @Autowired private EmbeddingJobAttemptService embeddingJobAttemptService;
+    @Autowired private Clock clock;
 
     private ExecutorService executorService;
     private final AtomicInteger threadSequence = new AtomicInteger();
@@ -254,6 +267,58 @@ class EmbeddingJobAttemptIntegrationTest {
     }
 
     @Test
+    @DisplayName("고정된 고정밀 시각에서도 DB Commit 후 재전송 응답 전체가 최초 응답과 일치한다")
+    void start_replaysSameBodyAfterDatabaseRoundTrip_withSubMicrosecondClock() {
+        // 1. 실제 주입된 Clock이 마이크로초보다 정밀한 값인지 확인하고 같은 시각으로 Lease를 준비한다.
+        assertThat(clock.instant()).isEqualTo(FIXED_INSTANT);
+        assertThat(clock.getZone()).isEqualTo(ZoneOffset.UTC);
+        LocalDateTime now = LocalDateTime.now(clock);
+        assertThat(now.getNano() % 1_000).isNotZero();
+        Long workerId = insertWorker("precision-worker");
+        Long jobId = insertProcessingJob(workerId, CLAIM_TOKEN);
+        jdbcTemplate.update("""
+            UPDATE embedding_jobs
+            SET locked_at = ?, lock_expires_at = ?, started_at = ?
+            WHERE id = ?
+            """, now.minusSeconds(1), now.plusMinutes(5), now.minusSeconds(1), jobId);
+        StartEmbeddingJobAttemptRequest request = new StartEmbeddingJobAttemptRequest(workerId, CLAIM_TOKEN);
+        List<Long> transactionIds = new ArrayList<>();
+
+        // 2. 첫 Transaction을 실제 Commit해 생성 응답과 PostgreSQL에 저장된 값을 각각 확보한다.
+        StartResult created = inNewTransaction(() -> {
+            transactionIds.add(jdbcTemplate.queryForObject("SELECT txid_current()", Long.class));
+            return embeddingJobAttemptService.start(jobId, request);
+        });
+        LocalDateTime persistedAt = jdbcTemplate.queryForObject("""
+            SELECT started_at FROM embedding_job_attempts
+            WHERE embedding_job_id = ? AND claim_token = ?
+            """, LocalDateTime.class, jobId, CLAIM_TOKEN);
+
+        // 3. 독립 Transaction에서 같은 Claim을 재조회해 1차 캐시가 DB 왕복을 대신하지 않게 한다.
+        StartResult replayed = inNewTransaction(() -> {
+            transactionIds.add(jdbcTemplate.queryForObject("SELECT txid_current()", Long.class));
+            return embeddingJobAttemptService.start(jobId, request);
+        });
+        Integer attemptCount = jdbcTemplate.queryForObject("""
+            SELECT COUNT(*) FROM embedding_job_attempts
+            WHERE embedding_job_id = ? AND claim_token = ?
+            """, Integer.class, jobId, CLAIM_TOKEN);
+        System.out.printf(
+            "ATTEMPT_PRECISION_EVIDENCE clock=%s created=%s persisted=%s replayed=%s attempts=%d independentTransactions=%s%n",
+            clock.instant(), created.response().startedAt(), persistedAt, replayed.response().startedAt(),
+            attemptCount, !transactionIds.get(0).equals(transactionIds.get(1))
+        );
+
+        // 4. HTTP 상태 선택용 생성 여부는 달라도 응답 본문 전체와 저장 시각은 같고 Attempt는 한 건이어야 한다.
+        assertThat(transactionIds).hasSize(2).doesNotHaveDuplicates();
+        assertThat(created.created()).isTrue();
+        assertThat(replayed.created()).isFalse();
+        assertThat(attemptCount).isEqualTo(1);
+        assertThat(replayed.response()).isEqualTo(created.response());
+        assertThat(created.response().startedAt()).isEqualTo(persistedAt);
+    }
+
+    @Test
     @DisplayName("같은 Job·Worker·Token 동시 요청은 한 Attempt와 생성·재생 결과 하나씩으로 수렴한다")
     void start_concurrentSameClaimCreatesExactlyOneAttempt() throws Exception {
         Long workerId = insertWorker("concurrency-worker");
@@ -300,6 +365,19 @@ class EmbeddingJobAttemptIntegrationTest {
             jobId,
             CLAIM_TOKEN
         )).isEqualTo(workerId);
+    }
+
+    /**
+     * 이 통합 테스트 Context에만 고정된 고정밀 Clock을 제공해 시스템 Clock의 정밀도에 의존하지 않는다.
+     */
+    @TestConfiguration(proxyBeanMethods = false)
+    static class FixedClockConfig {
+
+        @Bean
+        @Primary
+        Clock fixedAttemptClock() {
+            return Clock.fixed(FIXED_INSTANT, ZoneOffset.UTC);
+        }
     }
 
     private StartResult startAfterBarrier(
