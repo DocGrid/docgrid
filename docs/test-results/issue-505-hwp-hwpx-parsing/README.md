@@ -25,5 +25,7 @@
 | `hwp-hwpx-local-e2e-20261015-01` | HWP/HWPX 및 PDF/DOCX 로컬 전체 경로 | **2/2 통과**, 실패 0개 | [로컬 E2E](local-e2e-01.md) |
 | `hwp-hwpx-backend-20261015-03` | 인프라 준비 후 기본 백엔드 전체 회귀 | 1,489개 중 4개 실패, 5개 건너뜀. 로컬 DB 연결 상한 초과 | [전체 03](backend-full-03.md) |
 | `hwp-hwpx-backend-20261015-04` | 시험용 연결 풀 제한 후 기본 전체 회귀 | **1,489개 실행, 실패 0개, 5개 건너뜀** | [전체 04](backend-full-04.md) |
+| `hwp-hwpx-review-20261016-01` | PR #506 수동 검토 | ZIP·XML, MIME, 샘플 출처, 라이선스에서 병합 차단 문제 미발견 | [수동 검토](manual-review-20261016-01.md) |
+| `hwp-hwpx-browser-20261016-01` | 로컬 브라우저 업로드·검색 | HWP/HWPX 각 1건 `INDEXED`, 각 표 문구 검색 근거 1건 | [브라우저](browser-20261016-01.md) |
 
 실제 PostgreSQL·MinIO·BGE-M3를 쓰는 HWP/HWPX 업로드→`INDEXED`→pgvector 검색 E2E는 Docker Desktop 재시작과 로컬 인프라 준비 뒤 실행해 통과했다. 이는 운영 OpenSQL·GCS 시험과 구분한다.
