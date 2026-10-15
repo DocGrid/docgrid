@@ -46,7 +46,7 @@ closes #502
 | `.env.example` | `STORAGE_TYPE=minio` → `STORAGE_TYPE=local`. MinIO 변수는 남기고 선택형 Profile에서만 쓴다고 주석 수정. `JWT_SECRET` 생성 방법을 주석으로 안내 |
 | `docker-compose.yml` | `minio` 서비스에 `profiles: ["minio"]` 추가 |
 | `README.md` 빠른 실행 | 2단계에 `echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env` 추가. 3단계 명령·제목, MinIO Health Check, 종료 명령에서 minio 제거. 경로 설명을 Local Filesystem으로 수정 |
-| `README.md` 개요·기술 스택·환경 선택 | 기본 경로가 MinIO라고 설명하던 문장을 Local Filesystem 기본값, 선택형 MinIO로 정합화 |
+| `README.md` 개요·주요 기능·기술 스택·환경 선택 | 기본 경로가 MinIO라고 설명하던 문장을 Local Filesystem 기본값, 선택형 MinIO로 정합화 |
 | `README.md` 라이선스 표 | MinIO 행을 "선택형 Profile, 기본 설정에서는 기동하지 않음"과 2026-10-15 확인 결과로 수정 |
 
 ### 대안과 선택 이유
@@ -78,7 +78,8 @@ README 「테스트」의 MinIO E2E 명령은 수정 없이 기존처럼 동작�
 
 - 저장소 Adapter 코드와 Spring 설정 변경
 - MinIO 대상 개발용 E2E(`storageWorkerE2eTest`, `minioIntegrationTest` 등)의 이미지 수급 문제.
-  새 PC에서는 이 명령도 minio Pull에서 실패한다.
+  새 PC에서는 이 명령도 minio Pull에서 실패하므로 README 「테스트」에 이미지가 있는 환경에서만 실행할 수
+  있다는 안내만 추가한다.
 - 기존 MinIO 저장 파일의 Local Filesystem 이전. 이미 `STORAGE_TYPE=minio`로 쌓은 로컬 데이터는 저장소
   설정만 바꾸면 기존 파일을 읽지 못하므로 기존 `.env`를 유지한다. `.env.example` 변경은 기존 `.env`에
   영향을 주지 않는다.

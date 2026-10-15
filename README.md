@@ -22,9 +22,9 @@ OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합�
   출력 Sanitization을 적용합니다.
 - **RAGOps 운영 화면**: WebSocket으로 Job·Worker 상태를 갱신하고 실패 원인, Retry, Queue·동기화 상태를
   관측하고 복구할 수 있습니다.
-- **환경별 저장소와 OpenSQL 연결**: 로컬·MinIO·GCS 저장소 Adapter와 OpenProxy A/B를 통한
-  OpenSQL 3노드 연결을 지원합니다. AWS S3 Adapter도 코드에 남아 있지만 현재 GCP 시험 저장소는
-  GCS입니다.
+- **환경별 저장소와 OpenSQL 연결**: Local Filesystem·GCS 저장소 Adapter와 OpenProxy A/B를 통한
+  OpenSQL 3노드 연결을 지원합니다. MinIO·AWS S3 Adapter도 코드에 남아 있어 선택해 쓸 수 있지만
+  현재 GCP 시험 저장소는 GCS입니다.
 
 ## 아키텍처
 
@@ -240,7 +240,7 @@ brew services stop ollama
 | `STORAGE_TYPE` | 용도 | 주요 설정 |
 |---|---|---|
 | `local` | 빠른 실행 기본값. 별도 Object Storage 없는 단일 실행 환경 | `STORAGE_LOCAL_ROOT`, `STORAGE_BUCKET` |
-| `minio` | 선택형 `minio` Compose Profile(`docker compose --profile minio up -d minio`). 공식 이미지를 새로 받을 수 없어 이미지가 이미 있는 환경에서만 사용 | `MINIO_ENDPOINT`, Credential, `STORAGE_BUCKET` |
+| `minio` | 선택형 `minio` Compose Profile(`docker compose --profile minio up -d minio`) 또는 `MINIO_ENDPOINT`로 지정한 외부 MinIO. 공식 이미지를 새로 받을 수 없어 Compose 기동은 이미지가 이미 있는 환경에서만 가능 | `MINIO_ENDPOINT`, Credential, `STORAGE_BUCKET` |
 | `s3` | 코드에 남아 있는 선택형 Adapter; 현재 GCP 저장소에는 미사용 | `AWS_REGION`, AWS Credential, `STORAGE_BUCKET` |
 | `gcs` | Google Cloud Storage 환경 | ADC 인증, `STORAGE_BUCKET` |
 
@@ -285,7 +285,8 @@ docker compose up -d --wait postgres valkey
 npm --prefix frontend test
 ```
 
-파일 저장소 Adapter와 실제 자동 Worker 전체 흐름은 별도 E2E로 검증합니다.
+파일 저장소 Adapter와 실제 자동 Worker 전체 흐름은 별도 E2E로 검증합니다. 이 E2E의 MinIO·S3 Adapter
+검증은 로컬 MinIO(`localhost:9000`)를 사용하므로 `minio/minio` 이미지가 이미 있는 환경에서만 실행할 수 있습니다.
 
 ```bash
 docker compose up -d --build --wait postgres minio valkey embedding-server
