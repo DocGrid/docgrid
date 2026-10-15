@@ -1,0 +1,22 @@
+# RAG A/B claim·lease 격리 재시험
+
+2026-10-16 KST에 실제 백엔드 JVM 2대, 로컬 격리 PostgreSQL, 제어 가능한 모델·임베딩 시험 서버로 합성 RAG 작업 각 1건을 실행했다. 공개 서비스 DB와 실제 Ollama는 사용하지 않았다. `run-b-start-01`부터 `run-late-result-03`까지 **7회**를 실행했고, 준비·시험 조건 실패 **3회**, 합격 **4회**였다. 각 실행의 원장과 정리 결과는 아래 개별 기록에 보존했다.
+
+| 실행 | 목적 | 관측 | 판정 |
+| --- | --- | --- | --- |
+| [run-b-start-01](run-b-start-01.md) | 모델 서버 준비 | 연결 거부, 앱 미기동 | 준비 실패 |
+| [run-b-start-02](run-b-start-02.md) | A 처리 중 B 기동 | 호출 1회, 시각이 잘못된 시험 행이 `FAILED` | 시험 데이터 오류 |
+| [run-b-start-03](run-b-start-03.md) | 유효한 A claim 보존 | B 기동 뒤 호출 1회, 최종 `SUCCESS`·인용 1건 | 통과 |
+| [run-a-crash-01](run-a-crash-01.md) | A 종료 뒤 재선점 | 약 20초 lease 만료 뒤 token 교체, 최종 `SUCCESS`·인용 1건 | 통과 |
+| [run-late-result-01](run-late-result-01.md) | 늦은 A 결과 경합 | B 준비 전 두 번째 호출, 최종 `FAILED`; 원인 미판정 | 불합격 |
+| [run-late-result-02](run-late-result-02.md) | B 완료 뒤 A 응답 | 최종 `SUCCESS`·인용 1건·B 답변 유지 | 통과, 폐기 로그 미확인 |
+| [run-late-result-03](run-late-result-03.md) | 옛 token 결과 폐기 | `STALE_RESULT_DISCARDED`, 최종 `SUCCESS`·인용 1건·B 답변 유지 | 통과 |
+
+## 해석 범위
+
+- B 기동만으로 유효한 A claim이 지워지지 않았다. A 강제 종료 뒤에는 lease 만료 후 B가 같은 작업을 재선점했다.
+- 강제 종료·재선점 시 모델 호출은 **2회**였다. 외부 호출의 정확히 한 번 실행은 보장하지 않는다. 검증한 것은 최종 답변과 인용의 단일 확정이다.
+- 늦은 A 결과 시험은 lease·token을 DB에서 직접 무효화한 제어 시험이다. 실제 네트워크 분리나 공개 서비스 장애의 성적표가 아니다.
+- `run-late-result-01`의 `FAILED` 원인은 확인하지 못했다. B 준비 전 두 번째 호출이 발생해 목표한 경합과 다른 실행이었으며, 동시성을 통제한 후속 실행과 함께 공개한다.
+- 실제 Ollama, 공개 브라우저, 서비스 알림 중복은 이번 실행 범위 밖이다. 사용자의 영상 촬영 역시 이번 자동 재시험에는 포함되지 않았다.
+- 일곱 실행 모두 앱·제어 서버 종료가 기록됐고, 행을 만든 여섯 실행 모두 시험 행 삭제가 기록됐다. 시험용 PostgreSQL 컨테이너도 정지했다.
