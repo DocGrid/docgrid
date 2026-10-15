@@ -11,8 +11,12 @@ closes #509
 
 ## 2. 결정
 
-`.github/workflows/ci.yml`을 추가한다. Spring 설정은 바꾸지 않는다. CI 실행에서 드러난 두 문제만 고친다(3.2).
-애플리케이션 코드의 Linux 시각 정밀도 불일치 1건과, 통합 테스트 준비 단계의 `TRUNCATE` deadlock이다.
+`.github/workflows/ci.yml`을 추가한다. Spring 설정은 바꾸지 않는다.
+통합 테스트 준비 단계의 `TRUNCATE` deadlock 재시도는 이 CI PR에 포함한다(3.2.2).
+CI에서 발견한 Attempt 시각 정밀도 수정은 별도 [Fix PR #512](https://github.com/DocGrid/docgrid/pull/512)로 분리했다.
+
+PR #510은 #512를 선행 변경으로 사용하며, 분리 검토 중에는 base를 `fix/511`로 둔다.
+#512 병합 후 base를 `develop`으로 되돌리고 최종 커밋에서 3회 연속 전체 job 합격 기준을 다시 확인한다.
 
 | 항목 | 내용 |
 |---|---|
@@ -95,21 +99,21 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 
 ### 3.2 수정 전 실행의 실패 원인과 수정
 
-#### 3.2.1 Attempt 시작 시각 정밀도 (확정 실패)
+#### 3.2.1 Attempt 시작 시각 정밀도 (확정 실패, 별도 Fix PR로 분리)
 
 - 실패: `EmbeddingJobAttemptIntegrationTest`의 "현재 Claim의 순차 재전송은 기존 Attempt를 반환하고 새 Claim은
   다음 번호를 만든다". 같은 요청을 두 번 보낸 응답이 같아야 하는데 `startedAt`이 달랐다.
   - 최초 응답: `2026-10-15T17:06:20.436367321`
   - 재전송 응답: `2026-10-15T17:06:20.436367`
-- 원인: `EmbeddingJobAttemptService`는 `LocalDateTime.now(clock)`로 만든 시각을 최초 응답에 그대로 쓰고,
-  재전송 응답은 DB에서 읽은 Attempt로 만든다. PostgreSQL `timestamp`는 마이크로초까지만 저장한다.
-  - Linux JDK 시계는 나노초 단위 값을 주므로 두 응답의 시각이 다르다. CI Runner와 운영 GCP VM이 모두 Linux다.
-  - macOS JDK 시계는 마이크로초 단위라 처음부터 값이 같다. 그래서 로컬 전체 회귀(#505 `backend-full-04`)에서는
-    통과했다.
-- 판단: 테스트가 실제 동작 불일치를 잡았다. Linux에서는 매 실행마다 재현된다. 테스트 단언은 느슨하게 하지 않는다.
-- 수정: 같은 패키지의 `EmbeddingJobLeaseService`, `DocumentIndexingCompletionService` 등 6곳이 이미 쓰는
-  `LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS)`를 `EmbeddingJobAttemptService`에도 적용한다.
-  - 단위 테스트 `EmbeddingJobAttemptServiceTest`는 초 단위 고정 Clock을 쓰므로 영향이 없다.
+- 원인: 최초 응답은 메모리의 시각을 사용하고 재전송 응답은 DB에서 읽은 시각을 사용한다.
+  PostgreSQL `timestamp`는 마이크로초까지만 저장하므로 더 정밀한 Clock 값이 들어오면 두 응답이 달라질 수 있다.
+- 범위: Linux CI의 기존 통합 테스트에서 관측한 불일치다.
+  운영 환경에서의 발생 여부와 OS별 Clock 정밀도 차이는 이번 분리 작업에서 검증하지 않았다.
+- 수정: `LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS)` 적용은 별도
+  [Fix PR #512](https://github.com/DocGrid/docgrid/pull/512)에서 검토한다.
+  이 CI PR의 변경 비교에는 운영 코드가 포함되지 않는다.
+- 후속 검증: 고정된 고정밀 Clock과 실제 PostgreSQL 왕복을 사용하는 수정 전 실패·수정 후 통과 시험은
+  #511의 후속 작업이며 이번 분리에서는 작성·실행하지 않았다.
 
 #### 3.2.2 테스트 준비 단계의 `TRUNCATE` deadlock (간헐 실패)
 
@@ -136,6 +140,8 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 
 ### 3.3 합격 판정 실행 (수정 커밋 기준 3회)
 
+분리 전 커밋의 통과 횟수는 새 커밋에 승계하지 않는다. #512 병합과 base 복원 후 최종 커밋 기준으로 다시 기록한다.
+
 | 회차 | 커밋 | backend 결과 | 실행·실패·건너뜀 | backend 소요 | frontend 결과 | frontend 소요 | 실행 링크 |
 |---|---|---|---|---|---|---|---|
 | 1 | | | | | | | |
@@ -145,6 +151,8 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 - `timeout-minutes`는 측정한 소요 시간을 보고 조정한다.
 
 ## 4. 범위 밖
+
+- Attempt 시작 시각 정밀도 수정과 새 회귀 테스트: 별도 #511 / #512.
 
 - `excludeTags` 18개 태그 시험의 CI 실행. 실제 MinIO·BGE-M3·OpenSQL 3노드 등 외부 자원이 필요하다.
 - 프런트엔드 Node 버전 행렬. `engines.node >=22.13.0`의 하한 메이저인 22만 실행한다.
