@@ -45,10 +45,9 @@ import lombok.extern.slf4j.Slf4j;
  * jobId로 {@link #processJob}을 동시에 부를 수 있다는 전제로 짜여 있다 — 인스턴스 필드를
  * 바꾸는 코드가 없고, 결과가 이미 다른 경로(스위퍼)에 뺏겼으면 boolean으로 조용히 물러난다.
  *
- * <p>SearchFacade와 별도 트랜잭션으로 분리되어 있다(SearchController가 순차 호출) — 검색 DB 작업이
- * enqueue()의 짧은 DB 작업과 하나의 커넥션을 오래 물고 있지 않도록 하기 위함이다.
+ * <p>검색의 enqueue 트랜잭션과 Worker의 완료 트랜잭션은 서로 분리된다. 모델 호출은 트랜잭션
+ * 밖에서 실행하고, 답변·인용 저장만 짧은 트랜잭션으로 묶는다.
  */
-@Transactional
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -96,6 +95,7 @@ public class RagFacade {
     private final SearchConversationQueryService searchConversationQueryService;
     private final EntityManager entityManager;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final org.springframework.transaction.support.TransactionTemplate ragTransactionTemplate;
 
     /**
      * 검색 직후 SearchController가 동기 호출하는 접수 단계. Ollama는 아직 호출하지 않는다.
@@ -105,6 +105,7 @@ public class RagFacade {
      * PROCESSING 상태로 저장한 뒤 즉시 반환한다 — 실제 LLM 호출은 나중에 RagJobWorker가
      * {@link #processJob}으로 한다.
      */
+    @Transactional
     public RagEnqueueOutcome enqueue(
         Long conversationId,
         Long queryId,
@@ -138,14 +139,15 @@ public class RagFacade {
      * Ollama를 호출한다. 성공하면 SUCCESS로 확정하고 citation을 저장하고, 실패하면
      * extractive fallback을 채운 채 FAILED로 확정한다.
      *
-     * <p>{@code job} 객체가 아니라 {@code jobId}만 받아 이 메서드 자신의 트랜잭션 안에서 다시
-     * 조회하는 이유: RagJobWorker가 claim 단계({@code RagResponseClaimService}, #340)에서 꺼낸
+     * <p>{@code job} 객체가 아니라 {@code jobId}만 받아 새로 조회하는 이유: RagJobWorker가
+     * claim 단계({@code RagResponseClaimService}, #340)에서 꺼낸
      * job은 그 조회 시점에 트랜잭션이 끝나 detached 상태다. 원래(#218) 이 detached 인스턴스를
      * 그대로 받아 필드만 바꾸면 dirty checking이 감지 못해 DB에 반영되지 않는 버그가 있었는데,
      * 지금은 완료 처리 자체가 dirty checking에 의존하지 않는다({@link
      * RagResponseCommandService#completeSuccess}/{@link RagResponseCommandService#completeFailed}
-     * 참고, #288) — 그래도 {@code findById(jobId)}로 다시 조회해 이 트랜잭션 시점 기준
-     * 최신 상태(예: {@code promptText})를 읽는다.
+     * 참고, #288) — 그래도 {@code findById(jobId)}로 다시 조회해 최신 상태를 읽는다.
+     * 모델 호출 중에는 DB 트랜잭션을 유지하지 않고, 결과 확정과 citation 저장에만
+     * {@code ragTransactionTemplate}을 사용한다.
      *
      * <p>{@code completeSuccess}/{@code completeFailed}는 RagJobTimeoutSweeper가 이미 이
      * job을 먼저 확정해버렸으면 {@code false}를 반환한다(#288) — 이 경우 citation 저장을
@@ -180,12 +182,16 @@ public class RagFacade {
             List<VectorSearchCandidate> candidates = loadCandidates(queryId);
             String fallbackAnswer = candidates.isEmpty() ? e.getErrorCode().getMessage()
                 : buildExtractiveFallbackAnswer(candidates);
-            boolean completed = ragResponseCommandService.completeFailed(job, fallbackAnswer, e.getMessage());
-            if (completed) {
-                applicationEventPublisher.publishEvent(
-                    new RagJobCompletionMetricEvent(Outcome.PROVIDER_FALLBACK)
-                );
-            }
+            // 1. 모델 호출은 이미 끝났다. 실패 확정만 짧은 DB 트랜잭션에서 수행한다.
+            boolean completed = Boolean.TRUE.equals(ragTransactionTemplate.execute(status -> {
+                boolean saved = ragResponseCommandService.completeFailed(job, fallbackAnswer, e.getMessage());
+                if (saved) {
+                    applicationEventPublisher.publishEvent(
+                        new RagJobCompletionMetricEvent(Outcome.PROVIDER_FALLBACK)
+                    );
+                }
+                return saved;
+            }));
             log.warn("[RAG] fallback queryId={} errorCode={}", queryId, e.getErrorCode().getCode());
             return completed;
         }
@@ -211,9 +217,29 @@ public class RagFacade {
             }
         }
 
-        boolean completed = ragResponseCommandService.completeSuccess(job, new OllamaGenerateResult(
-            result.model(), answerText, result.inputTokenCount(), result.outputTokenCount(), result.latencyMs()
-        ));
+        String finalAnswerText = answerText;
+        boolean finalNoRelevant = noRelevant;
+        // 2. 답변과 인용은 한 트랜잭션에서 함께 확정한다. 모델 대기 중에는 이 트랜잭션이 없다.
+        boolean completed = Boolean.TRUE.equals(ragTransactionTemplate.execute(status -> {
+            boolean saved = ragResponseCommandService.completeSuccess(job, new OllamaGenerateResult(
+                result.model(), finalAnswerText, result.inputTokenCount(), result.outputTokenCount(), result.latencyMs()
+            ));
+            if (!saved) {
+                return false;
+            }
+            if (!finalNoRelevant) {
+                List<SearchResult> citationSearchResults =
+                    searchResultRepository.findByQuery_IdOrderByRankNo(queryId).stream()
+                        .limit(MAX_PROMPT_CANDIDATES)
+                        .toList();
+                List<VectorSearchCandidate> citationCandidates = citationSearchResults.stream()
+                    .map(VectorSearchCandidate::from)
+                    .toList();
+                responseCitationCommandService.saveAll(job, citationCandidates, citationSearchResults);
+            }
+            applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.SUCCESS));
+            return true;
+        }));
         if (!completed) {
             /**
              * RagJobTimeoutSweeper가 이 job을 이미 FAILED로 강제 종료한 뒤라는 뜻이다 — 방금
@@ -224,21 +250,6 @@ public class RagFacade {
             return false;
         }
 
-        if (!noRelevant) {
-            // 1. 프롬프트와 동일한 상한과 검색 순서로 citation 대상을 선택한다.
-            List<SearchResult> citationSearchResults =
-                searchResultRepository.findByQuery_IdOrderByRankNo(queryId).stream()
-                    .limit(MAX_PROMPT_CANDIDATES)
-                    .toList();
-            // 2. 같은 목록에서 DTO를 만들어 청크와 검색 결과 참조의 대응을 유지한다.
-            List<VectorSearchCandidate> citationCandidates = citationSearchResults.stream()
-                .map(VectorSearchCandidate::from)
-                .toList();
-            // 3. 완료 처리가 성공한 답변에만 선택한 후보 순서대로 출처를 저장한다.
-            responseCitationCommandService.saveAll(job, citationCandidates, citationSearchResults);
-        }
-        // 답변과 citation 저장이 모두 끝난 동일 Transaction의 커밋 이후 성공 Counter를 기록한다.
-        applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.SUCCESS));
         /**
          * promptTokens/answerTokens을 함께 남겨, 느린 job이 프롬프트를 읽느라(prefill) 오래 걸린 건지
          * 답변을 쓰느라(decode) 오래 걸린 건지 로그만으로 구분할 수 있게 한다 — 병렬화(#340) 이후
@@ -260,6 +271,7 @@ public class RagFacade {
      *         RagJobTimeoutSweeper가 이미 먼저 확정해뒀으면(#288) false — 호출자
      *         (RagJobWorker)는 이 경우 WebSocket 알림을 보내지 않는다.
      */
+    @Transactional
     public boolean markUnexpectedFailure(Long jobId, String errorMessage) {
         boolean completed = ragResponseRepository.findById(jobId)
             .map(job -> ragResponseCommandService.completeFailed(job, UNEXPECTED_FAILURE_ANSWER_TEXT, errorMessage))
@@ -281,6 +293,7 @@ public class RagFacade {
      * @return 실제로 이 호출로 FAILED 전환이 일어났으면 true, 이미 다른 트랜잭션에서 끝나
      *         아무 일도 하지 않았으면 false.
      */
+    @Transactional
     public boolean failIfStillProcessing(Long jobId, Long queryId) {
         List<VectorSearchCandidate> candidates = loadCandidates(queryId);
         String fallbackAnswer = candidates.isEmpty()
@@ -298,9 +311,12 @@ public class RagFacade {
      * 검색 순서({@code ORDER BY rank_no})를 유지해 최상위 후보의 원문을 인용할 수 있게 한다.
      */
     private List<VectorSearchCandidate> loadCandidates(Long queryId) {
-        return searchResultRepository.findByQuery_IdOrderByRankNo(queryId).stream()
-            .map(VectorSearchCandidate::from)
-            .toList();
+        // 검색 결과의 chunk·document 연관관계는 지연 로딩이므로 짧은 읽기 트랜잭션 안에서 DTO로 만든다.
+        return ragTransactionTemplate.execute(status ->
+            searchResultRepository.findByQuery_IdOrderByRankNo(queryId).stream()
+                .map(VectorSearchCandidate::from)
+                .toList()
+        );
     }
 
     /**
