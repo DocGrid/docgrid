@@ -29,7 +29,7 @@ import com.opensource.docgrid.domain.user.repository.UserRepository;
 /**
  * RagJobTimeoutSweeper(#286)/RagJobWorker(#288)가 의존하는 쿼리들을 실제 PostgreSQL
  * Repository 계층에서 검증한다. {@code forceFailIfProcessing()}/{@code
- * completeSuccessIfProcessing()} 둘 다 "이미 다른 경로가 먼저 끝낸 job은 절대 덮어쓰지
+ * completeSuccessIfOwned()} 둘 다 "이미 다른 경로가 먼저 끝낸 job은 절대 덮어쓰지
  * 않는다"는 조건부 UPDATE 정합성이 핵심인데, 이건 Mockito 단위 테스트로는 증명할 수 없고
  * 실제 SQL이 실행되는 이 계층에서만 검증할 수 있다.
  */
@@ -72,7 +72,12 @@ class RagResponseRepositoryTest {
     @DisplayName("forceFailIfProcessing: 이미 SUCCESS로 끝난 job은 덮어쓰지 않고 영향받은 행이 0건이다")
     void forceFailIfProcessing_alreadySucceededJob_doesNotOverwriteAndReturnsZero() {
         RagResponse job = saveRagResponse(ResultStatus.PROCESSING);
-        ragResponseRepository.completeSuccessIfProcessing(job.getId(), "실제 답변", "qwen2.5:7b", 100, 20, 900);
+        LocalDateTime now = LocalDateTime.now();
+        job.markClaimed(now, "app-a", "token-a", now.plusSeconds(20));
+        ragResponseRepository.save(job);
+        ragResponseRepository.completeSuccessIfOwned(
+            job.getId(), "token-a", now.plusSeconds(1), "실제 답변", "qwen2.5:7b", 100, 20, 900
+        );
 
         // RagJobWorker가 이 순간 이미 SUCCESS로 커밋한 상황을 재현한다 — 스위퍼의 강제 종료는
         // 이 시점 이후 실행돼도 status 조건이 안 맞아 아무것도 바꾸면 안 된다.
@@ -85,12 +90,15 @@ class RagResponseRepositoryTest {
     }
 
     @Test
-    @DisplayName("completeSuccessIfProcessing: PROCESSING인 job은 SUCCESS로 확정되고 영향받은 행이 1건이다")
-    void completeSuccessIfProcessing_processingJob_updatesToSuccessAndReturnsOne() {
+    @DisplayName("completeSuccessIfOwned: 현재 token의 PROCESSING 작업만 SUCCESS로 확정한다")
+    void completeSuccessIfOwned_processingJob_updatesToSuccessAndReturnsOne() {
         RagResponse job = saveRagResponse(ResultStatus.PROCESSING);
+        LocalDateTime now = LocalDateTime.now();
+        job.markClaimed(now, "app-a", "token-a", now.plusSeconds(20));
+        ragResponseRepository.save(job);
 
-        int updated = ragResponseRepository.completeSuccessIfProcessing(
-            job.getId(), "실제 답변", "qwen2.5:7b", 100, 20, 900);
+        int updated = ragResponseRepository.completeSuccessIfOwned(
+            job.getId(), "token-a", now.plusSeconds(1), "실제 답변", "qwen2.5:7b", 100, 20, 900);
 
         assertThat(updated).isEqualTo(1);
         RagResponse reloaded = ragResponseRepository.findById(job.getId()).orElseThrow();
@@ -100,15 +108,18 @@ class RagResponseRepositoryTest {
     }
 
     @Test
-    @DisplayName("completeSuccessIfProcessing: 이미 스위퍼가 FAILED로 강제 종료한 job은 덮어쓰지 않고 영향받은 행이 0건이다(#288)")
-    void completeSuccessIfProcessing_alreadyTimedOutJob_doesNotOverwriteAndReturnsZero() {
+    @DisplayName("completeSuccessIfOwned: 스위퍼가 FAILED로 종료한 job은 덮어쓰지 않는다")
+    void completeSuccessIfOwned_alreadyTimedOutJob_doesNotOverwriteAndReturnsZero() {
         RagResponse job = saveRagResponse(ResultStatus.PROCESSING);
+        LocalDateTime now = LocalDateTime.now();
+        job.markClaimed(now, "app-a", "token-a", now.plusSeconds(20));
+        ragResponseRepository.save(job);
         ragResponseRepository.forceFailIfProcessing(job.getId(), "fallback 답변", "타임아웃");
 
         // RagJobTimeoutSweeper가 이 순간 이미 FAILED로 확정한 상황을 재현한다 — Worker가 뒤늦게
         // 완료 처리를 시도해도(#288) status 조건이 안 맞아 아무것도 바꾸면 안 된다.
-        int updated = ragResponseRepository.completeSuccessIfProcessing(
-            job.getId(), "실제 답변", "qwen2.5:7b", 100, 20, 900);
+        int updated = ragResponseRepository.completeSuccessIfOwned(
+            job.getId(), "token-a", now.plusSeconds(1), "실제 답변", "qwen2.5:7b", 100, 20, 900);
 
         assertThat(updated).isEqualTo(0);
         RagResponse reloaded = ragResponseRepository.findById(job.getId()).orElseThrow();
@@ -121,11 +132,12 @@ class RagResponseRepositoryTest {
     void findNextUnclaimedProcessingForUpdate_filtersOnClaimedAtAndStatus() {
         RagResponse unclaimed = saveRagResponse(ResultStatus.PROCESSING);
         RagResponse alreadyClaimed = saveRagResponse(ResultStatus.PROCESSING);
-        alreadyClaimed.markClaimed(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        alreadyClaimed.markClaimed(now, "app-a", "token-a", now.plusSeconds(20));
         ragResponseRepository.save(alreadyClaimed);
         saveRagResponse(ResultStatus.SUCCESS);
 
-        RagResponse found = ragResponseRepository.findNextUnclaimedProcessingForUpdate().orElseThrow();
+        RagResponse found = ragResponseRepository.findNextUnclaimedProcessingForUpdate(LocalDateTime.now()).orElseThrow();
 
         assertThat(found.getId()).isEqualTo(unclaimed.getId());
     }
@@ -134,38 +146,83 @@ class RagResponseRepositoryTest {
     @DisplayName("findNextUnclaimedProcessingForUpdate: claim 가능한 job이 없으면 빈 값을 반환한다")
     void findNextUnclaimedProcessingForUpdate_noCandidates_returnsEmpty() {
         RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
-        claimed.markClaimed(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        claimed.markClaimed(now, "app-a", "token-a", now.plusSeconds(20));
         ragResponseRepository.save(claimed);
 
-        assertThat(ragResponseRepository.findNextUnclaimedProcessingForUpdate()).isEmpty();
+        assertThat(ragResponseRepository.findNextUnclaimedProcessingForUpdate(LocalDateTime.now())).isEmpty();
     }
 
     @Test
-    @DisplayName("releaseAllClaimsOnStartup: PROCESSING이면서 claim된 job만 claim을 해제하고 영향받은 행 수를 반환한다")
-    void releaseAllClaimsOnStartup_releasesOnlyClaimedProcessingJobs() {
+    @DisplayName("유효한 lease는 다른 앱이 시작해도 재선점되지 않고, 만료 뒤에는 재선점된다")
+    void leaseExpiration_controlsReclaim() {
         RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
-        claimed.markClaimed(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        claimed.markClaimed(now, "app-a", "token-a", now.plusSeconds(20));
         ragResponseRepository.save(claimed);
-        RagResponse unclaimed = saveRagResponse(ResultStatus.PROCESSING);
-        RagResponse succeeded = saveRagResponse(ResultStatus.SUCCESS);
 
-        int released = ragResponseRepository.releaseAllClaimsOnStartup();
-
-        assertThat(released).isEqualTo(1);
-        assertThat(ragResponseRepository.findById(claimed.getId()).orElseThrow().getClaimedAt()).isNull();
-        // 재시작 복구가 다른 job까지 잘못 건드리지 않는지 확인 — 원래 claim이 없던 job과
-        // 이미 확정된 job은 이 호출과 무관해야 한다.
-        assertThat(ragResponseRepository.findById(unclaimed.getId()).orElseThrow().getClaimedAt()).isNull();
-        assertThat(ragResponseRepository.findById(succeeded.getId()).orElseThrow().getStatus())
-            .isEqualTo(ResultStatus.SUCCESS);
+        assertThat(ragResponseRepository.findNextUnclaimedProcessingForUpdate(now.plusSeconds(10))).isEmpty();
+        assertThat(ragResponseRepository.findNextUnclaimedProcessingForUpdate(now.plusSeconds(21)))
+            .get().extracting(RagResponse::getId).isEqualTo(claimed.getId());
     }
 
     @Test
-    @DisplayName("releaseAllClaimsOnStartup: 복구할 job이 없으면 영향받은 행이 0건이다")
-    void releaseAllClaimsOnStartup_noStaleClaims_returnsZero() {
-        saveRagResponse(ResultStatus.PROCESSING);
+    @DisplayName("옛 토큰의 완료는 0행, 현재 토큰의 완료는 1행이다")
+    void completion_requiresCurrentToken() {
+        RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
+        LocalDateTime now = LocalDateTime.now();
+        claimed.markClaimed(now, "app-b", "token-b", now.plusSeconds(20));
+        ragResponseRepository.save(claimed);
 
-        assertThat(ragResponseRepository.releaseAllClaimsOnStartup()).isZero();
+        int oldUpdate = ragResponseRepository.completeSuccessIfOwned(
+            claimed.getId(), "token-a", now.plusSeconds(1), "옛 답변", "test", 1, 1, 1
+        );
+        int currentUpdate = ragResponseRepository.completeSuccessIfOwned(
+            claimed.getId(), "token-b", now.plusSeconds(1), "새 답변", "test", 1, 1, 1
+        );
+
+        assertThat(oldUpdate).isZero();
+        assertThat(currentUpdate).isEqualTo(1);
+        assertThat(ragResponseRepository.findById(claimed.getId()).orElseThrow().getAnswerText()).isEqualTo("새 답변");
+    }
+
+    @Test
+    @DisplayName("만료된 lease는 옛 token이 남아 있어도 완료할 수 없다")
+    void expiredLease_rejectsCompletion() {
+        RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
+        LocalDateTime now = LocalDateTime.now();
+        claimed.markClaimed(now, "app-a", "token-a", now.plusSeconds(20));
+        ragResponseRepository.save(claimed);
+
+        int updated = ragResponseRepository.completeSuccessIfOwned(
+            claimed.getId(), "token-a", now.plusSeconds(21), "늦은 답변", "test", 1, 1, 1
+        );
+
+        assertThat(updated).isZero();
+        assertThat(ragResponseRepository.findById(claimed.getId()).orElseThrow().getStatus())
+            .isEqualTo(ResultStatus.PROCESSING);
+    }
+
+    @Test
+    @DisplayName("현재 소유자만 lease를 연장하고 이전 token은 연장하지 못한다")
+    void renewClaimLease_requiresCurrentOwnerAndToken() {
+        RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
+        // PostgreSQL TIMESTAMP의 마이크로초 정밀도에 맞춰 저장 후 값을 정확히 비교한다.
+        LocalDateTime now = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        claimed.markClaimed(now, "app-b", "token-b", now.plusSeconds(20));
+        ragResponseRepository.save(claimed);
+
+        int oldOwner = ragResponseRepository.renewClaimLease(
+            claimed.getId(), "app-a", "token-a", now.plusSeconds(5), now.plusSeconds(30)
+        );
+        int currentOwner = ragResponseRepository.renewClaimLease(
+            claimed.getId(), "app-b", "token-b", now.plusSeconds(5), now.plusSeconds(30)
+        );
+
+        assertThat(oldOwner).isZero();
+        assertThat(currentOwner).isEqualTo(1);
+        assertThat(ragResponseRepository.findById(claimed.getId()).orElseThrow().getClaimLeaseUntil())
+            .isEqualTo(now.plusSeconds(30));
     }
 
     @Test

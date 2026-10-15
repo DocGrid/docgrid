@@ -144,13 +144,13 @@ public class RagFacade {
      * job은 그 조회 시점에 트랜잭션이 끝나 detached 상태다. 원래(#218) 이 detached 인스턴스를
      * 그대로 받아 필드만 바꾸면 dirty checking이 감지 못해 DB에 반영되지 않는 버그가 있었는데,
      * 지금은 완료 처리 자체가 dirty checking에 의존하지 않는다({@link
-     * RagResponseCommandService#completeSuccess}/{@link RagResponseCommandService#completeFailed}
+     * RagResponseCommandService#completeSuccessOwned}/{@link RagResponseCommandService#completeFailedOwned}
      * 참고, #288) — 그래도 {@code findById(jobId)}로 다시 조회해 최신 상태를 읽는다.
      * 모델 호출 중에는 DB 트랜잭션을 유지하지 않고, 결과 확정과 citation 저장에만
      * {@code ragTransactionTemplate}을 사용한다.
      *
-     * <p>{@code completeSuccess}/{@code completeFailed}는 RagJobTimeoutSweeper가 이미 이
-     * job을 먼저 확정해버렸으면 {@code false}를 반환한다(#288) — 이 경우 citation 저장을
+     * <p>소유권 조건부 완료는 스위퍼가 먼저 확정했거나 claim token이 바뀌었으면
+     * {@code false}를 반환한다 — 이 경우 citation 저장을
      * 건너뛰고 {@code false}를 그대로 반환해, 호출자(RagJobWorker)가 중복 알림을 보내지
      * 않게 한다.
      *
@@ -159,13 +159,16 @@ public class RagFacade {
      * {@code findById}로 다시 읽기 전에 RagJobTimeoutSweeper가 먼저 강제 종료했을 수 있다.
      * 이 조기 반환이 없으면 이미 끝난 job에도 Ollama 호출(수십 초)을 그대로 낭비하게 되는데,
      * Worker 슬롯이 {@code rag.worker.max-concurrency}개뿐이라(#340) 그 슬롯 하나가 낭비되는
-     * 동안 전체 동시 처리량이 그만큼 줄어든다 — 아래 completeSuccess/completeFailed의 조건부
+     * 동안 전체 동시 처리량이 그만큼 줄어든다 — 아래 소유권 조건부 완료의
      * UPDATE는 이 조기 체크 "이후"에 벌어지는 경합(더 좁은 창)까지 막아주는 최종 방어선이다.
      */
-    public boolean processJob(Long jobId) {
+    public boolean processJob(Long jobId, String claimToken) {
         RagResponse job = ragResponseRepository.findById(jobId)
             .orElseThrow(() -> new DocGridException(ErrorCode.RAG_ANSWER_NOT_FOUND));
         if (job.getStatus() != ResultStatus.PROCESSING) {
+            return false;
+        }
+        if (job.getClaimToken() != null && !job.getClaimToken().equals(claimToken)) {
             return false;
         }
         Long queryId = job.getQuery().getId();
@@ -184,7 +187,9 @@ public class RagFacade {
                 : buildExtractiveFallbackAnswer(candidates);
             // 1. 모델 호출은 이미 끝났다. 실패 확정만 짧은 DB 트랜잭션에서 수행한다.
             boolean completed = Boolean.TRUE.equals(ragTransactionTemplate.execute(status -> {
-                boolean saved = ragResponseCommandService.completeFailed(job, fallbackAnswer, e.getMessage());
+                boolean saved = ragResponseCommandService.completeFailedOwned(
+                    job, claimToken, fallbackAnswer, e.getMessage()
+                );
                 if (saved) {
                     applicationEventPublisher.publishEvent(
                         new RagJobCompletionMetricEvent(Outcome.PROVIDER_FALLBACK)
@@ -221,7 +226,7 @@ public class RagFacade {
         boolean finalNoRelevant = noRelevant;
         // 2. 답변과 인용은 한 트랜잭션에서 함께 확정한다. 모델 대기 중에는 이 트랜잭션이 없다.
         boolean completed = Boolean.TRUE.equals(ragTransactionTemplate.execute(status -> {
-            boolean saved = ragResponseCommandService.completeSuccess(job, new OllamaGenerateResult(
+            boolean saved = ragResponseCommandService.completeSuccessOwned(job, claimToken, new OllamaGenerateResult(
                 result.model(), finalAnswerText, result.inputTokenCount(), result.outputTokenCount(), result.latencyMs()
             ));
             if (!saved) {
@@ -241,11 +246,8 @@ public class RagFacade {
             return true;
         }));
         if (!completed) {
-            /**
-             * RagJobTimeoutSweeper가 이 job을 이미 FAILED로 강제 종료한 뒤라는 뜻이다 — 방금
-             * 만든 답변은 이미 아무도 안 볼 결과라, citation 저장도 하지 않고 그대로 물러난다.
-             */
-            log.info("[RAG] job이 이미 timeout으로 종료됨(경합), 완료 결과 반영 안 함 queryId={} responseId={}",
+            // timeout 또는 token 교체가 먼저 확정된 경우 옛 결과와 인용을 함께 폐기한다.
+            log.info("[RAG] 소유권 상실 또는 선행 종료로 완료 결과 반영 안 함 queryId={} responseId={}",
                 queryId, job.getId());
             return false;
         }
@@ -272,9 +274,11 @@ public class RagFacade {
      *         (RagJobWorker)는 이 경우 WebSocket 알림을 보내지 않는다.
      */
     @Transactional
-    public boolean markUnexpectedFailure(Long jobId, String errorMessage) {
+    public boolean markUnexpectedFailure(Long jobId, String claimToken, String errorMessage) {
         boolean completed = ragResponseRepository.findById(jobId)
-            .map(job -> ragResponseCommandService.completeFailed(job, UNEXPECTED_FAILURE_ANSWER_TEXT, errorMessage))
+            .map(job -> ragResponseCommandService.completeFailedOwned(
+                job, claimToken, UNEXPECTED_FAILURE_ANSWER_TEXT, errorMessage
+            ))
             .orElse(false);
         if (completed) {
             applicationEventPublisher.publishEvent(

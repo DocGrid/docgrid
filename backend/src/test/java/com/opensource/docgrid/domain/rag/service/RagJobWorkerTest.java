@@ -28,6 +28,7 @@ import com.opensource.docgrid.domain.rag.controller.RagWebSocketController;
 import com.opensource.docgrid.domain.rag.entity.RagResponse;
 import com.opensource.docgrid.domain.rag.repository.RagResponseRepository;
 import com.opensource.docgrid.domain.rag.service.command.RagResponseClaimService;
+import com.opensource.docgrid.domain.rag.service.command.RagJobClaim;
 
 /**
  * RagJobWorker.processNext()의 디스패치 로직(#340)을 검증한다 — 슬롯을 먼저 확보한 뒤에만 claim을
@@ -73,16 +74,6 @@ class RagJobWorkerTest {
     }
 
     @Test
-    @DisplayName("앱 시작 시 복구할 claim이 있으면 경고 로그를 남긴다(부작용은 claim 서비스에 위임)")
-    void recoverStaleClaimsOnStartup_delegatesToClaimServiceAndReturns() {
-        given(ragResponseClaimService.recoverStaleClaimsOnStartup()).willReturn(2);
-
-        ragJobWorker.recoverStaleClaimsOnStartup();
-
-        then(ragResponseClaimService).should(times(1)).recoverStaleClaimsOnStartup();
-    }
-
-    @Test
     @DisplayName("슬롯이 없으면 claim 자체를 시도하지 않는다")
     void processNext_noSlotAvailable_neverClaims() {
         // 이미 다른 job이 유일한 슬롯을 쓰고 있는 상황을 재현한다. permit이 이미 있는 상태의
@@ -110,26 +101,42 @@ class RagJobWorkerTest {
     @DisplayName("claim에 성공하면 Executor에 제출하고, 정상 처리되면 요청자 본인에게만 완료를 push한다")
     void processNext_claimSucceeds_submitsAndNotifiesOwner() {
         RagResponse job = deepStubJob(999L, 100L, "user@example.com");
-        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(new RagJobClaim(999L, "test-owner", "test-token")));
         given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.of(job));
-        given(ragFacade.processJob(999L)).willReturn(true);
+        given(ragFacade.processJob(999L, "test-token")).willReturn(true);
 
         ragJobWorker.processNext();
         runSubmittedTask();
 
-        then(ragFacade).should(times(1)).processJob(999L);
+        then(ragFacade).should(times(1)).processJob(999L, "test-token");
         then(ragWebSocketController).should(times(1)).notifyAnswerReady("user@example.com", 100L);
         // 처리(성공적으로 실행된 Runnable)가 끝나면 finally에서 슬롯을 되돌려준다.
         assertThat(ragWorkerSlots.availablePermits()).isEqualTo(1);
     }
 
     @Test
+    @DisplayName("실행 중인 claim만 heartbeat로 lease를 연장한다")
+    void renewActiveClaims_renewsOnlyActiveClaim() {
+        RagJobClaim claim = new RagJobClaim(999L, "test-owner", "test-token");
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(claim));
+        given(ragResponseClaimService.renew(claim)).willReturn(true);
+
+        ragJobWorker.processNext();
+        ragJobWorker.renewActiveClaims();
+
+        then(ragResponseClaimService).should(times(1)).renew(claim);
+        runSubmittedTask();
+        ragJobWorker.renewActiveClaims();
+        then(ragResponseClaimService).should(times(1)).renew(claim);
+    }
+
+    @Test
     @DisplayName("경합(#288): processJob이 false를 반환하면(RagJobTimeoutSweeper가 이미 확정함) 알림을 보내지 않는다")
     void processNext_processJobLosesRace_doesNotNotify() {
         RagResponse job = deepStubJob(999L, 100L, "user@example.com");
-        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(new RagJobClaim(999L, "test-owner", "test-token")));
         given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.of(job));
-        given(ragFacade.processJob(999L)).willReturn(false);
+        given(ragFacade.processJob(999L, "test-token")).willReturn(false);
 
         ragJobWorker.processNext();
         runSubmittedTask();
@@ -141,15 +148,15 @@ class RagJobWorkerTest {
     @DisplayName("processJob이 예상 밖 예외를 던지면 job을 FAILED로 확정하고, 알림은 그대로 보낸다")
     void processNext_unexpectedException_marksFailedAndNotifies() {
         RagResponse job = deepStubJob(999L, 100L, "user@example.com");
-        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(new RagJobClaim(999L, "test-owner", "test-token")));
         given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.of(job));
-        doThrow(new RuntimeException("예상 밖 버그")).when(ragFacade).processJob(999L);
-        given(ragFacade.markUnexpectedFailure(999L, "예상 밖 버그")).willReturn(true);
+        doThrow(new RuntimeException("예상 밖 버그")).when(ragFacade).processJob(999L, "test-token");
+        given(ragFacade.markUnexpectedFailure(999L, "test-token", "예상 밖 버그")).willReturn(true);
 
         ragJobWorker.processNext();
         runSubmittedTask();
 
-        then(ragFacade).should(times(1)).markUnexpectedFailure(999L, "예상 밖 버그");
+        then(ragFacade).should(times(1)).markUnexpectedFailure(999L, "test-token", "예상 밖 버그");
         then(ragWebSocketController).should(times(1)).notifyAnswerReady("user@example.com", 100L);
     }
 
@@ -157,14 +164,14 @@ class RagJobWorkerTest {
     @DisplayName("다른 트랜잭션이 이미 같은 job을 처리했으면(낙관적 락 경합) FAILED로 덮어쓰지 않고 조용히 넘어간다")
     void processNext_optimisticLockingFailure_skipsWithoutOverwritingAsFailed() {
         RagResponse job = deepStubJob(999L, 100L, "user@example.com");
-        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(new RagJobClaim(999L, "test-owner", "test-token")));
         given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.of(job));
-        doThrow(new OptimisticLockingFailureException("경합")).when(ragFacade).processJob(999L);
+        doThrow(new OptimisticLockingFailureException("경합")).when(ragFacade).processJob(999L, "test-token");
 
         ragJobWorker.processNext();
         runSubmittedTask();
 
-        then(ragFacade).should(never()).markUnexpectedFailure(any(), any());
+        then(ragFacade).should(never()).markUnexpectedFailure(any(), any(), any());
         then(ragWebSocketController).should(never()).notifyAnswerReady(any(), any());
     }
 
@@ -182,7 +189,7 @@ class RagJobWorkerTest {
     @Test
     @DisplayName("Executor 제출이 거부되면(RejectedExecutionException) 슬롯을 반환한다")
     void processNext_executorRejects_releasesSlot() {
-        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(new RagJobClaim(999L, "test-owner", "test-token")));
         doThrow(new RejectedExecutionException()).when(ragWorkerJobExecutor).execute(any());
 
         ragJobWorker.processNext();
@@ -193,13 +200,13 @@ class RagJobWorkerTest {
     @Test
     @DisplayName("claim 직후 job이 사라졌으면(극단적 상황) processJob을 부르지 않고 슬롯만 반환한다")
     void processNext_claimedJobVanished_skipsProcessing() {
-        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(999L));
+        given(ragResponseClaimService.claimNext()).willReturn(Optional.of(new RagJobClaim(999L, "test-owner", "test-token")));
         given(ragResponseRepository.findWithQueryAndUserById(999L)).willReturn(Optional.empty());
 
         ragJobWorker.processNext();
         runSubmittedTask();
 
-        then(ragFacade).should(never()).processJob(any());
+        then(ragFacade).should(never()).processJob(any(), any());
         assertThat(ragWorkerSlots.availablePermits()).isEqualTo(1);
     }
 

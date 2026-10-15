@@ -27,6 +27,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -36,7 +37,9 @@ import com.opensource.docgrid.domain.embedding.fixture.EmbeddingModelFixture;
 import com.opensource.docgrid.domain.embedding.repository.EmbeddingModelRepository;
 import com.opensource.docgrid.domain.rag.entity.RagResponse;
 import com.opensource.docgrid.domain.rag.repository.RagResponseRepository;
+import com.opensource.docgrid.domain.rag.service.RagJobWorker;
 import com.opensource.docgrid.domain.rag.service.command.RagResponseClaimService;
+import com.opensource.docgrid.domain.rag.service.command.RagJobClaim;
 import com.opensource.docgrid.domain.search.entity.SearchConversation;
 import com.opensource.docgrid.domain.search.entity.SearchQuery;
 import com.opensource.docgrid.domain.search.enums.ResultStatus;
@@ -70,6 +73,8 @@ class RagResponseClaimIntegrationTest {
     @Autowired private SearchConversationRepository searchConversationRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private EmbeddingModelRepository embeddingModelRepository;
+    // 잠금 대상 작업을 백그라운드 Worker가 먼저 가져가면 이 시험의 행 잠금 경계가 달라진다.
+    @MockitoBean private RagJobWorker ragJobWorker;
 
     private ExecutorService executorService;
     private final AtomicInteger threadSequence = new AtomicInteger();
@@ -122,7 +127,7 @@ class RagResponseClaimIntegrationTest {
 
         // 1. 첫 번째 Transaction이 가장 오래된 job(firstJobId)의 행 잠금을 잡은 채 커밋을 지연한다.
         Future<Long> lockHolder = executorService.submit(() -> inNewTransaction(() -> {
-            Long selectedId = ragResponseRepository.findNextUnclaimedProcessingForUpdate()
+            Long selectedId = ragResponseRepository.findNextUnclaimedProcessingForUpdate(LocalDateTime.now())
                 .orElseThrow().getId();
             rowLocked.countDown();
             awaitLatch(releaseLock);
@@ -134,7 +139,7 @@ class RagResponseClaimIntegrationTest {
 
         // 3. 두 번째 Transaction은 잠금 해제를 기다리지 않고 다음 미잠금 job을 선택해야 한다.
         Future<Long> skipLockedReader = executorService.submit(() -> inNewTransaction(() ->
-            ragResponseRepository.findNextUnclaimedProcessingForUpdate().orElseThrow().getId()
+            ragResponseRepository.findNextUnclaimedProcessingForUpdate(LocalDateTime.now()).orElseThrow().getId()
         ));
 
         try {
@@ -152,25 +157,25 @@ class RagResponseClaimIntegrationTest {
         Long jobId = createPendingJob();
         CyclicBarrier startBarrier = new CyclicBarrier(2);
 
-        List<Future<Optional<Long>>> attempts = List.of(
+        List<Future<Optional<RagJobClaim>>> attempts = List.of(
             executorService.submit(() -> claimAfterBarrier(startBarrier)),
             executorService.submit(() -> claimAfterBarrier(startBarrier))
         );
 
-        List<Optional<Long>> results = List.of(
+        List<Optional<RagJobClaim>> results = List.of(
             attempts.get(0).get(TIMEOUT_SECONDS, TimeUnit.SECONDS),
             attempts.get(1).get(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         );
 
         assertThat(results).filteredOn(Optional::isPresent).hasSize(1);
         assertThat(results).filteredOn(Optional::isEmpty).hasSize(1);
-        assertThat(results.stream().flatMap(Optional::stream).findFirst()).contains(jobId);
+        assertThat(results.stream().flatMap(Optional::stream).map(RagJobClaim::jobId).findFirst()).contains(jobId);
 
         RagResponse persisted = ragResponseRepository.findById(jobId).orElseThrow();
         assertThat(persisted.getClaimedAt()).isNotNull();
     }
 
-    private Optional<Long> claimAfterBarrier(CyclicBarrier barrier) {
+    private Optional<RagJobClaim> claimAfterBarrier(CyclicBarrier barrier) {
         awaitBarrier(barrier);
         return inNewTransaction(() -> ragResponseClaimService.claimNext());
     }
