@@ -112,8 +112,9 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 - 수정: `LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS)` 적용은 별도
   [Fix PR #512](https://github.com/DocGrid/docgrid/pull/512)에서 검토한다.
   이 CI PR의 변경 비교에는 운영 코드가 포함되지 않는다.
-- 후속 검증: 고정된 고정밀 Clock과 실제 PostgreSQL 왕복을 사용하는 수정 전 실패·수정 후 통과 시험은
-  #511의 후속 작업이며 이번 분리에서는 작성·실행하지 않았다.
+- 로컬 후속 검증 완료: #512에 고정 Clock·실제 PostgreSQL 회귀 시험과 실행별 증거를 추가했다.
+  수정 전 동일 시험 1건 실패, 수정 후 동일 시험 1건 통과, 관련 통합·서비스 단위 24건 통과를 확인했다.
+  [실행별 결과](../test-results/attempt-timestamp-precision-20261016/README.md)는 로컬 시험이며 CI 합격 횟수에 넣지 않는다.
 
 #### 3.2.2 테스트 준비 단계의 `TRUNCATE` deadlock (간헐 실패)
 
