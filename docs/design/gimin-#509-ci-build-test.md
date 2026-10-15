@@ -163,9 +163,17 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 
 | 회차 | 커밋 | backend 결과 | 실행·실패·건너뜀 | backend 소요 | frontend 결과 | frontend 소요 | 실행 링크 |
 |---|---|---|---|---|---|---|---|
-| 1 | | | | | | | |
-| 2 | | | | | | | |
-| 3 | | | | | | | |
+| 1 | `5d8ee4e` | 통과 | 1,493·0·5 | job 3분 10초 (Gradle `BUILD SUCCESSFUL in 2m 36s`) | 통과, 49·0·0 | job 31초 | [38790439066 #1](https://github.com/DocGrid/docgrid/actions/runs/38790439066/attempts/1) |
+| 2 | `5d8ee4e` | 통과 | 1,493·0·5 | job 3분 59초 (Gradle `BUILD SUCCESSFUL in 3m 33s`) | 통과, 49·0·0 | job 30초 | [38790439066 #2](https://github.com/DocGrid/docgrid/actions/runs/38790439066/attempts/2) |
+| 3 | `5d8ee4e` | 통과 | 1,493·0·5 | job 3분 48초 (Gradle `BUILD SUCCESSFUL in 3m 21s`) | 통과, 49·0·0 | job 36초 | [38790439066 #3](https://github.com/DocGrid/docgrid/actions/runs/38790439066/attempts/3) |
+
+- PR base `develop` 기준 `pull_request` 실행이다.
+- PostgreSQL 로그의 `deadlock detected`는 1회차와 3회차에 1건씩 있었고, 2회차에는 없었다. 두 번 모두 준비 단계
+  `TRUNCATE`가 대시보드 집계의 `search_queries` 건수 조회와 교착해 중단됐고, 헬퍼가 다시 실행해 해당 클래스가 모두 통과했다.
+  - 1회차 19:03:33 UTC: `DocumentIndexingCompletionIntegrationTest` 4건 통과
+  - 3회차 19:17:10 UTC: `DocumentIndexingFailureIntegrationTest` 9건 통과
+- **판정: 최종 커밋 `5d8ee4e`에서 전체 job 3회 연속 통과. 합격.**
+- 이 기록을 남기는 문서 커밋은 테스트 코드와 워크플로를 바꾸지 않는다. 그 커밋의 CI 실행은 1회 통과만 확인한다.
 
 ### 3.4 `timeout-minutes` 조정
 
