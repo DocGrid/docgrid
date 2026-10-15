@@ -2,6 +2,7 @@ package com.opensource.docgrid.domain.embedding.service.command;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +53,8 @@ public class EmbeddingJobAttemptService {
             .orElseThrow(() -> new DocGridException(ErrorCode.EMBEDDING_JOB_NOT_FOUND));
 
         // 2. Lock 대기 중 경과한 시간까지 반영하도록 잠금 획득 뒤 현재 시각과 소유권을 검증한다.
-        LocalDateTime startedAt = LocalDateTime.now(clock);
+        //    PostgreSQL TIMESTAMP 정밀도와 맞춰 최초 응답과 DB에서 읽은 재전송 응답의 시각을 동일하게 유지한다.
+        LocalDateTime startedAt = LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS);
         embeddingJobOwnershipValidator.validate(
             embeddingJob,
             request.workerId(),
