@@ -170,7 +170,7 @@ class RagResponseRepositoryTest {
     @DisplayName("옛 토큰의 완료는 0행, 현재 토큰의 완료는 1행이다")
     void completion_requiresCurrentToken() {
         RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         claimed.markClaimed(now, "app-b", "token-b", now.plusSeconds(20));
         ragResponseRepository.save(claimed);
 

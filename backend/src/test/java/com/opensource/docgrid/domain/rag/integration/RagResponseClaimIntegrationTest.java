@@ -27,6 +27,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -36,6 +37,7 @@ import com.opensource.docgrid.domain.embedding.fixture.EmbeddingModelFixture;
 import com.opensource.docgrid.domain.embedding.repository.EmbeddingModelRepository;
 import com.opensource.docgrid.domain.rag.entity.RagResponse;
 import com.opensource.docgrid.domain.rag.repository.RagResponseRepository;
+import com.opensource.docgrid.domain.rag.service.RagJobWorker;
 import com.opensource.docgrid.domain.rag.service.command.RagResponseClaimService;
 import com.opensource.docgrid.domain.rag.service.command.RagJobClaim;
 import com.opensource.docgrid.domain.search.entity.SearchConversation;
@@ -71,6 +73,8 @@ class RagResponseClaimIntegrationTest {
     @Autowired private SearchConversationRepository searchConversationRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private EmbeddingModelRepository embeddingModelRepository;
+    // 잠금 대상 작업을 백그라운드 Worker가 먼저 가져가면 이 시험의 행 잠금 경계가 달라진다.
+    @MockitoBean private RagJobWorker ragJobWorker;
 
     private ExecutorService executorService;
     private final AtomicInteger threadSequence = new AtomicInteger();
