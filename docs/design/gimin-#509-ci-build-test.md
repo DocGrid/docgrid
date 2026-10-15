@@ -17,14 +17,16 @@ CI에서 발견한 Attempt 시각 정밀도 수정은 별도 [Fix PR #512](https
 
 PR #510은 #512를 선행 변경으로 사용하며, 분리 검토 중에는 base를 `fix/511`로 둔다.
 #512 병합 후 base를 `develop`으로 되돌리고 최종 커밋에서 3회 연속 전체 job 합격 기준을 다시 확인한다.
+#512는 2026-10-15 18:40 UTC에 `develop`으로 squash 병합됐다(`493796e`). 이 PR 브랜치에 `develop`을 병합한 뒤
+base를 `develop`으로 되돌렸다.
 
 | 항목 | 내용 |
 |---|---|
 | 트리거 | `pull_request`, `develop` push, `workflow_dispatch` |
 | 동시 실행 | 같은 PR 또는 ref의 이전 실행을 취소(`concurrency`, `cancel-in-progress: true`) |
 | 권한 | `contents: read` |
-| `backend` job | Java 17(Temurin), Gradle 캐시, pgvector·Valkey 서비스 컨테이너, `vector` 확장 생성 뒤 `./backend/gradlew -p backend build --no-daemon`. 성공·실패와 관계없이 JUnit XML·HTML 리포트 업로드. `timeout-minutes: 40` |
-| `frontend` job | Node 22, npm 캐시, `npm --prefix frontend ci` → `run lint` → `test`(production 빌드 포함). `timeout-minutes: 15` |
+| `backend` job | Java 17(Temurin), Gradle 캐시, pgvector·Valkey 서비스 컨테이너, `vector` 확장 생성 뒤 `./backend/gradlew -p backend build --no-daemon`. 성공·실패와 관계없이 JUnit XML·HTML 리포트 업로드. `timeout-minutes: 15`(3.4) |
+| `frontend` job | Node 22, npm 캐시, `npm --prefix frontend ci` → `run lint` → `test`(production 빌드 포함). `timeout-minutes: 10`(3.4) |
 
 ### 2.1 실행 범위
 
@@ -92,10 +94,19 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 | 1 | `93c1877` | 실패 (3.2.1) | 1,489·1·5 | job 5분 11초 (Gradle `BUILD FAILED in 4m 44s`) | 통과, 49·0·0 | job 43초 | [38773938963](https://github.com/DocGrid/docgrid/actions/runs/38773938963) |
 | 2 | `175bb74` | 통과 | 1,489·0·5 | job 5분 1초 (Gradle `BUILD SUCCESSFUL in 4m 31s`) | 통과, 49·0·0 | job 29초 | [38775563377 #1](https://github.com/DocGrid/docgrid/actions/runs/38775563377/attempts/1) |
 | 3 | `175bb74` | 실패 (3.2.2) | 1,489·1·5 | job 4분 3초 (Gradle `BUILD FAILED in 3m 33s`) | 통과, 49·0·0 | job 31초 | [38775563377 #2](https://github.com/DocGrid/docgrid/actions/runs/38775563377/attempts/2) |
+| 4 | `26688a6` | 통과 | 1,492·0·5 | job 3분 23초 (Gradle `BUILD SUCCESSFUL in 2m 50s`) | 통과, 49·0·0 | job 31초 | [38778701989 #1](https://github.com/DocGrid/docgrid/actions/runs/38778701989/attempts/1) |
+| 5 | `26688a6` | 통과 | 1,492·0·5 | job 3분 56초 (Gradle `BUILD SUCCESSFUL in 3m 24s`) | 통과, 49·0·0 | job 33초 | [38778701989 #2](https://github.com/DocGrid/docgrid/actions/runs/38778701989/attempts/2) |
+| 6 | `26688a6` | 통과 | 1,492·0·5 | job 3분 35초 (Gradle `BUILD SUCCESSFUL in 2m 59s`) | 통과, 49·0·0 | job 22초 | [38778701989 #3](https://github.com/DocGrid/docgrid/actions/runs/38778701989/attempts/3) |
+| 7 | `bff1306` | 통과 | 1,492·0·5 | job 2분 57초 (Gradle `BUILD SUCCESSFUL in 2m 29s`) | 통과, 49·0·0 | job 40초 | [38784326679](https://github.com/DocGrid/docgrid/actions/runs/38784326679) |
+| 8 | `51a7d68` | 통과 | 1,493·0·5 | job 3분 5초 (Gradle `BUILD SUCCESSFUL in 2m 37s`) | 통과, 49·0·0 | job 31초 | [38786428937](https://github.com/DocGrid/docgrid/actions/runs/38786428937) |
 
 - `SHOW server_version`: `17.8 (Debian 17.8-1.pgdg12+1)`, `vector` 확장 버전 `0.8.1`. digest 고정이 의도대로 동작했다.
 - frontend: Node `v22.23.3`, 패키지 502개 설치, lint 통과, production 빌드 성공.
 - 건너뜀 5건은 2.4의 예상 skip과 같다.
+- 순서 4~6은 운영 코드 수정이 이 PR에 들어 있던 분리 전 커밋에서 3회 연속 통과한 기록이다. 3.3의 기준에 따라 합격
+  횟수로 승계하지 않는다. 순서 7·8은 분리 뒤 base가 `fix/511`이던 커밋의 실행이다.
+- 실행 건수는 순서 4부터 `TruncateDeadlockRetryTest` 3건이 더해져 1,492개, 순서 8부터 #511의 회귀 테스트 1건이 더해져
+  1,493개다.
 
 ### 3.2 수정 전 실행의 실패 원인과 수정
 
@@ -138,6 +149,13 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
   - 테스트 단언은 바꾸지 않았다. 헬퍼 동작은 `TruncateDeadlockRetryTest` 3건으로 검증한다.
 - 대안: 해당 Context에서 대시보드 스케줄러를 Mock으로 바꾸면 다른 백그라운드 조회와의 충돌이 남는다. Gradle
   테스트 재시도 플러그인은 3.2.1 같은 확정 실패까지 가릴 수 있어 쓰지 않는다.
+- 적용 뒤 관찰(3.1 순서 5·6): 두 실행의 PostgreSQL 로그에 `deadlock detected`가 1건씩 있었지만 테스트는 모두 통과했다.
+  - 순서 5, 17:46:35 UTC: `DocumentIndexingFailureIntegrationTest`의 준비 단계 `TRUNCATE`가 대시보드 집계의
+    `search_queries` 건수 조회와 교착해 중단됐다. 헬퍼가 다시 실행해 이 클래스의 9건이 통과했다.
+  - 순서 6, 17:52:00 UTC: `DocumentIndexingCompletionIntegrationTest`의 준비 단계 `TRUNCATE`와 `RagJobWorker`의
+    백그라운드 Claim 조회(`rag_responses`)가 교착했다. 이번에는 PostgreSQL이 조회 쪽을 중단했다.
+    `RagJobWorker`는 Claim 예외를 기록하고 다음 주기에 다시 조회하므로 이 클래스의 4건은 영향 없이 통과했다.
+  - 대시보드 외의 스케줄러도 교착 상대가 된다. 스케줄러 하나만 끄는 대안을 고르지 않은 근거다.
 
 ### 3.3 합격 판정 실행 (수정 커밋 기준 3회)
 
@@ -149,7 +167,17 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 | 2 | | | | | | | |
 | 3 | | | | | | | |
 
-- `timeout-minutes`는 측정한 소요 시간을 보고 조정한다.
+### 3.4 `timeout-minutes` 조정
+
+| job | 측정 범위 (3.1 순서 1~8) | 기존 | 조정 |
+|---|---|---|---|
+| backend | 2분 57초 ~ 5분 11초 (최댓값은 Gradle 캐시가 비어 있던 첫 실행) | 40분 | **15분** |
+| frontend | 22초 ~ 43초 | 15분 | **10분** |
+
+- backend는 최댓값의 약 3배로 두어 Runner 성능 편차와 캐시 미스를 흡수하고, 테스트가 멈추면 15분 안에 실패로
+  끝나게 한다.
+- frontend는 npm 레지스트리 지연까지 고려해 10분으로 둔다.
+- 조정 커밋은 3.3의 최종 커밋 이전에 들어가므로 3회 연속 검증에 함께 포함된다.
 
 ## 4. 범위 밖
 
