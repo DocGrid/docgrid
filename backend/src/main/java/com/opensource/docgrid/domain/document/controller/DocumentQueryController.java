@@ -113,7 +113,7 @@ public class DocumentQueryController {
     @Operation(
         summary = "문서 추출 본문 조회",
         description = "현재 버전의 Chunk 중복을 제거하고 페이지·섹션 순서대로 복원한 정규화 Text 전체를 반환합니다. "
-            + "원본 PDF·DOCX의 Layout, Image와 Font는 포함하지 않으며 문서 읽기 권한이 필요합니다."
+            + "원본 PDF·DOCX·HWP·HWPX의 Layout, Image와 Font는 포함하지 않으며 문서 읽기 권한이 필요합니다."
     )
     @GetMapping("/{documentId}/content")
     public ResponseEntity<ApiResponse<DocumentContentResponse>> getDocumentContent(
@@ -128,7 +128,7 @@ public class DocumentQueryController {
      */
     @Operation(
         summary = "문서 원본 파일 조회",
-        description = "현재 버전의 원본 PDF·DOCX·TXT 파일을 반환합니다. disposition은 inline 또는 attachment이며 "
+        description = "현재 버전의 원본 PDF·DOCX·HWP·HWPX·TXT·MD 파일을 반환합니다. disposition은 inline 또는 attachment이며 "
             + "기본값 inline은 브라우저 표시, attachment는 다운로드에 사용합니다. 문서 읽기 권한이 필요합니다."
     )
     @GetMapping("/{documentId}/file")

@@ -288,6 +288,12 @@ public class DocumentChunkTransactionService {
         if (documentType == DocumentType.DOCX) {
             return DOCX_CONTENT_TYPES;
         }
+        if (documentType == DocumentType.HWP) {
+            return FileValidationService.HWP_CONTENT_TYPES;
+        }
+        if (documentType == DocumentType.HWPX) {
+            return FileValidationService.HWPX_CONTENT_TYPES;
+        }
         return Set.of();
     }
 

@@ -17,7 +17,7 @@ import jakarta.validation.constraints.Size;
  */
 public record DocumentUploadRequest(
     @NotNull
-    @Schema(description = "업로드할 TXT, Markdown, PDF 또는 DOCX 파일", type = "string", format = "binary")
+    @Schema(description = "업로드할 TXT, Markdown, PDF, DOCX, HWP 5.x 또는 HWPX 파일", type = "string", format = "binary")
     MultipartFile file,
 
     @NotBlank

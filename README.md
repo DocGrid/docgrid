@@ -2,7 +2,7 @@
 
 > 팀의 지식에서 권한을 지키며 근거가 포함된 답을 찾는 오픈소스 문서 검색 워크스페이스
 
-DocGrid는 조직의 PDF·DOCX 문서를 저장·인덱싱하고, 사용자가 열람할 수 있는 문서만 벡터 검색과
+DocGrid는 조직의 PDF·DOCX·HWP 5.x·HWPX 문서를 저장·인덱싱하고, 사용자가 열람할 수 있는 문서만 벡터 검색과
 RAG 답변에 활용합니다. 문서·컬렉션 관리, 인용 근거, MCP 연동, 인덱싱 상태와 복구 작업을 웹에서
 제공합니다. 로컬 개발은 PostgreSQL·MinIO·Valkey로 재현할 수 있습니다. 최종 배포 구성은
 Vercel 프런트엔드, Cloud Run 공개 게이트웨이, GCP의 백엔드 A/B·AI·캐시 VM,
@@ -20,7 +20,7 @@ OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합�
 -->
 ## 주요 기능
 
-- **문서 인덱싱 파이프라인**: PDF·DOCX 원본을 저장하고 본문 Parsing, Chunk 분할, BGE-M3 Batch
+- **문서 인덱싱 파이프라인**: PDF·DOCX·HWP 5.x·HWPX 원본을 저장하고 본문과 표 셀 텍스트 Parsing, Chunk 분할, BGE-M3 Batch
   Embedding, pgvector 저장을 Worker가 처리합니다. Worker는 환경별로 명시적으로 켭니다.
 - **권한 기반 AI 검색**: 사용자·역할·부서와 문서·컬렉션 공개 범위를 검색 전에 적용해 접근 가능한
   문서만 의미 검색합니다.
@@ -260,7 +260,7 @@ Embedding Provider가 준비되지 않아도 먼저 기동해 수집 실패와 �
 ### 6. 핵심 흐름 확인
 
 1. 회원가입 또는 로그인
-2. PDF/DOCX 문서 업로드
+2. PDF/DOCX/HWP/HWPX 문서 업로드
 3. `INDEXING_WORKER_ENABLED=true`일 때 문서 인덱싱 상태가 완료로 바뀌는지 확인
 4. 문서 내용으로 AI 검색
 5. RAG 답변과 인용 근거 확인
@@ -375,6 +375,8 @@ DocGrid의 자체 소스코드와 문서는 [Apache License 2.0](LICENSE)에 따
 | [qwen2.5:7b](https://ollama.com/library/qwen2.5:7b) | 사용자가 `ollama pull`로 다운로드 | Apache License 2.0 |
 | [Ollama](https://github.com/ollama/ollama) | 사용자가 Native로 설치해 `qwen2.5:7b`를 실행 | MIT License |
 | OpenSQL | 외부 개발·검증 DB로 연결 | 공급사 배포본과 License는 저장소에 포함하지 않음 |
+| [hwplib 1.1.11](https://central.sonatype.com/artifact/kr.dogfoot/hwplib/1.1.11) | Gradle로 획득해 HWP 5.x 본문·표 셀 텍스트 추출 | Apache-2.0. 업스트림 [라이선스 원문](https://github.com/neolord0/hwplib/blob/main/license.txt) 확인. 테스트 샘플 출처는 `backend/src/test/resources/hancom/README.md`에 고지 |
+| [hwpxlib 1.0.9](https://central.sonatype.com/artifact/kr.dogfoot/hwpxlib/1.0.9) | Gradle로 획득해 HWPX 본문·표 셀 텍스트 추출 | Apache-2.0. 업스트림 [라이선스 원문](https://github.com/neolord0/hwpxlib/blob/main/license.txt) 확인. 테스트 샘플 출처는 `backend/src/test/resources/hancom/README.md`에 고지 |
 | Python 의존성 (임베딩 서버) | `backend/embedding-server/requirements.txt`로 설치 | fastapi MIT, uvicorn BSD, FlagEmbedding MIT, torch BSD, transformers·peft Apache-2.0, numpy BSD, prometheus-client Apache-2.0 AND BSD-2-Clause. Linux x86_64에서는 CPU 전용 torch를 설치해 NVIDIA `nvidia-*` 패키지를 설치하지 않음 |
 | Java 의존성 | Gradle로 획득 (`backend/build.gradle`) | Apache-2.0·MIT·BSD 위주. Hibernate ORM 6.6은 LGPL-2.1 이상, Logback은 EPL-2.0과 LGPL-2.1 듀얼, Jakarta·AspectJ는 EPL-2.0, 테스트용 H2는 MPL-2.0·EPL-1.0, JUnit은 EPL-2.0 |
 | npm 의존성 | npm으로 획득 (`frontend/package-lock.json`) | 실행 의존성 4개는 react·react-dom·scheduler MIT, drizzle-orm Apache-2.0. 나머지는 빌드·개발 도구이며 MIT·Apache-2.0·ISC·BSD 위주이고 MPL-2.0, LGPL-3.0(sharp libvips) 등을 포함 |
@@ -385,5 +387,7 @@ DocGrid의 자체 소스코드와 문서는 [Apache License 2.0](LICENSE)에 따
 | MinIO (Container Image) | 로컬 Compose의 `minio` 서비스. 팀은 현재 사용하지 않음(파일 저장소는 GCS). 공식 `minio/minio` 이미지는 2026-10-09 기준 새로 받을 수 없음(`docker pull` 거부 확인) | AGPL-3.0 |
 
 외부 모델, 라이브러리, Container Image와 OpenSQL 배포본은 DocGrid의 Apache License 2.0 적용 범위에
-포함되지 않습니다. 위 표의 라이선스는 2026-10-09 기준 각 패키지의 메타데이터(POM·PyPI·npm
-lockfile)와 업스트림 라이선스 원문을 확인한 결과이며, 제출·배포 시점에 다시 확인합니다.
+포함되지 않습니다. 기존 구성요소는 2026-10-09, HWP/HWPX 두 라이브러리는 2026-10-15 기준 각 패키지의
+메타데이터(POM·PyPI·npm lockfile)와 업스트림 라이선스 원문을 확인한 결과이며, 제출·배포 시점에 다시 확인합니다.
+HWP/HWPX가 포함된 백엔드 실행 JAR에는 `META-INF/LICENSE`와 `META-INF/THIRD-PARTY-HANCOM.txt`를
+함께 넣습니다. 이는 두 새 라이브러리의 고지이며 기존 모든 외부 구성요소에 대한 종합 법률 검토를 뜻하지 않습니다.

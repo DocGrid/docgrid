@@ -8,6 +8,8 @@ public enum DocumentType {
     TXT,
     MD,
     DOCX,
+    HWP,
+    HWPX,
     HTML,
     ETC
 }

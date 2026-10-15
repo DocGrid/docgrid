@@ -3,6 +3,7 @@ package com.opensource.docgrid.e2e;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -36,7 +38,7 @@ import com.opensource.docgrid.e2e.LocalE2eDocumentFactory.DocumentPayload;
 import io.minio.MinioClient;
 
 /**
- * 실제 PostgreSQL 17·MinIO·BGE-M3에서 업로드부터 pgvector 검색까지 제품 경계를 관통한다.
+ * 실제 PostgreSQL 17·MinIO·BGE-M3에서 PDF·DOCX·HWP·HWPX 업로드부터 pgvector 검색까지 제품 경계를 관통한다.
  *
  * <p>Mock Bean 없이 실제 HTTP, 자동 Worker, Parser, Batch 임베딩과 완료 Transaction을 사용하며 Test
  * 전용 Schema와 Bucket만 생성·정리한다.
@@ -147,6 +149,61 @@ class LocalDocumentIndexingE2ETest {
         // 6. 같은 ADMIN JWT로 실제 관리자 조회와 OpenAPI 노출·민감정보 제거 계약을 검증한다.
         assertAdminHttpContracts(accessToken, pdfUpload);
         assertThat(Duration.ofNanos(System.nanoTime() - startedAt)).isLessThan(PIPELINE_TIMEOUT);
+    }
+
+    @Test
+    @Timeout(300)
+    @DisplayName("HWP·HWPX 업로드가 표 셀을 포함한 Chunk와 Vector 검색까지 완료된다")
+    void upload_indexesHancomDocumentsAndSearchesTableText() throws Exception {
+        String accessToken = apiClient.loginAdmin();
+        DocumentPayload hwp = hancomPayload("table.hwp", MediaType.APPLICATION_OCTET_STREAM);
+        DocumentPayload hwpx = hancomPayload("table.hwpx", MediaType.parseMediaType("application/hwp+zip"));
+
+        // 1. 실제 Multipart 업로드가 HWP·HWPX 구조와 MIME을 통과해 원본 객체·Job을 만든다.
+        UploadedDocument hwpUpload = apiClient.upload(accessToken, hwp);
+        UploadedDocument hwpxUpload = apiClient.upload(accessToken, hwpx);
+        assertStoredObject(hwpUpload, hwp);
+        assertStoredObject(hwpxUpload, hwpx);
+
+        // 2. 자동 Worker의 본문·표 추출과 임베딩 완료를 DB 결과로 대조한다.
+        awaitJobIndexed(hwpUpload.embeddingJobId());
+        awaitJobIndexed(hwpxUpload.embeddingJobId());
+        assertHancomChunks(hwpUpload, "ABC");
+        assertHancomChunks(hwpxUpload, "개똥이");
+
+        // 3. 실제 BGE-M3 Query Embedding과 pgvector 검색이 각 문서의 표 텍스트를 찾는지 확인한다.
+        assertSearchesTableChunk(hwpUpload, "ABC");
+        assertSearchesTableChunk(hwpxUpload, "개똥이");
+    }
+
+    private DocumentPayload hancomPayload(String fileName, MediaType mediaType) throws IOException {
+        try (var input = getClass().getResourceAsStream("/hancom/" + fileName)) {
+            return new DocumentPayload(fileName, mediaType, fileName + " 검색 시험", input.readAllBytes());
+        }
+    }
+
+    private void assertHancomChunks(UploadedDocument upload, String expectedText) {
+        assertThat(queryString("SELECT status FROM document_versions WHERE id = ?", upload.documentVersionId()))
+            .isEqualTo("INDEXED");
+        assertThat(count("SELECT COUNT(*) FROM embeddings WHERE document_version_id = ? AND status = 'ACTIVE'",
+            upload.documentVersionId())).isPositive();
+        List<String> texts = jdbcTemplate.queryForList(
+            "SELECT chunk_text FROM document_chunks WHERE document_version_id = ? ORDER BY chunk_index",
+            String.class, upload.documentVersionId()
+        );
+        assertThat(texts).anySatisfy(text -> assertThat(text).contains(expectedText));
+    }
+
+    private void assertSearchesTableChunk(UploadedDocument upload, String tableText) {
+        String tableChunk = queryString(
+            "SELECT chunk_text FROM document_chunks WHERE document_version_id = ? "
+                + "AND chunk_text LIKE ? ORDER BY chunk_index LIMIT 1",
+            upload.documentVersionId(), "%" + tableText + "%"
+        );
+        assertThat(tableChunk).contains(tableText);
+        Long modelId = queryLong("SELECT id FROM embedding_models WHERE is_active = TRUE AND is_searchable = TRUE");
+        assertThat(searchByQuery(tableChunk, modelId, List.of(upload.documentId())))
+            .anySatisfy(candidate -> assertThat(candidate.documentId()).isEqualTo(upload.documentId()));
     }
 
     private void assertStoredObject(UploadedDocument upload, DocumentPayload payload) throws Exception {
