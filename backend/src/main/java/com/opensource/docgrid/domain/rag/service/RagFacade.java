@@ -311,9 +311,12 @@ public class RagFacade {
      * 검색 순서({@code ORDER BY rank_no})를 유지해 최상위 후보의 원문을 인용할 수 있게 한다.
      */
     private List<VectorSearchCandidate> loadCandidates(Long queryId) {
-        return searchResultRepository.findByQuery_IdOrderByRankNo(queryId).stream()
-            .map(VectorSearchCandidate::from)
-            .toList();
+        // 검색 결과의 chunk·document 연관관계는 지연 로딩이므로 짧은 읽기 트랜잭션 안에서 DTO로 만든다.
+        return ragTransactionTemplate.execute(status ->
+            searchResultRepository.findByQuery_IdOrderByRankNo(queryId).stream()
+                .map(VectorSearchCandidate::from)
+                .toList()
+        );
     }
 
     /**
