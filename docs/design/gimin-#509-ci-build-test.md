@@ -11,8 +11,8 @@ closes #509
 
 ## 2. 결정
 
-`.github/workflows/ci.yml`을 추가한다. 테스트 코드와 Spring 설정은 바꾸지 않는다. 애플리케이션 코드는 CI 첫 실행에서
-드러난 Linux 시각 정밀도 불일치 1건만 고친다(3.2).
+`.github/workflows/ci.yml`을 추가한다. Spring 설정은 바꾸지 않는다. CI 실행에서 드러난 두 문제만 고친다(3.2).
+애플리케이션 코드의 Linux 시각 정밀도 불일치 1건과, 통합 테스트 준비 단계의 `TRUNCATE` deadlock이다.
 
 | 항목 | 내용 |
 |---|---|
@@ -83,15 +83,19 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 
 ### 3.1 수정 전 실행 (합격 횟수에 넣지 않음)
 
-| 회차 | 커밋 | backend 결과 | 실행·실패·건너뜀 | backend 소요 | frontend 결과 | frontend 소요 | 실행 링크 |
+| 순서 | 커밋 | backend 결과 | 실행·실패·건너뜀 | backend 소요 | frontend 결과 | frontend 소요 | 실행 링크 |
 |---|---|---|---|---|---|---|---|
-| 0 | `93c1877` | 실패 | 1,489·1·5 | job 5분 11초 (Gradle `BUILD FAILED in 4m 44s`) | 통과, 49·0·0 | job 43초 | [38773938963](https://github.com/DocGrid/docgrid/actions/runs/38773938963) |
+| 1 | `93c1877` | 실패 (3.2.1) | 1,489·1·5 | job 5분 11초 (Gradle `BUILD FAILED in 4m 44s`) | 통과, 49·0·0 | job 43초 | [38773938963](https://github.com/DocGrid/docgrid/actions/runs/38773938963) |
+| 2 | `175bb74` | 통과 | 1,489·0·5 | job 5분 1초 (Gradle `BUILD SUCCESSFUL in 4m 31s`) | 통과, 49·0·0 | job 29초 | [38775563377 #1](https://github.com/DocGrid/docgrid/actions/runs/38775563377/attempts/1) |
+| 3 | `175bb74` | 실패 (3.2.2) | 1,489·1·5 | job 4분 3초 (Gradle `BUILD FAILED in 3m 33s`) | 통과, 49·0·0 | job 31초 | [38775563377 #2](https://github.com/DocGrid/docgrid/actions/runs/38775563377/attempts/2) |
 
 - `SHOW server_version`: `17.8 (Debian 17.8-1.pgdg12+1)`, `vector` 확장 버전 `0.8.1`. digest 고정이 의도대로 동작했다.
 - frontend: Node `v22.23.3`, 패키지 502개 설치, lint 통과, production 빌드 성공.
 - 건너뜀 5건은 2.4의 예상 skip과 같다.
 
 ### 3.2 수정 전 실행의 실패 원인과 수정
+
+#### 3.2.1 Attempt 시작 시각 정밀도 (확정 실패)
 
 - 실패: `EmbeddingJobAttemptIntegrationTest`의 "현재 Claim의 순차 재전송은 기존 Attempt를 반환하고 새 Claim은
   다음 번호를 만든다". 같은 요청을 두 번 보낸 응답이 같아야 하는데 `startedAt`이 달랐다.
@@ -106,6 +110,29 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 - 수정: 같은 패키지의 `EmbeddingJobLeaseService`, `DocumentIndexingCompletionService` 등 6곳이 이미 쓰는
   `LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS)`를 `EmbeddingJobAttemptService`에도 적용한다.
   - 단위 테스트 `EmbeddingJobAttemptServiceTest`는 초 단위 고정 Clock을 쓰므로 영향이 없다.
+
+#### 3.2.2 테스트 준비 단계의 `TRUNCATE` deadlock (간헐 실패)
+
+- 실패: `DocumentIndexingFailureIntegrationTest`의 "RETRY 이벤트 저장 실패 시 Attempt와 Job의 모든 실패 변경을
+  Rollback한다". 테스트 본문이 아니라 `@BeforeEach resetState()`의 `TRUNCATE TABLE … RESTART IDENTITY CASCADE`가
+  PostgreSQL `deadlock detected`(SQLState `40P01`)로 중단됐다. 같은 커밋의 직전 실행(순서 2)은 통과했다.
+- 원인: PostgreSQL 서버 로그에서 상대 세션의 쿼리를 확인했다.
+  - 앞 테스트가 인덱싱 Job 상태를 바꾸면, 같은 Spring Context의 `DashboardPushScheduler`가 300ms 주기 안에
+    `DashboardQueryService.getSummary()`를 백그라운드에서 실행한다.
+  - 이 집계는 읽기 트랜잭션 하나에서 `documents`를 먼저 읽고 이어서 `embedding_jobs`의 평균 처리 시간을 읽는다.
+  - 다음 테스트의 `TRUNCATE`가 `embedding_jobs`의 `AccessExclusiveLock`을 먼저 잡은 상태에서, 집계 트랜잭션이
+    이미 읽어 잠금을 쥐고 있던 관계를 기다렸다. 집계가 `embedding_jobs` 전에 읽은 것은 `documents` 집계뿐이다.
+    그 사이 집계 트랜잭션은 `embedding_jobs`를 기다려 교착이 났다.
+- 판단: 운영 코드에는 `TRUNCATE`가 없으므로 제품 결함이 아니라 테스트 격리 문제다. 타이밍이 맞을 때만 재현된다.
+- 수정: 테스트 공통 헬퍼 `TruncateDeadlockRetry`를 추가했다. SQLState `40P01`인 경우에만 200ms 뒤 최대 3회까지
+  다시 실행한다. 다른 오류는 그대로 던진다. `TRUNCATE`는 다시 실행해도 결과가 같다.
+  - 적용 범위: 기본 `test` 태스크에 포함되고, 준비 단계에서 `TRUNCATE`를 자동 커밋으로 실행하는
+    `@SpringBootTest` 통합 테스트 11개. 이들 Context에는 대시보드 push 같은 백그라운드 스케줄러가 있다.
+  - 적용하지 않은 곳: 백그라운드 스케줄러가 없는 `@DataJpaTest` 5개, `excludeTags`로 CI에서 빠지는
+    benchmark·`claim-concurrency` 테스트 7개.
+  - 테스트 단언은 바꾸지 않았다. 헬퍼 동작은 `TruncateDeadlockRetryTest` 3건으로 검증한다.
+- 대안: 해당 Context에서 대시보드 스케줄러를 Mock으로 바꾸면 다른 백그라운드 조회와의 충돌이 남는다. Gradle
+  테스트 재시도 플러그인은 3.2.1 같은 확정 실패까지 가릴 수 있어 쓰지 않는다.
 
 ### 3.3 합격 판정 실행 (수정 커밋 기준 3회)
 
