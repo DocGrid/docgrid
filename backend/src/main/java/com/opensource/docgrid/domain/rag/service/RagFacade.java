@@ -246,11 +246,8 @@ public class RagFacade {
             return true;
         }));
         if (!completed) {
-            /**
-             * RagJobTimeoutSweeper가 이 job을 이미 FAILED로 강제 종료한 뒤라는 뜻이다 — 방금
-             * 만든 답변은 이미 아무도 안 볼 결과라, citation 저장도 하지 않고 그대로 물러난다.
-             */
-            log.info("[RAG] job이 이미 timeout으로 종료됨(경합), 완료 결과 반영 안 함 queryId={} responseId={}",
+            // timeout 또는 token 교체가 먼저 확정된 경우 옛 결과와 인용을 함께 폐기한다.
+            log.info("[RAG] 소유권 상실 또는 선행 종료로 완료 결과 반영 안 함 queryId={} responseId={}",
                 queryId, job.getId());
             return false;
         }
