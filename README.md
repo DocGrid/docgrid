@@ -4,7 +4,7 @@
 
 DocGrid는 조직의 PDF·DOCX 문서를 저장·인덱싱하고, 사용자가 열람할 수 있는 문서만 벡터 검색과
 RAG 답변에 활용합니다. 문서·컬렉션 관리, 인용 근거, MCP 연동, 인덱싱 상태와 복구 작업을 웹에서
-제공합니다. 로컬 개발은 PostgreSQL·MinIO·Valkey로 재현할 수 있습니다. 최종 배포 구성은
+제공합니다. 로컬 개발은 PostgreSQL·Valkey와 Local Filesystem 저장소로 재현할 수 있습니다. 최종 배포 구성은
 Vercel 프런트엔드, Cloud Run 공개 게이트웨이, GCP의 백엔드 A/B·AI·캐시 VM,
 OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합니다.
 
@@ -105,7 +105,7 @@ Pub/Sub 신호는 재조회 계기이며, 내구성 있는 메시지 큐로 사�
 | Backend | Java 17, Spring Boot 3.5.16, Spring Security, Spring Data JPA, Spring AI MCP, STOMP WebSocket, Flyway, Spring Boot Actuator |
 | Database · HA | OpenSQL 17.8 / PostgreSQL 17, pgvector 0.8.1, OpenProxy A/B, Patroni, etcd 3노드 |
 | AI | FastAPI, BAAI/bge-m3 Embedding, Ollama, qwen2.5:7b |
-| Storage | GCS (GCP 원본), MinIO (로컬), Local Filesystem, 선택형 AWS S3 Adapter |
+| Storage | GCS (GCP 원본), Local Filesystem (로컬 기본값), 선택형 MinIO·AWS S3 Adapter |
 | Cache · 메시지 | 공용 Redis VM (GCP 역할 캐시·대시보드 Pub/Sub), Valkey 9.1 (로컬 Compose), Spring Data Redis |
 | 배포 · 네트워크 | Vercel, Cloud Run Nginx 공개 게이트웨이, Google Cloud Load Balancing, Compute Engine VM, IAP (위 구성도 기준) |
 | 관측 · 부하 | RAGOps Dashboard, Micrometer/Prometheus, Grafana, Blackbox Exporter, k6 Remote Write (위 구성도 기준); Alertmanager (로컬 monitoring profile) |
@@ -113,7 +113,7 @@ Pub/Sub 신호는 재조회 계기이며, 내구성 있는 메시지 큐로 사�
 
 ## 빠른 실행
 
-아래는 GCP 접근 권한 없이 로컬 PostgreSQL·MinIO·Valkey로 핵심 기능을 확인하는 경로입니다.
+아래는 GCP 접근 권한 없이 로컬 PostgreSQL·Valkey와 Local Filesystem 저장소로 핵심 기능을 확인하는 경로입니다.
 명령은 저장소 루트에서 실행합니다.
 
 ### 1. 사전 준비
@@ -138,15 +138,15 @@ npm --prefix frontend ci
 로그인 토큰 서명 키 `JWT_SECRET`은 기본값이 없는 필수 값이므로 저장소에 두지 않고 두 번째 명령으로 로컬에서
 생성합니다.
 
-`.env.example`은 로컬 PostgreSQL·MinIO 접속값을 제공하지만 인덱싱 Worker는 기본값으로 **꺼져
+`.env.example`은 로컬 PostgreSQL 접속값과 Local Filesystem 저장소(`STORAGE_TYPE=local`)를 제공하지만 인덱싱 Worker는 기본값으로 **꺼져
 있습니다**. 업로드 후 자동 인덱싱까지 확인하려면 로컬 `.env`에
 `INDEXING_WORKER_ENABLED=true`를 추가합니다. 실제 운영 비밀번호와 외부 서버 인증정보는 README,
 Issue 또는 Commit에 기록하지 않습니다.
 
-### 3. PostgreSQL, MinIO, Valkey, BGE-M3 실행
+### 3. PostgreSQL, Valkey, BGE-M3 실행
 
 ```bash
-docker compose up -d --build postgres minio valkey embedding-server
+docker compose up -d --build postgres valkey embedding-server
 docker compose logs -f embedding-server
 ```
 
@@ -155,7 +155,6 @@ BGE-M3는 첫 실행 시 모델 다운로드와 로딩이 필요하므로 준비
 
 ```bash
 curl -f http://localhost:8000/health/ready
-curl -f http://localhost:9000/minio/health/live
 ```
 
 ### 4. Ollama 실행
@@ -225,7 +224,7 @@ Embedding Provider가 준비되지 않아도 먼저 기동해 수집 실패와 �
 ### 종료
 
 ```bash
-docker compose stop postgres minio valkey embedding-server
+docker compose stop postgres valkey embedding-server
 # macOS에서 Homebrew로 Ollama를 실행한 경우
 brew services stop ollama
 ```
@@ -240,8 +239,8 @@ brew services stop ollama
 
 | `STORAGE_TYPE` | 용도 | 주요 설정 |
 |---|---|---|
-| `local` | 별도 Object Storage 없는 단일 실행 환경 | `STORAGE_LOCAL_ROOT`, `STORAGE_BUCKET` |
-| `minio` | 기본 Docker 개발 환경 | `MINIO_ENDPOINT`, Credential, `STORAGE_BUCKET` |
+| `local` | 빠른 실행 기본값. 별도 Object Storage 없는 단일 실행 환경 | `STORAGE_LOCAL_ROOT`, `STORAGE_BUCKET` |
+| `minio` | 선택형 `minio` Compose Profile(`docker compose --profile minio up -d minio`). 공식 이미지를 새로 받을 수 없어 이미지가 이미 있는 환경에서만 사용 | `MINIO_ENDPOINT`, Credential, `STORAGE_BUCKET` |
 | `s3` | 코드에 남아 있는 선택형 Adapter; 현재 GCP 저장소에는 미사용 | `AWS_REGION`, AWS Credential, `STORAGE_BUCKET` |
 | `gcs` | Google Cloud Storage 환경 | ADC 인증, `STORAGE_BUCKET` |
 
@@ -361,7 +360,7 @@ DocGrid의 자체 소스코드와 문서는 [Apache License 2.0](LICENSE)에 따
 | pgvector/pgvector 0.8.1 (Container Image) | 로컬 Compose PostgreSQL 17 | pgvector는 PostgreSQL License. 이미지는 PostgreSQL과 OS 패키지를 포함 |
 | Prometheus v3.5.5, Alertmanager v0.33.1 (Container Image) | 선택형 `monitoring` profile | Apache-2.0 |
 | Grafana 13.2.3 (Container Image) | 선택형 `monitoring` profile. 수정하지 않고 별도 컨테이너로 실행 | AGPL-3.0 (OSI 승인) |
-| MinIO (Container Image) | 로컬 Compose의 `minio` 서비스. 팀은 현재 사용하지 않음(파일 저장소는 GCS). 공식 `minio/minio` 이미지는 2026-10-09 기준 새로 받을 수 없음(`docker pull` 거부 확인) | AGPL-3.0 |
+| MinIO (Container Image) | 선택형 `minio` Compose Profile. 빠른 실행과 기본 설정(`STORAGE_TYPE=local`)에서는 기동하지 않으며 팀 배포 저장소는 GCS. 공식 `minio/minio` 이미지는 2026-10-09 `docker pull` 거부, 2026-10-15 Docker Hub 저장소 API 404로 새로 받을 수 없음 | AGPL-3.0 |
 
 외부 모델, 라이브러리, Container Image와 OpenSQL 배포본은 DocGrid의 Apache License 2.0 적용 범위에
 포함되지 않습니다. 위 표의 라이선스는 2026-10-09 기준 각 패키지의 메타데이터(POM·PyPI·npm
