@@ -11,7 +11,8 @@ closes #509
 
 ## 2. 결정
 
-`.github/workflows/ci.yml`을 추가한다. 애플리케이션 코드, 테스트 코드와 Spring 설정은 바꾸지 않는다.
+`.github/workflows/ci.yml`을 추가한다. 테스트 코드와 Spring 설정은 바꾸지 않는다. 애플리케이션 코드는 CI 첫 실행에서
+드러난 Linux 시각 정밀도 불일치 1건만 고친다(3.2).
 
 | 항목 | 내용 |
 |---|---|
@@ -80,13 +81,40 @@ draft PR의 같은 커밋에서 첫 실행 뒤 "Re-run all jobs"를 두 번 실�
 기준으로 한다. 실패한 job만 재실행한 것은 횟수에 넣지 않는다. 실패가 나오면 원인을 먼저 보고하고, 수정 커밋이
 들어가면 3회를 처음부터 다시 센다. 건수는 업로드된 JUnit XML 기준이다.
 
+### 3.1 수정 전 실행 (합격 횟수에 넣지 않음)
+
+| 회차 | 커밋 | backend 결과 | 실행·실패·건너뜀 | backend 소요 | frontend 결과 | frontend 소요 | 실행 링크 |
+|---|---|---|---|---|---|---|---|
+| 0 | `93c1877` | 실패 | 1,489·1·5 | job 5분 11초 (Gradle `BUILD FAILED in 4m 44s`) | 통과, 49·0·0 | job 43초 | [38773938963](https://github.com/DocGrid/docgrid/actions/runs/38773938963) |
+
+- `SHOW server_version`: `17.8 (Debian 17.8-1.pgdg12+1)`, `vector` 확장 버전 `0.8.1`. digest 고정이 의도대로 동작했다.
+- frontend: Node `v22.23.3`, 패키지 502개 설치, lint 통과, production 빌드 성공.
+- 건너뜀 5건은 2.4의 예상 skip과 같다.
+
+### 3.2 수정 전 실행의 실패 원인과 수정
+
+- 실패: `EmbeddingJobAttemptIntegrationTest`의 "현재 Claim의 순차 재전송은 기존 Attempt를 반환하고 새 Claim은
+  다음 번호를 만든다". 같은 요청을 두 번 보낸 응답이 같아야 하는데 `startedAt`이 달랐다.
+  - 최초 응답: `2026-10-15T17:06:20.436367321`
+  - 재전송 응답: `2026-10-15T17:06:20.436367`
+- 원인: `EmbeddingJobAttemptService`는 `LocalDateTime.now(clock)`로 만든 시각을 최초 응답에 그대로 쓰고,
+  재전송 응답은 DB에서 읽은 Attempt로 만든다. PostgreSQL `timestamp`는 마이크로초까지만 저장한다.
+  - Linux JDK 시계는 나노초 단위 값을 주므로 두 응답의 시각이 다르다. CI Runner와 운영 GCP VM이 모두 Linux다.
+  - macOS JDK 시계는 마이크로초 단위라 처음부터 값이 같다. 그래서 로컬 전체 회귀(#505 `backend-full-04`)에서는
+    통과했다.
+- 판단: 테스트가 실제 동작 불일치를 잡았다. Linux에서는 매 실행마다 재현된다. 테스트 단언은 느슨하게 하지 않는다.
+- 수정: 같은 패키지의 `EmbeddingJobLeaseService`, `DocumentIndexingCompletionService` 등 6곳이 이미 쓰는
+  `LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS)`를 `EmbeddingJobAttemptService`에도 적용한다.
+  - 단위 테스트 `EmbeddingJobAttemptServiceTest`는 초 단위 고정 Clock을 쓰므로 영향이 없다.
+
+### 3.3 합격 판정 실행 (수정 커밋 기준 3회)
+
 | 회차 | 커밋 | backend 결과 | 실행·실패·건너뜀 | backend 소요 | frontend 결과 | frontend 소요 | 실행 링크 |
 |---|---|---|---|---|---|---|---|
 | 1 | | | | | | | |
 | 2 | | | | | | | |
 | 3 | | | | | | | |
 
-- 첫 실행 로그의 `SHOW server_version`: (기록 예정)
 - `timeout-minutes`는 측정한 소요 시간을 보고 조정한다.
 
 ## 4. 범위 밖
