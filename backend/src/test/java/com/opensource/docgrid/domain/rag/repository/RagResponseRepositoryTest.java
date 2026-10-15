@@ -170,7 +170,7 @@ class RagResponseRepositoryTest {
     @DisplayName("옛 토큰의 완료는 0행, 현재 토큰의 완료는 1행이다")
     void completion_requiresCurrentToken() {
         RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
-        LocalDateTime now = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        LocalDateTime now = LocalDateTime.now();
         claimed.markClaimed(now, "app-b", "token-b", now.plusSeconds(20));
         ragResponseRepository.save(claimed);
 
@@ -207,7 +207,8 @@ class RagResponseRepositoryTest {
     @DisplayName("현재 소유자만 lease를 연장하고 이전 token은 연장하지 못한다")
     void renewClaimLease_requiresCurrentOwnerAndToken() {
         RagResponse claimed = saveRagResponse(ResultStatus.PROCESSING);
-        LocalDateTime now = LocalDateTime.now();
+        // PostgreSQL TIMESTAMP의 마이크로초 정밀도에 맞춰 저장 후 값을 정확히 비교한다.
+        LocalDateTime now = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         claimed.markClaimed(now, "app-b", "token-b", now.plusSeconds(20));
         ragResponseRepository.save(claimed);
 
