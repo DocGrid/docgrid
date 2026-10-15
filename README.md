@@ -7,7 +7,7 @@ RAG 답변에 활용합니다. 문서·컬렉션 관리, 인용 근거, MCP 연�
 제공합니다. 로컬 개발은 PostgreSQL·MinIO·Valkey로 재현할 수 있습니다. 최종 배포 구성은
 Vercel 프런트엔드, Cloud Run 공개 게이트웨이, GCP의 백엔드 A/B·AI·캐시 VM,
 OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합니다.
-
+<!--
 ## 시연 영상
 
 썸네일을 누르면 YouTube에서 재생됩니다.
@@ -17,7 +17,7 @@ OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합�
 | [![서비스 사용 흐름 및 인덱싱 장애 대응 시연](https://img.youtube.com/vi/t2JHrvTSC-w/mqdefault.jpg)](https://youtu.be/t2JHrvTSC-w) | [![OpenProxy A 장애 중 k6 부하·HTTP 응답 시연](https://img.youtube.com/vi/hwP4-J86BqE/mqdefault.jpg)](https://youtu.be/hwP4-J86BqE) |
 | **3. OpenProxy A 장애 중 실제 웹 기능** | **4. Primary VM 장애·Failover·멱등 재전송** |
 | [![OpenProxy A 장애 중 실제 웹 기능 시연](https://img.youtube.com/vi/i9-LmozKqu4/mqdefault.jpg)](https://youtu.be/i9-LmozKqu4) | [![Primary VM 장애·Failover·멱등 재전송 시연](https://img.youtube.com/vi/NWlwwDB0a94/mqdefault.jpg)](https://youtu.be/NWlwwDB0a94) |
-
+-->
 ## 주요 기능
 
 - **문서 인덱싱 파이프라인**: PDF·DOCX 원본을 저장하고 본문 Parsing, Chunk 분할, BGE-M3 Batch
