@@ -3,16 +3,20 @@ package com.opensource.docgrid.domain.rag.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Iterator;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,6 +71,18 @@ class OllamaClientTest {
             ConvertibleClientHttpResponse response = mock(ConvertibleClientHttpResponse.class);
             doReturn(HttpStatus.OK).when(response).getStatusCode();
             doReturn(body).when(response).getBody();
+            return fn.exchange(null, response);
+        }).when(requestBodyUriSpec).exchange(any());
+    }
+
+    /** exchange()가 호출될 때마다 주어진 NDJSON 스트림 응답을 순서대로 하나씩 돌려주도록 스텁한다. */
+    private void givenStreamBodies(String... ndjsons) {
+        Iterator<String> bodies = List.of(ndjsons).iterator();
+        doAnswer(invocation -> {
+            ExchangeFunction<?> fn = invocation.getArgument(0);
+            ConvertibleClientHttpResponse response = mock(ConvertibleClientHttpResponse.class);
+            doReturn(HttpStatus.OK).when(response).getStatusCode();
+            doReturn(new ByteArrayInputStream(bodies.next().getBytes(StandardCharsets.UTF_8))).when(response).getBody();
             return fn.exchange(null, response);
         }).when(requestBodyUriSpec).exchange(any());
     }
@@ -252,6 +268,84 @@ class OllamaClientTest {
             .startsWith("연차는 입사 1년 기준 15일 부여됩니다.")
             .doesNotContain("第一", "规定", "：")
             .contains("답변이 길어 일부 내용이 생략됐을 수 있습니다");
+    }
+
+    @Test
+    @DisplayName("대량 혼입 재생성: 단어 중간에서 중국어로 넘어가 잘리면 1회 재생성해 잘림 없는 답변을 안내 없이 반환한다")
+    void generate_heavyCjkMixingMidWord_regeneratesOnce() {
+        // #502 새 PC 재현에서 저장된 답변과 같은 모양: "받" 다음 "을 수 있습니다" 대신 "可以…"로 전환됐다.
+        givenStreamBodies("""
+            {"model":"qwen2.5:3b","response":"원격 근무자는 최대 45만 원의 장비 지원금을 받可以获得远程工作的最大天数和设备支持金额","done":false}
+            {"model":"qwen2.5:3b","response":"","done":true,"prompt_eval_count":543,"eval_count":291}
+            """, """
+            {"model":"qwen2.5:3b","response":"원격 근무자는 최대 45만 원의 장비 지원금을 받을 수 있습니다.","done":false}
+            {"model":"qwen2.5:3b","response":"","done":true,"prompt_eval_count":543,"eval_count":40}
+            """);
+
+        OllamaGenerateResult result = ollamaClient.generate("질문: 장비 지원금은 얼마야?");
+
+        assertThat(result.answerText()).isEqualTo("원격 근무자는 최대 45만 원의 장비 지원금을 받을 수 있습니다.");
+        assertThat(result.outputTokenCount()).isEqualTo(40);
+        assertThat(meterRegistry.get("docgrid.ollama.generate.requests")
+            .tag("outcome", "complete").counter().count()).isEqualTo(1);
+        then(requestBodyUriSpec).should(times(2)).exchange(any());
+    }
+
+    @Test
+    @DisplayName("대량 혼입 재생성: 재생성 답변도 대량 혼입이면 첫 답변을 혼입 시작 지점에서 잘라 잘림 안내를 덧붙인다")
+    void generate_heavyCjkMixing_retryAlsoMixed_keepsFirstAnswer() {
+        givenStreamBodies("""
+            {"model":"qwen2.5:3b","response":"연차는 15일입니다. 이월은第一条年假规定是这样的继续说明如下","done":false}
+            {"model":"qwen2.5:3b","response":"","done":true,"prompt_eval_count":120,"eval_count":45}
+            """, """
+            {"model":"qwen2.5:3b","response":"연차는第一条年假规定是这样的继续说明如下","done":false}
+            {"model":"qwen2.5:3b","response":"","done":true,"prompt_eval_count":120,"eval_count":30}
+            """);
+
+        OllamaGenerateResult result = ollamaClient.generate("질문: 연차 규정 알려줘");
+
+        assertThat(result.answerText())
+            .startsWith("연차는 15일입니다.")
+            .doesNotContain("이월은", "第一")
+            .contains("답변이 길어 일부 내용이 생략됐을 수 있습니다");
+        assertThat(result.outputTokenCount()).isEqualTo(45);
+        then(requestBodyUriSpec).should(times(2)).exchange(any());
+    }
+
+    @Test
+    @DisplayName("대량 혼입 재생성: 재생성 요청이 답변을 받지 못하면 첫 답변을 잘라 잘림 안내를 덧붙인다")
+    void generate_heavyCjkMixing_retryFails_keepsFirstAnswer() {
+        givenStreamBodies("""
+            {"model":"qwen2.5:3b","response":"연차는 15일입니다. 이월은第一条年假规定是这样的继续说明如下","done":false}
+            {"model":"qwen2.5:3b","response":"","done":true,"prompt_eval_count":120,"eval_count":45}
+            """, "");
+
+        OllamaGenerateResult result = ollamaClient.generate("질문: 연차 규정 알려줘");
+
+        assertThat(result.answerText())
+            .startsWith("연차는 15일입니다.")
+            .contains("답변이 길어 일부 내용이 생략됐을 수 있습니다");
+        then(requestBodyUriSpec).should(times(2)).exchange(any());
+    }
+
+    @Test
+    @DisplayName("대량 혼입 재생성: 데드라인이 이미 지났으면 재생성하지 않고 첫 답변을 잘라 반환한다")
+    void generate_heavyCjkMixing_afterDeadline_doesNotRegenerate() {
+        ollamaClient = new OllamaClient(
+            "qwen2.5:3b", "30m", 300, 0.3, 0.8, 1.1, 256, Duration.ZERO, restClient,
+            meterRegistry
+        );
+        doReturn(requestBodyUriSpec).when(restClient).post();
+        givenStreamBodies("""
+            {"model":"qwen2.5:3b","response":"연차는 15일입니다. 이월은第一条年假规定是这样的继续说明如下","done":false}
+            """);
+
+        OllamaGenerateResult result = ollamaClient.generate("질문: 연차 규정 알려줘");
+
+        assertThat(result.answerText())
+            .startsWith("연차는 15일입니다.")
+            .contains("답변이 길어 일부 내용이 생략됐을 수 있습니다");
+        then(requestBodyUriSpec).should(times(1)).exchange(any());
     }
 
     @Test
