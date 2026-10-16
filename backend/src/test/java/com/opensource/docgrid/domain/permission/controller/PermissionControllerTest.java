@@ -39,6 +39,8 @@ class PermissionControllerTest {
 
     @Autowired private MockMvc mockMvc;
 
+    @MockitoBean private com.opensource.docgrid.domain.permission.service.DocumentPermissionRevocationFacade documentPermissionRevocationFacade;
+
     @MockitoBean private CollectionPermissionCommandService collectionPermissionCommandService;
     @MockitoBean private DocumentPermissionCommandService documentPermissionCommandService;
     @MockitoBean private PermissionQueryService permissionQueryService;

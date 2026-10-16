@@ -1,0 +1,25 @@
+실행 ID: sync-run05
+위치: 로컬 PostgreSQL 17.8·Standby 2대 / 실제 MVC·JPA·Hikari
+명령: ./backend/gradlew -p backend permissionDurabilityTest --console=plain
+목적: 정상 동기 확정·COMMIT 경고·동일 키 재주장·불명 대기 제한·충돌·원자성 검증
+성공 기준: 정상 204, 불명 503, 재주장 WAL 증가, 키 충돌 409, 비인가 403 및 롤백
+EVIDENCE 2026-10-17T05:05:59.909489+09:00 run=baseline-stale-cache permission_rows=0 stale_cache=1 final_read_allowed=true
+PermissionDurabilityIntegrationTest > 수정 전: 원장은 회수됐어도 오래된 USER 캐시는 최종 읽기 인가를 허용한다 PASSED
+EVIDENCE 2026-10-17T05:06:05.824329+09:00 run=sync-timeout http=503 elapsed_ms=5074
+PermissionDurabilityIntegrationTest > 동기 후보 전체 부재의 COMMIT 대기는 5초 제한 뒤 결과 불명으로 끝난다 PASSED
+EVIDENCE 2026-10-17T05:06:06.763565+09:00 run=sync-response-loss first_response_discarded=true retry_http=204 wal_assertions=2
+PermissionDurabilityIntegrationTest > 응답 유실 뒤 같은 키 회수는 새 WAL로 204를 다시 확정한다 PASSED
+EVIDENCE 2026-10-17T05:06:07.357845+09:00 run=sync-atomic-denial http=403 permission_rows=1 receipt_rows=0
+PermissionDurabilityIntegrationTest > 권한 없는 대상자의 회수는 403이며 요청 원장 INSERT도 롤백된다 PASSED
+EVIDENCE 2026-10-17T05:06:07.959863+09:00 run=sync-key-binding http=409 new_permission_rows=1
+PermissionDurabilityIntegrationTest > 같은 요청 키를 다른 권한에 사용하면 409이며 새 권한은 유지된다 PASSED
+EVIDENCE 2026-10-17T05:06:08.839418+09:00 run=cancel wait_event=SyncRep
+EVIDENCE 2026-10-17T05:06:08.845137+09:00 run=commit-warning sqlstate=01000
+EVIDENCE 2026-10-17T05:06:08.849236+09:00 run=sync-cancel http=503 local_permission_rows=0 warnings=1
+EVIDENCE 2026-10-17T05:06:09.136948+09:00 run=sync-reassert retry_http=204 receipt_rows=1 wal_assertions=2
+PermissionDurabilityIntegrationTest > 동기 COMMIT 취소는 503이며 같은 키 WAL 재주장으로 204를 재확정한다 PASSED
+EVIDENCE 2026-10-17T05:06:10.280688+09:00 run=sync-not-configured http=503 permission_rows=1 receipt_rows=0
+PermissionDurabilityIntegrationTest > 동기 후보 설정이 없으면 503이며 권한과 요청 원장을 바꾸지 않는다 PASSED
+EVIDENCE 2026-10-17T05:06:10.875689+09:00 run=sync-concurrency http_204=2 receipt_rows=1 wal_assertions=2 pooled_setting=local
+PermissionDurabilityIntegrationTest > 같은 키의 동시 회수는 행 잠금으로 직렬화되고 요청 원장 하나로 수렴한다 PASSED
+BUILD SUCCESSFUL in 17s
