@@ -1,0 +1,3 @@
+목적: 실패 회차의 외부 키별 원장 보존 확인. 이 감사로 실패 회차를 통과로 바꾸지 않음.
+EVIDENCE ledger_unique_keys=48 initial_204_keys=48 acknowledged_preserved=48 resolved_keys=48 remaining_permissions=0
+exit_code=0

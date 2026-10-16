@@ -1,0 +1,15 @@
+{"실행_ID": "designated-primary-run01-app", "목적": "실제 격리 OpenSQL·OpenProxy의 권한 회수 HA 계약", "시작_KST": "2026-10-17T06:39:49.756391+09:00", "위치": "로컬 JVM → IAP → 격리 GCP OpenSQL·OpenProxy·역할 어댑터", "명령": "./backend/gradlew -p backend permissionHaTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :permissionHaTest
+> Task :permissionHaTest
+EVIDENCE 2026-10-17T06:40:06.401402+09:00 mode=designated scenario=primary-loss phase=fixture-start samples=48
+EVIDENCE 2026-10-17T06:40:08.188685+09:00 mode=designated scenario=primary-loss phase=fixture-ready samples=48
+EVIDENCE 2026-10-17T06:42:45.731869+09:00 mode=designated scenario=primary-loss phase=summary initial_requests=48 initial_204=39 initial_unknown=9 final_receipts=48 final_permissions=0 forbidden_content=0 auth_unavailable=2 p50_ms=2807.336291 p95_ms=5018.840625 hikari_max_active=2 hikari_max_pending=2
+OpenSqlSynchronousPolicyComparisonTest > 동일 회수 부하 중 장애가 있어도 확정 요청이 보존되고 불명 요청은 같은 키로 수렴한다 PASSED
+BUILD SUCCESSFUL in 2m 56s
+{"종료_KST": "2026-10-17T06:42:45.850975+09:00", "exit_code": 0}
