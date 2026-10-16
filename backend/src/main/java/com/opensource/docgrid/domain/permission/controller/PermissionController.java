@@ -1,6 +1,9 @@
 package com.opensource.docgrid.domain.permission.controller;
 
 import java.util.List;
+import java.util.UUID;
+import org.springframework.web.bind.annotation.RequestHeader;
+import com.opensource.docgrid.domain.permission.service.DocumentPermissionRevocationFacade;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -51,6 +54,7 @@ public class PermissionController {
     private final DocumentPermissionCommandService documentPermissionCommandService;
     private final PermissionQueryService permissionQueryService;
     private final PermissionTargetUserQueryService permissionTargetUserQueryService;
+    private final DocumentPermissionRevocationFacade documentPermissionRevocationFacade;
 
     @Operation(
             summary = "내 문서 권한 확인",
@@ -168,8 +172,9 @@ public class PermissionController {
     public ResponseEntity<ApiResponse<Void>> revokeDocumentPermission(
             @PathVariable Long documentId,
             @PathVariable Long permissionId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
-        documentPermissionCommandService.revokePermission(documentId, permissionId, userId);
+            @Parameter(hidden = true) @CurrentUser Long userId,
+            @RequestHeader(value = "Idempotency-Key", required = false) UUID requestId) {
+        documentPermissionRevocationFacade.revoke(documentId, permissionId, userId, requestId);
         return ResponseUtils.noContent();
     }
 }

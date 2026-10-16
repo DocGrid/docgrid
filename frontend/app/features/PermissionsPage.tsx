@@ -1,12 +1,14 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, apiRequest, errorMessage } from "../lib/api";
 import type { Collection, Department, DocumentSummary, PageResponse, PermissionGrant, PermissionSummary, PermissionTargetUser, Role } from "../lib/api-types";
 import { permissionTargetUserLabel } from "../lib/permission-target-user";
 import { ErrorState, LoadingState, Notice, PageHeading, StatusPill, formatDate } from "../components/ui";
 
 export function PermissionsPage({ notify }: { notify: (message: string) => void }) {
+  // 응답 불명 재요청도 같은 문서·권한 키를 재사용한다. 성공 시에만 폐기한다.
+  const revocationKeys = useRef(new Map<string, string>());
   const [documents, setDocuments] = useState<DocumentSummary[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -143,7 +145,16 @@ export function PermissionsPage({ notify }: { notify: (message: string) => void 
     setBusy(true);
     setError("");
     try {
-      await apiRequest(`/permissions/${resourceType}/${resourceId}/${permission.permissionId}`, { method: "DELETE" });
+      const binding = `${resourceType}:${resourceId}:${permission.permissionId}`;
+      let requestKey = revocationKeys.current.get(binding);
+      if (!requestKey) {
+        requestKey = crypto.randomUUID();
+        revocationKeys.current.set(binding, requestKey);
+      }
+      await apiRequest(`/permissions/${resourceType}/${resourceId}/${permission.permissionId}`, {
+        method: "DELETE", headers: { "Idempotency-Key": requestKey },
+      });
+      revocationKeys.current.delete(binding);
       notify("권한을 회수했습니다.");
       await loadDirectPermissions();
     } catch (reason) { setError(errorMessage(reason)); }
