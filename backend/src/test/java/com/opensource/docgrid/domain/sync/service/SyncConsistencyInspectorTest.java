@@ -2,6 +2,7 @@ package com.opensource.docgrid.domain.sync.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -118,8 +119,54 @@ class SyncConsistencyInspectorTest {
         assertThat(inspector.inspect(historical, model, INSPECTED_AT)).isEmpty();
     }
 
+    @Test
+    @DisplayName("정상 삭제로 Vector가 모두 STALE이 된 문서는 Vector 누락으로 보고하지 않는다")
+    void inspect_ignoresStaleVectorsOfDeletedDocument() {
+        DocumentVersion version = deletedCurrentVersion(15L);
+        given(documentChunkRepository.countByDocumentVersionId(15L)).willReturn(5L);
+        given(embeddingRepository.countByDocumentVersionIdAndEmbeddingModelIdAndStatus(
+            15L, 7L, EmbeddingStatus.ACTIVE
+        )).willReturn(0L);
+        given(embeddingRepository.countByDocumentIdAndStatus(15L, EmbeddingStatus.ACTIVE)).willReturn(0L);
+        // 삭제 문서는 Vector 완전성 검사 대상이 아니므로 아래 전체 개수는 조회되지 않아야 한다.
+        lenient().when(embeddingRepository.countByDocumentVersionIdAndEmbeddingModelId(15L, 7L)).thenReturn(5L);
+        lenient().when(embeddingRepository.countByDocumentVersionId(15L)).thenReturn(5L);
+
+        assertThat(inspector.inspect(version, model, INSPECTED_AT)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("삭제 직후 일부 Vector만 ACTIVE로 남아도 삭제 잔여물만 보고하고 자동복구 대상으로 분류하지 않는다")
+    void inspect_reportsOnlyResidueForDeletedDocumentWithPartialActiveVectors() {
+        DocumentVersion version = deletedCurrentVersion(16L);
+        given(documentChunkRepository.countByDocumentVersionId(16L)).willReturn(5L);
+        given(embeddingRepository.countByDocumentVersionIdAndEmbeddingModelIdAndStatus(
+            16L, 7L, EmbeddingStatus.ACTIVE
+        )).willReturn(4L);
+        given(embeddingRepository.countByDocumentIdAndStatus(16L, EmbeddingStatus.ACTIVE)).willReturn(4L);
+        // 삭제 문서는 Vector 완전성 검사 대상이 아니므로 아래 전체 개수는 조회되지 않아야 한다.
+        lenient().when(embeddingRepository.countByDocumentVersionIdAndEmbeddingModelId(16L, 7L)).thenReturn(4L);
+        lenient().when(embeddingRepository.countByDocumentVersionId(16L)).thenReturn(4L);
+
+        List<SyncConsistencyObservation> observations = inspector.inspect(version, model, INSPECTED_AT);
+
+        assertThat(observations)
+            .singleElement()
+            .satisfies(observation -> {
+                assertThat(observation.issueType()).isEqualTo(SyncConsistencyIssueType.DELETED_DOCUMENT_RESIDUE);
+                assertThat(observation.repairable()).isFalse();
+            });
+    }
+
     private DocumentVersion indexedCurrentVersion(Long versionId) {
         Document document = document(versionId, DocumentStatus.INDEXED);
+        DocumentVersion version = version(document, versionId, DocumentVersionStatus.INDEXED);
+        document.updateCurrentVersion(version);
+        return version;
+    }
+
+    private DocumentVersion deletedCurrentVersion(Long versionId) {
+        Document document = document(versionId, DocumentStatus.DELETED);
         DocumentVersion version = version(document, versionId, DocumentVersionStatus.INDEXED);
         document.updateCurrentVersion(version);
         return version;
