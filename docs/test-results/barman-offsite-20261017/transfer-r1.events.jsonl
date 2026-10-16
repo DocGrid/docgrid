@@ -1,0 +1,3 @@
+{"run_id": "BARMAN-OFFSITE-TRANSFER-20261017-R1", "time_kst": "2026-10-17T00:47:46.938345+09:00", "event": "monitor_start", "environment": "GCP backup VM", "procedure": "systemd service state every 10 seconds"}
+{"run_id": "BARMAN-OFFSITE-TRANSFER-20261017-R1", "time_kst": "2026-10-17T00:47:54.744460+09:00", "elapsed_s": 0, "active": "failed", "substate": "failed", "result": "exit-code", "exit_status": "1", "last_error": "no_completed_backup", "success_recorded": false}
+{"run_id": "BARMAN-OFFSITE-TRANSFER-20261017-R1", "time_kst": "2026-10-17T00:47:54.859291+09:00", "event": "monitor_end", "ssh_ok": true}

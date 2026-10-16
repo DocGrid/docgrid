@@ -1,0 +1,7 @@
+{
+  "server": "BARMAN_SERVER_NAME",
+  "destination": "gs://PRIVATE_DB_BACKUP_BUCKET/barman",
+  "work_dir": "/var/lib/barman/offsite-work",
+  "status_file": "/var/lib/barman/offsite-status.json",
+  "max_lag_seconds": 900
+}

@@ -1,0 +1,13 @@
+[Unit]
+Description=Copy completed Barman backups and WAL to private GCS storage
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=barman
+Group=barman
+Environment=HOME=/var/lib/barman
+ExecStart=/usr/bin/python3 /opt/docgrid/barman_offsite_sync.py sync --config /etc/docgrid/barman-offsite.json
+TimeoutStartSec=90min
+NoNewPrivileges=true
