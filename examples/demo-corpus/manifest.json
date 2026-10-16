@@ -1,0 +1,79 @@
+{
+  "documents": [
+    {
+      "file": "01-remote-work-policy.pdf",
+      "title": "재택근무 운영 규정",
+      "description": "재택근무 허용 횟수, 신청 절차, 코어타임, 보안 요건과 통신비 지원 기준"
+    },
+    {
+      "file": "02-business-travel-expense.pdf",
+      "title": "출장 및 여비 규정",
+      "description": "출장 신청 기한, 교통비·숙박비 상한, 일비와 출장 경비 정산 기한"
+    },
+    {
+      "file": "03-annual-leave-guide.pdf",
+      "title": "연차휴가 사용 지침",
+      "description": "연차 사용 단위, 신청 기한, 미사용 연차 이월과 사용 촉진 절차"
+    },
+    {
+      "file": "04-information-security.pdf",
+      "title": "정보보안 기본 규정",
+      "description": "비밀번호·다중 인증, 단말 보안, 이동식 저장매체와 보안 사고 신고 기준"
+    },
+    {
+      "file": "05-it-asset-management.pdf",
+      "title": "IT 자산 관리 규정",
+      "description": "노트북·모니터 지급과 교체 주기, 분실 신고, 퇴사 시 반납과 소프트웨어 설치 기준"
+    },
+    {
+      "file": "06-family-event-support.docx",
+      "title": "경조사 지원 규정",
+      "description": "결혼·출산·조사별 경조금과 경조휴가, 신청 기한과 증빙 서류"
+    },
+    {
+      "file": "07-training-support.docx",
+      "title": "교육훈련비 지원 규정",
+      "description": "1인당 연간 교육비 한도, 사전 승인, 청구 기한, 반환 조건과 자격증 축하금"
+    },
+    {
+      "file": "08-corporate-card.docx",
+      "title": "법인카드 사용 지침",
+      "description": "법인카드 사용 범위, 사전 승인 금액, 사용 제한, 증빙 입력 기한과 분실 처리"
+    },
+    {
+      "file": "09-onboarding-guide.docx",
+      "title": "신규 입사자 온보딩 안내",
+      "description": "입사 첫날 일정, 1주차 필수 교육, 멘토 제도, 수습 기간과 문의처"
+    },
+    {
+      "file": "10-meeting-room-booking.docx",
+      "title": "회의실 및 공용 장비 예약 규칙",
+      "description": "회의실 예약 기간과 시간 제한, 노쇼 자동 취소, 공용 장비 대여 기간"
+    },
+    {
+      "file": "11-records-retention.hwpx",
+      "title": "문서 보존 및 폐기 기준",
+      "description": "문서 종류별 보존 기간, 연간 폐기 절차, 폐기 대장과 소송 관련 폐기 보류"
+    },
+    {
+      "file": "12-incident-response.hwpx",
+      "title": "장애 대응 및 비상연락 절차",
+      "description": "서비스 장애 등급, 등급별 최초 공지 시한, 장애 대응 역할, 비상연락 순서와 사후 검토"
+    },
+    {
+      "file": "13-flexible-work.hwpx",
+      "title": "유연근무제 운영 지침",
+      "description": "시차출퇴근 선택 범위, 선택적 근로시간제 코어타임, 신청 기한과 연장근로 승인"
+    },
+    {
+      "file": "14-personal-data-handling.hwpx",
+      "title": "개인정보 처리 지침",
+      "description": "개인정보 접근 권한 관리, 대량 다운로드 승인, 화면 마스킹, 파기 기한과 유출 대응"
+    },
+    {
+      "file": "15-club-support.hwpx",
+      "title": "사내 동호회 지원 규정",
+      "description": "동호회 등록 요건, 1인당 활동비와 동호회별 상한, 분기 정산과 등록 취소 기준"
+    }
+  ]
+}
