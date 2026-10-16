@@ -41,6 +41,8 @@ DB 노드 3대: Patroni → 각 노드의 GET /metrics 전용 게이트웨이
 
 Patroni의 [영구 복제 슬롯 설명](https://patroni.readthedocs.io/en/latest/dynamic_configuration.html#slots)은 물리 슬롯을 리더 교체 후에도 관리할 수 있지만, 슬롯을 둔 채 수신이 멈추면 WAL이 누적될 수 있다고 경고한다. 슬롯 정책과 디스크 경보를 확인하기 전에는 구성 모델과 감시기를 활성화하지 않는다. `create_slot=auto`만 켜서 새 리더의 최신 위치에 슬롯을 만드는 것으로 과거 WAL의 연속성을 입증할 수 없다.
 
+2026-10-16 적용 과정에서 Standby의 복제 HBA 누락을 확인하고 백업 VM의 내부 주소로 제한한 규칙을 추가했다. 이후 SQL·복제 프로토콜 접속은 모두 3/3 성공했다. 세 노드의 슬롯 WAL 보존 한도를 4GB로 맞추고 기존 Barman 물리 슬롯을 Patroni DCS의 **최상위 `slots`**에 등록했으며 실제 슬롯 생성 3/3을 확인했다. 첫 시도에서는 잘못된 `postgresql.slots` 위치에 등록해 API 응답만 성공하고 Standby 슬롯이 생성되지 않았으므로, [실패 기록](../test-results/barman-wal-follow-20261016/permanent-slot-r1.md)을 남겼다.
+
 ## 설치·검증 순서
 
 1. `scripts/opensql/barman-wal-follow.example.json`의 노드 주소·Barman 서버 이름·모델 이름을 **백업 VM의 비공개 설정 파일**에만 채운다. 주소와 접속 계정은 저장소에 기록하지 않는다.
@@ -49,4 +51,4 @@ Patroni의 [영구 복제 슬롯 설명](https://patroni.readthedocs.io/en/lates
 4. 통제된 역할 변경 시험에서 **이전 WAL 마지막 위치 → 새 리더 timeline → 첫 수신 WAL → 복원 가능 시점**을 별도 실행 기록으로 남긴다. 앱 쓰기 원장과 비교하기 전에는 RPO 숫자를 붙이지 않는다.
 5. 롤백은 timer 중지 → Barman 수신 정지 → 이전에 확인한 모델로 전환 → `barman cron`·`barman check` 순서다. 새 timeline이 생긴 뒤 과거 Primary로 억지 전환하지 않고 현재 Patroni 리더를 다시 확인한다.
 
-현재 [실행 기록](../test-results/barman-wal-follow-20261016/README.md)은 지표 네트워크·읽기 전용 판정까지의 결과다. **자동 전환과 실제 역할 변경의 WAL 연속성은 아직 실행한 증거가 아니다.**
+현재 [실행 기록](../test-results/barman-wal-follow-20261016/README.md)에서는 모델 3개·1분 timer를 설치하고 계획된 리더 전환을 1회 실행했다. 리더는 순번 2→1로, timeline은 19→20으로 바뀌었다. 전환 직후 Barman 슬롯·수신 검사는 실패했으나, 다음 관측에서 감시기의 모델 정렬과 세 검사 통과를 확인했다. timeline 20의 history와 완성된 WAL 세그먼트를 Barman에서 읽었다. **새 timeline을 포함한 격리 PITR과 성공 응답 원장 대조는 아직 실행하지 않았다.**
