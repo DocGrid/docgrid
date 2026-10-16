@@ -1,0 +1,53 @@
+{
+    "success": true,
+    "status": 200,
+    "data": {
+        "content": [
+            {
+                "issueId": 5,
+                "issueKey": "STALLED_VERSION:VERSION:6:MODEL:1",
+                "issueType": "STALLED_VERSION",
+                "severity": "WARNING",
+                "status": "OPEN",
+                "documentId": 6,
+                "documentVersionId": 6,
+                "embeddingModelId": 1,
+                "expectedJson": "{\"updatedAfter\":\"2026-10-16T15:49:40.777191\"}",
+                "actualJson": "{\"updatedAt\":\"2026-10-16T15:44:29.366706\",\"liveJob\":true}",
+                "repairable": false,
+                "detectedAt": "2026-10-16T16:04:40.777191",
+                "lastDetectedAt": "2026-10-16T16:04:40.777191",
+                "repairEventId": null,
+                "repairAttemptCount": 0,
+                "resolvedAt": null,
+                "resolutionMessage": null
+            },
+            {
+                "issueId": 3,
+                "issueKey": "MISSING_EMBEDDINGS:VERSION:4:MODEL:1",
+                "issueType": "MISSING_EMBEDDINGS",
+                "severity": "CRITICAL",
+                "status": "OPEN",
+                "documentId": 4,
+                "documentVersionId": 4,
+                "embeddingModelId": 1,
+                "expectedJson": "{\"activeEmbeddingCount\":5}",
+                "actualJson": "{\"activeEmbeddingCount\":0,\"currentModelEmbeddingCount\":5,\"allModelEmbeddingCount\":5}",
+                "repairable": false,
+                "detectedAt": "2026-10-16T16:02:43.18896",
+                "lastDetectedAt": "2026-10-16T16:04:40.777191",
+                "repairEventId": null,
+                "repairAttemptCount": 0,
+                "resolvedAt": null,
+                "resolutionMessage": null
+            }
+        ],
+        "page": 0,
+        "size": 100,
+        "totalElements": 2,
+        "totalPages": 1,
+        "first": true,
+        "last": true
+    },
+    "timestamp": "2026-10-16 16:04:41"
+}

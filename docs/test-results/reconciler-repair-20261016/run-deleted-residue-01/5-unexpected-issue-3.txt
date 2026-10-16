@@ -1,0 +1,5 @@
+ id |              issue_key               |     issue_type     | severity | status | repairable | document_id | document_version_id | document_status | version_status |       expected_json        |                                     actual_json                                      
+----+--------------------------------------+--------------------+----------+--------+------------+-------------+---------------------+-----------------+----------------+----------------------------+--------------------------------------------------------------------------------------
+  3 | MISSING_EMBEDDINGS:VERSION:4:MODEL:1 | MISSING_EMBEDDINGS | CRITICAL | OPEN   | f          |           4 |                   4 | DELETED         | INDEXED        | {"activeEmbeddingCount":5} | {"activeEmbeddingCount":0,"currentModelEmbeddingCount":5,"allModelEmbeddingCount":5}
+(1 row)
+

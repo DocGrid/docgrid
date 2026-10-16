@@ -1,0 +1,2 @@
+# backend-phase3-worker-off-dispatcher-on 핵심 줄 (원본 125줄 중 기동·Worker·WARN·ERROR만 추출, 시험 경로는 <scratchpad>로 치환)
+2026-10-16T16:02:40.961+09:00  INFO 91898 --- [docgrid] [           main] c.opensource.docgrid.DocgridApplication  : Started DocgridApplication in 10.063 seconds (process running for 10.58)

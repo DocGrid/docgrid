@@ -1,0 +1,2 @@
+backend phase: INDEXING_WORKER_ENABLED=false, SYNC_DISPATCHER_ENABLED=false
+backend phase after resume: INDEXING_WORKER_ENABLED=false, SYNC_DISPATCHER_ENABLED=true

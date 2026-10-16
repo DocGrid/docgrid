@@ -1,0 +1,4 @@
+ rank_no | document_version_id | similarity_score 
+---------+---------------------+------------------
+(0 rows)
+

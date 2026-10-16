@@ -1,0 +1,53 @@
+{
+    "success": true,
+    "status": 200,
+    "data": {
+        "content": [
+            {
+                "issueId": 4,
+                "issueKey": "MISSING_JOB:VERSION:5:MODEL:1",
+                "issueType": "MISSING_JOB",
+                "severity": "ERROR",
+                "status": "OPEN",
+                "documentId": 5,
+                "documentVersionId": 5,
+                "embeddingModelId": 1,
+                "expectedJson": "{\"liveJob\":true}",
+                "actualJson": "{\"liveJob\":false,\"versionStatus\":\"UPLOADED\"}",
+                "repairable": true,
+                "detectedAt": "2026-10-16T16:03:54.412214",
+                "lastDetectedAt": "2026-10-16T16:03:54.412214",
+                "repairEventId": null,
+                "repairAttemptCount": 0,
+                "resolvedAt": null,
+                "resolutionMessage": null
+            },
+            {
+                "issueId": 3,
+                "issueKey": "MISSING_EMBEDDINGS:VERSION:4:MODEL:1",
+                "issueType": "MISSING_EMBEDDINGS",
+                "severity": "CRITICAL",
+                "status": "OPEN",
+                "documentId": 4,
+                "documentVersionId": 4,
+                "embeddingModelId": 1,
+                "expectedJson": "{\"activeEmbeddingCount\":5}",
+                "actualJson": "{\"activeEmbeddingCount\":0,\"currentModelEmbeddingCount\":5,\"allModelEmbeddingCount\":5}",
+                "repairable": false,
+                "detectedAt": "2026-10-16T16:02:43.18896",
+                "lastDetectedAt": "2026-10-16T16:03:54.412214",
+                "repairEventId": null,
+                "repairAttemptCount": 0,
+                "resolvedAt": null,
+                "resolutionMessage": null
+            }
+        ],
+        "page": 0,
+        "size": 100,
+        "totalElements": 2,
+        "totalPages": 1,
+        "first": true,
+        "last": true
+    },
+    "timestamp": "2026-10-16 16:03:54"
+}

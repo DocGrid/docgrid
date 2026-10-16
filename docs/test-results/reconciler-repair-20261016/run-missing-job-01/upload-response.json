@@ -1,0 +1,13 @@
+{
+    "success": true,
+    "status": 201,
+    "data": {
+        "documentId": 5,
+        "documentVersionId": 5,
+        "fileObjectId": 3,
+        "embeddingJobId": 4,
+        "documentStatus": "UPLOADED",
+        "jobStatus": "PENDING"
+    },
+    "timestamp": "2026-10-16 16:03:25"
+}

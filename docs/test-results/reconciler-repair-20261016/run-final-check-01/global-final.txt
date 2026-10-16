@@ -1,0 +1,52 @@
+## active embedding model
+ id | model_name  | is_active | is_searchable 
+----+-------------+-----------+---------------
+  1 | BAAI/bge-m3 | t         | t
+(1 row)
+
+## documents by status
+ status  | count 
+---------+-------
+ DELETED |     1
+ INDEXED |     5
+(2 rows)
+
+## versions by status
+ status  | count 
+---------+-------
+ INDEXED |     6
+(1 row)
+
+## issues by type/status
+        issue_type        | severity |  status  | repairable | count 
+--------------------------+----------+----------+------------+-------
+ DELETED_DOCUMENT_RESIDUE | CRITICAL | RESOLVED | f          |     1
+ MISSING_EMBEDDINGS       | CRITICAL | OPEN     | f          |     1
+ MISSING_EMBEDDINGS       | CRITICAL | RESOLVED | t          |     1
+ MISSING_JOB              | ERROR    | RESOLVED | t          |     2
+ STALLED_VERSION          | WARNING  | RESOLVED | f          |     1
+(5 rows)
+
+## outbox by type/status
+         event_type         |  status   | count 
+----------------------------+-----------+-------
+ DOCUMENT_DELETED           | PROCESSED |     1
+ DOCUMENT_REINDEX_REQUESTED | PROCESSED |     3
+ DOCUMENT_VERSION_CREATED   | PROCESSED |     4
+(3 rows)
+
+## reconciliation runs (latest 10)
+                run_id                |  mode   |  status   | start_cursor | end_cursor | scanned_count | detected_count | repair_requested_count |         started_at         |        completed_at        | error_code 
+--------------------------------------+---------+-----------+--------------+------------+---------------+----------------+------------------------+----------------------------+----------------------------+------------
+ 21764d46-42a6-4ece-afdd-86708d3e1970 | DRY_RUN | COMPLETED |            0 |          6 |             6 |              1 |                      0 | 2026-10-16 16:06:06.637791 | 2026-10-16 16:06:06.686715 | 
+ b928c717-b6a1-4e2c-8cf4-1067b02e037f | DRY_RUN | COMPLETED |            0 |          6 |             6 |              2 |                      0 | 2026-10-16 16:05:07.708055 | 2026-10-16 16:05:07.770725 | 
+ 52961815-8492-4300-a356-5f22ae9b5667 | REPAIR  | COMPLETED |            0 |          6 |             6 |              3 |                      1 | 2026-10-16 16:05:03.359268 | 2026-10-16 16:05:03.406237 | 
+ 178bd9aa-8a9d-49ea-ac76-dc5a996fee57 | DRY_RUN | COMPLETED |            0 |          6 |             6 |              3 |                      0 | 2026-10-16 16:04:53.815217 | 2026-10-16 16:04:53.877369 | 
+ a0be300f-6bed-400d-a3ee-a69007397ea2 | DRY_RUN | COMPLETED |            0 |          6 |             6 |              2 |                      0 | 2026-10-16 16:04:40.770363 | 2026-10-16 16:04:40.857926 | 
+ 5e78c4a1-0827-42fa-89f1-348c5e6dee70 | DRY_RUN | COMPLETED |            0 |          5 |             5 |              1 |                      0 | 2026-10-16 16:04:11.452096 | 2026-10-16 16:04:11.519508 | 
+ 811b7c1d-9b2f-4803-8194-a9b3cb349de4 | REPAIR  | COMPLETED |            0 |          5 |             5 |              2 |                      1 | 2026-10-16 16:04:07.010907 | 2026-10-16 16:04:07.092812 | 
+ 01853e16-77a6-4e16-a487-9743bd10c266 | DRY_RUN | COMPLETED |            0 |          5 |             5 |              2 |                      0 | 2026-10-16 16:03:54.408775 | 2026-10-16 16:03:54.452405 | 
+ 567edd5b-7ebf-473b-9af1-e1281171f975 | DRY_RUN | COMPLETED |            0 |          5 |             5 |              1 |                      0 | 2026-10-16 16:03:36.954614 | 2026-10-16 16:03:36.989232 | 
+ 80a2cabf-0161-4c9a-b1b7-0a7f4dd5584c | DRY_RUN | COMPLETED |            0 |          4 |             4 |              1 |                      0 | 2026-10-16 16:02:43.184655 | 2026-10-16 16:02:43.24271  | 
+(10 rows)
+

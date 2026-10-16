@@ -1,0 +1,4 @@
+16:04:04 doc=UPLOADED ver=UPLOADED jobs=- reindexEvents=- activeVec=0 issues=4:MISSING_JOB:OPEN
+16:04:07 doc=UPLOADED ver=UPLOADED jobs=- reindexEvents=PENDING activeVec=0 issues=4:MISSING_JOB:REPAIRING
+16:04:08 doc=UPLOADED ver=UPLOADED jobs=5:PENDING reindexEvents=PROCESSED activeVec=0 issues=4:MISSING_JOB:REPAIRING
+16:04:11 doc=UPLOADED ver=UPLOADED jobs=5:PENDING reindexEvents=PROCESSED activeVec=0 issues=4:MISSING_JOB:RESOLVED

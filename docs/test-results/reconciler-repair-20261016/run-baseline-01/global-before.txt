@@ -1,0 +1,33 @@
+## active embedding model
+ id | model_name  | is_active | is_searchable 
+----+-------------+-----------+---------------
+  1 | BAAI/bge-m3 | t         | t
+(1 row)
+
+## documents by status
+ status  | count 
+---------+-------
+ INDEXED |     2
+(1 row)
+
+## versions by status
+ status  | count 
+---------+-------
+ INDEXED |     2
+(1 row)
+
+## issues by type/status
+ issue_type | severity | status | repairable | count 
+------------+----------+--------+------------+-------
+(0 rows)
+
+## outbox by type/status
+ event_type | status | count 
+------------+--------+-------
+(0 rows)
+
+## reconciliation runs (latest 10)
+ run_id | mode | status | start_cursor | end_cursor | scanned_count | detected_count | repair_requested_count | started_at | completed_at | error_code 
+--------+------+--------+--------------+------------+---------------+----------------+------------------------+------------+--------------+------------
+(0 rows)
+

@@ -1,0 +1,41 @@
+## document / version
+ document_id | document_status | current_version_id | deleted | version_id | version_status |         indexed_at         |     version_updated_at     
+-------------+-----------------+--------------------+---------+------------+----------------+----------------------------+----------------------------
+           5 | INDEXED         |                  5 | f       |          5 | INDEXED        | 2026-10-16 16:05:53.226381 | 2026-10-16 16:05:53.235647
+(1 row)
+
+## embedding_jobs
+ id | status  | retry_count |           source_event_id            |         created_at         |        completed_at        | attempts | indexing_events 
+----+---------+-------------+--------------------------------------+----------------------------+----------------------------+----------+-----------------
+  5 | INDEXED |           0 | e8c1e0bb-805f-4707-bda0-64746f2e12c1 | 2026-10-16 16:04:07.870352 | 2026-10-16 16:05:53.226381 |        1 |               5
+(1 row)
+
+## chunks / embeddings (count by model, status)
+ chunk_count | embedding_model_id | status | embedding_count 
+-------------+--------------------+--------+-----------------
+           5 |                  1 | ACTIVE |               5
+(1 row)
+
+## embeddings (id, chunk, hash)
+ embedding_id | chunk_index | chunk_id | status |                           vector_hash                            |         vector_text_md5          |         created_at         
+--------------+-------------+----------+--------+------------------------------------------------------------------+----------------------------------+----------------------------
+           21 |           0 |       16 | ACTIVE | 706b2f41e2b18a24edeceff782b8c554ac937580cb2f1a238e6eb8b8f48683b4 | 2d2106495620392ac7985a4d418ab628 | 2026-10-16 16:05:53.212565
+           22 |           1 |       17 | ACTIVE | 7f314c964d9b56ebb40f1745849b5e9071ad39e53d2bfa862ec66ba4ad846f07 | e78806a93d190ff9beb916d83e3db676 | 2026-10-16 16:05:53.215663
+           23 |           2 |       20 | ACTIVE | c9ec87ceaa3bc4e3bd73fcc10442625c54da3d3acb5aca5e5b0458080bbd5b4e | 8ab6c2dd7a7dc3d23d17b5467dd9815a | 2026-10-16 16:05:53.217176
+           24 |           3 |       21 | ACTIVE | 299ae848a714b13c8285f60de7e9e6926563c108407b6f8de3127abecb6139d0 | 7fba8121af58f8949a9ad2886b8799b5 | 2026-10-16 16:05:53.220067
+           25 |           4 |       24 | ACTIVE | 71eeecc31f81d6a694b4ce3e27e44bc4495d6c818c7c060d6c7e98c1c1cce0ca | baaa8695f3445b7a3dabdc06c8e21ad1 | 2026-10-16 16:05:53.222544
+(5 rows)
+
+## sync_outbox_events (aggregate = version or document)
+               event_id               |         event_type         |  aggregate_type  | aggregate_id |  status   | retry_count |                                          idempotency_key                                          |        occurred_at         |        processed_at        | last_error_code 
+--------------------------------------+----------------------------+------------------+--------------+-----------+-------------+---------------------------------------------------------------------------------------------------+----------------------------+----------------------------+-----------------
+ 6f59d1be-e4ab-4cf8-b257-62c14dc4667c | DOCUMENT_VERSION_CREATED   | DOCUMENT_VERSION |            5 | PROCESSED |           0 | DOCUMENT_VERSION:5:DOCUMENT_VERSION_CREATED:1                                                     | 2026-10-16 16:03:25.26515  | 2026-10-16 16:03:25.438802 | 
+ e8c1e0bb-805f-4707-bda0-64746f2e12c1 | DOCUMENT_REINDEX_REQUESTED | DOCUMENT_VERSION |            5 | PROCESSED |           0 | DOCUMENT_VERSION:5:DOCUMENT_REINDEX_REQUESTED:1:reconcile:MISSING_JOB:VERSION:5:MODEL:1:attempt:1 | 2026-10-16 16:04:07.078123 | 2026-10-16 16:04:07.873567 | 
+(2 rows)
+
+## sync_consistency_issues (version or document)
+ id | issue_type  | severity |  status  | repairable |           repair_event_id            | repair_attempt_count |        detected_at         |      last_detected_at      |        resolved_at        |                 actual_json                  
+----+-------------+----------+----------+------------+--------------------------------------+----------------------+----------------------------+----------------------------+---------------------------+----------------------------------------------
+  4 | MISSING_JOB | ERROR    | RESOLVED | t          | e8c1e0bb-805f-4707-bda0-64746f2e12c1 |                    1 | 2026-10-16 16:03:54.412214 | 2026-10-16 16:04:07.020063 | 2026-10-16 16:04:11.45721 | {"liveJob":false,"versionStatus":"UPLOADED"}
+(1 row)
+

@@ -1,0 +1,13 @@
+{
+    "success": true,
+    "status": 200,
+    "data": {
+        "conversationId": 2,
+        "queryId": 2,
+        "results": [],
+        "ragStatus": "SUCCESS",
+        "answer": "관련 문서를 찾지 못했습니다.",
+        "citations": []
+    },
+    "timestamp": "2026-10-16 16:01:29"
+}

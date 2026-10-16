@@ -1,0 +1,34 @@
+{
+    "success": true,
+    "status": 200,
+    "data": {
+        "content": [
+            {
+                "issueId": 1,
+                "issueKey": "MISSING_EMBEDDINGS:VERSION:3:MODEL:1",
+                "issueType": "MISSING_EMBEDDINGS",
+                "severity": "CRITICAL",
+                "status": "RESOLVED",
+                "documentId": 3,
+                "documentVersionId": 3,
+                "embeddingModelId": 1,
+                "expectedJson": "{\"activeEmbeddingCount\":5}",
+                "actualJson": "{\"activeEmbeddingCount\":4,\"currentModelEmbeddingCount\":4,\"allModelEmbeddingCount\":4}",
+                "repairable": true,
+                "detectedAt": "2026-10-16T15:58:34.015381",
+                "lastDetectedAt": "2026-10-16T15:58:56.134837",
+                "repairEventId": "7cc6bc1b-8834-4830-a6a3-e6ec41d9a410",
+                "repairAttemptCount": 1,
+                "resolvedAt": "2026-10-16T15:59:23.771277",
+                "resolutionMessage": "Reconciliation 재검사에서 정상 상태를 확인했습니다."
+            }
+        ],
+        "page": 0,
+        "size": 100,
+        "totalElements": 1,
+        "totalPages": 1,
+        "first": true,
+        "last": true
+    },
+    "timestamp": "2026-10-16 15:59:23"
+}

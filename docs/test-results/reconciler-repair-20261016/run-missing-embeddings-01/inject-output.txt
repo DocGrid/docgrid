@@ -1,0 +1,4 @@
+BEGIN
+NOTICE:  deleted embeddings: 1
+DO
+COMMIT
