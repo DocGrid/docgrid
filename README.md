@@ -190,10 +190,11 @@ npm --prefix frontend ci
 로그인 토큰 서명 키 `JWT_SECRET`은 기본값이 없는 필수 값이므로 저장소에 두지 않고 두 번째 명령으로 로컬에서
 생성합니다.
 
-`.env.example`은 로컬 PostgreSQL 접속값과 Local Filesystem 저장소(`STORAGE_TYPE=local`)를 제공하지만 인덱싱 Worker는 기본값으로 **꺼져
-있습니다**. 업로드 후 자동 인덱싱까지 확인하려면 로컬 `.env`에
-`INDEXING_WORKER_ENABLED=true`를 추가합니다. 실제 운영 비밀번호와 외부 서버 인증정보는 README,
-Issue 또는 Commit에 기록하지 않습니다.
+`.env.example`은 로컬 PostgreSQL 접속값, Local Filesystem 저장소(`STORAGE_TYPE=local`)와 `local` 프로필
+(`SPRING_PROFILES_ACTIVE=local`)을 제공합니다. `local` 프로필에서는 인덱싱 Worker가 기본으로 **켜져
+있어**(`INDEXING_WORKER_ENABLED` 기본값 `true`) 업로드한 문서가 별도 설정 없이 자동으로 인덱싱됩니다.
+Worker를 끄려면 로컬 `.env`에 `INDEXING_WORKER_ENABLED=false`를 추가하며, `local`이 아닌 프로필의 기본값은
+`false`입니다. 실제 운영 비밀번호와 외부 서버 인증정보는 README, Issue 또는 Commit에 기록하지 않습니다.
 
 ### 3. PostgreSQL, Valkey, BGE-M3 실행
 
@@ -220,6 +221,11 @@ brew services start ollama
 ollama pull qwen2.5:7b
 ollama run qwen2.5:7b "안녕"
 ```
+
+Ollama가 없어도 업로드, 인덱싱과 검색은 동작합니다. 검색 뒤 답변을 만드는 RAG Worker는 별도 활성화 설정
+없이 Backend와 함께 실행되지만, Ollama에 연결하지 못하면 답변 생성이 실패로 끝납니다. 이때 화면에는
+"AI 생성 실패 · 검색 결과 저장됨" 표시와 함께 가장 관련도 높은 문서의 원문 일부를 인용한 대체 답변과 검색
+결과가 나옵니다.
 
 초기 설치 후 재기동할 때는 Valkey, BGE-M3, Ollama를 전용 스크립트로 기동하고 연결 상태를 확인할 수
 있습니다. 위의 `docker compose up`와 같은 서비스를 다시 시작하는 명령이므로 둘 중 한 경로를 선택합니다.
@@ -269,9 +275,9 @@ Embedding Provider가 준비되지 않아도 먼저 기동해 수집 실패와 �
 
 1. 회원가입 또는 로그인
 2. PDF/DOCX/HWP/HWPX 문서 업로드
-3. `INDEXING_WORKER_ENABLED=true`일 때 문서 인덱싱 상태가 완료로 바뀌는지 확인
+3. 문서 인덱싱 상태가 완료로 바뀌는지 확인 (`local` 프로필은 인덱싱 Worker가 기본으로 켜져 있음)
 4. 문서 내용으로 AI 검색
-5. RAG 답변과 인용 근거 확인
+5. RAG 답변과 인용 근거 확인 (Ollama가 없으면 원문 인용 대체 답변 표시)
 
 ### 종료
 
