@@ -1,0 +1,23 @@
+{
+  "suites": 251,
+  "tests": 1501,
+  "failures": 1,
+  "errors": 0,
+  "skipped": 5,
+  "ragResponseClaimIntegrationTest": {
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "failed": [
+    "StompSessionLifecycleIntegrationTest > 연결 뒤 JWT가 만료되면 기존 구독 세션을 종료한다"
+  ],
+  "skippedTests": [
+    "DashboardCrossNodeSignalRedisIntegrationTest > A/B 신호가 반대편에만 도착하고 재구독 시 놓친 상태를 다시 읽는다",
+    "DashboardCrossNodeWebSocketIntegrationTest > A/B 어느 쪽만 발행해도 반대편은 자기 DB 요약을 다시 계산해 자기 관리자에게 보낸다",
+    "HaProbeIdempotentPostgresIntegrationTest > concurrentAppConnectionsProduceOneRowAndReplaySeesTheWinner()",
+    "HaProbeIdempotentPostgresIntegrationTest > losingTransactionSeesWinnerAfterWaitingForItsCommit()",
+    "HaProbeIdempotentPostgresIntegrationTest > replayReadsCommittedWinnerInTheSameReadCommittedTransaction()"
+  ]
+}

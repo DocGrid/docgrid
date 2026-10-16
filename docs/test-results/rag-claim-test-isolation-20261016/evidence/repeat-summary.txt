@@ -1,0 +1,19 @@
+# RagResponseClaimIntegrationTest 반복 실행 요약
+# 모든 실행은 같은 JVM에서 RagJobWorkerConcurrentQueueIntegrationTest → RagJobWorkerIntegrationTest → 이 클래스 순서(CI와 같음)
+# 반복은 두 시험의 @Test를 임시로 @RepeatedTest(N)으로 바꿔 실행했다(import 1줄 추가).
+# forced는 각 시험에서 작업 생성 직후 Thread.sleep(1500)을 임시로 넣어 경합 창을 polling 주기(1s)보다 넓힌 조건이다.
+
+natural-before-200     tests=400 failures=1 errors=0 time=8.232s  skipsLockedRow실패=0 claim실패=1 외부Worker로그=4 실패위치: RagResponseClaimIntegrationTest.java:171×1 
+natural-before-500     tests=1000 failures=0 errors=0 time=15.775s  skipsLockedRow실패=0 claim실패=0 외부Worker로그=0 
+natural-after-500      tests=1000 failures=0 errors=0 time=22.283s  skipsLockedRow실패=0 claim실패=0 외부Worker로그=0 
+forced-before-10       tests=20 failures=20 errors=0 time=131.647s  skipsLockedRow실패=10 claim실패=10 외부Worker로그=60 실패위치: RagResponseClaimIntegrationTest.java:140×10 RagResponseClaimIntegrationTest.java:173×10 
+forced-after-10        tests=20 failures=0 errors=0 time=31.75s  skipsLockedRow실패=0 claim실패=0 외부Worker로그=0 
+
+# natural-before-200 실패 1건과 외부 Worker 로그
+<testcase name="repetition 154 of 200" time="0.026">
+Expected size: 1 but was: 0 in:
+	at com.opensource.docgrid.domain.rag.integration.RagResponseClaimIntegrationTest.claim_allowsExactlyOneConcurrentOwner(RagResponseClaimIntegrationTest.java:171)
+2026-10-16T17:05:02.754+09:00 ERROR [ag-worker-job-2] c.o.d.domain.rag.service.RagJobWorker    : [RAG-WORKER] claim된 job을 찾을 수 없음 jobId=326
+2026-10-16T17:05:02.756+09:00 ERROR [ag-worker-job-1] c.o.d.domain.rag.service.RagJobWorker    : [RAG-WORKER] job 처리 중 예상치 못한 예외 queryId=327
+2026-10-16T17:05:05.766+09:00 ERROR [ag-worker-job-1] c.o.d.domain.rag.service.OllamaClient    : Ollama 서버 호출 실패: I/O error on POST request for "http://localh
+2026-10-16T17:05:05.772+09:00  WARN [ag-worker-job-1] c.o.d.domain.rag.service.RagFacade       : [RAG] fallback queryId=577 errorCode=RAG-001

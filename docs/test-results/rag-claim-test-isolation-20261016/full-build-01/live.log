@@ -1,0 +1,103 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.5/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :clean
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :resolveMainClassName
+> Task :bootJar
+> Task :jar
+> Task :assemble
+> Task :compileTestJava
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+> Task :processTestResources
+> Task :testClasses
+> Task :test
+STOMP 세션 수명주기 통합 테스트 > 연결 뒤 JWT가 만료되면 기존 구독 세션을 종료한다 FAILED
+    org.awaitility.core.ConditionTimeoutException at StompSessionLifecycleIntegrationTest.java:241
+2026-10-16T17:12:06.266+09:00  INFO 28212 --- [docgrid] [extShutdownHook] o.s.j.d.e.EmbeddedDatabaseFactory        : Shutting down embedded database: url='jdbc:h2:mem:9536138b-b0b5-4596-9251-7e3115c320f4;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false'
+2026-10-16T17:12:06.267+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-16T17:12:06.267+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@1e404eb5]]
+2026-10-16T17:12:06.267+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-16T17:12:06.280+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.280+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-10-16T17:12:06.283+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-10-16T17:12:06.285+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.290+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Shutdown initiated...
+2026-10-16T17:12:06.295+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Shutdown completed.
+2026-10-16T17:12:06.298+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-16T17:12:06.305+09:00  INFO 28212 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-16T17:12:06.306+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-16T17:12:06.308+09:00  INFO 28212 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-16T17:12:06.329+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-16T17:12:06.329+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@7feaf8d6]]
+2026-10-16T17:12:06.329+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-16T17:12:06.366+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.366+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-9 - Shutdown initiated...
+2026-10-16T17:12:06.367+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-9 - Shutdown completed.
+2026-10-16T17:12:06.373+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-16T17:12:06.377+09:00  INFO 28212 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-16T17:12:06.378+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-16T17:12:06.381+09:00  INFO 28212 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-16T17:12:06.392+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-16T17:12:06.393+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@3fc41593]]
+2026-10-16T17:12:06.393+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-16T17:12:06.411+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.412+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-12 - Shutdown initiated...
+2026-10-16T17:12:06.414+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-12 - Shutdown completed.
+2026-10-16T17:12:06.424+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-16T17:12:06.424+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@70aa5215]]
+2026-10-16T17:12:06.424+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-16T17:12:06.437+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.438+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-14 - Shutdown initiated...
+2026-10-16T17:12:06.444+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-14 - Shutdown completed.
+2026-10-16T17:12:06.446+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-16T17:12:06.446+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@4447ea0e]]
+2026-10-16T17:12:06.446+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-16T17:12:06.482+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.483+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-15 - Shutdown initiated...
+2026-10-16T17:12:06.485+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-15 - Shutdown completed.
+2026-10-16T17:12:06.491+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-16T17:12:06.491+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@43a5dce5]]
+2026-10-16T17:12:06.492+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-16T17:12:06.502+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.503+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-16 - Shutdown initiated...
+2026-10-16T17:12:06.504+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-16 - Shutdown completed.
+2026-10-16T17:12:06.505+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-16T17:12:06.505+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@35b1ad36]]
+2026-10-16T17:12:06.505+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-16T17:12:06.514+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.515+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-17 - Shutdown initiated...
+2026-10-16T17:12:06.517+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-17 - Shutdown completed.
+2026-10-16T17:12:06.523+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.523+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-28 - Shutdown initiated...
+2026-10-16T17:12:06.523+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-28 - Shutdown completed.
+2026-10-16T17:12:06.524+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-16T17:12:06.525+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@7f210b4b]]
+2026-10-16T17:12:06.525+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-16T17:12:06.531+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.531+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-29 - Shutdown initiated...
+2026-10-16T17:12:06.532+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-29 - Shutdown completed.
+2026-10-16T17:12:06.533+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.534+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-30 - Shutdown initiated...
+2026-10-16T17:12:06.534+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-30 - Shutdown completed.
+2026-10-16T17:12:06.536+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-16T17:12:06.537+09:00  INFO 28212 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-16T17:12:06.537+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-16T17:12:06.538+09:00  INFO 28212 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-16T17:12:06.544+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-16T17:12:06.544+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : docgrid-local-db-pool - Shutdown initiated...
+2026-10-16T17:12:06.544+09:00  INFO 28212 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : docgrid-local-db-pool - Shutdown completed.
+> Task :test
+1501 tests completed, 1 failed, 5 skipped
+> Task :test FAILED
+[Incubating] Problems report is available at: file:///<repo>/backend/build/reports/problems/problems-report.html
+FAILURE: Build failed with an exception.
+* What went wrong:
+Execution failed for task ':test'.
+> There were failing tests. See the report at: file:///<repo>/backend/build/reports/tests/test/index.html
+* Try:
+> Run with --scan to get full insights.
+BUILD FAILED in 1m 35s
+9 actionable tasks: 9 executed

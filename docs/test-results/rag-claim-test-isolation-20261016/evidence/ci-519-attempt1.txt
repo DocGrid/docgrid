@@ -1,0 +1,16 @@
+# PR #519 CI run 38869352820 attempt 1, backend job 116869517892 — JUnit XML 발췌
+# 같은 JVM에서 실행된 RAG 통합 시험 클래스 순서 (testsuite timestamp)
+2026-10-16T07:49:51.711Z  tests=1 failures=0 time=2.11s  com.opensource.docgrid.domain.rag.integration.RagJobWorkerConcurrentQueueIntegrationTest
+2026-10-16T07:49:53.826Z  tests=1 failures=0 time=0.131s  com.opensource.docgrid.domain.rag.integration.RagJobWorkerIntegrationTest
+2026-10-16T07:49:55.517Z  tests=2 failures=1 time=10.087s  RagResponse Claim DB 동시성 통합 테스트
+
+# RagResponseClaimIntegrationTest 실패와 system-out
+<testcase name="다른 트랜잭션이 잠근 행은 기다리지 않고 다음 미잠금 행을 선택한다" time="10.062"
+<testcase name="두 Worker가 동시에 같은 job을 claim해도 한쪽만 소유권을 얻는다" time="0.025"
+Expecting value to be true but was false
+	at app//com.opensource.docgrid.domain.rag.integration.RagResponseClaimIntegrationTest.findNextUnclaimedProcessingForUpdate_skipsLockedRow(RagResponseClaimIntegrationTest.java:138)
+2026-10-16T07:49:55.512Z  INFO [    Test worker] .d.d.r.i.RagResponseClaimIntegrationTest : Started RagResponseClaimIntegrationTest in 1.55 seconds (process running for 129.677)
+2026-10-16T07:49:55.563Z ERROR [ag-worker-job-1] c.o.d.domain.rag.service.OllamaClient    : Ollama 서버 호출 실패: I/O error on POST request for "http://localhost:11434/api/generate": null
+2026-10-16T07:49:55.563Z ERROR [ag-worker-job-1] c.o.d.domain.rag.service.OllamaClient    : Ollama 서버 호출 실패: I/O error on POST request for "http://localhost:11434/api/generate": null
+2026-10-16T07:49:55.571Z  WARN [ag-worker-job-1] c.o.d.domain.rag.service.RagFacade       : [RAG] fallback queryId=6 errorCode=RAG-001
+2026-10-16T07:49:55.571Z  WARN [ag-worker-job-1] c.o.d.domain.rag.service.RagFacade       : [RAG] fallback queryId=5 errorCode=RAG-001
