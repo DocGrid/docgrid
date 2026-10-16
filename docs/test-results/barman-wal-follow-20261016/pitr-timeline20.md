@@ -24,6 +24,8 @@
 5. 라이선스를 전달한 첫 컨테이너 실행에서는 A 1건·B 0건이었으나 즉시 조회한 `pg_is_in_recovery=true` 때문에 통과로 판정하지 않았다. 이후 별도 조회에서 `recovery.signal` 제거를 확인했고, 다시 기동한 실행에서 A 1건·B 0건·`pg_is_in_recovery=false`를 확인했다. 마지막 stage 점검은 timeline 21 checkpoint와 새 WAL 1개를 확인했다.
 6. 모든 원복 타이머를 해제하고, live DB에서 시험용 A·B만 2건 삭제해 잔여 0건을 확인했다. 격리 Standby stage 1,918파일과 Barman 임시 복원 stage 1,912파일을 각각 제거했다. Barman 기준 백업 1개와 WAL archive는 유지했다. 최종 점검은 Primary 1대·Standby 2대 streaming·복제 지연 0바이트·Barman 검사 3/3 OK였다.
 
+7. stage 정리 뒤 23:28:19~23:28:30 KST에 [상태를 재확인](pitr-final-rejoin-r2.md)했다. Primary 1대·Standby 2대 streaming·lag 0바이트, Barman 검사 3개 OK, 감시기 timer 활성·모델 정렬이었다.
+
 ## 실행별 기록
 
 | Run ID | 목적·위치·방법 | 관측·판정 |
@@ -33,6 +35,7 @@
 | `DR-BARMAN-PITR-CONTAINER-20261016-R2` | 동일 Standby의 라이선스 전달 컨테이너 실행 | A 1·B 0, 즉시 조회에 복구 모드 true, **부분 통과**. 원복 후 재합류 |
 | `DR-BARMAN-PITR-CONTAINER-20261016-R3` | 동일 경로 재기동 후 SQL 판정 | A 1·B 0, 복구 모드 false, **통과**. 원복 후 재합류 |
 | `DR-BARMAN-PITR-FINAL-REJOIN-20261016-R1` | GCP 3노드·백업 VM 최종 상태 | Primary 1, Standby 2 streaming/lag 0, Barman 3/3 OK, **통과** |
+| `DR-BARMAN-PITR-FINAL-REJOIN-20261016-R2` | 격리 stage 정리 후 재확인 | Primary 1, Standby 2 streaming/lag 0, Barman 3검사 OK·timer 활성, **통과** |
 | `DR-BARMAN-PITR-STAGE-FINAL-20261016-R1` | 복원 stage 읽기 전용 점검 | 파일 1,918개·302,224,459바이트, WAL/history 11개, timeline 21 checkpoint, **통과** |
 | `DR-BARMAN-PITR-MARKER-CLEANUP-20261016-R1` | live Primary 시험 기록 정리 | 대상 2·삭제 2·잔여 0, **통과** |
 | `DR-BARMAN-PITR-STAGE-CLEANUP-20261016-R1` | Standby 격리 stage 제거 | 1,918파일 제거, 기존 데이터 경로와 Patroni 유지, **통과** |

@@ -67,6 +67,7 @@
 | [`DR-BARMAN-PITR-CONTAINER-20261016-R2`](pitr-container-r2.md) | 목표 시각 데이터 확인 | A 1·B 0, 첫 조회에서 복구 모드 true | 부분 통과 |
 | [`DR-BARMAN-PITR-CONTAINER-20261016-R3`](pitr-container-r3.md) | 새 timeline 격리 PITR | A 1·B 0, 복구 모드 false | 통과 |
 | [`DR-BARMAN-PITR-FINAL-REJOIN-20261016-R1`](pitr-final-rejoin-r1.md) | 원래 3노드 재합류 | Primary 1·Standby 2 streaming/lag 0·Barman 3/3 OK | 통과 |
+| [`DR-BARMAN-PITR-FINAL-REJOIN-20261016-R2`](pitr-final-rejoin-r2.md) | stage 정리 후 상태 재확인 | Primary 1·Standby 2 streaming/lag 0·Barman 3검사 OK·timer 활성 | 통과 |
 | [`DR-BARMAN-PITR-STAGE-FINAL-20261016-R1`](pitr-stage-final-r1.md) | 격리 stage timeline 확인 | checkpoint timeline 21, 복구 신호 제거 | 통과 |
 | [`DR-BARMAN-PITR-ROLLBACK-DISARM-20261016-R4`](pitr-rollback-disarm-r4.md) | 안전 타이머 정리 | 타이머·스크립트 제거 | 통과 |
 | [`DR-BARMAN-PITR-MARKER-CLEANUP-20261016-R1`](pitr-marker-cleanup-r1.md) | live DB 시험 기록 정리 | 2건 삭제·잔여 0 | 통과 |
@@ -74,6 +75,7 @@
 | [`DR-BARMAN-PITR-BACKUP-STAGE-CLEANUP-20261016-R1`](pitr-backup-stage-cleanup-r1.md) | 백업 VM 임시 stage 정리 | 1,912파일 제거·기준 백업 1개 유지 | 통과 |
 | [`DR-BARMAN-PITR-REPORT-QA-20261016-R1`](pitr-report-qa-r1.md) | 로컬 기록·링크·민감 패턴 확인 | 문서 19개, 링크·민감 패턴·공백 오류 0 | 통과 |
 | [`DR-BARMAN-PITR-REPORT-QA-20261016-R2`](pitr-report-qa-r2.md) | 링크·민감 패턴·후행 공백 재검사 | 문서 20개, 오류 0 | 통과 |
+| [`DR-BARMAN-PITR-REPORT-QA-20261016-R3`](pitr-report-qa-r3.md) | 최종 상태 기록 반영 후 재검사 | 문서 22개, 오류 0 | 통과 |
 
 SSH가 실행된 각 Run에서 임시 OS Login 키 제거 명령의 성공을 확인했다. 삭제 명령 성공이 계정의 기존 키까지 포함한 독립적 잔여 0건 검증을 뜻하지는 않는다.
 
