@@ -63,6 +63,8 @@ class StompSessionLifecycleIntegrationTest {
     private static final String USER_EMAIL = "stomp-lifecycle-user@example.com";
     private static final String RAG_ANSWER_QUEUE = "/user/queue/rag-answer";
     private static final long TIMEOUT_SECONDS = 3;
+    // JWT exp는 초 단위로 잘려 실제 남은 수명이 설정값보다 최대 1초 짧다. 느린 CI에서도 구독 등록을 먼저 확인할 수 있게 2초 이상 남긴다.
+    private static final long SHORT_LIVED_TOKEN_SECONDS = 3;
     private static final String JWT_SECRET = "docgrid-stomp-session-lifecycle-integration-test-secret-2026";
 
     @LocalServerPort
@@ -144,14 +146,14 @@ class StompSessionLifecycleIntegrationTest {
     @DisplayName("연결 뒤 JWT가 만료되면 기존 구독 세션을 종료한다")
     void closesExistingSession_whenTokenExpires() throws Exception {
         // Given
-        JwtProvider shortLivedJwtProvider = new JwtProvider(JWT_SECRET, 1L);
+        JwtProvider shortLivedJwtProvider = new JwtProvider(JWT_SECRET, SHORT_LIVED_TOKEN_SECONDS);
         StompSession session = connect(shortLivedJwtProvider.generateToken(USER_ID, USER_EMAIL));
         subscribeRag(session);
         awaitSubscription();
 
         try {
-            // When & Then
-            await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
+            // When & Then — token 수명이 지나면 재검증 주기 안에 세션이 제거된다.
+            await().atMost(Duration.ofSeconds(SHORT_LIVED_TOKEN_SECONDS + TIMEOUT_SECONDS))
                 .until(() -> simpUserRegistry.getUser(USER_EMAIL) == null);
         } finally {
             if (session.isConnected()) {
