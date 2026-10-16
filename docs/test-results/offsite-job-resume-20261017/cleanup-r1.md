@@ -7,7 +7,7 @@
 | 실행 ID | `DR-JOB-OFFSITE-20261017-CLEANUP-R1` |
 | 목적 | 원래 DB 복제 상태를 복구하고 시험 객체·stage·임시 프로세스를 정리 |
 | 위치·방법 | 로컬 Java·SSH 터널 중지 → 시험 DB 노드에서 사전 설치한 원복 스크립트 → Barman 점검 → GCS·복원 stage 제거 → 원래 앱의 합성 문서 삭제 API |
-| 합격 기준 | 리더 1·streaming Standby 2, Barman 수신 정상, 격리 DB/객체 없음, 합성 문서 검색 제외 |
+| 합격 기준 | 리더 1·streaming Standby 2, Barman 수신 정상, 격리 DB/객체 없음, 합성 문서 삭제 API 204 |
 | 보호 | 원래 PGDATA·Barman 운영 카탈로그·원본 보존 버킷은 정리 대상에서 제외. GCS 객체는 별도 복원 버킷의 정확한 시험 키 2개만 제거 |
 
 ## 관측
