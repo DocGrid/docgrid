@@ -375,6 +375,7 @@ DB_HOST=127.0.0.1 DB_PORT=55432 \
 ├── docs/design/      # 설계 의사결정
 ├── docs/test-results/# 실행된 Test Plan, 측정과 결과
 ├── docker/           # 로컬 인프라 초기화
+├── examples/         # 빠른 실행 예제 문서
 ├── monitoring/       # Prometheus·Alertmanager·Grafana 설정과 Dashboard
 ├── scripts/          # 검증·보고 자동화
 └── docker-compose.yml
@@ -392,6 +393,7 @@ DocGrid의 자체 소스코드와 문서는 [Apache License 2.0](LICENSE)에 따
 | OpenSQL | 외부 개발·검증 DB로 연결 | 공급사 배포본과 License는 저장소에 포함하지 않음 |
 | [hwplib 1.1.11](https://central.sonatype.com/artifact/kr.dogfoot/hwplib/1.1.11) | Gradle로 획득해 HWP 5.x 본문·표 셀 텍스트 추출 | Apache-2.0. 업스트림 [라이선스 원문](https://github.com/neolord0/hwplib/blob/main/license.txt) 확인. 테스트 샘플 출처는 `backend/src/test/resources/hancom/README.md`에 고지 |
 | [hwpxlib 1.0.9](https://central.sonatype.com/artifact/kr.dogfoot/hwpxlib/1.0.9) | Gradle로 획득해 HWPX 본문·표 셀 텍스트 추출 | Apache-2.0. 업스트림 [라이선스 원문](https://github.com/neolord0/hwpxlib/blob/main/license.txt) 확인. 테스트 샘플 출처는 `backend/src/test/resources/hancom/README.md`에 고지 |
+| 나눔고딕 (NanumGothic) | `examples/demo-corpus` 예제 PDF에 쓰인 글자만 포함. 글꼴 파일은 저장소에 넣지 않음 | SIL Open Font License 1.1. 포함한 글꼴의 OS/2 `fsType` 0(포함 제한 없음) |
 | Python 의존성 (임베딩 서버) | `backend/embedding-server/requirements.txt`로 설치 | fastapi MIT, uvicorn BSD, FlagEmbedding MIT, torch BSD, transformers·peft Apache-2.0, numpy BSD, prometheus-client Apache-2.0 AND BSD-2-Clause. Linux x86_64에서는 CPU 전용 torch를 설치해 NVIDIA `nvidia-*` 패키지를 설치하지 않음 |
 | Java 의존성 | Gradle로 획득 (`backend/build.gradle`) | Apache-2.0·MIT·BSD 위주. Hibernate ORM 6.6은 LGPL-2.1 이상, Logback은 EPL-2.0과 LGPL-2.1 듀얼, Jakarta·AspectJ는 EPL-2.0, 테스트용 H2는 MPL-2.0·EPL-1.0, JUnit은 EPL-2.0 |
 | npm 의존성 | npm으로 획득 (`frontend/package-lock.json`) | 실행 의존성 4개는 react·react-dom·scheduler MIT, drizzle-orm Apache-2.0. 나머지는 빌드·개발 도구이며 MIT·Apache-2.0·ISC·BSD 위주이고 MPL-2.0, LGPL-3.0(sharp libvips) 등을 포함 |
