@@ -644,6 +644,18 @@ tasks.register('permissionHaTest', Test) {
         if (!(System.getenv('PERMISSION_HA_JDBC_URL') ?: '').matches('jdbc:postgresql://127\\.0\\.0\\.1:1844[23]/permission_test.*')) {
             throw new GradleException('전용 루프백 격리 OpenProxy URL이 필요합니다.')
         }
+        // Flyway와 fixture 준비도 원본 DB에 닿지 않도록 전용 루프백 경로만 허용한다.
+        if (!(System.getenv('PERMISSION_HA_MIGRATION_JDBC_URL') ?: '').matches('jdbc:postgresql://127\\.0\\.0\\.1:1843[123]/postgres')) {
+            throw new GradleException('전용 루프백 격리 migration URL이 필요합니다.')
+        }
+        if (!(System.getenv('PERMISSION_HA_MODE') in ['designated', 'quorum']) ||
+            !(System.getenv('PERMISSION_HA_SCENARIO') in ['standby-loss', 'primary-loss'])) {
+            throw new GradleException('지원하는 격리 HA 모드와 장애 시나리오가 필요합니다.')
+        }
+        def runDirectory = file(System.getenv('PERMISSION_HA_RUN_DIR') ?: '.')
+        if (['requests.jsonl', 'summary.txt', 'ready', 'fault.done'].any { new File(runDirectory, it).exists() }) {
+            throw new GradleException('새 회차 디렉터리가 필요합니다. 이전 원장은 덮어쓸 수 없습니다.')
+        }
         ['PERMISSION_HA_PASSWORD','PERMISSION_HA_RUN_DIR','PERMISSION_HA_MODE','PERMISSION_HA_SCENARIO'].each { name ->
             if (!System.getenv(name)?.trim()) throw new GradleException('격리 HA 실행 설정이 필요합니다: ' + name)
         }

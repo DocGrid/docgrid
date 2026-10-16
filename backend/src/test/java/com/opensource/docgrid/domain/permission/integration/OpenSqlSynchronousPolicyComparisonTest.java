@@ -39,6 +39,7 @@ import com.zaxxer.hikari.HikariDataSource;
  * 실제 격리 OpenSQL·OpenProxy에서 같은 MVC·JPA 회수 부하의 성공 보존·재확정·인가를 계측한다.
  * 장애는 외부 제어기가 시험 컨테이너에만 주입하고 요청 원장은 DB 밖에 즉시 기록한다.
  */
+@Tag("integration")
 @Tag("permission-ha")
 @SpringBootTest(classes = PermissionDurabilityIntegrationTest.Config.class, properties = {
     "spring.datasource.url=${PERMISSION_HA_JDBC_URL}", "spring.datasource.username=postgres",
