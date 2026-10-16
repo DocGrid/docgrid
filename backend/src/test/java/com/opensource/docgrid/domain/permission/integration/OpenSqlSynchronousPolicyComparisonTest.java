@@ -108,14 +108,18 @@ class OpenSqlSynchronousPolicyComparisonTest {
                     }
                 }
             }
-            JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-            // 동일 합성 소유자의 전체 요청·권한을 현재 Primary에서 배치 대조한다.
-            Long owner=fixtures.get(0).owner();
-            assertThat(jdbc.queryForObject("SELECT pg_is_in_recovery()",Boolean.class)).isFalse();
-            long receipt=jdbc.queryForObject("SELECT count(*) FROM permission_revocation_requests WHERE actor_id=?",Long.class,owner);
-            long remaining=jdbc.queryForObject("SELECT count(*) FROM document_permissions p JOIN documents d ON d.id=p.document_id WHERE d.owner_user_id=?",Long.class,owner);
-            assertThat(receipt).isEqualTo(SAMPLE_COUNT);assertThat(remaining).isZero();
-            int acknowledgedPreserved=(int)receipt;
+            int acknowledgedPreserved=new TransactionTemplate(manager).execute(status -> {
+                // 원장 대조도 read-write Transaction으로 현재 Primary 연결에 고정한다.
+                JdbcTemplate jdbc=new JdbcTemplate(dataSource);
+                assertThat(jdbc.queryForObject("SELECT pg_is_in_recovery()",Boolean.class)).isFalse();
+                String marks=String.join(",",Collections.nCopies(fixtures.size(),"?"));
+                Object[] keys=fixtures.stream().map(Fixture::key).toArray();
+                Object[] ids=fixtures.stream().map(Fixture::permission).toArray();
+                long receipt=jdbc.queryForObject("SELECT count(*) FROM permission_revocation_requests WHERE request_id IN ("+marks+")",Long.class,keys);
+                long remaining=jdbc.queryForObject("SELECT count(*) FROM document_permissions WHERE id IN ("+marks+")",Long.class,ids);
+                assertThat(receipt).isEqualTo(SAMPLE_COUNT);assertThat(remaining).isZero();
+                return (int)receipt;
+            });
             assertThat(forbidden.get()).isZero();
             long accepted = initial.stream().filter(r -> r.status()==204).count();
             long unknown = initial.size()-accepted;
