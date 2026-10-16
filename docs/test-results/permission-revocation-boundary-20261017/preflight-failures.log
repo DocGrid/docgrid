@@ -1,0 +1,6 @@
+실행 ID: fixture-preflight-01/02
+시각: 2026-10-17 04:49–04:51 +09:00
+위치: 로컬 Docker 전용 fixture
+01: 초기 임시 DB를 준비 완료로 판단해 reload 명령 실패. TCP readiness로 변경.
+02: Standby 데이터 디렉터리 권한 0755로 시작 실패. 0700으로 변경.
+최종: PostgreSQL 17.8, streaming Standby 2대 확인. 공개 자원 변경 0건.

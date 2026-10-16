@@ -1,0 +1,13 @@
+실행 ID: baseline-run03
+위치: 로컬 격리 PostgreSQL 17.8 / 실제 MVC·JPA·Hikari
+명령: ./backend/gradlew -p backend permissionDurabilityTest --console=plain
+성공 기준: SyncRep 대기·COMMIT 경고·응답·원장, stale 캐시와 최종 인가, 재요청 결과를 실제 관측
+EVIDENCE 2026-10-17T04:51:57.449408+09:00 run=baseline-stale-cache permission_rows=0 stale_cache=1 final_read_allowed=true
+PermissionDurabilityIntegrationTest > 수정 전: 원장은 회수됐어도 오래된 USER 캐시는 최종 읽기 인가를 허용한다 PASSED
+EVIDENCE 2026-10-17T04:51:57.545137+09:00 run=baseline-response-loss first_response_discarded=true retry_http=404
+PermissionDurabilityIntegrationTest > 수정 전: 완료 응답을 잃은 회수의 동일 대상 재요청은 404이며 동기 재확정 수단이 없다 PASSED
+EVIDENCE 2026-10-17T04:51:57.872868+09:00 run=cancel wait_event=SyncRep
+EVIDENCE 2026-10-17T04:51:57.878286+09:00 run=commit-warning sqlstate=01000
+EVIDENCE 2026-10-17T04:51:57.882301+09:00 run=baseline-commit-cancel http=204 local_permission_rows=0 warnings=1
+PermissionDurabilityIntegrationTest > 수정 전: 동기 COMMIT 취소 경고가 있어도 회수 MVC가 204를 반환한다 PASSED
+BUILD SUCCESSFUL in 6s
