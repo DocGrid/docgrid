@@ -1,0 +1,34 @@
+{
+    "success": true,
+    "status": 200,
+    "data": {
+        "content": [
+            {
+                "issueId": 1,
+                "issueKey": "MISSING_EMBEDDINGS:VERSION:3:MODEL:1",
+                "issueType": "MISSING_EMBEDDINGS",
+                "severity": "CRITICAL",
+                "status": "OPEN",
+                "documentId": 3,
+                "documentVersionId": 3,
+                "embeddingModelId": 1,
+                "expectedJson": "{\"activeEmbeddingCount\":5}",
+                "actualJson": "{\"activeEmbeddingCount\":4,\"currentModelEmbeddingCount\":4,\"allModelEmbeddingCount\":4}",
+                "repairable": true,
+                "detectedAt": "2026-10-16T15:58:34.015381",
+                "lastDetectedAt": "2026-10-16T15:58:34.015381",
+                "repairEventId": null,
+                "repairAttemptCount": 0,
+                "resolvedAt": null,
+                "resolutionMessage": null
+            }
+        ],
+        "page": 0,
+        "size": 100,
+        "totalElements": 1,
+        "totalPages": 1,
+        "first": true,
+        "last": true
+    },
+    "timestamp": "2026-10-16 15:58:34"
+}

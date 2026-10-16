@@ -1,0 +1,32 @@
+## document / version
+ document_id | document_status | current_version_id | deleted | version_id | version_status | indexed_at |     version_updated_at     
+-------------+-----------------+--------------------+---------+------------+----------------+------------+----------------------------
+           5 | UPLOADED        |                  5 | f       |          5 | UPLOADED       |            | 2026-10-16 16:03:25.259494
+(1 row)
+
+## embedding_jobs
+ id | status | retry_count | source_event_id | created_at | completed_at | attempts | indexing_events 
+----+--------+-------------+-----------------+------------+--------------+----------+-----------------
+(0 rows)
+
+## chunks / embeddings (count by model, status)
+ chunk_count | embedding_model_id | status | embedding_count 
+-------------+--------------------+--------+-----------------
+(0 rows)
+
+## embeddings (id, chunk, hash)
+ embedding_id | chunk_index | chunk_id | status | vector_hash | vector_text_md5 | created_at 
+--------------+-------------+----------+--------+-------------+-----------------+------------
+(0 rows)
+
+## sync_outbox_events (aggregate = version or document)
+               event_id               |        event_type        |  aggregate_type  | aggregate_id |  status   | retry_count |                idempotency_key                |        occurred_at        |        processed_at        | last_error_code 
+--------------------------------------+--------------------------+------------------+--------------+-----------+-------------+-----------------------------------------------+---------------------------+----------------------------+-----------------
+ 6f59d1be-e4ab-4cf8-b257-62c14dc4667c | DOCUMENT_VERSION_CREATED | DOCUMENT_VERSION |            5 | PROCESSED |           0 | DOCUMENT_VERSION:5:DOCUMENT_VERSION_CREATED:1 | 2026-10-16 16:03:25.26515 | 2026-10-16 16:03:25.438802 | 
+(1 row)
+
+## sync_consistency_issues (version or document)
+ id | issue_type | severity | status | repairable | repair_event_id | repair_attempt_count | detected_at | last_detected_at | resolved_at | actual_json 
+----+------------+----------+--------+------------+-----------------+----------------------+-------------+------------------+-------------+-------------
+(0 rows)
+

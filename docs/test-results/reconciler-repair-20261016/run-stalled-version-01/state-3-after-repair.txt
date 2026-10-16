@@ -1,0 +1,36 @@
+## document / version
+ document_id | document_status | current_version_id | deleted | version_id | version_status | indexed_at |     version_updated_at     
+-------------+-----------------+--------------------+---------+------------+----------------+------------+----------------------------
+           6 | UPLOADED        |                  6 | f       |          6 | UPLOADED       |            | 2026-10-16 15:44:29.366706
+(1 row)
+
+## embedding_jobs
+ id | status  | retry_count |           source_event_id            |         created_at         | completed_at | attempts | indexing_events 
+----+---------+-------------+--------------------------------------+----------------------------+--------------+----------+-----------------
+  7 | PENDING |           0 | a9bc2b82-52ce-49c0-ae47-4c5e103057c3 | 2026-10-16 16:05:03.562434 |              |        0 |               0
+(1 row)
+
+## chunks / embeddings (count by model, status)
+ chunk_count | embedding_model_id | status | embedding_count 
+-------------+--------------------+--------+-----------------
+(0 rows)
+
+## embeddings (id, chunk, hash)
+ embedding_id | chunk_index | chunk_id | status | vector_hash | vector_text_md5 | created_at 
+--------------+-------------+----------+--------+-------------+-----------------+------------
+(0 rows)
+
+## sync_outbox_events (aggregate = version or document)
+               event_id               |         event_type         |  aggregate_type  | aggregate_id |  status   | retry_count |                                          idempotency_key                                          |        occurred_at         |        processed_at        | last_error_code 
+--------------------------------------+----------------------------+------------------+--------------+-----------+-------------+---------------------------------------------------------------------------------------------------+----------------------------+----------------------------+-----------------
+ 54c0201e-9a50-440e-aa65-5a030b15d1ca | DOCUMENT_VERSION_CREATED   | DOCUMENT_VERSION |            6 | PROCESSED |           0 | DOCUMENT_VERSION:6:DOCUMENT_VERSION_CREATED:1                                                     | 2026-10-16 16:04:29.374515 | 2026-10-16 16:04:30.125119 | 
+ a9bc2b82-52ce-49c0-ae47-4c5e103057c3 | DOCUMENT_REINDEX_REQUESTED | DOCUMENT_VERSION |            6 | PROCESSED |           0 | DOCUMENT_VERSION:6:DOCUMENT_REINDEX_REQUESTED:1:reconcile:MISSING_JOB:VERSION:6:MODEL:1:attempt:1 | 2026-10-16 16:05:03.396179 | 2026-10-16 16:05:03.564134 | 
+(2 rows)
+
+## sync_consistency_issues (version or document)
+ id |   issue_type    | severity |  status   | repairable |           repair_event_id            | repair_attempt_count |        detected_at         |      last_detected_at      | resolved_at |                        actual_json                         
+----+-----------------+----------+-----------+------------+--------------------------------------+----------------------+----------------------------+----------------------------+-------------+------------------------------------------------------------
+  5 | STALLED_VERSION | ERROR    | OPEN      | f          |                                      |                    0 | 2026-10-16 16:04:40.777191 | 2026-10-16 16:05:03.362609 |             | {"updatedAt":"2026-10-16T15:44:29.366706","liveJob":false}
+  6 | MISSING_JOB     | ERROR    | REPAIRING | t          | a9bc2b82-52ce-49c0-ae47-4c5e103057c3 |                    1 | 2026-10-16 16:04:53.820939 | 2026-10-16 16:05:03.362609 |             | {"liveJob":false,"versionStatus":"UPLOADED"}
+(2 rows)
+

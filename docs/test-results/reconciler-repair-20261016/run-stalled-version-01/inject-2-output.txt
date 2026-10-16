@@ -1,0 +1,4 @@
+BEGIN
+DO
+NOTICE:  deleted jobs: 1
+COMMIT

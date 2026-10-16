@@ -1,0 +1,2 @@
+{"status":409,"code":"SYNC-006","message":"현재 Issue는 안전한 자동 복구를 요청할 수 없습니다.","method":"POST","path":"/admin/sync/issues/2/repair","success":false,"timestamp":"2026-10-16 16:02:10"}
+HTTP 409

@@ -1,0 +1,22 @@
+              action_id               |       action_type        |  target_type   |              target_id               | admin_user_id |                  metadata_json                   |        occurred_at         
+--------------------------------------+--------------------------+----------------+--------------------------------------+---------------+--------------------------------------------------+----------------------------
+ f1402eb0-f3a8-4d16-9197-81966f17c56d | RECONCILIATION_REQUESTED | RECONCILIATION | 893413a4-17af-4f48-b371-5dcaa2f82914 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":2} | 2026-10-16 15:57:23.981883
+ 9fb206df-9ac3-4a52-911c-786202a86234 | RECONCILIATION_REQUESTED | RECONCILIATION | c0ea5873-b2b7-4d06-be53-fed023136b08 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":4} | 2026-10-16 15:58:14.946239
+ 006a686d-b4b5-4154-bc52-7e24a4adbf01 | RECONCILIATION_REQUESTED | RECONCILIATION | 9f39ae6e-2dac-49df-8bc9-678278165e87 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":4} | 2026-10-16 15:58:34.054148
+ bd4b0135-5642-409a-b091-a9d58d9e1b52 | RECONCILIATION_REQUESTED | RECONCILIATION | ad88af00-ef70-4247-a739-9a0dd15921db |             1 | {"mode":"REPAIR","startCursor":0,"endCursor":4}  | 2026-10-16 15:58:56.170746
+ d9215666-0205-448e-bb0d-daade99f2e28 | RECONCILIATION_REQUESTED | RECONCILIATION | bba35108-3cec-44bc-95e7-de2c5f2f979b |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":4} | 2026-10-16 15:59:23.798706
+ 301a4c7d-2d50-476a-907f-54510ba132fa | RECONCILIATION_REQUESTED | RECONCILIATION | 5c121b20-6198-42a5-8f76-03522cfe3975 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":4} | 2026-10-16 16:01:15.73063
+ 0de82b72-40eb-4be6-8c0d-d0b4180801aa | RECONCILIATION_REQUESTED | RECONCILIATION | 0ee01720-a87a-4469-a709-dde4777385a1 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":4} | 2026-10-16 16:02:01.438171
+ ccd87139-1037-401b-a284-3f844fb346ac | RECONCILIATION_REQUESTED | RECONCILIATION | 80fe1526-21cf-4d76-bab4-c7a172e36fc1 |             1 | {"mode":"REPAIR","startCursor":0,"endCursor":4}  | 2026-10-16 16:02:10.280308
+ b881eddd-eb67-443d-8f89-4c0fe6f3f722 | RECONCILIATION_REQUESTED | RECONCILIATION | 80a2cabf-0161-4c9a-b1b7-0a7f4dd5584c |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":4} | 2026-10-16 16:02:43.244603
+ ce03692e-f365-4f13-9c06-63fac498fea3 | RECONCILIATION_REQUESTED | RECONCILIATION | 567edd5b-7ebf-473b-9af1-e1281171f975 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":5} | 2026-10-16 16:03:36.99075
+ bc796cbe-09d6-4628-a808-8deaec34d6d0 | RECONCILIATION_REQUESTED | RECONCILIATION | 01853e16-77a6-4e16-a487-9743bd10c266 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":5} | 2026-10-16 16:03:54.454832
+ 844ee02d-f9e2-4f30-8c7c-567600866fc4 | RECONCILIATION_REQUESTED | RECONCILIATION | 811b7c1d-9b2f-4803-8194-a9b3cb349de4 |             1 | {"mode":"REPAIR","startCursor":0,"endCursor":5}  | 2026-10-16 16:04:07.095578
+ 021ef77d-0829-4552-9ee0-6c1421d33fcd | RECONCILIATION_REQUESTED | RECONCILIATION | 5e78c4a1-0827-42fa-89f1-348c5e6dee70 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":5} | 2026-10-16 16:04:11.522339
+ afb5bcc9-7d63-4ee3-ba5a-6775c5743e57 | RECONCILIATION_REQUESTED | RECONCILIATION | a0be300f-6bed-400d-a3ee-a69007397ea2 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":6} | 2026-10-16 16:04:40.860352
+ cf0b7d7a-f5c9-4f6b-a87d-63430d672166 | RECONCILIATION_REQUESTED | RECONCILIATION | 178bd9aa-8a9d-49ea-ac76-dc5a996fee57 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":6} | 2026-10-16 16:04:53.87954
+ 44ed8988-e693-4044-b551-deca3f96939f | RECONCILIATION_REQUESTED | RECONCILIATION | 52961815-8492-4300-a356-5f22ae9b5667 |             1 | {"mode":"REPAIR","startCursor":0,"endCursor":6}  | 2026-10-16 16:05:03.40777
+ 55d80fbc-f99b-48a2-939f-12b641ba0251 | RECONCILIATION_REQUESTED | RECONCILIATION | b928c717-b6a1-4e2c-8cf4-1067b02e037f |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":6} | 2026-10-16 16:05:07.772131
+ d15acf38-496c-4e28-95cd-cf5518eabfaa | RECONCILIATION_REQUESTED | RECONCILIATION | 21764d46-42a6-4ece-afdd-86708d3e1970 |             1 | {"mode":"DRY_RUN","startCursor":0,"endCursor":6} | 2026-10-16 16:06:06.68807
+(18 rows)
+

@@ -1,0 +1,1 @@
+backend phase: INDEXING_WORKER_ENABLED=false, SYNC_DISPATCHER_ENABLED=true, stalled-threshold 기본값 15m(설정 변경 없음)

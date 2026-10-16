@@ -1,0 +1,34 @@
+{
+    "success": true,
+    "status": 200,
+    "data": {
+        "content": [
+            {
+                "issueId": 2,
+                "issueKey": "DELETED_DOCUMENT_RESIDUE:DOCUMENT:4",
+                "issueType": "DELETED_DOCUMENT_RESIDUE",
+                "severity": "CRITICAL",
+                "status": "OPEN",
+                "documentId": 4,
+                "documentVersionId": 4,
+                "embeddingModelId": 1,
+                "expectedJson": "{\"activeEmbeddingCount\":0}",
+                "actualJson": "{\"activeEmbeddingCount\":\">0\"}",
+                "repairable": false,
+                "detectedAt": "2026-10-16T16:02:01.366136",
+                "lastDetectedAt": "2026-10-16T16:02:01.366136",
+                "repairEventId": null,
+                "repairAttemptCount": 0,
+                "resolvedAt": null,
+                "resolutionMessage": null
+            }
+        ],
+        "page": 0,
+        "size": 100,
+        "totalElements": 1,
+        "totalPages": 1,
+        "first": true,
+        "last": true
+    },
+    "timestamp": "2026-10-16 16:02:01"
+}

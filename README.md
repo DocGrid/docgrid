@@ -34,6 +34,8 @@ OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합�
   출력 Sanitization을 적용합니다.
 - **RAGOps 운영 화면**: WebSocket으로 Job·Worker 상태를 갱신하고 실패 원인, Retry, Queue·동기화 상태를
   관측하고 복구할 수 있습니다.
+- **정합성 점검과 안전 복구**: 문서 원장과 Job·Chunk·Vector를 8가지 기준으로 비교해 Issue로 남기고, 기존 데이터를
+  지우거나 덮지 않는 Job·Vector 누락만 Outbox로 복구합니다. 관리자가 수동 실행하며 주기 점검은 기본으로 꺼져 있습니다.
 - **환경별 저장소와 OpenSQL 연결**: Local Filesystem·GCS 저장소 Adapter와 OpenProxy A/B를 통한
   OpenSQL 3노드 연결을 지원합니다. MinIO·AWS S3 Adapter도 코드에 남아 있어 선택해 쓸 수 있지만
   현재 GCP 시험 저장소는 GCS입니다.
@@ -70,6 +72,7 @@ OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합�
 |---|---|---|---|---|
 | **하이브리드 검색 품질** | 짧은 용어·약어 질문을 벡터 검색만으로 찾지 못하는 문제 개선(예: `OM은 뭐야?` 정답 7위) | 로컬 백엔드 + BGE-M3, 문서 5개·청크 83개, topK 10, 질문 3세트 111문항, 증빙 커밋 2026-10-10 | 벡터 단독 → 하이브리드: 1위 정답 **82 → 92**. 사전에 기준을 고정한 세트 3(39문항) MRR@10 **0.784 → 0.868** | [검색 품질 측정](docs/test-results/kangcheolung-%23456-hybrid-search.md) |
 | **DB·GCS 시점 복원** | DB가 보관한 문서 기록과 GCS 원본을 같은 시점으로 복원해 서로 맞는지 확인 | OpenSQL 기준 백업 + 연속 WAL을 격리 경로에서 지정 시점 T로 복원, GCS 독립 사본, 2026-10-15 | T 이전 쓰기 A 1건·이후 B 0건. 복원 DB가 참조하는 파일 91건 모두 사본에 존재, 복원 버킷 92객체 SHA-256 **92/92** 일치 | [시점 복원](docs/test-results/db-gcs-point-in-time-recovery-20261015/), [서비스 경로 후속 시험](docs/test-results/db-gcs-service-recovery-20261015/) |
+| **정합성 점검·복구** | 검색 데이터가 원장과 어긋났을 때 점검기가 찾아내고, 안전한 경우만 복구해 검색이 돌아오는지 확인 | 로컬 격리 DB·BGE-M3, 시험 문서 4건(Chunk 20개), SQL과 Worker·Dispatcher 정지로 4종 주입, 수동 API·Backend 1대, 2026-10-16 | Vector 1행 누락·Job 누락 각 1건: 탐지 → 복구 Event 1건 → 새 Job → `INDEXED` → 재점검 종결, 검색 반환. 기존 Vector 4행 ID·해시 보존. 삭제 잔여·정체 버전은 보고만 함. 정상 삭제 문서에 남는 `MISSING_EMBEDDINGS` 오탐 1건 발견(수정: [#518](https://github.com/DocGrid/docgrid/issues/518)). 주기 점검·A/B·나머지 4개 유형은 미시험 | [격리 시험](docs/test-results/reconciler-repair-20261016/README.md), [설계](docs/design/gimin-%23517-reconciler-consistency-check.md) |
 | **PDF·DOCX 인덱싱 E2E** | 실제 PDF·DOCX 여러 건을 함께 접수했을 때의 처리량과 데이터 완전성 측정 | 로컬 Apple Silicon 1대, PostgreSQL 17.8·MinIO·CPU BGE-M3, Worker Slot 2, 50·100문서 각 2회, 2026-08-11 | **31.046·32.063**문서/분. 합계 300문서·1,200 Vector에서 실패·재시도·미완료·중복 **0** | [최종 성능 리포트](docs/test-results/gimin-%23145-final-performance-report.md), [원본 측정](docs/test-results/gimin-%23143-pdf-docx-indexing-e2e-load-benchmark.md) |
 
 검색 품질은 직접 작성한 질문과 작은 코퍼스, 성능은 로컬 개발 장비의 기준선입니다. 시점 복원은 RPO·RTO를

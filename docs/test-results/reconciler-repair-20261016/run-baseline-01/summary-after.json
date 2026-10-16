@@ -1,0 +1,39 @@
+{
+    "success": true,
+    "status": 200,
+    "data": {
+        "capturedAt": "2026-10-16T15:57:24.255879",
+        "events": {
+            "pendingCount": 0,
+            "processingCount": 0,
+            "failedCount": 0,
+            "oldestPendingAgeSeconds": null,
+            "processedLast24hCount": 0,
+            "failedLast24hCount": 0,
+            "retriedLast24hCount": 0,
+            "successRateLast24h": null,
+            "lastProcessedEventId": null,
+            "lastProcessedAt": null
+        },
+        "issues": {
+            "openCount": 0,
+            "repairingCount": 0,
+            "autoResolvedLast24hCount": 0,
+            "failedRepairCount": 0
+        },
+        "reconciliation": {
+            "runId": "893413a4-17af-4f48-b371-5dcaa2f82914",
+            "mode": "DRY_RUN",
+            "status": "COMPLETED",
+            "startCursor": 0,
+            "endCursor": 2,
+            "scannedCount": 2,
+            "detectedCount": 0,
+            "repairRequestedCount": 0,
+            "startedAt": "2026-10-16T15:57:23.900001",
+            "completedAt": "2026-10-16T15:57:23.977916",
+            "errorCode": null
+        }
+    },
+    "timestamp": "2026-10-16 15:57:24"
+}

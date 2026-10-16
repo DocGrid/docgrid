@@ -1,0 +1,6 @@
+# backend-phase4-worker-on-dispatcher-on 핵심 줄 (원본 141줄 중 기동·Worker·WARN·ERROR만 추출, 시험 경로는 <scratchpad>로 치환)
+2026-10-16T16:05:31.691+09:00  INFO 94917 --- [docgrid] [           main] c.opensource.docgrid.DocgridApplication  : Started DocgridApplication in 6.745 seconds (process running for 7.149)
+2026-10-16T16:05:31.765+09:00  INFO 94917 --- [docgrid] [           main] c.o.d.d.w.l.WorkerLifecycleManager       : 인덱싱 Worker를 등록했습니다. workerId=2, workerName=rc517-worker, instanceId=7aeacb33-56d1-4a8f-8391-765d4e6f75cd
+2026-10-16T16:06:08.047+09:00 ERROR 94917 --- [docgrid] [ag-worker-job-1] c.o.d.domain.rag.service.OllamaClient    : Ollama 서버 호출 실패: I/O error on POST request for "http://127.0.0.1:9/api/generate": null
+2026-10-16T16:06:08.054+09:00  WARN 94917 --- [docgrid] [ag-worker-job-1] c.o.d.domain.rag.service.RagFacade       : [RAG] fallback queryId=3 errorCode=RAG-001
+2026-10-16T16:06:57.524+09:00  INFO 94917 --- [docgrid] [ionShutdownHook] .d.d.w.l.WorkerExecutionLifecycleManager : Worker 실행 종료를 완료했습니다. graceful=true, cancelledTaskCount=0, activeLeaseCount=0

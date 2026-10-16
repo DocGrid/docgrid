@@ -1,0 +1,22 @@
+{
+    "success": true,
+    "status": 200,
+    "data": {
+        "runId": "21764d46-42a6-4ece-afdd-86708d3e1970",
+        "startCursor": 0,
+        "endCursor": 6,
+        "scannedCount": 6,
+        "detectedCount": 1,
+        "repairRequestedCount": 0,
+        "hasMore": false,
+        "action": {
+            "actionId": "d15acf38-496c-4e28-95cd-cf5518eabfaa",
+            "actionType": "RECONCILIATION_REQUESTED",
+            "targetType": "RECONCILIATION",
+            "targetId": "21764d46-42a6-4ece-afdd-86708d3e1970",
+            "adminUserId": 1,
+            "occurredAt": "2026-10-16T16:06:06.68807"
+        }
+    },
+    "timestamp": "2026-10-16 16:06:06"
+}

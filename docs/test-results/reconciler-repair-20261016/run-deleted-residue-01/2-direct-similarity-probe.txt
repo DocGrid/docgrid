@@ -1,0 +1,8 @@
+ document_version_id | document_status | max_cosine_similarity | active_vectors 
+---------------------+-----------------+-----------------------+----------------
+                   4 | DELETED         |    0.5060508998051556 |              5
+                   3 | INDEXED         |    0.3265365459482834 |              5
+                   1 | INDEXED         |  0.023410720373349014 |              2
+                   2 | INDEXED         |  -0.02074359441659901 |              2
+(4 rows)
+

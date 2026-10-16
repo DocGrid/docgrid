@@ -1,0 +1,34 @@
+## version별 Chunk·ACTIVE Vector·Job 수
+ version_id | document_id | document_status | version_status | chunks | active_vectors | inactive_vectors | jobs | live_jobs 
+------------+-------------+-----------------+----------------+--------+----------------+------------------+------+-----------
+          1 |           1 | INDEXED         | INDEXED        |      2 |              2 |                0 |    0 |         0
+          2 |           2 | INDEXED         | INDEXED        |      2 |              2 |                0 |    0 |         0
+          3 |           3 | INDEXED         | INDEXED        |      5 |              5 |                0 |    2 |         0
+          4 |           4 | DELETED         | INDEXED        |      5 |              0 |                5 |    1 |         0
+          5 |           5 | INDEXED         | INDEXED        |      5 |              5 |                0 |    1 |         0
+          6 |           6 | INDEXED         | INDEXED        |      5 |              5 |                0 |    1 |         0
+(6 rows)
+
+## 같은 Chunk·모델 Vector 중복 (0행이어야 함)
+ chunk_id | embedding_model_id | count 
+----------+--------------------+-------
+(0 rows)
+
+## version당 live Job 2개 이상 (0행이어야 함)
+ document_version_id | count 
+---------------------+-------
+(0 rows)
+
+## Outbox 미완료·실패 (0행이어야 함)
+ event_id | event_type | status | last_error_code 
+----------+------------+--------+-----------------
+(0 rows)
+
+## Reindex Event ↔ Job 연결
+               event_id               | version_id |  status   | job_id | job_status 
+--------------------------------------+------------+-----------+--------+------------
+ 7cc6bc1b-8834-4830-a6a3-e6ec41d9a410 |          3 | PROCESSED |      3 | INDEXED
+ e8c1e0bb-805f-4707-bda0-64746f2e12c1 |          5 | PROCESSED |      5 | INDEXED
+ a9bc2b82-52ce-49c0-ae47-4c5e103057c3 |          6 | PROCESSED |      7 | INDEXED
+(3 rows)
+
