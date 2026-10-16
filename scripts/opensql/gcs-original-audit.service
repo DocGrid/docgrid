@@ -1,0 +1,13 @@
+[Unit]
+Description=Verify independently preserved GCS document originals
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=barman
+Group=barman
+Environment=HOME=/var/lib/barman
+ExecStart=/usr/bin/python3 /opt/docgrid/verify_gcs_original_preservation.py --config /etc/docgrid/gcs-original-audit.json
+TimeoutStartSec=2h
+NoNewPrivileges=true

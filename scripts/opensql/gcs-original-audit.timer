@@ -1,0 +1,10 @@
+[Unit]
+Description=Audit copied GCS document originals daily
+
+[Timer]
+OnCalendar=*-*-* 03:17:00 UTC
+Persistent=true
+Unit=gcs-original-audit.service
+
+[Install]
+WantedBy=timers.target
