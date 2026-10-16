@@ -1,0 +1,6 @@
+{
+  "source": "gs://PRIVATE_DOCUMENT_SOURCE_BUCKET",
+  "destination": "gs://PRIVATE_BACKUP_BUCKET/ORIGINALS_PREFIX",
+  "manifest": "/var/lib/barman/gcs-original-audit/manifest.json",
+  "status": "/var/lib/barman/gcs-original-audit/status.json"
+}
