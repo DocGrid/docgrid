@@ -1,0 +1,7 @@
+실행 ID: vendor-designated-run01
+관측: 2026-10-17T06:02:32+09:00
+목적: 원본 OpenProxy와 strict 지정형 동기 Patroni의 역할 계약 확인
+위치: 격리 라이선스 호스트 / 원본 OpenProxy / Patroni 4.0.5
+절차: 실제 /cluster 응답을 원본 OpenProxy가 읽도록 별도 TOML로 시작
+관측: native sync_standby 역할 역직렬화 거부, 모든 Patroni endpoint 조회 실패, 프로세스 종료 코드 78
+원시 주소·경로·접속 비밀은 수집 전에 제거. HTTP 연결 행렬은 후보 3개 모두 TCP·REST·scope 일치. 단순 네트워크 실패와 구분.

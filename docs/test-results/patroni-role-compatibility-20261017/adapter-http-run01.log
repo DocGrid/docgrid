@@ -1,0 +1,21 @@
+실행 ID: adapter-http-run01
+위치: 로컬 실제 HTTP 서버 2개 / Python 표준 라이브러리
+목적: 동기 standby 별칭 변환·최신 scope·쓰기 차단·상류 실패 계약
+명령: python3 -m unittest discover -s scripts/opensql -p test_patroni_role_compatibility.py -v
+성공 기준: 정상 변환·실패 차단 9개 전부 통과
+시작: 2026-10-17T06:05:52.127649+09:00
+test_identity_is_fresh_and_primary_is_preserved (test_patroni_role_compatibility.CompatibilityHttpTest) ... ok
+test_missing_members_is_closed (test_patroni_role_compatibility.CompatibilityHttpTest) ... ok
+test_mutations_never_reach_upstream (test_patroni_role_compatibility.CompatibilityHttpTest) ... ok
+test_quorum_alias_is_replica (test_patroni_role_compatibility.CompatibilityHttpTest) ... ok
+test_scope_mismatch_is_closed (test_patroni_role_compatibility.CompatibilityHttpTest) ... ok
+test_sync_alias_preserves_leader_and_metadata (test_patroni_role_compatibility.CompatibilityHttpTest) ... ok
+test_unknown_path_never_reaches_upstream (test_patroni_role_compatibility.CompatibilityHttpTest) ... ok
+test_unknown_role_is_closed (test_patroni_role_compatibility.CompatibilityHttpTest) ... ok
+test_upstream_failure_is_closed (test_patroni_role_compatibility.CompatibilityHttpTest) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 8.087s
+
+OK
+exit_code=0
