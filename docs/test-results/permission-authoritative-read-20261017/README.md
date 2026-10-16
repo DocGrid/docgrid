@@ -21,17 +21,17 @@
 
 ## 목적별 이벤트
 
-- [회수 뒤 오래된 USER 캐시는 상세·본문·파일·새 검색의 최종 응답을 허용하지 않는다](auth-run04--회수 뒤 오래된 USER 캐시는 상세·본문·파일·새 검색의 최종 응답을 허용하지 않는다.log)
-- [동기 후보 전체 부재의 COMMIT 대기는 5초 제한 뒤 결과 불명으로 끝난다](auth-run04--동기 후보 전체 부재의 COMMIT 대기는 5초 제한 뒤 결과 불명으로 끝난다.log)
-- [응답 유실 뒤 같은 키 회수는 새 WAL로 204를 다시 확정한다](auth-run04--응답 유실 뒤 같은 키 회수는 새 WAL로 204를 다시 확정한다.log)
-- [권한 없는 대상자의 회수는 403이며 요청 원장 INSERT도 롤백된다](auth-run04--권한 없는 대상자의 회수는 403이며 요청 원장 INSERT도 롤백된다.log)
-- [별도 컬렉션 USER 권한은 유지하지만 만료·문서 연결 제거 뒤에는 오래된 캐시를 거부한다](auth-run04--별도 컬렉션 USER 권한은 유지하지만 만료·문서 연결 제거 뒤에는 오래된 캐시를 거부한다.log)
-- [같은 요청 키를 다른 권한에 사용하면 409이며 새 권한은 유지된다](auth-run04--같은 요청 키를 다른 권한에 사용하면 409이며 새 권한은 유지된다.log)
-- [동기 COMMIT 취소는 503이며 같은 키 WAL 재주장으로 204를 재확정한다](auth-run04--동기 COMMIT 취소는 503이며 같은 키 WAL 재주장으로 204를 재확정한다.log)
-- [유효한 원장과 PUBLIC·소유자 접근은 유지하고 캐시의 위조된 관리 비트는 거부한다](auth-run04--유효한 원장과 PUBLIC·소유자 접근은 유지하고 캐시의 위조된 관리 비트는 거부한다.log)
-- [동기 후보 설정이 없으면 503이며 권한과 요청 원장을 바꾸지 않는다](auth-run04--동기 후보 설정이 없으면 503이며 권한과 요청 원장을 바꾸지 않는다.log)
-- [같은 키의 동시 회수는 행 잠금으로 직렬화되고 요청 원장 하나로 수렴한다](auth-run04--같은 키의 동시 회수는 행 잠금으로 직렬화되고 요청 원장 하나로 수렴한다.log)
-- [실제 standby에 도착한 최종 인가는 503으로 닫히고 권한 조회를 허용하지 않는다](auth-run04--실제 standby에 도착한 최종 인가는 503으로 닫히고 권한 조회를 허용하지 않는다.log)
+- [회수 뒤 오래된 USER 캐시는 상세·본문·파일·새 검색의 최종 응답을 허용하지 않는다](auth-run04--baselineStaleCache.log)
+- [동기 후보 전체 부재의 COMMIT 대기는 5초 제한 뒤 결과 불명으로 끝난다](auth-run04--commitTimeoutIsUnconfirmed.log)
+- [응답 유실 뒤 같은 키 회수는 새 WAL로 204를 다시 확정한다](auth-run04--baselineLostResponse.log)
+- [권한 없는 대상자의 회수는 403이며 요청 원장 INSERT도 롤백된다](auth-run04--unauthorizedRollback.log)
+- [별도 컬렉션 USER 권한은 유지하지만 만료·문서 연결 제거 뒤에는 오래된 캐시를 거부한다](auth-run04--collectionProvenanceRemainsLive.log)
+- [같은 요청 키를 다른 권한에 사용하면 409이며 새 권한은 유지된다](auth-run04--requestBindingConflict.log)
+- [동기 COMMIT 취소는 503이며 같은 키 WAL 재주장으로 204를 재확정한다](auth-run04--baselineCommitCancellation.log)
+- [유효한 원장과 PUBLIC·소유자 접근은 유지하고 캐시의 위조된 관리 비트는 거부한다](auth-run04--liveGrantAndAlternateAccessRemainValid.log)
+- [동기 후보 설정이 없으면 503이며 권한과 요청 원장을 바꾸지 않는다](auth-run04--missingSynchronousConfiguration.log)
+- [같은 키의 동시 회수는 행 잠금으로 직렬화되고 요청 원장 하나로 수렴한다](auth-run04--concurrentReassertion.log)
+- [실제 standby에 도착한 최종 인가는 503으로 닫히고 권한 조회를 허용하지 않는다](auth-run04--rejectsActualStandby.log)
 
 ## 경계와 한계
 
