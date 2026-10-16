@@ -1,0 +1,13 @@
+[Unit]
+Description=Follow OpenSQL primary for Barman WAL streaming
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=barman
+Group=barman
+TimeoutStartSec=180s
+ExecStart=/usr/bin/python3 /usr/local/lib/docgrid/barman_wal_follow_primary.py --config /etc/barman/wal-follow.json
+NoNewPrivileges=true
+PrivateTmp=true
