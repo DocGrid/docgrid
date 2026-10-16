@@ -27,6 +27,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -82,6 +84,15 @@ class RagResponseClaimIntegrationTest {
     private final List<Long> createdQueryIds = new CopyOnWriteArrayList<>();
     private final List<Long> createdConversationIds = new CopyOnWriteArrayList<>();
     private Long createdModelId;
+
+    // 캐시에 남은 다른 시험 Context의 RagJobWorker도 1초마다 공용 test 스키마를 polling한다.
+    // 그 Worker가 이 시험의 작업을 먼저 claim하지 못하도록 이 클래스만 전용 스키마를 쓴다(#520).
+    // application-test.yml의 접속 URL과 Flyway 설정이 모두 TEST_DB_SCHEMA를 따르므로 이 값만 바꾼다.
+    @DynamicPropertySource
+    static void isolateSchema(DynamicPropertyRegistry registry) {
+        String baseSchema = System.getenv().getOrDefault("TEST_DB_SCHEMA", "docgrid_test");
+        registry.add("TEST_DB_SCHEMA", () -> baseSchema + "_rag_claim");
+    }
 
     @BeforeAll
     void createExecutor() {

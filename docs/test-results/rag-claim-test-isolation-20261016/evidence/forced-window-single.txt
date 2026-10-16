@@ -1,0 +1,19 @@
+# 수정 전 강제 재현: 작업 생성 뒤 Thread.sleep(1500) 임시 삽입 (원본 138행 → 139행)
+## A. RagJobWorkerIntegrationTest(기본 Context, 실제 Worker) 뒤에 실행
+<testcase name="다른 트랜잭션이 잠근 행은 기다리지 않고 다음 미잠금 행을 선택한다" time="11.602"
+<testcase name="두 Worker가 동시에 같은 job을 claim해도 한쪽만 소유권을 얻는다" time="0.05"
+Expecting value to be true but was false
+	at com.opensource.docgrid.domain.rag.integration.RagResponseClaimIntegrationTest.findNextUnclaimedProcessingForUpdate_skipsLockedRow(RagResponseClaimIntegrationTest.java:139)
+2026-10-16T16:59:37.192+09:00 ERROR [ag-worker-job-2] c.o.d.domain.rag.service.OllamaClient    : Ollama 서버 호출 실패: I/O error on POST request for "http://localhost:11434/api/generate": null
+2026-10-16T16:59:37.195+09:00 ERROR [ag-worker-job-1] c.o.d.domain.rag.service.OllamaClient    : Ollama 서버 호출 실패: I/O error on POST request for "http://localhost:11434/api/generate": null
+2026-10-16T16:59:37.196+09:00  WARN [ag-worker-job-2] c.o.d.domain.rag.service.RagFacade       : [RAG] fallback queryId=9 errorCode=RAG-001
+2026-10-16T16:59:37.199+09:00  WARN [ag-worker-job-1] c.o.d.domain.rag.service.RagFacade       : [RAG] fallback queryId=10 errorCode=RAG-001
+
+## B. 이 클래스만 단독 실행
+tests="2" skipped="0" failures="0" errors="0"
+외부 Worker 로그: 0
+
+# 수정 후 같은 강제 조건, RagJobWorkerIntegrationTest 뒤에 실행
+<testcase name="다른 트랜잭션이 잠근 행은 기다리지 않고 다음 미잠금 행을 선택한다" time="1.589"
+<testcase name="두 Worker가 동시에 같은 job을 claim해도 한쪽만 소유권을 얻는다" time="0.035"
+외부 Worker 로그: 0
