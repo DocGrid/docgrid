@@ -39,7 +39,7 @@ import com.opensource.docgrid.domain.embedding.converter.EmbeddingModelConverter
 import com.opensource.docgrid.domain.embedding.repository.EmbeddingModelRepository;
 import com.opensource.docgrid.domain.embedding.service.query.EmbeddingModelQueryService;
 import com.opensource.docgrid.domain.embedding.service.query.QueryEmbeddingService;
-import com.opensource.docgrid.domain.permission.service.query.PermissionQueryService;
+import com.opensource.docgrid.domain.permission.service.query.PrimaryDocumentPermissionQueryService;
 import com.opensource.docgrid.domain.search.dto.SearchOutcome;
 import com.opensource.docgrid.domain.search.dto.VectorSearchCandidate;
 import com.opensource.docgrid.domain.search.dto.request.SearchRequest;
@@ -99,7 +99,7 @@ class SearchTransactionBoundaryIntegrationTest {
     // 하이브리드는 꺼진 상태(isEnabled=false)로 두어 이 테스트가 기존 벡터 검색 경로의 트랜잭션 경계를 그대로 검증한다.
     @MockitoBean private HybridSearchQueryService hybridSearchQueryService;
     @MockitoBean private HybridSearchProperties hybridSearchProperties;
-    @MockitoBean private PermissionQueryService permissionQueryService;
+    @MockitoBean private PrimaryDocumentPermissionQueryService permissionQueryService;
 
     private JdbcTemplate jdbcTemplate;
     private String marker;
