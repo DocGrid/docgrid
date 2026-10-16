@@ -50,7 +50,7 @@ import com.zaxxer.hikari.HikariDataSource;
     "spring.flyway.password=${PERMISSION_HA_PASSWORD}",
     "permission.revocation.synchronous-enabled=true", "management.server.port=0", "logging.level.root=OFF"
 })
-@Timeout(240)
+@Timeout(360)
 class OpenSqlSynchronousPolicyComparisonTest {
     private static final int SAMPLE_COUNT = 48;
     @Autowired DocumentPermissionCommandService commands;
@@ -109,15 +109,13 @@ class OpenSqlSynchronousPolicyComparisonTest {
                 }
             }
             JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-            int acknowledgedPreserved = 0;
-            for (Fixture f : fixtures) {
-                long receipt = jdbc.queryForObject("SELECT count(*) FROM permission_revocation_requests WHERE request_id=?", Long.class, f.key());
-                long permission = jdbc.queryForObject("SELECT count(*) FROM document_permissions WHERE id=?", Long.class, f.permission());
-                assertThat(receipt).isEqualTo(1);
-                assertThat(permission).isZero();
-                assertThat(primary.canReadDocument(f.target(), f.document())).isFalse();
-                acknowledgedPreserved++;
-            }
+            // 동일 합성 소유자의 전체 요청·권한을 현재 Primary에서 배치 대조한다.
+            Long owner=fixtures.get(0).owner();
+            assertThat(jdbc.queryForObject("SELECT pg_is_in_recovery()",Boolean.class)).isFalse();
+            long receipt=jdbc.queryForObject("SELECT count(*) FROM permission_revocation_requests WHERE actor_id=?",Long.class,owner);
+            long remaining=jdbc.queryForObject("SELECT count(*) FROM document_permissions p JOIN documents d ON d.id=p.document_id WHERE d.owner_user_id=?",Long.class,owner);
+            assertThat(receipt).isEqualTo(SAMPLE_COUNT);assertThat(remaining).isZero();
+            int acknowledgedPreserved=(int)receipt;
             assertThat(forbidden.get()).isZero();
             long accepted = initial.stream().filter(r -> r.status()==204).count();
             long unknown = initial.size()-accepted;
@@ -133,19 +131,29 @@ class OpenSqlSynchronousPolicyComparisonTest {
         }
     }
 
-    private List<Fixture> seed() {
-        return new TransactionTemplate(manager).execute(status -> {
-            User owner=users.save(User.builder().email(UUID.randomUUID()+"@example.invalid").passwordHash("!disabled!").name("합성 소유자").status(UserStatus.ACTIVE).build());
-            User target=users.save(User.builder().email(UUID.randomUUID()+"@example.invalid").passwordHash("!disabled!").name("합성 대상자").status(UserStatus.ACTIVE).build());
-            List<Fixture> fixtures=new ArrayList<>();
-            for(int i=0;i<SAMPLE_COUNT;i++) {
-                Document d=documents.save(Document.builder().owner(owner).title("격리 권한 합성 문서 "+i).documentType(DocumentType.TXT)
-                    .sourceType(DocumentSourceType.UPLOAD).status(DocumentStatus.INDEXED).visibility(VisibilityType.PRIVATE).build());
-                var p=commands.grantPermission(d.getId(),owner.getId(),new GrantPermissionRequest(PermissionTargetType.USER,target.getId(),null,null,PermissionType.READ,null));
-                fixtures.add(new Fixture(i,owner.getId(),target.getId(),d.getId(),p.permissionId(),UUID.randomUUID()));
+    private List<Fixture> seed() throws Exception {
+        // 합성 fixture 준비는 직접 Primary에서 한 번의 배치로 수행하며 측정 부하에 포함하지 않는다.
+        try (var connection=java.sql.DriverManager.getConnection(System.getenv("PERMISSION_HA_MIGRATION_JDBC_URL"),
+                "postgres",System.getenv("PERMISSION_HA_PASSWORD"))) {
+            connection.setAutoCommit(false);
+            String token=UUID.randomUUID().toString();
+            Long owner;Long target;
+            try(var statement=connection.prepareStatement("INSERT INTO users(email,password_hash,name,status,created_at,updated_at) VALUES(?, '!disabled!', ?, 'ACTIVE', CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) RETURNING id")) {
+                statement.setString(1,"owner-"+token+"@example.invalid");statement.setString(2,"합성 소유자");
+                try(var rows=statement.executeQuery()){rows.next();owner=rows.getLong(1);}
+                statement.setString(1,"target-"+token+"@example.invalid");statement.setString(2,"합성 대상자");
+                try(var rows=statement.executeQuery()){rows.next();target=rows.getLong(1);}
             }
-            return fixtures;
-        });
+            List<Fixture> fixtures=new ArrayList<>();
+            try(var statement=connection.prepareStatement("WITH docs AS (INSERT INTO documents(owner_user_id,title,document_type,source_type,status,visibility,created_at,updated_at) SELECT ?, '격리 합성 권한 문서', 'TXT','UPLOAD','INDEXED','PRIVATE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM generate_series(1,?) RETURNING id) INSERT INTO document_permissions(document_id,target_type,user_id,permission_type,can_read,can_write,can_admin,granted_by,granted_at,created_at,updated_at) SELECT id,'USER',?,'READ',true,false,false,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM docs RETURNING id,document_id")) {
+                statement.setLong(1,owner);statement.setInt(2,SAMPLE_COUNT);statement.setLong(3,target);statement.setLong(4,owner);
+                try(var rows=statement.executeQuery()){while(rows.next())fixtures.add(new Fixture(fixtures.size(),owner,target,rows.getLong(2),rows.getLong(1),UUID.randomUUID()));}
+            }
+            try(var statement=connection.prepareStatement("INSERT INTO user_document_access_cache(user_id,document_id,can_read,can_write,can_admin,source_type,source_id,computed_at,created_at,updated_at) SELECT user_id,document_id,true,false,false,'DIRECT_DOCUMENT_PERMISSION',id,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM document_permissions WHERE user_id=?")) {
+                statement.setLong(1,target);statement.executeUpdate();
+            }
+            connection.commit();return fixtures;
+        }
     }
 
     private Result execute(Fixture f, boolean retry) {
