@@ -65,7 +65,7 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'permission-standby', 'permission-durability', 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract', 'opensql-outbox-isolated'
+		excludeTags 'permission-ha', 'permission-standby', 'permission-durability', 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract', 'opensql-outbox-isolated'
 	}
 }
 
@@ -629,4 +629,23 @@ tasks.register('permissionStandbyTest', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     testLogging { events 'passed', 'failed'; showStandardStreams = true }
+}
+
+// 실제 라이선스 호스트의 격리 OpenSQL·OpenProxy에만 연결하는 수동 HA 정책 비교.
+tasks.register('permissionHaTest', Test) {
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'permission-ha' }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    testLogging { events 'passed', 'failed'; showStandardStreams = true }
+    doFirst {
+        if (!(System.getenv('PERMISSION_HA_JDBC_URL') ?: '').matches('jdbc:postgresql://127\\.0\\.0\\.1:1844[23]/permission_test.*')) {
+            throw new GradleException('전용 루프백 격리 OpenProxy URL이 필요합니다.')
+        }
+        ['PERMISSION_HA_PASSWORD','PERMISSION_HA_RUN_DIR','PERMISSION_HA_MODE','PERMISSION_HA_SCENARIO'].each { name ->
+            if (!System.getenv(name)?.trim()) throw new GradleException('격리 HA 실행 설정이 필요합니다: ' + name)
+        }
+    }
 }
