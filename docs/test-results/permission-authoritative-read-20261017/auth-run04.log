@@ -1,0 +1,38 @@
+{"실행_ID": "auth-run04", "목적": "회수 후 새 MVC 요청 4종·캐시 출처·실제 standby 인가 거부", "시작_KST": "2026-10-17T05:21:31.385209+09:00", "위치": "로컬 격리 PostgreSQL 17.8 / JVM", "명령": "./backend/gradlew -p backend permissionStandbyTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+> Task :permissionDurabilityTest
+> Task :permissionDurabilityTest
+EVIDENCE 2026-10-17T05:21:38.116638+09:00 run=authoritative-stale-cache permission_rows=0 stale_cache=1 detail_403=1 content_403=1 file_403=1 search_results=0 forbidden_content=0
+PermissionDurabilityIntegrationTest > 회수 뒤 오래된 USER 캐시는 상세·본문·파일·새 검색의 최종 응답을 허용하지 않는다 PASSED
+EVIDENCE 2026-10-17T05:21:43.994849+09:00 run=sync-timeout http=503 elapsed_ms=5043
+PermissionDurabilityIntegrationTest > 동기 후보 전체 부재의 COMMIT 대기는 5초 제한 뒤 결과 불명으로 끝난다 PASSED
+EVIDENCE 2026-10-17T05:21:44.949323+09:00 run=sync-response-loss first_response_discarded=true retry_http=204 wal_assertions=2
+PermissionDurabilityIntegrationTest > 응답 유실 뒤 같은 키 회수는 새 WAL로 204를 다시 확정한다 PASSED
+EVIDENCE 2026-10-17T05:21:45.533063+09:00 run=sync-atomic-denial http=403 permission_rows=1 receipt_rows=0
+PermissionDurabilityIntegrationTest > 권한 없는 대상자의 회수는 403이며 요청 원장 INSERT도 롤백된다 PASSED
+EVIDENCE 2026-10-17T05:21:46.193532+09:00 run=authoritative-collection live_collection=true expired=false detached=false
+PermissionDurabilityIntegrationTest > 별도 컬렉션 USER 권한은 유지하지만 만료·문서 연결 제거 뒤에는 오래된 캐시를 거부한다 PASSED
+EVIDENCE 2026-10-17T05:21:46.820705+09:00 run=sync-key-binding http=409 new_permission_rows=1
+PermissionDurabilityIntegrationTest > 같은 요청 키를 다른 권한에 사용하면 409이며 새 권한은 유지된다 PASSED
+EVIDENCE 2026-10-17T05:21:47.742595+09:00 run=cancel wait_event=SyncRep
+EVIDENCE 2026-10-17T05:21:47.747065+09:00 run=commit-warning sqlstate=01000
+EVIDENCE 2026-10-17T05:21:47.751088+09:00 run=sync-cancel http=503 local_permission_rows=0 warnings=1
+EVIDENCE 2026-10-17T05:21:48.046561+09:00 run=sync-reassert retry_http=204 receipt_rows=1 wal_assertions=2
+PermissionDurabilityIntegrationTest > 동기 COMMIT 취소는 503이며 같은 키 WAL 재주장으로 204를 재확정한다 PASSED
+EVIDENCE 2026-10-17T05:21:48.952133+09:00 run=authoritative-valid-paths valid_user_read=true forged_admin=false owner=true public=true
+PermissionDurabilityIntegrationTest > 유효한 원장과 PUBLIC·소유자 접근은 유지하고 캐시의 위조된 관리 비트는 거부한다 PASSED
+EVIDENCE 2026-10-17T05:21:49.814468+09:00 run=sync-not-configured http=503 permission_rows=1 receipt_rows=0
+PermissionDurabilityIntegrationTest > 동기 후보 설정이 없으면 503이며 권한과 요청 원장을 바꾸지 않는다 PASSED
+EVIDENCE 2026-10-17T05:21:50.419594+09:00 run=sync-concurrency http_204=2 receipt_rows=1 wal_assertions=2 pooled_setting=local
+PermissionDurabilityIntegrationTest > 같은 키의 동시 회수는 행 잠금으로 직렬화되고 요청 원장 하나로 수렴한다 PASSED
+> Task :permissionStandbyTest
+> Task :permissionStandbyTest
+EVIDENCE 2026-10-17T05:21:54.389373+09:00 run=actual-standby authority_unavailable=503 content_returned=0
+PermissionStandbyIntegrationTest > 실제 standby에 도착한 최종 인가는 503으로 닫히고 권한 조회를 허용하지 않는다 PASSED
+BUILD SUCCESSFUL in 23s
+{"종료_KST": "2026-10-17T05:21:54.475189+09:00", "exit_code": 0}

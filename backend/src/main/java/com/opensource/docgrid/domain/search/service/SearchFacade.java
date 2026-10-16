@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.opensource.docgrid.domain.embedding.dto.EmbedResult;
 import com.opensource.docgrid.domain.embedding.service.query.QueryEmbeddingService;
-import com.opensource.docgrid.domain.permission.service.query.PermissionQueryService;
+import com.opensource.docgrid.domain.permission.service.query.PrimaryDocumentPermissionQueryService;
 import com.opensource.docgrid.domain.search.config.HybridSearchProperties;
 import com.opensource.docgrid.domain.search.dto.ConversationContext;
 import com.opensource.docgrid.domain.search.dto.SearchAdmission;
@@ -52,7 +52,7 @@ public class SearchFacade {
     private final VectorSearchQueryService vectorSearchQueryService;
     private final HybridSearchQueryService hybridSearchQueryService;
     private final HybridSearchProperties hybridSearchProperties;
-    private final PermissionQueryService permissionQueryService;
+    private final PrimaryDocumentPermissionQueryService permissionQueryService;
     private final SearchResultCommandService searchResultCommandService;
 
     public SearchOutcome search(Long userId, SearchRequest request) {

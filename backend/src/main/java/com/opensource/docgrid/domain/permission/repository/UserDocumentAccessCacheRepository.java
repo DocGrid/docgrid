@@ -85,38 +85,52 @@ public interface UserDocumentAccessCacheRepository extends JpaRepository<UserDoc
             @Param("sourceId") Long sourceId);
 
     /**
-     * 그룹 4 — 유효성 존재 체크 (3개)
+     * 그룹 4 — 원장과 교차 검증한 유효성 존재 체크
      *
      * <p>PermissionQueryService의 "3단계: USER 캐시" 판단에서 호출된다.
      */
 
-    // 유효한 읽기 캐시 존재 여부 (invalidated_at IS NULL, 만료 미포함)
-    @Query("""
-            SELECT COUNT(c) > 0 FROM UserDocumentAccessCache c
-            WHERE c.user.id = :userId AND c.document.id = :documentId
-              AND c.canRead = true
-              AND c.invalidatedAt IS NULL
-              AND (c.expiresAt IS NULL OR c.expiresAt > CURRENT_TIMESTAMP)
-            """)
-    boolean existsValidReadCache(@Param("userId") Long userId, @Param("documentId") Long documentId);
+    // 캐시는 후보이며, 출처 원장의 현재 대상·권한·만료·컬렉션 연결까지 확인해야 최종 허용한다.
+    default boolean existsValidReadCache(Long userId, Long documentId) {
+        return existsAuthoritativeCache(userId, documentId, "READ");
+    }
 
-    // 유효한 쓰기 캐시 존재 여부
-    @Query("""
-            SELECT COUNT(c) > 0 FROM UserDocumentAccessCache c
-            WHERE c.user.id = :userId AND c.document.id = :documentId
-              AND c.canWrite = true
-              AND c.invalidatedAt IS NULL
-              AND (c.expiresAt IS NULL OR c.expiresAt > CURRENT_TIMESTAMP)
-            """)
-    boolean existsValidWriteCache(@Param("userId") Long userId, @Param("documentId") Long documentId);
+    default boolean existsValidWriteCache(Long userId, Long documentId) {
+        return existsAuthoritativeCache(userId, documentId, "WRITE");
+    }
 
-    // 유효한 관리 캐시 존재 여부
-    @Query("""
-            SELECT COUNT(c) > 0 FROM UserDocumentAccessCache c
-            WHERE c.user.id = :userId AND c.document.id = :documentId
-              AND c.canAdmin = true
-              AND c.invalidatedAt IS NULL
-              AND (c.expiresAt IS NULL OR c.expiresAt > CURRENT_TIMESTAMP)
-            """)
-    boolean existsValidAdminCache(@Param("userId") Long userId, @Param("documentId") Long documentId);
+    default boolean existsValidAdminCache(Long userId, Long documentId) {
+        return existsAuthoritativeCache(userId, documentId, "ADMIN");
+    }
+
+    /** 현재 원장이 증명하는 USER 캐시만 허용하며 오래된 출처·대상·접근 비트는 거부한다. */
+    @Query(value = """
+        SELECT EXISTS (
+          SELECT 1 FROM user_document_access_cache c
+          JOIN documents d ON d.id=c.document_id
+          WHERE c.user_id=:userId AND c.document_id=:documentId
+            AND c.invalidated_at IS NULL AND (c.expires_at IS NULL OR c.expires_at>CURRENT_TIMESTAMP)
+            AND ((:capability='READ' AND c.can_read) OR (:capability='WRITE' AND c.can_write)
+                 OR (:capability='ADMIN' AND c.can_admin))
+            AND (
+              (c.source_type='OWNER' AND d.owner_user_id=:userId)
+              OR (c.source_type='DIRECT_DOCUMENT_PERMISSION' AND EXISTS (
+                SELECT 1 FROM document_permissions p WHERE p.id=c.source_id
+                  AND p.document_id=c.document_id AND p.target_type='USER' AND p.user_id=c.user_id
+                  AND (p.expires_at IS NULL OR p.expires_at>CURRENT_TIMESTAMP)
+                  AND ((:capability='READ' AND p.can_read) OR (:capability='WRITE' AND p.can_write)
+                       OR (:capability='ADMIN' AND p.can_admin))))
+              OR (c.source_type='DIRECT_COLLECTION_PERMISSION' AND EXISTS (
+                SELECT 1 FROM collection_permissions p
+                JOIN collections k ON k.id=p.collection_id AND k.status='ACTIVE'
+                JOIN collection_documents cd ON cd.collection_id=p.collection_id AND cd.document_id=c.document_id
+                WHERE p.id=c.source_id AND p.target_type='USER' AND p.user_id=c.user_id
+                  AND (p.expires_at IS NULL OR p.expires_at>CURRENT_TIMESTAMP)
+                  AND ((:capability='READ' AND p.can_read) OR (:capability='WRITE' AND p.can_write)
+                       OR (:capability='ADMIN' AND p.can_admin))))
+            )
+        )
+        """, nativeQuery = true)
+    boolean existsAuthoritativeCache(@Param("userId") Long userId, @Param("documentId") Long documentId,
+        @Param("capability") String capability);
 }

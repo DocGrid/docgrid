@@ -1,0 +1,10 @@
+{"실행_ID": "auth-unit-run01", "목적": "상세·검색·권한·Controller 회귀", "시작_KST": "2026-10-17T05:22:45.738015+09:00", "위치": "로컬 격리 PostgreSQL 17.8 / JVM", "명령": "./backend/gradlew -p backend test --tests *DocumentQueryServiceTest --tests *SearchFacadeTest --tests *PermissionQueryServiceTest --tests *PermissionControllerTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :test
+BUILD SUCCESSFUL in 3s
+{"종료_KST": "2026-10-17T05:22:49.516667+09:00", "exit_code": 0}

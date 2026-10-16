@@ -75,8 +75,13 @@ class PermissionDurabilityIntegrationTest {
     private static final String URL = "jdbc:postgresql://127.0.0.1:55439/postgres";
     private static final AtomicInteger COMMIT_WARNINGS = new AtomicInteger();
     @Autowired DocumentPermissionCommandService commands;
+    @Autowired CollectionPermissionCommandService collectionCommands;
+    @Autowired com.opensource.docgrid.domain.collection.repository.CollectionRepository collections;
+    @Autowired com.opensource.docgrid.domain.collection.repository.CollectionDocumentRepository memberships;
     @Autowired com.opensource.docgrid.domain.permission.service.DocumentPermissionRevocationFacade revocationFacade;
     @Autowired PermissionQueryService queries;
+    @Autowired com.opensource.docgrid.domain.permission.service.query.PrimaryDocumentPermissionQueryService primaryPermissions;
+    @Autowired com.opensource.docgrid.domain.document.service.query.DocumentQueryService documentQueries;
     @Autowired UserRepository users;
     @Autowired DocumentRepository documents;
     @Autowired DataSource dataSource;
@@ -89,10 +94,16 @@ class PermissionDurabilityIntegrationTest {
     @EntityScan("com.opensource.docgrid")
     @org.springframework.data.jpa.repository.config.EnableJpaAuditing
     @EnableJpaRepositories("com.opensource.docgrid")
-    @Import({DocumentPermissionCommandService.class, UserDocumentAccessCacheService.class,
+    @Import({DocumentPermissionCommandService.class, CollectionPermissionCommandService.class, UserDocumentAccessCacheService.class,
         PermissionQueryService.class, PermissionConverter.class, SyncEventWriter.class,
         com.opensource.docgrid.domain.permission.service.DocumentPermissionRevocationFacade.class,
-        com.opensource.docgrid.global.config.PermissionDurabilityConfiguration.class})
+        com.opensource.docgrid.global.config.PermissionDurabilityConfiguration.class,
+        com.opensource.docgrid.domain.permission.service.query.PrimaryDocumentPermissionQueryService.class,
+        com.opensource.docgrid.domain.document.service.query.DocumentQueryService.class,
+        com.opensource.docgrid.domain.document.converter.DocumentDetailConverter.class,
+        com.opensource.docgrid.domain.document.converter.DocumentStatusConverter.class,
+        com.opensource.docgrid.domain.document.converter.DocumentSummaryConverter.class,
+        com.opensource.docgrid.domain.document.converter.DocumentVersionHistoryConverter.class})
     static class Config {
         @Bean Clock clock() { return Clock.systemDefaultZone(); }
         // 1. Hikari가 반환 시 지우기 전에 실제 물리 COMMIT의 경고 SQLSTATE만 관측한다.
@@ -155,14 +166,34 @@ class PermissionDurabilityIntegrationTest {
     }
 
     @Test
-    @DisplayName("수정 전: 원장은 회수됐어도 오래된 USER 캐시는 최종 읽기 인가를 허용한다")
+    @DisplayName("회수 뒤 오래된 USER 캐시는 상세·본문·파일·새 검색의 최종 응답을 허용하지 않는다")
     void baselineStaleCache() {
         Fixture f = fixture();
         assertThat(revoke(f)).isEqualTo(204);
         new JdbcTemplate(dataSource).update("UPDATE user_document_access_cache SET invalidated_at=NULL WHERE source_type='DIRECT_DOCUMENT_PERMISSION' AND source_id=?", f.permissionId());
         assertThat(permissionCount(f)).isZero();
-        assertThat(queries.canReadDocument(f.targetId(), f.documentId())).isTrue();
-        event("baseline-stale-cache", "permission_rows=0 stale_cache=1 final_read_allowed=true");
+        assertThat(primaryPermissions.canReadDocument(f.targetId(), f.documentId())).isFalse();
+        assertThat(queries.canWriteDocument(f.targetId(), f.documentId())).isFalse();
+        assertThat(queries.canAdminDocument(f.targetId(), f.documentId())).isFalse();
+        var authentication = new UsernamePasswordAuthenticationToken("synthetic", "", java.util.List.of());
+        authentication.setDetails(f.targetId());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            var storage = mock(com.opensource.docgrid.domain.document.storage.FileStorageService.class);
+            var controller = new com.opensource.docgrid.domain.document.controller.DocumentQueryController(documentQueries,
+                new com.opensource.docgrid.domain.document.service.DocumentFileService(documentQueries, storage));
+            var mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setCustomArgumentResolvers(new CurrentUserArgumentResolver())
+                .setControllerAdvice(new GlobalExceptionHandler()).build();
+            for (String suffix : java.util.List.of("", "/content", "/file")) {
+                var response = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/documents/"+f.documentId()+suffix)).andReturn().getResponse();
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+            org.mockito.Mockito.verifyNoInteractions(storage);
+            assertNewSearchFiltersRevokedContent(f);
+        } catch (Exception exception) { throw new IllegalStateException(exception); }
+        finally { SecurityContextHolder.clearContext(); }
+        event("authoritative-stale-cache", "permission_rows=0 stale_cache=1 detail_403=1 content_403=1 file_403=1 search_results=0 forbidden_content=0");
     }
 
     @Test
@@ -239,6 +270,83 @@ class PermissionDurabilityIntegrationTest {
 
     private long assertionCount(Fixture f) {
         return new JdbcTemplate(dataSource).queryForObject("SELECT coalesce(sum(assertion_count),0) FROM permission_revocation_requests WHERE request_id=?", Long.class, f.requestId());
+    }
+
+
+    private void assertNewSearchFiltersRevokedContent(Fixture f) throws Exception {
+        var embedding = mock(com.opensource.docgrid.domain.embedding.service.query.QueryEmbeddingService.class);
+        var conversation = mock(com.opensource.docgrid.domain.search.service.query.SearchConversationQueryService.class);
+        var command = mock(com.opensource.docgrid.domain.search.service.command.SearchQueryCommandService.class);
+        var accessible = mock(com.opensource.docgrid.domain.search.service.query.AccessibleDocumentQueryService.class);
+        var vector = mock(com.opensource.docgrid.domain.search.service.query.VectorSearchQueryService.class);
+        var results = mock(com.opensource.docgrid.domain.search.service.command.SearchResultCommandService.class);
+        var model = mock(com.opensource.docgrid.domain.embedding.entity.EmbeddingModel.class);
+        org.mockito.Mockito.when(command.createProcessing(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyInt()))
+            .thenReturn(new com.opensource.docgrid.domain.search.dto.SearchAdmission(1L, 1L));
+        org.mockito.Mockito.when(conversation.contextualizeRetrieval(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any())).thenReturn("합성 질문");
+        org.mockito.Mockito.when(embedding.embed(org.mockito.ArgumentMatchers.anyString())).thenReturn(new com.opensource.docgrid.domain.embedding.dto.EmbedResult(model, new float[1024]));
+        org.mockito.Mockito.when(accessible.findReadableDocumentIds(f.targetId(), null)).thenReturn(java.util.List.of(f.documentId()));
+        org.mockito.Mockito.when(vector.search(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyInt()))
+            .thenReturn(java.util.List.of(new com.opensource.docgrid.domain.search.dto.VectorSearchCandidate(1L, 1L, f.documentId(), "REVOKED_CONTENT_SENTINEL", 1, "합성 문서", java.math.BigDecimal.ONE)));
+        var search = new com.opensource.docgrid.domain.search.service.SearchFacade(embedding, conversation, command, accessible,
+            vector, mock(com.opensource.docgrid.domain.search.service.query.HybridSearchQueryService.class),
+            mock(com.opensource.docgrid.domain.search.config.HybridSearchProperties.class), primaryPermissions, results);
+        var rag = mock(com.opensource.docgrid.domain.rag.service.RagFacade.class);
+        org.mockito.Mockito.when(rag.enqueue(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyList()))
+            .thenReturn(com.opensource.docgrid.domain.rag.dto.RagEnqueueOutcome.stillPending());
+        var controller = new com.opensource.docgrid.domain.search.controller.SearchController(search, rag,
+            mock(com.opensource.docgrid.domain.search.service.query.SearchAnswerQueryService.class), conversation);
+        var response = MockMvcBuilders.standaloneSetup(controller)
+            .setCustomArgumentResolvers(new CurrentUserArgumentResolver()).setControllerAdvice(new GlobalExceptionHandler()).build()
+            .perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/search")
+                .contentType("application/json").accept("application/json").content("{\"queryText\":\"합성 질문\",\"topK\":5}"))
+            .andReturn().getResponse();
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(response.getContentAsString()).doesNotContain("REVOKED_CONTENT_SENTINEL");
+        var tree = new com.fasterxml.jackson.databind.ObjectMapper().readTree(response.getContentAsString());
+        assertThat(tree.path("data").path("results").size()).isZero();
+    }
+
+    @Test
+    @DisplayName("유효한 원장과 PUBLIC·소유자 접근은 유지하고 캐시의 위조된 관리 비트는 거부한다")
+    void liveGrantAndAlternateAccessRemainValid() {
+        Fixture f = fixture();
+        assertThat(primaryPermissions.canReadDocument(f.targetId(), f.documentId())).isTrue();
+        new JdbcTemplate(dataSource).update("UPDATE user_document_access_cache SET can_admin=true WHERE source_id=? AND source_type='DIRECT_DOCUMENT_PERMISSION'", f.permissionId());
+        assertThat(queries.canAdminDocument(f.targetId(), f.documentId())).isFalse();
+        assertThat(revoke(f)).isEqualTo(204);
+        assertThat(primaryPermissions.canReadDocument(f.ownerId(), f.documentId())).isTrue();
+        new JdbcTemplate(dataSource).update("UPDATE documents SET visibility='PUBLIC' WHERE id=?", f.documentId());
+        assertThat(primaryPermissions.canReadDocument(f.targetId(), f.documentId())).isTrue();
+        event("authoritative-valid-paths", "valid_user_read=true forged_admin=false owner=true public=true");
+    }
+
+    @Test
+    @DisplayName("별도 컬렉션 USER 권한은 유지하지만 만료·문서 연결 제거 뒤에는 오래된 캐시를 거부한다")
+    void collectionProvenanceRemainsLive() {
+        Fixture f = fixture();
+        assertThat(revoke(f)).isEqualTo(204);
+        Long collectionId = new TransactionTemplate(transactionManager).execute(status -> {
+            var owner = users.findById(f.ownerId()).orElseThrow();
+            var collection = collections.save(com.opensource.docgrid.domain.collection.entity.DocumentCollection.builder()
+                .owner(owner).name("합성 컬렉션").visibility(VisibilityType.PRIVATE).build());
+            collections.insertClosureForNewCollection(collection.getId(), null);
+            memberships.save(com.opensource.docgrid.domain.collection.entity.CollectionDocument.builder()
+                .collection(collection).document(documents.findById(f.documentId()).orElseThrow())
+                .addedBy(owner).addedAt(LocalDateTime.now()).build());
+            return collection.getId();
+        });
+        var grant = collectionCommands.grantPermission(collectionId, f.ownerId(), new GrantPermissionRequest(
+            PermissionTargetType.USER, f.targetId(), null, null, PermissionType.READ, null));
+        assertThat(primaryPermissions.canReadDocument(f.targetId(), f.documentId())).isTrue();
+        var jdbc = new JdbcTemplate(dataSource);
+        jdbc.update("UPDATE collection_permissions SET expires_at=CURRENT_TIMESTAMP - INTERVAL '1 day' WHERE id=?", grant.permissionId());
+        assertThat(primaryPermissions.canReadDocument(f.targetId(), f.documentId())).isFalse();
+        jdbc.update("UPDATE collection_permissions SET expires_at=NULL WHERE id=?", grant.permissionId());
+        assertThat(primaryPermissions.canReadDocument(f.targetId(), f.documentId())).isTrue();
+        jdbc.update("DELETE FROM collection_documents WHERE collection_id=? AND document_id=?", collectionId, f.documentId());
+        assertThat(primaryPermissions.canReadDocument(f.targetId(), f.documentId())).isFalse();
+        event("authoritative-collection", "live_collection=true expired=false detached=false");
     }
 
     private Fixture fixture() {
