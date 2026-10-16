@@ -1,0 +1,16 @@
+실행 ID: baseline-run01
+위치: 로컬 격리 PostgreSQL 17.8 / 실제 MVC·JPA·Hikari
+명령: ./backend/gradlew -p backend permissionDurabilityTest --console=plain
+성공 기준: SyncRep 대기·COMMIT 경고·응답·원장, stale 캐시와 최종 인가, 재요청 결과를 실제 관측
+Message    : ERROR: type "vector" does not exist
+Message    : ERROR: type "vector" does not exist
+Message    : ERROR: type "vector" does not exist
+Message    : ERROR: type "vector" does not exist
+Caused by: org.postgresql.util.PSQLException: ERROR: type "vector" does not exist
+PermissionDurabilityIntegrationTest > 수정 전: 원장은 회수됐어도 오래된 USER 캐시는 최종 읽기 인가를 허용한다 FAILED
+Caused by: org.postgresql.util.PSQLException at QueryExecutorImpl.java:2904
+PermissionDurabilityIntegrationTest > 수정 전: 완료 응답을 잃은 회수의 동일 대상 재요청은 404이며 동기 재확정 수단이 없다 FAILED
+PermissionDurabilityIntegrationTest > 수정 전: 동기 COMMIT 취소 경고가 있어도 회수 MVC가 204를 반환한다 FAILED
+3 tests completed, 3 failed
+> Task :permissionDurabilityTest FAILED
+BUILD FAILED in 12s
