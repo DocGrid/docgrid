@@ -36,7 +36,7 @@ import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.domain.embedding.enums.EmbeddingJobStatus;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingJob;
 import com.opensource.docgrid.domain.embedding.repository.EmbeddingJobRepository;
-import com.opensource.docgrid.domain.permission.service.query.PermissionQueryService;
+import com.opensource.docgrid.domain.permission.service.query.PrimaryDocumentPermissionQueryService;
 import com.opensource.docgrid.global.common.response.PageResponse;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
@@ -85,7 +85,7 @@ public class DocumentQueryService {
     private final DocumentVersionRepository documentVersionRepository;
     private final DocumentChunkRepository documentChunkRepository;
     private final EmbeddingJobRepository embeddingJobRepository;
-    private final PermissionQueryService permissionQueryService;
+    private final PrimaryDocumentPermissionQueryService permissionQueryService;
     private final DocumentDetailConverter documentDetailConverter;
     private final DocumentStatusConverter documentStatusConverter;
     private final DocumentSummaryConverter documentSummaryConverter;
@@ -121,6 +121,8 @@ public class DocumentQueryService {
     /**
      * 읽기 가능한 문서의 Metadata와 현재 버전 요약을 반환한다.
      */
+    // 최종 인가와 문서 조회가 같은 Primary 연결을 사용하도록 read-only 라우팅을 피한다.
+    @Transactional
     public DocumentDetailResponse getDocumentDetail(Long userId, Long documentId) {
         // 1. 권한과 삭제 상태를 검증한 상세 조회용 Entity를 가져온다.
         Document document = getReadableDocument(userId, documentId);
@@ -135,6 +137,8 @@ public class DocumentQueryService {
     /**
      * 읽기 가능한 문서의 모든 버전과 각 버전의 최신 인덱싱 Job을 타임라인 순서로 반환한다.
      */
+    // 최종 인가와 문서 조회가 같은 Primary 연결을 사용하도록 read-only 라우팅을 피한다.
+    @Transactional
     public List<DocumentVersionHistoryResponse> getDocumentVersions(Long userId, Long documentId) {
         // 1. 상세 조회와 같은 권한·삭제 정책으로 타임라인 대상 문서를 확정한다.
         Document document = getReadableDocument(userId, documentId);
@@ -164,6 +168,8 @@ public class DocumentQueryService {
     /**
      * 현재 버전의 Chunk를 검증하고 중복을 제거해 정규화 Text 전체를 복원한다.
      */
+    // 최종 인가와 문서 조회가 같은 Primary 연결을 사용하도록 read-only 라우팅을 피한다.
+    @Transactional
     public DocumentContentResponse getDocumentContent(Long userId, Long documentId) {
         // 1. 읽기 가능한 문서와 현재 버전을 확정한다.
         Document document = getReadableDocument(userId, documentId);
@@ -196,6 +202,8 @@ public class DocumentQueryService {
     /**
      * 원본 파일 I/O를 Transaction 밖에서 수행할 수 있도록 현재 버전의 저장 위치만 Snapshot으로 반환한다.
      */
+    // 최종 인가와 문서 조회가 같은 Primary 연결을 사용하도록 read-only 라우팅을 피한다.
+    @Transactional
     public DocumentFileSnapshot getDocumentFileSnapshot(Long userId, Long documentId) {
         // 1. 동일한 읽기 권한과 삭제 문서 차단 규칙을 원본 파일에도 적용한다.
         Document document = getReadableDocument(userId, documentId);
@@ -226,6 +234,8 @@ public class DocumentQueryService {
     /**
      * 문서의 현재 검색 버전과 별도로 처리 중인 버전·Job 상태를 일관된 Projection으로 조회한다.
      */
+    // 최종 인가와 문서 조회가 같은 Primary 연결을 사용하도록 read-only 라우팅을 피한다.
+    @Transactional
     public DocumentStatusResponse getDocumentStatus(Long userId, Long documentId) {
         // 1. 상태 정보도 문서 본문과 같은 읽기 권한 경계를 적용한다.
         if (!permissionQueryService.canReadDocument(userId, documentId)) {

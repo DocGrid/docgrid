@@ -88,7 +88,7 @@ public class PermissionQueryService {
             return true;
         }
 
-        // 3단계: USER 캐시
+        // 3단계: USER 캐시와 출처 원장 교차 검증
         if (cacheRepository.existsValidReadCache(userId, documentId)) {
             return true;
         }
@@ -122,7 +122,7 @@ public class PermissionQueryService {
             return true;
         }
 
-        // 2단계: USER 캐시
+        // 2단계: USER 캐시와 출처 원장 교차 검증
         if (cacheRepository.existsValidWriteCache(userId, documentId)) {
             return true;
         }
@@ -156,7 +156,7 @@ public class PermissionQueryService {
             return true;
         }
 
-        // 2단계: USER 캐시
+        // 2단계: USER 캐시와 출처 원장 교차 검증
         if (cacheRepository.existsValidAdminCache(userId, documentId)) {
             return true;
         }
@@ -207,7 +207,7 @@ public class PermissionQueryService {
             sources.add(PermissionSourceType.DEPARTMENT_VISIBILITY);
         }
 
-        // 3단계: USER 캐시
+        // 3단계: USER 캐시와 출처 원장 교차 검증
         boolean cacheRead  = cacheRepository.existsValidReadCache(userId, documentId);
         boolean cacheWrite = cacheRepository.existsValidWriteCache(userId, documentId);
         boolean cacheAdmin = cacheRepository.existsValidAdminCache(userId, documentId);

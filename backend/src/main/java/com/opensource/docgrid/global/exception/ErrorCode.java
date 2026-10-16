@@ -42,6 +42,7 @@ public enum ErrorCode {
     ROLE_NOT_ASSIGNED(HttpStatus.NOT_FOUND, "ROLE-004", "부여되지 않은 역할입니다."),
     ADMIN_ROLE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "ROLE-005", "관리자 권한을 확인할 수 없습니다."),
 
+    DOCUMENT_PERMISSION_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "PERM-003", "현재 문서 권한을 확인할 수 없습니다."),
     PERMISSION_REVOCATION_UNCONFIRMED(HttpStatus.SERVICE_UNAVAILABLE, "PERM-001", "권한 회수를 확정하지 못했습니다. 같은 요청 키로 다시 시도해 주세요."),
     PERMISSION_REVOCATION_KEY_CONFLICT(HttpStatus.CONFLICT, "PERM-002", "다른 권한 회수에 사용한 요청 키입니다."),
 
