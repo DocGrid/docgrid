@@ -1,0 +1,9 @@
+[Unit]
+Description=Check time since last successful Barman offsite preservation
+
+[Service]
+Type=oneshot
+User=barman
+Group=barman
+ExecStart=/usr/bin/python3 /opt/docgrid/barman_offsite_sync.py check --config /etc/docgrid/barman-offsite.json
+NoNewPrivileges=true

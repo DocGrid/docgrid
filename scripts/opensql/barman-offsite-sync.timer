@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry Barman offsite preservation every five minutes
+
+[Timer]
+OnCalendar=*-*-* *:0/5:00
+Persistent=true
+Unit=barman-offsite-sync.service
+
+[Install]
+WantedBy=timers.target
