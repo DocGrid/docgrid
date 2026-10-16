@@ -80,7 +80,7 @@ class PermissionDurabilityIntegrationTest {
     @Autowired PlatformTransactionManager transactionManager;
 
     /** 시험 대상 실제 서비스만 구성하며 백그라운드 작업을 기동하지 않는다. */
-    @SpringBootConfiguration
+    @org.springframework.boot.test.context.TestConfiguration
     @EnableAutoConfiguration
     @EntityScan("com.opensource.docgrid")
     @org.springframework.data.jpa.repository.config.EnableJpaAuditing
