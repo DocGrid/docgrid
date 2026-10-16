@@ -1,0 +1,8 @@
+실행 ID: auth-run04 / 동기 후보 설정이 없으면 503이며 권한과 요청 원장을 바꾸지 않는다
+목적: 동기 후보 설정이 없으면 503이며 권한과 요청 원장을 바꾸지 않는다
+위치: 로컬 PostgreSQL 17.8 / 실제 MVC·JPA·Hikari
+명령: ./backend/gradlew -p backend permissionStandbyTest
+관측 소요 시간: 0.862초
+결과: 통과
+원본: auth-run04.log 및 해당 실행 JUnit 이벤트의 목적별 분리본
+

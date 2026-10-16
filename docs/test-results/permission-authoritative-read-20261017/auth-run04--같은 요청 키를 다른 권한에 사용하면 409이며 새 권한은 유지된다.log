@@ -1,0 +1,8 @@
+실행 ID: auth-run04 / 같은 요청 키를 다른 권한에 사용하면 409이며 새 권한은 유지된다
+목적: 같은 요청 키를 다른 권한에 사용하면 409이며 새 권한은 유지된다
+위치: 로컬 PostgreSQL 17.8 / 실제 MVC·JPA·Hikari
+명령: ./backend/gradlew -p backend permissionStandbyTest
+관측 소요 시간: 0.637초
+결과: 통과
+원본: auth-run04.log 및 해당 실행 JUnit 이벤트의 목적별 분리본
+

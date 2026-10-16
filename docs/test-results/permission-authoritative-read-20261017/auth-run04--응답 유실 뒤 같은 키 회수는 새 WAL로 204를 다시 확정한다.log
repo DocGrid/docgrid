@@ -1,0 +1,8 @@
+실행 ID: auth-run04 / 응답 유실 뒤 같은 키 회수는 새 WAL로 204를 다시 확정한다
+목적: 응답 유실 뒤 같은 키 회수는 새 WAL로 204를 다시 확정한다
+위치: 로컬 PostgreSQL 17.8 / 실제 MVC·JPA·Hikari
+명령: ./backend/gradlew -p backend permissionStandbyTest
+관측 소요 시간: 0.653초
+결과: 통과
+원본: auth-run04.log 및 해당 실행 JUnit 이벤트의 목적별 분리본
+

@@ -49,7 +49,7 @@ import com.opensource.docgrid.domain.document.storage.StoredFile;
 import com.opensource.docgrid.domain.embedding.enums.EmbeddingJobStatus;
 import com.opensource.docgrid.domain.embedding.entity.EmbeddingJob;
 import com.opensource.docgrid.domain.embedding.repository.EmbeddingJobRepository;
-import com.opensource.docgrid.domain.permission.service.query.PermissionQueryService;
+import com.opensource.docgrid.domain.permission.service.query.PrimaryDocumentPermissionQueryService;
 import com.opensource.docgrid.global.common.response.PageResponse;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
@@ -68,7 +68,7 @@ class DocumentQueryServiceTest {
     @Mock private DocumentVersionRepository documentVersionRepository;
     @Mock private DocumentChunkRepository documentChunkRepository;
     @Mock private EmbeddingJobRepository embeddingJobRepository;
-    @Mock private PermissionQueryService permissionQueryService;
+    @Mock private PrimaryDocumentPermissionQueryService permissionQueryService;
     @Mock private DocumentDetailConverter documentDetailConverter;
     @Mock private DocumentStatusConverter documentStatusConverter;
     @Mock private DocumentSummaryConverter documentSummaryConverter;

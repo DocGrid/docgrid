@@ -65,7 +65,7 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'permission-durability', 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract', 'opensql-outbox-isolated'
+		excludeTags 'permission-standby', 'permission-durability', 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract', 'opensql-outbox-isolated'
 	}
 }
 
@@ -614,6 +614,18 @@ tasks.register('permissionDurabilityTest', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     useJUnitPlatform { includeTags 'permission-durability' }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    testLogging { events 'passed', 'failed'; showStandardStreams = true }
+}
+
+// Primary 원장 인가가 standby 연결에서 허용되지 않는지 실제 복제본으로 확인한다.
+tasks.register('permissionStandbyTest', Test) {
+    group = 'verification'
+    dependsOn permissionDurabilityTest
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'permission-standby' }
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     testLogging { events 'passed', 'failed'; showStandardStreams = true }

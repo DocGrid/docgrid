@@ -27,7 +27,7 @@ import org.mockito.quality.Strictness;
 import com.opensource.docgrid.domain.embedding.dto.EmbedResult;
 import com.opensource.docgrid.domain.embedding.fixture.EmbeddingModelFixture;
 import com.opensource.docgrid.domain.embedding.service.query.QueryEmbeddingService;
-import com.opensource.docgrid.domain.permission.service.query.PermissionQueryService;
+import com.opensource.docgrid.domain.permission.service.query.PrimaryDocumentPermissionQueryService;
 import com.opensource.docgrid.domain.search.config.HybridSearchProperties;
 import com.opensource.docgrid.domain.search.dto.SearchAdmission;
 import com.opensource.docgrid.domain.search.dto.SearchOutcome;
@@ -55,7 +55,7 @@ class SearchFacadeTest {
     @Mock private VectorSearchQueryService vectorSearchQueryService;
     @Mock private HybridSearchQueryService hybridSearchQueryService;
     @Mock private HybridSearchProperties hybridSearchProperties;
-    @Mock private PermissionQueryService permissionQueryService;
+    @Mock private PrimaryDocumentPermissionQueryService permissionQueryService;
     @Mock private SearchResultCommandService searchResultCommandService;
 
     private static final Long USER_ID = 1L;
