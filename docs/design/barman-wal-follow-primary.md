@@ -51,4 +51,8 @@ Patroni의 [영구 복제 슬롯 설명](https://patroni.readthedocs.io/en/lates
 4. 통제된 역할 변경 시험에서 **이전 WAL 마지막 위치 → 새 리더 timeline → 첫 수신 WAL → 복원 가능 시점**을 별도 실행 기록으로 남긴다. 앱 쓰기 원장과 비교하기 전에는 RPO 숫자를 붙이지 않는다.
 5. 롤백은 timer 중지 → Barman 수신 정지 → 이전에 확인한 모델로 전환 → `barman cron`·`barman check` 순서다. 새 timeline이 생긴 뒤 과거 Primary로 억지 전환하지 않고 현재 Patroni 리더를 다시 확인한다.
 
-현재 [실행 기록](../test-results/barman-wal-follow-20261016/README.md)에서는 모델 3개·1분 timer를 설치하고 계획된 리더 전환을 1회 실행했다. 리더는 순번 2→1로, timeline은 19→20으로 바뀌었다. 전환 직후 Barman 슬롯·수신 검사는 실패했으나, 다음 관측에서 감시기의 모델 정렬과 세 검사 통과를 확인했다. timeline 20의 history와 완성된 WAL 세그먼트를 Barman에서 읽었다. **새 timeline을 포함한 격리 PITR과 성공 응답 원장 대조는 아직 실행하지 않았다.**
+현재 [실행 기록](../test-results/barman-wal-follow-20261016/README.md)에서는 모델 3개·1분 timer를 설치하고 계획된 리더 전환을 1회 실행했다. 리더는 순번 2→1로, timeline은 19→20으로 바뀌었다. 전환 직후 Barman 슬롯·수신 검사는 실패했으나, 다음 관측에서 감시기의 모델 정렬과 세 검사 통과를 확인했다. timeline 20의 history와 완성된 WAL 세그먼트를 Barman에서 읽었다.
+
+이어 [격리 PITR 시험](../test-results/barman-wal-follow-20261016/pitr-timeline20.md)에서 timeline 18 기준 백업과 timeline 19·20 WAL로 timeline 20의 지정 시각을 복원했다. 원래 Standby의 데이터 경로를 건드리지 않는 별도 경로와 localhost 포트를 사용했다. 목표 시각 전후 시험 기록 A·B를 기준으로 A 1건·B 0건, 복구 모드 종료를 확인했고 격리 복원본은 timeline 21로 승격됐다. 이는 **시험 기록을 이용한 DB 시점 판정**이며 사용자 성공 응답 전체나 GCS 객체의 보존을 검증한 결과는 아니다.
+
+첫 격리 시험에서는 안전 장치가 `docker start`만 실행해, 기본 명령이 `sleep infinity`인 컨테이너의 Patroni·PostgreSQL을 다시 시작하지 못했다. 실제 bootstrap을 포함한 원복 경로로 수정하고 후속 실행마다 재합류를 확인했다. 격리 OpenSQL에는 실행 중인 DB와 동일한 라이선스 경로가 필요했으며, 경로·값은 원격 프로세스 안에서만 사용하고 실행 기록에는 남기지 않았다. **복원 시험은 먼저 원복 타이머의 실제 bootstrap 경로를 검증한 다음 진행**해야 한다.

@@ -2,7 +2,7 @@
 
 ## 범위
 
-2026-10-16 KST에 분리 작업 트리와 GCP 시험용 OpenSQL 3노드·백업 VM에서 리더 식별, 세 노드 복제 접속, 영구 슬롯, Barman 모델 전환, 1분 주기 감시기와 **계획 Primary 전환 1회**를 검증했다. 전환 직후에는 Barman 슬롯·수신 검사가 실패했지만 주기 감시기가 새 리더 모델로 전환한 뒤 통과했다. 새 timeline 20의 history와 완성 WAL을 백업 저장소에서 회수했다. **새 timeline을 포함한 격리 PITR이나 쓰기 원장 대조는 이 실행에서 하지 않았다.**
+2026-10-16 KST에 분리 작업 트리와 GCP 시험용 OpenSQL 3노드·백업 VM에서 리더 식별, 세 노드 복제 접속, 영구 슬롯, Barman 모델 전환, 1분 주기 감시기와 **계획 Primary 전환 1회**를 검증했다. 전환 직후에는 Barman 슬롯·수신 검사가 실패했지만 주기 감시기가 새 리더 모델로 전환한 뒤 통과했다. 새 timeline 20의 history와 완성 WAL을 백업 저장소에서 회수했다. 이어서 timeline 18의 기준 백업과 timeline 19·20의 WAL로 **격리 PITR을 실행**, 목표 시각 전후 시험 기록 A 1건·B 0건과 복구 모드 종료를 확인했다. 첫 자동 원복 절차의 결함으로 시험 Standby 1대의 재합류가 지연됐고, 수정한 절차로 복구·재시험했다.
 
 백업 VM은 외부 IP 없이 유지했고, DB의 기존 Patroni 관리 포트는 열지 않았다. 백업 VM의 단일 내부 주소에서 DB 3노드의 지표 전용 TCP 18008로 가는 허용 규칙을 추가했다. 기존 차단 규칙보다 높은 우선순위 800으로 조정한 후에만 실제 접근이 가능했다. 실제 주소·프로젝트·호스트·계정은 실행 기록에 넣지 않았다.
 
@@ -56,6 +56,24 @@
 | [`DR-BARMAN-WAL-ARCHIVE-20261016-R1`](wal-archive-r1.md) | 새 WAL 세그먼트 보관 | 완성 세그먼트 0→1, 검사 3/3 OK | 통과 |
 | [`DR-BARMAN-WAL-RETRIEVE-20261016-R1`](wal-retrieve-r1.md) | Barman에서 새 WAL 회수 | history 820바이트·WAL 16MiB 읽기 성공 | 통과 |
 | [`DR-BARMAN-REPORT-QA-20261016-R1`](report-qa-r1.md) | 로컬 문서·단위 시험 검증 | 시험 11/11, 링크·민감 패턴·공백 오류 0 | 통과 |
+| [`DR-BARMAN-PITR-FILES-20261016-R1`](pitr-files-r1.md) | 기준 백업의 격리 파일 복원 | 기준 백업 검증 통과, `--no-get-wal`로 WAL 미포함 | 부분 통과 |
+| [`DR-BARMAN-PITR-WAL-STAGE-20261016-R1`](pitr-wal-stage-r1.md) | timeline 18·19·20 WAL 준비 | 9파일·83,889,096바이트·해시 불일치 0 | 통과 |
+| [`DR-BARMAN-PITR-TRANSFER-20261016-R1`](pitr-transfer-r1.md) | 격리 Standby로 stage 전송 | 스트림 헤더 문제 | 실패 |
+| [`DR-BARMAN-PITR-TRANSFER-20261016-R2`](pitr-transfer-r2.md) | 전송 재시도 | 스트림 헤더 문제 | 실패 |
+| [`DR-BARMAN-PITR-TRANSFER-20261016-R3`](pitr-transfer-r3.md) | 전송 재시도 | BrokenPipe | 실패 |
+| [`DR-BARMAN-PITR-TRANSFER-20261016-R4`](pitr-transfer-r4.md) | 전송 네 번째 시도 | 압축 스트림 32,385,649바이트 성공 | 통과 |
+| [`DR-BARMAN-PITR-ISOLATED-20261016-R1`](pitr-isolated-r1.md) | 첫 격리 기동·자동 원복 | 라이선스 오류, 불완전한 타이머로 Standby 자동 재합류 실패 | 실패·수동 복구 |
+| [`DR-BARMAN-PITR-CONTAINER-20261016-R1`](pitr-container-r1.md) | 컨테이너 격리 기동 | 라이선스 경로 미전달, 수정한 원복 절차는 성공 | 실패·원복 |
+| [`DR-BARMAN-PITR-CONTAINER-20261016-R2`](pitr-container-r2.md) | 목표 시각 데이터 확인 | A 1·B 0, 첫 조회에서 복구 모드 true | 부분 통과 |
+| [`DR-BARMAN-PITR-CONTAINER-20261016-R3`](pitr-container-r3.md) | 새 timeline 격리 PITR | A 1·B 0, 복구 모드 false | 통과 |
+| [`DR-BARMAN-PITR-FINAL-REJOIN-20261016-R1`](pitr-final-rejoin-r1.md) | 원래 3노드 재합류 | Primary 1·Standby 2 streaming/lag 0·Barman 3/3 OK | 통과 |
+| [`DR-BARMAN-PITR-STAGE-FINAL-20261016-R1`](pitr-stage-final-r1.md) | 격리 stage timeline 확인 | checkpoint timeline 21, 복구 신호 제거 | 통과 |
+| [`DR-BARMAN-PITR-ROLLBACK-DISARM-20261016-R4`](pitr-rollback-disarm-r4.md) | 안전 타이머 정리 | 타이머·스크립트 제거 | 통과 |
+| [`DR-BARMAN-PITR-MARKER-CLEANUP-20261016-R1`](pitr-marker-cleanup-r1.md) | live DB 시험 기록 정리 | 2건 삭제·잔여 0 | 통과 |
+| [`DR-BARMAN-PITR-STAGE-CLEANUP-20261016-R1`](pitr-stage-cleanup-r1.md) | 격리 Standby stage 정리 | 1,918파일 제거·원본 유지 | 통과 |
+| [`DR-BARMAN-PITR-BACKUP-STAGE-CLEANUP-20261016-R1`](pitr-backup-stage-cleanup-r1.md) | 백업 VM 임시 stage 정리 | 1,912파일 제거·기준 백업 1개 유지 | 통과 |
+| [`DR-BARMAN-PITR-REPORT-QA-20261016-R1`](pitr-report-qa-r1.md) | 로컬 기록·링크·민감 패턴 확인 | 문서 19개, 링크·민감 패턴·공백 오류 0 | 통과 |
+| [`DR-BARMAN-PITR-REPORT-QA-20261016-R2`](pitr-report-qa-r2.md) | 링크·민감 패턴·후행 공백 재검사 | 문서 20개, 오류 0 | 통과 |
 
 SSH가 실행된 각 Run에서 임시 OS Login 키 제거 명령의 성공을 확인했다. 삭제 명령 성공이 계정의 기존 키까지 포함한 독립적 잔여 0건 검증을 뜻하지는 않는다.
 
@@ -63,6 +81,6 @@ SSH가 실행된 각 Run에서 임시 OS Login 키 제거 명령의 성공을 �
 
 전환 명령은 3.430초에 끝났다. [감시기 로그](timer-journal-r2.md)에 따르면 22:15:39 KST 새 리더 모델로 자동 전환했다. 그보다 앞선 첫 점검에는 Barman 수신이 아직 실패했고, 다음 점검에는 모델 정렬과 수신이 확인됐다. **정확한 WAL 수신 중단 시간과 RPO는 계측하지 않았다.** 영구 슬롯의 4GB WAL 보존 한도를 적용했으므로 수신 장기 중단과 디스크 사용량은 계속 감시해야 한다.
 
-다음 관문은 기존 기준 백업과 timeline 20의 WAL을 사용한 **격리 복원**, 전환 전후 성공 응답의 DB·GCS 원장 대조다. 이번 WAL 파일 회수 성공만으로 새 timeline의 복원 성공을 주장하지 않는다.
+기준 백업 timeline 18에서 새로운 timeline 20의 목표 시각까지 복원하고 A 1건·B 0건을 확인한 내용은 [별도 PITR 결과](pitr-timeline20.md)에 있다. 첫 자동 원복 결함과 중간 실패도 함께 기록했다. **전환 전후 사용자 성공 응답 전체의 DB·GCS 원장 대조, 이 시험의 RPO·RTO, GCS 복원은 아직 수행하지 않았다.**
 
 설계와 운영 조건은 [별도 문서](../../design/barman-wal-follow-primary.md)에 기록했다.
