@@ -1,0 +1,4 @@
+목적: 외부 원장의 실제 요청 키별 성공 보존·불명 해소 대조
+위치: 현재 Primary / 같은 격리 OpenProxy 경로
+EVIDENCE ledger_unique_keys=48 initial_204_keys=48 acknowledged_preserved=48 resolved_keys=48 remaining_permissions=0
+exit_code=0

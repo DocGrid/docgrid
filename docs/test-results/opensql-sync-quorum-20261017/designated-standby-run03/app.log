@@ -1,0 +1,14 @@
+{"실행_ID": "designated-standby-run03-app", "목적": "실제 격리 OpenSQL·OpenProxy의 권한 회수 HA 계약", "시작_KST": "2026-10-17T06:17:23.584795+09:00", "위치": "로컬 JVM → IAP → 격리 GCP OpenSQL·OpenProxy·역할 어댑터", "명령": "./backend/gradlew -p backend permissionHaTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+> Task :permissionHaTest
+> Task :permissionHaTest
+EVIDENCE 2026-10-17T06:21:03.847711+09:00 mode=designated scenario=standby-loss phase=fixture-start samples=48
+EVIDENCE 2026-10-17T06:22:37.751659+09:00 mode=designated scenario=standby-loss phase=fixture-ready samples=48
+> Task :permissionHaTest FAILED
+BUILD FAILED in 5m 36s
+{"종료_KST": "2026-10-17T06:23:00.548437+09:00", "exit_code": 1}

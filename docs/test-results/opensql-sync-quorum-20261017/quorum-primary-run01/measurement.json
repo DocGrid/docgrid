@@ -1,0 +1,12 @@
+{
+  "run_id": "quorum-primary-run01",
+  "mode": "quorum",
+  "scenario": "primary-loss",
+  "initial_requests": 48,
+  "initial_204": 39,
+  "initial_unconfirmed": 9,
+  "retry_requests": 9,
+  "max_success_gap_seconds": 26.969831,
+  "first_204_after_fault_requested_seconds": 26.841306,
+  "app_contract": "initial_requests=48 initial_204=39 initial_unknown=9 final_receipts=48 final_permissions=0 forbidden_content=0 auth_unavailable=2 p50_ms=2804.792959 p95_ms=5019.69925 hikari_max_active=2 hikari_max_pending=2"
+}

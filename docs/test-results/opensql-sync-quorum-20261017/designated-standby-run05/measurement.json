@@ -1,0 +1,12 @@
+{
+  "run_id": "designated-standby-run05",
+  "mode": "designated",
+  "scenario": "standby-loss",
+  "initial_requests": 48,
+  "initial_204": 48,
+  "initial_unconfirmed": 0,
+  "retry_requests": 0,
+  "max_success_gap_seconds": 4.810205,
+  "first_204_after_fault_requested_seconds": 4.512913,
+  "app_contract": "initial_requests=48 initial_204=48 initial_unknown=0 final_receipts=48 final_permissions=0 forbidden_content=0 auth_unavailable=0 p50_ms=2803.802209 p95_ms=2906.397625 hikari_max_active=2 hikari_max_pending=0"
+}

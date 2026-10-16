@@ -1,0 +1,1 @@
+initial_requests=48 initial_204=48 initial_unknown=0 final_receipts=48 final_permissions=0 forbidden_content=0 auth_unavailable=0 p50_ms=2796.313417 p95_ms=2920.39875 hikari_max_active=2 hikari_max_pending=0
