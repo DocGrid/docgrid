@@ -1,0 +1,6 @@
+fix JAR: develop f238caf + 작업 트리의 SyncConsistencyInspector 수정(full-build-01과 같은 빌드)
+266e27365f3cb0b42d182d299225abc33f0f3a7039a9f3080417f910bb63b7d7  docgrid-fix518.jar
+old JAR: develop f238caf (#517 시험과 같은 파일)
+f86e7da61fe9bfab5641a38a16935ba88468e9b86528e4797735f2c8a8d3057f  docgrid-f238caf.jar
+service source:
+89be062a18f1fe2b7614ba6def433f9538277c273bf4c4515a545bd4a071a03d  SyncConsistencyInspector.java

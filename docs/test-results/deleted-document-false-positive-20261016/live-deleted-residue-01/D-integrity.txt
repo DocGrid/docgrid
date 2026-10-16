@@ -1,0 +1,28 @@
+## version별 Chunk·ACTIVE Vector·Job 수
+ version_id | document_id | document_status | version_status | chunks | active_vectors | inactive_vectors | jobs | live_jobs 
+------------+-------------+-----------------+----------------+--------+----------------+------------------+------+-----------
+          1 |           1 | INDEXED         | INDEXED        |      2 |              2 |                0 |    0 |         0
+          2 |           2 | INDEXED         | INDEXED        |      2 |              2 |                0 |    0 |         0
+          3 |           3 | DELETED         | INDEXED        |      5 |              0 |                5 |    1 |         0
+(3 rows)
+
+## 같은 Chunk·모델 Vector 중복 (0행이어야 함)
+ chunk_id | embedding_model_id | count 
+----------+--------------------+-------
+(0 rows)
+
+## version당 live Job 2개 이상 (0행이어야 함)
+ document_version_id | count 
+---------------------+-------
+(0 rows)
+
+## Outbox 미완료·실패 (0행이어야 함)
+ event_id | event_type | status | last_error_code 
+----------+------------+--------+-----------------
+(0 rows)
+
+## Reindex Event ↔ Job 연결
+ event_id | version_id | status | job_id | job_status 
+----------+------------+--------+--------+------------
+(0 rows)
+

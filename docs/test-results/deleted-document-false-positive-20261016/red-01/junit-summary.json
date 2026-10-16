@@ -1,0 +1,39 @@
+{
+  "tests": 5,
+  "failures": 2,
+  "errors": 0,
+  "skipped": 0,
+  "timestamp": "2026-10-16T07:21:34.445Z",
+  "cases": [
+    {
+      "name": "삭제 직후 일부 Vector만 ACTIVE로 남아도 삭제 잔여물만 보고하고 자동복구 대상으로 분류하지 않는다",
+      "time_s": 0.554,
+      "result": "FAILED",
+      "failure": "java.lang.AssertionError: \nExpected size: 1 but was: 2 in:\n[SyncConsistencyObservation[issueKey=MISSING_EMBEDDINGS:VERSION:16:MODEL:7, issueType=MISSING_EMBEDDINGS, severity=CRITICAL, document=com.opensource.docgrid.domain.document.entity.Document@27fe9713, documentVersion=com.opensource.docgrid.domain.document.entity.DocumentVersion@11c3ff67, embeddingModel=com.opensource.docgrid.domain.embedding.entity.EmbeddingModel@4397a639, expectedJson={\"activeEmbeddingCount\":5}, actualJson={\"activeEmbeddingCount\":4,\"currentModelEmbeddingCount\":4,\"allModelEmbeddingCount\":4}, repairable=true],\n    SyncCon"
+    },
+    {
+      "name": "현재 Version의 기존 ACTIVE Vector는 보존하고 실제 누락 행만 자동복구 대상으로 분류한다",
+      "time_s": 0.005,
+      "result": "PASSED",
+      "failure": null
+    },
+    {
+      "name": "과거 INDEXED Version의 STALE Vector는 현재 검색 상태 불일치로 오인하지 않는다",
+      "time_s": 0.001,
+      "result": "PASSED",
+      "failure": null
+    },
+    {
+      "name": "행은 모두 있으나 ACTIVE 상태가 깨진 Vector Set은 보고만 한다",
+      "time_s": 0.002,
+      "result": "PASSED",
+      "failure": null
+    },
+    {
+      "name": "정상 삭제로 Vector가 모두 STALE이 된 문서는 Vector 누락으로 보고하지 않는다",
+      "time_s": 0.002,
+      "result": "FAILED",
+      "failure": "java.lang.AssertionError: \nExpecting empty but was: [SyncConsistencyObservation[issueKey=MISSING_EMBEDDINGS:VERSION:15:MODEL:7, issueType=MISSING_EMBEDDINGS, severity=CRITICAL, document=com.opensource.docgrid.domain.document.entity.Document@61ab89b0, documentVersion=com.opensource.docgrid.domain.document.entity.DocumentVersion@5478ce1e, embeddingModel=com.opensource.docgrid.domain.embedding.entity.EmbeddingModel@5edc70ed, expectedJson={\"activeEmbeddingCount\":5}, actualJson={\"activeEmbeddingCount\":0,\"currentModelEmbeddingCount\":5,\"allModelEmbeddingCount\":5}, repairable=false]]"
+    }
+  ]
+}

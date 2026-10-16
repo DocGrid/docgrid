@@ -1,0 +1,15 @@
+{
+  "suites": 251,
+  "tests": 1497,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 5,
+  "skipped_cases": [
+    "com.opensource.docgrid.domain.dashboard.event.DashboardCrossNodeSignalRedisIntegrationTest.A/B 신호가 반대편에만 도착하고 재구독 시 놓친 상태를 다시 읽는다",
+    "com.opensource.docgrid.domain.dashboard.event.DashboardCrossNodeWebSocketIntegrationTest.A/B 어느 쪽만 발행해도 반대편은 자기 DB 요약을 다시 계산해 자기 관리자에게 보낸다",
+    "com.opensource.docgrid.domain.failover.service.command.HaProbeIdempotentPostgresIntegrationTest.concurrentAppConnectionsProduceOneRowAndReplaySeesTheWinner()",
+    "com.opensource.docgrid.domain.failover.service.command.HaProbeIdempotentPostgresIntegrationTest.losingTransactionSeesWinnerAfterWaitingForItsCommit()",
+    "com.opensource.docgrid.domain.failover.service.command.HaProbeIdempotentPostgresIntegrationTest.replayReadsCommittedWinnerInTheSameReadCommittedTransaction()"
+  ],
+  "failed_cases": []
+}

@@ -1,0 +1,2 @@
+# backend518-phaseB-fix-worker-off-dispatcher-off 핵심 줄 (원본 124줄 중 기동·Worker·WARN·ERROR만 추출)
+2026-10-16T16:26:27.709+09:00  INFO 6905 --- [docgrid] [           main] c.opensource.docgrid.DocgridApplication  : Started DocgridApplication in 9.211 seconds (process running for 9.704)

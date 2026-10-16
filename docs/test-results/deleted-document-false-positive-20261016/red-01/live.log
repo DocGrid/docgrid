@@ -1,0 +1,38 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.5/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :cleanTest UP-TO-DATE
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+
+> Task :compileTestJava
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :processTestResources
+> Task :testClasses
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :test FAILED
+
+SyncConsistencyInspector 단위 테스트 > 삭제 직후 일부 Vector만 ACTIVE로 남아도 삭제 잔여물만 보고하고 자동복구 대상으로 분류하지 않는다 FAILED
+    java.lang.AssertionError at SyncConsistencyInspectorTest.java:154
+
+SyncConsistencyInspector 단위 테스트 > 정상 삭제로 Vector가 모두 STALE이 된 문서는 Vector 누락으로 보고하지 않는다 FAILED
+    java.lang.AssertionError at SyncConsistencyInspectorTest.java:135
+
+5 tests completed, 2 failed
+
+[Incubating] Problems report is available at: file://<repo>/backend/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':test'.
+> There were failing tests. See the report at: file://<repo>/backend/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 12s
+6 actionable tasks: 3 executed, 3 up-to-date

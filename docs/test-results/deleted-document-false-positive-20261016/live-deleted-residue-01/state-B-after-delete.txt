@@ -1,0 +1,40 @@
+## document / version
+ document_id | document_status | current_version_id | deleted | version_id | version_status |        indexed_at         |     version_updated_at     
+-------------+-----------------+--------------------+---------+------------+----------------+---------------------------+----------------------------
+           3 | DELETED         |                  3 | t       |          3 | INDEXED        | 2026-10-16 16:25:56.78418 | 2026-10-16 16:25:56.853209
+(1 row)
+
+## embedding_jobs
+ id | status  | retry_count |           source_event_id            |         created_at         |       completed_at        | attempts | indexing_events 
+----+---------+-------------+--------------------------------------+----------------------------+---------------------------+----------+-----------------
+  1 | INDEXED |           0 | 3dc4a30e-5483-49ca-a2bf-19e9e9c47329 | 2026-10-16 16:25:31.581554 | 2026-10-16 16:25:56.78418 |        1 |               5
+(1 row)
+
+## chunks / embeddings (count by model, status)
+ chunk_count | embedding_model_id | status | embedding_count 
+-------------+--------------------+--------+-----------------
+           5 |                  1 | ACTIVE |               5
+(1 row)
+
+## embeddings (id, chunk, hash)
+ embedding_id | chunk_index | chunk_id | status |                           vector_hash                            |         vector_text_md5          |         created_at         
+--------------+-------------+----------+--------+------------------------------------------------------------------+----------------------------------+----------------------------
+            5 |           0 |        5 | ACTIVE | 1a847a83ad9390b6fd960eb256d87c70912260218f7c36f637d92b5e4ffd63ad | e429707746dcc36fbe59c53d1c320c62 | 2026-10-16 16:25:56.694948
+            6 |           1 |        6 | ACTIVE | e569aa0eba56af37f177d1a453920a4c1a3868ec1fe77b2645f2b948e2b6b25b | 0b68e61a1fce6489e07fb4541d262ea8 | 2026-10-16 16:25:56.747867
+            7 |           2 |        7 | ACTIVE | 737e179a0251ed069f3b89d0726e6d58dc0fa20f145d4407a38e3063e9fc9df7 | be8396b157d1069583d85d407085bf5f | 2026-10-16 16:25:56.753229
+            8 |           3 |        8 | ACTIVE | 9a88251f3ae365b9355fabf106fff1640630dc107e5f18152d9a607a34f563d1 | 18d938337a96970579f95ed1124f0df9 | 2026-10-16 16:25:56.759085
+            9 |           4 |        9 | ACTIVE | d45c5b4c7bcbc681fa03efc4d0815fea237d6904ca6d23e6417e22abd1502b40 | be0993c28f824229f3ba21567549cd14 | 2026-10-16 16:25:56.766768
+(5 rows)
+
+## sync_outbox_events (aggregate = version or document)
+               event_id               |        event_type        |  aggregate_type  | aggregate_id |  status   | retry_count |                idempotency_key                |        occurred_at         |        processed_at        | last_error_code 
+--------------------------------------+--------------------------+------------------+--------------+-----------+-------------+-----------------------------------------------+----------------------------+----------------------------+-----------------
+ 3dc4a30e-5483-49ca-a2bf-19e9e9c47329 | DOCUMENT_VERSION_CREATED | DOCUMENT_VERSION |            3 | PROCESSED |           0 | DOCUMENT_VERSION:3:DOCUMENT_VERSION_CREATED:1 | 2026-10-16 16:25:31.559294 | 2026-10-16 16:25:32.081256 | 
+ bda72032-68ae-42e9-9fb8-e7219295c565 | DOCUMENT_DELETED         | DOCUMENT         |            3 | PENDING   |           0 | DOCUMENT:3:DOCUMENT_DELETED                   | 2026-10-16 16:26:29.270027 |                            | 
+(2 rows)
+
+## sync_consistency_issues (version or document)
+ id | issue_type | severity | status | repairable | repair_event_id | repair_attempt_count | detected_at | last_detected_at | resolved_at | actual_json 
+----+------------+----------+--------+------------+-----------------+----------------------+-------------+------------------+-------------+-------------
+(0 rows)
+
