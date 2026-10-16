@@ -1,0 +1,53 @@
+{
+    "success": true,
+    "status": 200,
+    "data": {
+        "content": [
+            {
+                "issueId": 2,
+                "issueKey": "MISSING_EMBEDDINGS:VERSION:3:MODEL:1",
+                "issueType": "MISSING_EMBEDDINGS",
+                "severity": "CRITICAL",
+                "status": "OPEN",
+                "documentId": 3,
+                "documentVersionId": 3,
+                "embeddingModelId": 1,
+                "expectedJson": "{\"activeEmbeddingCount\":5}",
+                "actualJson": "{\"activeEmbeddingCount\":0,\"currentModelEmbeddingCount\":5,\"allModelEmbeddingCount\":5}",
+                "repairable": false,
+                "detectedAt": "2026-10-16T16:27:08.970585",
+                "lastDetectedAt": "2026-10-16T16:27:08.970585",
+                "repairEventId": null,
+                "repairAttemptCount": 0,
+                "resolvedAt": null,
+                "resolutionMessage": null
+            },
+            {
+                "issueId": 1,
+                "issueKey": "DELETED_DOCUMENT_RESIDUE:DOCUMENT:3",
+                "issueType": "DELETED_DOCUMENT_RESIDUE",
+                "severity": "CRITICAL",
+                "status": "RESOLVED",
+                "documentId": 3,
+                "documentVersionId": 3,
+                "embeddingModelId": 1,
+                "expectedJson": "{\"activeEmbeddingCount\":0}",
+                "actualJson": "{\"activeEmbeddingCount\":\">0\"}",
+                "repairable": false,
+                "detectedAt": "2026-10-16T16:26:32.625399",
+                "lastDetectedAt": "2026-10-16T16:26:32.625399",
+                "repairEventId": null,
+                "repairAttemptCount": 0,
+                "resolvedAt": "2026-10-16T16:27:08.970585",
+                "resolutionMessage": "Reconciliation 재검사에서 정상 상태를 확인했습니다."
+            }
+        ],
+        "page": 0,
+        "size": 100,
+        "totalElements": 2,
+        "totalPages": 1,
+        "first": true,
+        "last": true
+    },
+    "timestamp": "2026-10-16 16:27:09"
+}

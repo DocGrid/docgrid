@@ -1,0 +1,4 @@
+# backend518-phaseA-fix-worker-on-dispatcher-on 핵심 줄 (원본 192줄 중 기동·Worker·WARN·ERROR만 추출)
+2026-10-16T16:25:28.949+09:00  INFO 6431 --- [docgrid] [           main] c.opensource.docgrid.DocgridApplication  : Started DocgridApplication in 13.587 seconds (process running for 14.245)
+2026-10-16T16:25:29.390+09:00  INFO 6431 --- [docgrid] [           main] c.o.d.d.w.l.WorkerLifecycleManager       : 인덱싱 Worker를 등록했습니다. workerId=1, workerName=rc518-worker, instanceId=b7f1aaf4-89e4-4615-b70b-ee7c3e116a23
+2026-10-16T16:26:05.783+09:00  INFO 6431 --- [docgrid] [ionShutdownHook] .d.d.w.l.WorkerExecutionLifecycleManager : Worker 실행 종료를 완료했습니다. graceful=true, cancelledTaskCount=0, activeLeaseCount=0
