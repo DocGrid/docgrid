@@ -116,6 +116,7 @@ public class SyncConsistencyInspector {
      *
      * <p>현재 모델 Vector가 없지만 다른 모델 Vector가 Chunk 수만큼 존재하면 모델 불일치로 분류한다.
      * 일부 현재 모델 Vector만 누락된 경우에만 보존된 Vector를 유지하며 누락분을 채울 수 있다.
+     * 삭제 문서는 삭제 Event가 Vector를 STALE로 내리므로 Embedding 완전성 대신 잔여물 검사만 적용한다.
      */
     private void inspectChunksAndEmbeddings(
         DocumentVersion version,
@@ -142,6 +143,7 @@ public class SyncConsistencyInspector {
             && Objects.equals(version.getDocument().getCurrentVersion().getId(), version.getId());
         if (version.getStatus() == DocumentVersionStatus.INDEXED
             && currentVersion
+            && version.getDocument().getStatus() != DocumentStatus.DELETED
             && chunkCount > embeddingCount) {
             long currentModelCount = embeddingRepository.countByDocumentVersionIdAndEmbeddingModelId(
                 version.getId(),
