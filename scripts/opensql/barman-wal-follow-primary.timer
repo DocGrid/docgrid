@@ -1,0 +1,10 @@
+[Unit]
+Description=Check OpenSQL primary for Barman WAL streaming
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=60s
+Unit=barman-wal-follow-primary.service
+
+[Install]
+WantedBy=timers.target
