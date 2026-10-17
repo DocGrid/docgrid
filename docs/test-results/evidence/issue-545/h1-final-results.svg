@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 992 386" width="992" height="386" role="img" aria-label="허용 문서 비율별 벡터 검색 최종 결과 수 (50,000 청크)">
+<style>
+.surface{fill:#fcfcfb}.ink{fill:#0b0b0b}.ink2{fill:#52514e}.grid{stroke:#e4e3de}.axis{stroke:#b9b8b1}
+.ref{stroke:#8f8e87}.ring{stroke:#fcfcfb}
+.l0{stroke:#2a78d6}.d0{fill:#2a78d6}.l1{stroke:#eb6834}.d1{fill:#eb6834}.l2{stroke:#1baf7a}.d2{fill:#1baf7a}.l3{stroke:#eda100}.d3{fill:#eda100}
+@media (prefers-color-scheme: dark){.surface{fill:#1a1a19}.ink{fill:#f0efec}.ink2{fill:#c3c2b7}
+.grid{stroke:#33332f}.axis{stroke:#5b5a54}.ref{stroke:#8a897f}.ring{stroke:#1a1a19}.l0{stroke:#3987e5}.d0{fill:#3987e5}.l1{stroke:#d95926}.d1{fill:#d95926}.l2{stroke:#199e70}.d2{fill:#199e70}.l3{stroke:#c98500}.d3{fill:#c98500}}
+text{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+</style>
+<rect class="surface" width="992" height="386" rx="8"/>
+<text class="ink" x="20" y="28" font-size="16" font-weight="600">허용 문서 비율별 벡터 검색 최종 결과 수 (50,000 청크)</text>
+<text class="ink2" x="20" y="48" font-size="12">질문 30개 평균. HNSW 계열은 enable_sort=off로 HNSW를 쓰게 한 값이며, 현재 운영 계획은 Exact와 같은 결과를 낸다.</text>
+<line class="l0" x1="20" y1="70" x2="38" y2="70" stroke-width="2" stroke-linecap="round"/><circle class="l0 surface" cx="29" cy="70" r="5" stroke-width="2"/>
+<text class="ink2" x="44" y="74" font-size="12">Exact = 현재 계획</text>
+<line class="l1" x1="176.64" y1="70" x2="194.64" y2="70" stroke-width="2" stroke-linecap="round"/><circle class="d1 ring" cx="185.64" cy="70" r="4" stroke-width="2"/>
+<text class="ink2" x="200.64" y="74" font-size="12">HNSW 강제 ef40</text>
+<line class="l2" x1="316.23999999999995" y1="70" x2="334.23999999999995" y2="70" stroke-width="2" stroke-linecap="round"/><circle class="d2 ring" cx="325.23999999999995" cy="70" r="4" stroke-width="2"/>
+<text class="ink2" x="340.23999999999995" y="74" font-size="12">HNSW 강제 ef200</text>
+<line class="l3" x1="462.7999999999999" y1="70" x2="480.7999999999999" y2="70" stroke-width="2" stroke-linecap="round"/><circle class="d3 ring" cx="471.7999999999999" cy="70" r="4" stroke-width="2"/>
+<text class="ink2" x="486.7999999999999" y="74" font-size="12">HNSW 강제 iterative relaxed</text>
+<text class="ink" x="56" y="98" font-size="13" font-weight="600">topK 5</text>
+<line class="grid" x1="56" y1="322.0" x2="336" y2="322.0" stroke-width="1"/>
+<text class="ink2" x="48" y="326.0" font-size="11" text-anchor="end">0</text>
+<line class="grid" x1="56" y1="280.0" x2="336" y2="280.0" stroke-width="1"/>
+<text class="ink2" x="48" y="284.0" font-size="11" text-anchor="end">1</text>
+<line class="grid" x1="56" y1="238.0" x2="336" y2="238.0" stroke-width="1"/>
+<text class="ink2" x="48" y="242.0" font-size="11" text-anchor="end">2</text>
+<line class="grid" x1="56" y1="196.0" x2="336" y2="196.0" stroke-width="1"/>
+<text class="ink2" x="48" y="200.0" font-size="11" text-anchor="end">3</text>
+<line class="grid" x1="56" y1="154.0" x2="336" y2="154.0" stroke-width="1"/>
+<text class="ink2" x="48" y="158.0" font-size="11" text-anchor="end">4</text>
+<line class="grid" x1="56" y1="112.0" x2="336" y2="112.0" stroke-width="1"/>
+<text class="ink2" x="48" y="116.0" font-size="11" text-anchor="end">5</text>
+<line class="axis" x1="56" y1="322" x2="336" y2="322" stroke-width="1"/>
+<line class="ref" x1="56" y1="112.0" x2="336" y2="112.0" stroke-width="1" stroke-dasharray="4 3"/><text class="ink2" x="336" y="107.0" font-size="11" text-anchor="end">topK 5</text>
+<text class="ink2" x="56.0" y="340" font-size="11" text-anchor="start">100%</text>
+<text class="ink2" x="149.3" y="340" font-size="11" text-anchor="middle">10%</text>
+<text class="ink2" x="242.7" y="340" font-size="11" text-anchor="middle">1%</text>
+<text class="ink2" x="336.0" y="340" font-size="11" text-anchor="end">0.1%</text>
+<polyline class="l1" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="56.0,112.0 149.3,250.6 242.7,315.0 336.0,322.0"/>
+<circle class="d1 ring" cx="56.0" cy="112.0" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 100%: 5.0</title></circle>
+<circle class="d1 ring" cx="149.3" cy="250.6" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 10%: 1.7</title></circle>
+<circle class="d1 ring" cx="242.7" cy="315.0" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 1%: 0.2</title></circle>
+<circle class="d1 ring" cx="336.0" cy="322.0" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 0.1%: 0.0</title></circle>
+<polyline class="l2" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="56.0,112.0 149.3,152.6 242.7,296.8 336.0,320.6"/>
+<circle class="d2 ring" cx="56.0" cy="112.0" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 100%: 5.0</title></circle>
+<circle class="d2 ring" cx="149.3" cy="152.6" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 10%: 4.0</title></circle>
+<circle class="d2 ring" cx="242.7" cy="296.8" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 1%: 0.6</title></circle>
+<circle class="d2 ring" cx="336.0" cy="320.6" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 0.1%: 0.0</title></circle>
+<polyline class="l3" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="56.0,112.0 149.3,112.0 242.7,114.8 336.0,113.4"/>
+<circle class="d3 ring" cx="56.0" cy="112.0" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 100%: 5.0</title></circle>
+<circle class="d3 ring" cx="149.3" cy="112.0" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 10%: 5.0</title></circle>
+<circle class="d3 ring" cx="242.7" cy="114.8" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 1%: 4.9</title></circle>
+<circle class="d3 ring" cx="336.0" cy="113.4" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 0.1%: 5.0</title></circle>
+<polyline class="l0" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="56.0,112.0 149.3,112.0 242.7,114.8 336.0,113.4"/>
+<circle class="l0" fill="none" cx="56.0" cy="112.0" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 100%: 5.0</title></circle>
+<circle class="l0" fill="none" cx="149.3" cy="112.0" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 10%: 5.0</title></circle>
+<circle class="l0" fill="none" cx="242.7" cy="114.8" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 1%: 4.9</title></circle>
+<circle class="l0" fill="none" cx="336.0" cy="113.4" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 0.1%: 5.0</title></circle>
+<text class="ink" x="372" y="98" font-size="13" font-weight="600">topK 10</text>
+<line class="grid" x1="372" y1="322.0" x2="652" y2="322.0" stroke-width="1"/>
+<text class="ink2" x="364" y="326.0" font-size="11" text-anchor="end">0</text>
+<line class="grid" x1="372" y1="280.0" x2="652" y2="280.0" stroke-width="1"/>
+<text class="ink2" x="364" y="284.0" font-size="11" text-anchor="end">2</text>
+<line class="grid" x1="372" y1="238.0" x2="652" y2="238.0" stroke-width="1"/>
+<text class="ink2" x="364" y="242.0" font-size="11" text-anchor="end">4</text>
+<line class="grid" x1="372" y1="196.0" x2="652" y2="196.0" stroke-width="1"/>
+<text class="ink2" x="364" y="200.0" font-size="11" text-anchor="end">6</text>
+<line class="grid" x1="372" y1="154.0" x2="652" y2="154.0" stroke-width="1"/>
+<text class="ink2" x="364" y="158.0" font-size="11" text-anchor="end">8</text>
+<line class="grid" x1="372" y1="112.0" x2="652" y2="112.0" stroke-width="1"/>
+<text class="ink2" x="364" y="116.0" font-size="11" text-anchor="end">10</text>
+<line class="axis" x1="372" y1="322" x2="652" y2="322" stroke-width="1"/>
+<line class="ref" x1="372" y1="112.0" x2="652" y2="112.0" stroke-width="1" stroke-dasharray="4 3"/><text class="ink2" x="652" y="107.0" font-size="11" text-anchor="end">topK 10</text>
+<text class="ink2" x="372.0" y="340" font-size="11" text-anchor="start">100%</text>
+<text class="ink2" x="465.3" y="340" font-size="11" text-anchor="middle">10%</text>
+<text class="ink2" x="558.7" y="340" font-size="11" text-anchor="middle">1%</text>
+<text class="ink2" x="652.0" y="340" font-size="11" text-anchor="end">0.1%</text>
+<polyline class="l1" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="372.0,115.5 465.3,284.9 558.7,318.5 652.0,322.0"/>
+<circle class="d1 ring" cx="372.0" cy="115.5" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 100%: 9.8</title></circle>
+<circle class="d1 ring" cx="465.3" cy="284.9" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 10%: 1.8</title></circle>
+<circle class="d1 ring" cx="558.7" cy="318.5" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 1%: 0.2</title></circle>
+<circle class="d1 ring" cx="652.0" cy="322.0" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 0.1%: 0.0</title></circle>
+<polyline class="l2" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="372.0,114.1 465.3,196.7 558.7,309.4 652.0,321.3"/>
+<circle class="d2 ring" cx="372.0" cy="114.1" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 100%: 9.9</title></circle>
+<circle class="d2 ring" cx="465.3" cy="196.7" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 10%: 6.0</title></circle>
+<circle class="d2 ring" cx="558.7" cy="309.4" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 1%: 0.6</title></circle>
+<circle class="d2 ring" cx="652.0" cy="321.3" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 0.1%: 0.0</title></circle>
+<polyline class="l3" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="372.0,115.5 465.3,112.0 558.7,112.7 652.0,180.6"/>
+<circle class="d3 ring" cx="372.0" cy="115.5" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 100%: 9.8</title></circle>
+<circle class="d3 ring" cx="465.3" cy="112.0" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 10%: 10.0</title></circle>
+<circle class="d3 ring" cx="558.7" cy="112.7" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 1%: 10.0</title></circle>
+<circle class="d3 ring" cx="652.0" cy="180.6" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 0.1%: 6.7</title></circle>
+<polyline class="l0" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="372.0,113.4 465.3,112.0 558.7,112.7 652.0,156.1"/>
+<circle class="l0" fill="none" cx="372.0" cy="113.4" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 100%: 9.9</title></circle>
+<circle class="l0" fill="none" cx="465.3" cy="112.0" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 10%: 10.0</title></circle>
+<circle class="l0" fill="none" cx="558.7" cy="112.7" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 1%: 10.0</title></circle>
+<circle class="l0" fill="none" cx="652.0" cy="156.1" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 0.1%: 7.9</title></circle>
+<text class="ink" x="688" y="98" font-size="13" font-weight="600">topK 20</text>
+<line class="grid" x1="688" y1="322.0" x2="968" y2="322.0" stroke-width="1"/>
+<text class="ink2" x="680" y="326.0" font-size="11" text-anchor="end">0</text>
+<line class="grid" x1="688" y1="269.5" x2="968" y2="269.5" stroke-width="1"/>
+<text class="ink2" x="680" y="273.5" font-size="11" text-anchor="end">5</text>
+<line class="grid" x1="688" y1="217.0" x2="968" y2="217.0" stroke-width="1"/>
+<text class="ink2" x="680" y="221.0" font-size="11" text-anchor="end">10</text>
+<line class="grid" x1="688" y1="164.5" x2="968" y2="164.5" stroke-width="1"/>
+<text class="ink2" x="680" y="168.5" font-size="11" text-anchor="end">15</text>
+<line class="grid" x1="688" y1="112.0" x2="968" y2="112.0" stroke-width="1"/>
+<text class="ink2" x="680" y="116.0" font-size="11" text-anchor="end">20</text>
+<line class="axis" x1="688" y1="322" x2="968" y2="322" stroke-width="1"/>
+<line class="ref" x1="688" y1="112.0" x2="968" y2="112.0" stroke-width="1" stroke-dasharray="4 3"/><text class="ink2" x="968" y="107.0" font-size="11" text-anchor="end">topK 20</text>
+<text class="ink2" x="688.0" y="340" font-size="11" text-anchor="start">100%</text>
+<text class="ink2" x="781.3" y="340" font-size="11" text-anchor="middle">10%</text>
+<text class="ink2" x="874.7" y="340" font-size="11" text-anchor="middle">1%</text>
+<text class="ink2" x="968.0" y="340" font-size="11" text-anchor="end">0.1%</text>
+<polyline class="l1" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="688.0,140.7 781.3,303.4 874.7,320.2 968.0,322.0"/>
+<circle class="d1 ring" cx="688.0" cy="140.7" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 100%: 17.3</title></circle>
+<circle class="d1 ring" cx="781.3" cy="303.4" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 10%: 1.8</title></circle>
+<circle class="d1 ring" cx="874.7" cy="320.2" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 1%: 0.2</title></circle>
+<circle class="d1 ring" cx="968.0" cy="322.0" r="4" stroke-width="2"><title>HNSW 강제 ef40 · 0.1%: 0.0</title></circle>
+<polyline class="l2" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="688.0,122.1 781.3,255.8 874.7,315.7 968.0,321.6"/>
+<circle class="d2 ring" cx="688.0" cy="122.1" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 100%: 19.0</title></circle>
+<circle class="d2 ring" cx="781.3" cy="255.8" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 10%: 6.3</title></circle>
+<circle class="d2 ring" cx="874.7" cy="315.7" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 1%: 0.6</title></circle>
+<circle class="d2 ring" cx="968.0" cy="321.6" r="4" stroke-width="2"><title>HNSW 강제 ef200 · 0.1%: 0.0</title></circle>
+<polyline class="l3" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="688.0,122.1 781.3,112.0 874.7,112.0 968.0,251.3"/>
+<circle class="d3 ring" cx="688.0" cy="122.1" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 100%: 19.0</title></circle>
+<circle class="d3 ring" cx="781.3" cy="112.0" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 10%: 20.0</title></circle>
+<circle class="d3 ring" cx="874.7" cy="112.0" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 1%: 20.0</title></circle>
+<circle class="d3 ring" cx="968.0" cy="251.3" r="4" stroke-width="2"><title>HNSW 강제 iterative relaxed · 0.1%: 6.7</title></circle>
+<polyline class="l0" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="688.0,121.4 781.3,112.0 874.7,112.0 968.0,239.1"/>
+<circle class="l0" fill="none" cx="688.0" cy="121.4" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 100%: 19.1</title></circle>
+<circle class="l0" fill="none" cx="781.3" cy="112.0" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 10%: 20.0</title></circle>
+<circle class="l0" fill="none" cx="874.7" cy="112.0" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 1%: 20.0</title></circle>
+<circle class="l0" fill="none" cx="968.0" cy="239.1" r="6.5" stroke-width="2"><title>Exact = 현재 계획 · 0.1%: 7.9</title></circle>
+<text class="ink2" x="20" y="372" font-size="11">y축: 앱 필터(최소 유사도·문서당 2개) 뒤 최종 결과 수 평균</text>
+</svg>

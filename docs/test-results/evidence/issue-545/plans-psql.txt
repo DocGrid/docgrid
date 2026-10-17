@@ -1,0 +1,444 @@
+=== 허용 100% · topK 10 · 현재 계획 · Custom Plan (허용 문서 3559건, LIMIT 40)
+ Limit  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=338.748..338.754 rows=40 loops=1)
+   Buffers: shared hit=326857 read=41323
+   ->  Sort  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=338.747..338.752 rows=40 loops=1)
+         Sort Key: ((e.vector <=> '<질문 벡터 1024차원>'))
+         Sort Method: top-N heapsort  Memory: 100kB
+         Buffers: shared hit=326857 read=41323
+         ->  Nested Loop  (cost=254.45..2083.42 rows=9 width=1039) (actual time=1.693..331.536 rows=50008 loops=1)
+               Buffers: shared hit=326854 read=41323
+               ->  Hash Join  (cost=254.16..2072.58 rows=9 width=117) (actual time=1.547..21.472 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     Buffers: shared hit=955 read=474
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1651.20 rows=31908 width=50) (actual time=0.092..14.376 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY ('<허용 문서 ID 목록>'::bigint[]))
+                           Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text))
+                           Buffers: shared hit=799 read=474
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=1.429..1.430 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           Buffers: shared hit=156
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.024..1.015 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+                                 Buffers: shared hit=156
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+                     Buffers: shared hit=142915 read=7109
+ Planning:
+   Buffers: shared hit=532 read=84
+ Planning Time: 10.585 ms
+ Execution Time: 338.816 ms
+(28 rows)
+=== 허용 100% · topK 10 · 현재 계획 · Generic Plan (허용 문서 3559건, LIMIT 40)
+ Limit  (cost=2085.68..2085.68 rows=1 width=1039) (actual time=2129.221..2129.231 rows=40 loops=1)
+   Buffers: shared hit=325849 read=42305
+   ->  Sort  (cost=2085.68..2085.70 rows=9 width=1039) (actual time=2129.220..2129.226 rows=40 loops=1)
+         Sort Key: ((e.vector <=> ($1)::vector))
+         Sort Method: top-N heapsort  Memory: 100kB
+         Buffers: shared hit=325849 read=42305
+         ->  Nested Loop  (cost=254.45..2085.53 rows=9 width=1039) (actual time=1.268..2122.201 rows=50008 loops=1)
+               Buffers: shared hit=325849 read=42305
+               ->  Hash Join  (cost=254.16..2074.66 rows=9 width=117) (actual time=1.204..14.793 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     Buffers: shared hit=2 read=1427
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1653.07 rows=31948 width=50) (actual time=0.097..8.108 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY (ARRAY[$3, ..., $n]))
+                           Filter: ((embedding_model_id = $2) AND ((status)::text = 'ACTIVE'::text))
+                           Buffers: shared hit=2 read=1271
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=1.098..1.098 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           Buffers: shared read=156
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.015..0.781 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+                                 Buffers: shared read=156
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+                     Buffers: shared hit=142896 read=7128
+ Planning:
+   Buffers: shared hit=18 read=19
+ Planning Time: 2.635 ms
+ Execution Time: 2129.413 ms
+(28 rows)
+=== 허용 10% · topK 10 · 현재 계획 · Custom Plan (허용 문서 356건, LIMIT 40)
+ Limit  (cost=606.33..606.34 rows=1 width=1039) (actual time=16.706..16.710 rows=40 loops=1)
+   Buffers: shared hit=35199 read=3926
+   ->  Sort  (cost=606.33..606.34 rows=1 width=1039) (actual time=16.705..16.708 rows=40 loops=1)
+         Sort Key: ((e.vector <=> '<질문 벡터 1024차원>'))
+         Sort Method: top-N heapsort  Memory: 125kB
+         Buffers: shared hit=35199 read=3926
+         ->  Nested Loop  (cost=254.45..606.32 rows=1 width=1039) (actual time=0.648..15.917 rows=5244 loops=1)
+               Buffers: shared hit=35199 read=3926
+               ->  Hash Join  (cost=254.16..602.99 rows=1 width=117) (actual time=0.634..2.268 rows=5244 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     Buffers: shared hit=90 read=568
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..321.89 rows=5186 width=50) (actual time=0.009..1.123 rows=5244 loops=1)
+                           Index Cond: (document_id = ANY ('<허용 문서 ID 목록>'::bigint[]))
+                           Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text))
+                           Buffers: shared hit=90 read=412
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.624..0.624 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           Buffers: shared read=156
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.007..0.442 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+                                 Buffers: shared read=156
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..3.33 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=5244)
+                     Index Cond: (id = e.chunk_id)
+                     Buffers: shared hit=15268 read=464
+ Planning:
+   Buffers: shared hit=18 read=19
+ Planning Time: 0.572 ms
+ Execution Time: 16.726 ms
+(28 rows)
+=== 허용 10% · topK 10 · 현재 계획 · Generic Plan (허용 문서 356건, LIMIT 40)
+ Limit  (cost=601.82..601.82 rows=1 width=1039) (actual time=219.719..219.725 rows=40 loops=1)
+   Buffers: shared hit=39125
+   ->  Sort  (cost=601.82..601.82 rows=1 width=1039) (actual time=219.718..219.722 rows=40 loops=1)
+         Sort Key: ((e.vector <=> ($1)::vector))
+         Sort Method: top-N heapsort  Memory: 125kB
+         Buffers: shared hit=39125
+         ->  Nested Loop  (cost=254.45..601.81 rows=1 width=1039) (actual time=0.481..218.842 rows=5244 loops=1)
+               Buffers: shared hit=39125
+               ->  Hash Join  (cost=254.16..598.45 rows=1 width=117) (actual time=0.434..1.957 rows=5244 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     Buffers: shared hit=658
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..317.83 rows=5094 width=50) (actual time=0.010..0.953 rows=5244 loops=1)
+                           Index Cond: (document_id = ANY (ARRAY[$3, ..., $n]))
+                           Filter: ((embedding_model_id = $2) AND ((status)::text = 'ACTIVE'::text))
+                           Buffers: shared hit=502
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.422..0.423 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           Buffers: shared hit=156
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.003..0.249 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+                                 Buffers: shared hit=156
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..3.35 rows=1 width=940) (actual time=0.000..0.000 rows=1 loops=5244)
+                     Index Cond: (id = e.chunk_id)
+                     Buffers: shared hit=15732
+ Planning:
+   Buffers: shared hit=37
+ Planning Time: 0.436 ms
+ Execution Time: 219.750 ms
+(28 rows)
+=== 허용 100% · topK 20 · HNSW 강제 ef40 (허용 문서 3559건, LIMIT 80)
+ Limit  (cost=2549.99..208973.32 rows=9 width=1039) (actual time=11.998..12.349 rows=40 loops=1)
+   Buffers: shared hit=358 read=324
+   ->  Nested Loop  (cost=2549.99..208973.32 rows=9 width=1039) (actual time=4.593..4.942 rows=40 loops=1)
+         Buffers: shared hit=358 read=324
+         ->  Nested Loop  (cost=2549.70..208962.48 rows=9 width=117) (actual time=4.571..4.719 rows=40 loops=1)
+               Buffers: shared hit=115 read=273
+               ->  Index Scan using embeddings_vector_idx on embeddings e  (cost=2549.41..206540.12 rows=31908 width=50) (actual time=4.451..4.482 rows=40 loops=1)
+                     Order By: (vector <=> '<질문 벡터 1024차원>')
+                     Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text) AND (document_id = ANY ('<허용 문서 ID 목록>'::bigint[])))
+                     Buffers: shared hit=92 read=266
+               ->  Memoize  (cost=0.29..0.33 rows=1 width=91) (actual time=0.006..0.006 rows=1 loops=40)
+                     Cache Key: e.document_id, e.document_version_id
+                     Cache Mode: logical
+                     Hits: 30  Misses: 10  Evictions: 0  Overflows: 0  Memory Usage: 2kB
+                     Buffers: shared hit=23 read=7
+                     ->  Index Scan using idx_documents_current_version_id on documents d  (cost=0.28..0.32 rows=1 width=91) (actual time=0.011..0.011 rows=1 loops=10)
+                           Index Cond: (current_version_id = e.document_version_id)
+                           Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text) AND (id = e.document_id))
+                           Buffers: shared hit=23 read=7
+         ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.002..0.002 rows=1 loops=40)
+               Index Cond: (id = e.chunk_id)
+               Buffers: shared hit=112 read=8
+ Planning:
+   Buffers: shared hit=37
+ Planning Time: 2.843 ms
+ JIT:
+   Functions: 25
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 0.823 ms (Deform 0.291 ms), Inlining 0.000 ms, Optimization 0.525 ms, Emission 6.899 ms, Total 8.247 ms
+ Execution Time: 39.148 ms
+(30 rows)
+=== 허용 100% · topK 20 · HNSW 강제 iterative relaxed (허용 문서 3559건, LIMIT 80)
+ Limit  (cost=2549.99..208973.32 rows=9 width=1039) (actual time=5.129..6.010 rows=80 loops=1)
+   Buffers: shared hit=1021 read=95
+   ->  Nested Loop  (cost=2549.99..208973.32 rows=9 width=1039) (actual time=0.312..1.189 rows=80 loops=1)
+         Buffers: shared hit=1021 read=95
+         ->  Nested Loop  (cost=2549.70..208962.48 rows=9 width=117) (actual time=0.300..0.924 rows=80 loops=1)
+               Buffers: shared hit=458 read=72
+               ->  Index Scan using embeddings_vector_idx on embeddings e  (cost=2549.41..206540.12 rows=31908 width=50) (actual time=0.274..0.857 rows=80 loops=1)
+                     Order By: (vector <=> '<질문 벡터 1024차원>')
+                     Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text) AND (document_id = ANY ('<허용 문서 ID 목록>'::bigint[])))
+                     Buffers: shared hit=426 read=71
+               ->  Memoize  (cost=0.29..0.33 rows=1 width=91) (actual time=0.001..0.001 rows=1 loops=80)
+                     Cache Key: e.document_id, e.document_version_id
+                     Cache Mode: logical
+                     Hits: 69  Misses: 11  Evictions: 0  Overflows: 0  Memory Usage: 3kB
+                     Buffers: shared hit=32 read=1
+                     ->  Index Scan using idx_documents_current_version_id on documents d  (cost=0.28..0.32 rows=1 width=91) (actual time=0.002..0.002 rows=1 loops=11)
+                           Index Cond: (current_version_id = e.document_version_id)
+                           Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text) AND (id = e.document_id))
+                           Buffers: shared hit=32 read=1
+         ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=80)
+               Index Cond: (id = e.chunk_id)
+               Buffers: shared hit=239 read=1
+ Planning:
+   Buffers: shared hit=37
+ Planning Time: 3.156 ms
+ JIT:
+   Functions: 25
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 0.378 ms (Deform 0.190 ms), Inlining 0.000 ms, Optimization 0.248 ms, Emission 4.577 ms, Total 5.204 ms
+ Execution Time: 6.420 ms
+(30 rows)
+=== 허용 10% · topK 10 · HNSW 강제 ef40 (허용 문서 356건, LIMIT 40)
+ Limit  (cost=2541.97..208868.07 rows=1 width=1039) (actual time=4.256..4.259 rows=1 loops=1)
+   Buffers: shared hit=362
+   ->  Nested Loop  (cost=2541.97..208868.07 rows=1 width=1039) (actual time=0.164..0.167 rows=1 loops=1)
+         Buffers: shared hit=362
+         ->  Nested Loop  (cost=2541.68..208864.73 rows=1 width=117) (actual time=0.157..0.160 rows=1 loops=1)
+               Buffers: shared hit=355
+               ->  Index Scan using embeddings_vector_idx on embeddings e  (cost=2541.40..206532.11 rows=5186 width=50) (actual time=0.153..0.156 rows=1 loops=1)
+                     Order By: (vector <=> '<질문 벡터 1024차원>')
+                     Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text) AND (document_id = ANY ('<허용 문서 ID 목록>'::bigint[])))
+                     Rows Removed by Filter: 39
+                     Buffers: shared hit=352
+               ->  Index Scan using idx_documents_current_version_id on documents d  (cost=0.28..0.44 rows=1 width=91) (actual time=0.003..0.003 rows=1 loops=1)
+                     Index Cond: (current_version_id = e.document_version_id)
+                     Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text) AND (id = e.document_id))
+                     Buffers: shared hit=3
+         ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..3.33 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=1)
+               Index Cond: (id = e.chunk_id)
+               Buffers: shared hit=3
+ Planning:
+   Buffers: shared hit=37
+ Planning Time: 0.463 ms
+ JIT:
+   Functions: 19
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 0.293 ms (Deform 0.170 ms), Inlining 0.000 ms, Optimization 0.194 ms, Emission 3.902 ms, Total 4.389 ms
+ Execution Time: 4.569 ms
+(26 rows)
+=== 허용 10% · topK 10 · HNSW 강제 iterative relaxed (허용 문서 356건, LIMIT 40)
+ Limit  (cost=2541.97..208868.07 rows=1 width=1039) (actual time=4.017..40.570 rows=40 loops=1)
+   Buffers: shared hit=2285 read=4192
+   ->  Nested Loop  (cost=2541.97..208868.07 rows=1 width=1039) (actual time=0.148..36.698 rows=40 loops=1)
+         Buffers: shared hit=2285 read=4192
+         ->  Nested Loop  (cost=2541.68..208864.73 rows=1 width=117) (actual time=0.142..36.502 rows=40 loops=1)
+               Buffers: shared hit=1988 read=4192
+               ->  Index Scan using embeddings_vector_idx on embeddings e  (cost=2541.40..206532.11 rows=5186 width=50) (actual time=0.138..36.395 rows=40 loops=1)
+                     Order By: (vector <=> '<질문 벡터 1024차원>')
+                     Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text) AND (document_id = ANY ('<허용 문서 ID 목록>'::bigint[])))
+                     Rows Removed by Filter: 775
+                     Buffers: shared hit=1873 read=4187
+               ->  Index Scan using idx_documents_current_version_id on documents d  (cost=0.28..0.44 rows=1 width=91) (actual time=0.002..0.002 rows=1 loops=40)
+                     Index Cond: (current_version_id = e.document_version_id)
+                     Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text) AND (id = e.document_id))
+                     Buffers: shared hit=115 read=5
+         ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..3.33 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=40)
+               Index Cond: (id = e.chunk_id)
+               Buffers: shared hit=120
+ Planning:
+   Buffers: shared hit=37
+ Planning Time: 0.450 ms
+ JIT:
+   Functions: 19
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 0.290 ms (Deform 0.155 ms), Inlining 0.000 ms, Optimization 0.188 ms, Emission 3.685 ms, Total 4.163 ms
+ Execution Time: 40.913 ms
+(26 rows)
+=== auto 모드 반복 1회째 · 허용 100% · topK 10
+ Limit  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=140.933..140.938 rows=40 loops=1)
+   ->  Sort  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=140.932..140.936 rows=40 loops=1)
+         Sort Key: ((e.vector <=> '<질문 벡터 1024차원>'))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2083.42 rows=9 width=1039) (actual time=0.471..134.728 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2072.58 rows=9 width=117) (actual time=0.465..11.812 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1651.20 rows=31908 width=50) (actual time=0.027..6.802 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY ('<허용 문서 ID 목록>'::bigint[]))
+                           Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.435..0.435 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.004..0.260 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.000..0.000 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 3.004 ms
+ Execution Time: 140.956 ms
+(18 rows)
+=== auto 모드 반복 2회째 · 허용 100% · topK 10
+ Limit  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=140.531..140.537 rows=40 loops=1)
+   ->  Sort  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=140.531..140.535 rows=40 loops=1)
+         Sort Key: ((e.vector <=> '<질문 벡터 1024차원>'))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2083.42 rows=9 width=1039) (actual time=0.613..134.443 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2072.58 rows=9 width=117) (actual time=0.603..11.844 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1651.20 rows=31908 width=50) (actual time=0.025..6.725 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY ('<허용 문서 ID 목록>'::bigint[]))
+                           Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.576..0.577 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.006..0.400 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.000..0.000 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 2.758 ms
+ Execution Time: 140.553 ms
+(18 rows)
+=== auto 모드 반복 3회째 · 허용 100% · topK 10
+ Limit  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=140.392..140.398 rows=40 loops=1)
+   ->  Sort  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=140.392..140.395 rows=40 loops=1)
+         Sort Key: ((e.vector <=> '<질문 벡터 1024차원>'))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2083.42 rows=9 width=1039) (actual time=0.631..134.315 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2072.58 rows=9 width=117) (actual time=0.620..11.824 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1651.20 rows=31908 width=50) (actual time=0.025..6.720 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY ('<허용 문서 ID 목록>'::bigint[]))
+                           Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.594..0.594 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.007..0.420 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.000..0.000 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 2.896 ms
+ Execution Time: 140.413 ms
+(18 rows)
+=== auto 모드 반복 4회째 · 허용 100% · topK 10
+ Limit  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=143.944..143.949 rows=40 loops=1)
+   ->  Sort  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=143.943..143.947 rows=40 loops=1)
+         Sort Key: ((e.vector <=> '<질문 벡터 1024차원>'))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2083.42 rows=9 width=1039) (actual time=0.636..137.745 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2072.58 rows=9 width=117) (actual time=0.625..12.195 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1651.20 rows=31908 width=50) (actual time=0.026..6.897 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY ('<허용 문서 ID 목록>'::bigint[]))
+                           Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.597..0.597 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.006..0.412 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 2.902 ms
+ Execution Time: 143.969 ms
+(18 rows)
+=== auto 모드 반복 5회째 · 허용 100% · topK 10
+ Limit  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=141.145..141.150 rows=40 loops=1)
+   ->  Sort  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=141.144..141.148 rows=40 loops=1)
+         Sort Key: ((e.vector <=> '<질문 벡터 1024차원>'))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2083.42 rows=9 width=1039) (actual time=0.605..135.018 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2072.58 rows=9 width=117) (actual time=0.595..11.855 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1651.20 rows=31908 width=50) (actual time=0.024..6.727 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY ('<허용 문서 ID 목록>'::bigint[]))
+                           Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.569..0.570 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.006..0.399 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.000..0.000 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 2.825 ms
+ Execution Time: 141.165 ms
+(18 rows)
+=== auto 모드 반복 6회째 · 허용 100% · topK 10
+ Limit  (cost=2085.68..2085.68 rows=1 width=1039) (actual time=2114.771..2114.779 rows=40 loops=1)
+   ->  Sort  (cost=2085.68..2085.70 rows=9 width=1039) (actual time=2114.770..2114.776 rows=40 loops=1)
+         Sort Key: ((e.vector <=> ($1)::vector))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2085.53 rows=9 width=1039) (actual time=0.871..2107.921 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2074.66 rows=9 width=117) (actual time=0.805..13.932 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1653.07 rows=31948 width=50) (actual time=0.055..7.709 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY (ARRAY[$3, ..., $n]))
+                           Filter: ((embedding_model_id = $2) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.748..0.749 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.007..0.416 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 2.056 ms
+ Execution Time: 2114.887 ms
+(18 rows)
+=== auto 모드 반복 7회째 · 허용 100% · topK 10
+ Limit  (cost=2085.68..2085.68 rows=1 width=1039) (actual time=2098.872..2098.879 rows=40 loops=1)
+   ->  Sort  (cost=2085.68..2085.70 rows=9 width=1039) (actual time=2098.871..2098.877 rows=40 loops=1)
+         Sort Key: ((e.vector <=> ($1)::vector))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2085.53 rows=9 width=1039) (actual time=0.754..2092.132 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2074.66 rows=9 width=117) (actual time=0.691..13.377 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1653.07 rows=31948 width=50) (actual time=0.064..7.428 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY (ARRAY[$3, ..., $n]))
+                           Filter: ((embedding_model_id = $2) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.624..0.625 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.009..0.449 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 1.362 ms
+ Execution Time: 2099.007 ms
+(18 rows)
+=== auto 모드 반복 8회째 · 허용 100% · topK 10
+ Limit  (cost=2085.68..2085.68 rows=1 width=1039) (actual time=2101.027..2101.041 rows=40 loops=1)
+   ->  Sort  (cost=2085.68..2085.70 rows=9 width=1039) (actual time=2101.027..2101.039 rows=40 loops=1)
+         Sort Key: ((e.vector <=> ($1)::vector))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2085.53 rows=9 width=1039) (actual time=0.722..2094.283 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2074.66 rows=9 width=117) (actual time=0.669..13.312 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1653.07 rows=31948 width=50) (actual time=0.062..7.448 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY (ARRAY[$3, ..., $n]))
+                           Filter: ((embedding_model_id = $2) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.605..0.606 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.009..0.438 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 1.184 ms
+ Execution Time: 2101.166 ms
+(18 rows)
+=== 권고안 검증 · 질문 Vector InitPlan · force_custom_plan · 허용 100% · topK 10
+ Limit  (cost=2083.57..2083.60 rows=9 width=1039) (actual time=142.463..142.468 rows=40 loops=1)
+   InitPlan 1
+     ->  Result  (cost=0.00..0.01 rows=1 width=32) (actual time=0.006..0.006 rows=1 loops=1)
+   ->  Sort  (cost=2083.56..2083.59 rows=9 width=1039) (actual time=142.462..142.466 rows=40 loops=1)
+         Sort Key: ((e.vector <=> (InitPlan 1).col1))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2083.42 rows=9 width=1039) (actual time=0.693..136.240 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2072.58 rows=9 width=117) (actual time=0.653..11.884 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1651.20 rows=31908 width=50) (actual time=0.028..6.682 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY ('<허용 문서 ID 목록>'::bigint[]))
+                           Filter: ((embedding_model_id = '1'::bigint) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.623..0.623 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.007..0.429 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 3.107 ms
+ Execution Time: 142.486 ms
+(20 rows)
+=== 권고안 검증 · 질문 Vector InitPlan · force_generic_plan · 허용 100% · topK 10
+ Limit  (cost=2085.65..2085.65 rows=1 width=1039) (actual time=162.628..162.634 rows=40 loops=1)
+   InitPlan 1
+     ->  Result  (cost=0.00..0.01 rows=1 width=32) (actual time=0.050..0.050 rows=1 loops=1)
+   ->  Sort  (cost=2085.63..2085.66 rows=9 width=1039) (actual time=162.627..162.631 rows=40 loops=1)
+         Sort Key: ((e.vector <=> (InitPlan 1).col1))
+         Sort Method: top-N heapsort  Memory: 100kB
+         ->  Nested Loop  (cost=254.45..2085.49 rows=9 width=1039) (actual time=0.863..155.460 rows=50008 loops=1)
+               ->  Hash Join  (cost=254.16..2074.66 rows=9 width=117) (actual time=0.800..14.465 rows=50008 loops=1)
+                     Hash Cond: ((e.document_id = d.id) AND (e.document_version_id = d.current_version_id))
+                     ->  Index Scan using idx_embeddings_document_id on embeddings e  (cost=0.29..1653.07 rows=31948 width=50) (actual time=0.078..8.206 rows=50008 loops=1)
+                           Index Cond: (document_id = ANY (ARRAY[$3, ..., $n]))
+                           Filter: ((embedding_model_id = $2) AND ((status)::text = 'ACTIVE'::text))
+                     ->  Hash  (cost=200.49..200.49 rows=3559 width=91) (actual time=0.713..0.713 rows=3559 loops=1)
+                           Buckets: 4096  Batches: 1  Memory Usage: 473kB
+                           ->  Seq Scan on documents d  (cost=0.00..200.49 rows=3559 width=91) (actual time=0.009..0.422 rows=3559 loops=1)
+                                 Filter: ((deleted_at IS NULL) AND ((status)::text = 'INDEXED'::text))
+               ->  Index Scan using document_chunks_pkey on document_chunks dc  (cost=0.29..1.20 rows=1 width=940) (actual time=0.001..0.001 rows=1 loops=50008)
+                     Index Cond: (id = e.chunk_id)
+ Planning Time: 2.133 ms
+ Execution Time: 162.764 ms
+(20 rows)
