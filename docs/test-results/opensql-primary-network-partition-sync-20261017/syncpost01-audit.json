@@ -1,0 +1,19 @@
+{
+  "requests": 76,
+  "first_outcomes": {
+    "acknowledged": 76
+  },
+  "failed_http_statuses": {},
+  "db_unique_ids": 76,
+  "db_rows": 76,
+  "db_duplicate_ids": 0,
+  "acknowledged_in_db": 76,
+  "acknowledged_missing_db": 0,
+  "failed_in_db": 0,
+  "unknown_in_db": 0,
+  "missing_201_first_utc": null,
+  "missing_201_last_utc": null,
+  "post_recovery_201": 76,
+  "post_recovery_201_missing_db": 0,
+  "verdict": "PASS"
+}

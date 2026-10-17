@@ -1,0 +1,24 @@
+{
+  "requests": 751,
+  "first_outcomes": {
+    "acknowledged": 586,
+    "failed": 158,
+    "unknown": 7
+  },
+  "failed_http_statuses": {
+    "500": 77,
+    "503": 81
+  },
+  "db_unique_ids": 588,
+  "db_rows": 588,
+  "db_duplicate_ids": 0,
+  "acknowledged_in_db": 586,
+  "acknowledged_missing_db": 0,
+  "failed_in_db": 0,
+  "unknown_in_db": 2,
+  "missing_201_first_utc": null,
+  "missing_201_last_utc": null,
+  "post_recovery_201": 0,
+  "post_recovery_201_missing_db": 0,
+  "verdict": "PASS"
+}

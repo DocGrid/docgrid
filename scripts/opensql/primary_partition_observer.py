@@ -30,7 +30,7 @@ def sample(node):
     role = patroni.get("role", "unknown") if patroni else "unknown"
     state = patroni.get("state", "unknown") if patroni else "unknown"
     # Never print unexpected server text into evidence.
-    if role not in ("primary", "replica", "unknown"):
+    if role not in ("primary", "replica", "sync_standby", "quorum_standby", "unknown"):
         role = "other"
     if state not in ("running", "stopped", "unknown"):
         state = "other"

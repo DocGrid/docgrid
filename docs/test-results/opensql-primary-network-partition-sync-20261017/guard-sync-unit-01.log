@@ -1,0 +1,11 @@
+실행 ID=guardsync01
+목적=동기 standby 역할을 분할 대상 peer로 안전하게 인식하는지 확인
+위치=로컬 격리 워크트리
+절차=python3 -m unittest discover -s scripts/opensql -p test_primary_partition_guard.py
+성공 기준=전체 테스트 통과, 예상치 못한 공용 주소 허용 0
+시작=2026-10-17T22:28:17+09:00
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+OK

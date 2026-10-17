@@ -1,0 +1,17 @@
+실행 ID=syncpart01
+목적=동기 strict 구성에서 살아 있는 옛 Primary와 DB 다수를 분리해 201 보존을 검증
+위치=새 GCP 격리 환경; DB 3 VM·앱 A/B·OpenProxy A/B·내부 LB·부하 VM
+설정=Patroni synchronous_mode=on, synchronous_mode_strict=true, sync standby 1; 역할 어댑터는 격리 시험용
+방법=5 req/s × 150초 HTTP 요청, 약 30초 후 DB3↔DB1/DB2 양방향 nft DROP, 180초 독립 원복
+성공 기준=미전송 0, 최초 HTTP 201 ID의 최종 DB 누락·중복 0; 실패 응답·결과 불명·쓰기 중단 시간 별도 기록; 분할 해제 및 Primary 1·복제본 2 회복
+시작=2026-10-17T22:40:13+09:00
+부하 시작=2026-10-17T13:40:55.103Z
+분할 적용=2026-10-17T13:41:37.993Z; 시작 후 약 43초
+실제 차단=옛 Primary와 두 peer의 etcd·Patroni·DB TCP 0/2, 다수 측 peer끼리 1/2; 앱 A/B에서 옛 Primary Proxy TCP 연결 유지
+첫 HTTP 실패=2026-10-17T13:41:43.463Z; 마지막 HTTP 실패=2026-10-17T13:42:10.649Z
+역할 표본=옛 Primary 마지막 primary/running 13:41:54.712Z, 새 Primary 첫 primary/running 13:42:04.157Z. 옛 Primary는 13:42:36.753Z까지 primary/other 표본이 있어 해당 구간 SQL 쓰기 가능 여부는 미판정
+분할 수동 해제=2026-10-17T13:43:53.894Z; guard 상태 partition_active=no
+계측=k6 종료 0, 실제 751 요청, dropped 0, HTTP p95 5,013.173 ms
+최초 결과=201 586건, 500 77건, 503 81건, 결과 불명 7건
+최종 DB=588개 합성 ID·588행, 중복 0; 201 586건 중 누락 0; 실패 158건 중 DB 기록 0; 결과 불명 7건 중 DB 기록 2
+판정=201 보존·중복 기준 PASS; 장애 중 무중단 성공은 아님. 최초 응답과 재시도를 섞지 않음

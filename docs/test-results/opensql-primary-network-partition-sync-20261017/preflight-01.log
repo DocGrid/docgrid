@@ -1,0 +1,12 @@
+실행 ID=syncpre01
+기록 시작=2026-10-17T22:21:42+09:00
+위치=새 GCP 격리 클러스터·로컬 제어기
+목적=동기 분할 시험 전 역할·복제·프록시·안전 장치 확인
+방법=IAP 읽기 전용 REST/상태 확인, 값 비식별화
+성공 기준=Primary 1, streaming 2, etcd 3/3, 앱과 프록시 정상
+관측=Primary 1, streaming 2, etcd 3/3, Patroni 동기 키 없음
+OpenProxy=동기 역할 호환 계층 필요, 시험용 포트 기존 방화벽 미허용
+시험 전=Primary 1, sync standby 1, async replica 1, synchronous_mode=on, synchronous_mode_strict=true, 동기 커밋 설정 활성
+역할 어댑터=동기 standby 역할에 대한 OpenProxy 호환 문제로 시험용 로컬 역할 어댑터를 DB 3대에 배치; DB2/DB3 Proxy는 어댑터 사용
+사전 검증=DB peer TCP 각 2/2, guard 빈 규칙 자동 원복 smoke PASS, 내부 LB 백엔드 HEALTHY 2/2
+관측 한계=앱 DB 계정에서 pg_stat_replication.sync_state 상세 값을 볼 수 없어 Patroni sync standby 역할과 PostgreSQL 동기 설정으로 확인

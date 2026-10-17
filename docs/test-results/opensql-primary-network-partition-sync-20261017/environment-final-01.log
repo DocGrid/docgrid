@@ -1,0 +1,11 @@
+실행 ID=syncfinal01
+목적=시험 종료 뒤 분할 규칙 제거와 재시험 환경 유지 상태 검증
+위치=새 GCP 격리 환경의 DB 3VM·앱 2VM·부하 1VM·내부 LB
+방법=Patroni REST 3대, guard status, 프록시 readiness, GCP VM·LB health 읽기; 단기 계정·JWT 제거
+성공 기준=분할 규칙 0, Primary 1·streaming 2, 내부 LB HEALTHY 2/2, 단기 계정/JWT 0, VM 및 시험 설정 유지
+관측=DB 3/3·앱 2/2·부하 1/1 RUNNING, 내부 LB HEALTHY 2/2
+OpenSQL=Primary 1, sync standby 1, async replica 1, streaming 2, synchronous_mode=on, strict=true
+분할 규칙=inactive; 시험용 관리자 계정=0; 앱·부하 VM과 로컬의 JWT 파일 제거 확인
+보존=DB·앱·부하·Redis VM, OpenSQL 데이터·디스크, 동기 strict 설정, 역할 어댑터, OpenProxy 시험 설정, 시험 도구, 방화벽 규칙. 사용자가 정리 지시할 때까지 유지
+자동 원복 타이머=동기 설정·프록시 설정용 타이머 중지(시험 구성 보존 목적). 분할 fault 원복은 완료
+판정=환경 유지 및 안전 정리 확인

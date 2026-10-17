@@ -41,8 +41,10 @@ def primary_peers():
     if leaders[0].get("name") != local_name:
         raise RuntimeError("local Patroni role and cluster leader disagree")
     replicas = [member for member in members if member.get("name") != local_name]
-    if len(replicas) != 2 or any(member.get("role") != "replica" or member.get("state") != "streaming" for member in replicas):
-        raise RuntimeError("both peer members must be streaming replicas")
+    # Patroni relabels the same streaming peers when synchronous mode is enabled.
+    standby_roles = {"replica", "sync_standby", "quorum_standby"}
+    if len(replicas) != 2 or any(member.get("role") not in standby_roles or member.get("state") != "streaming" for member in replicas):
+        raise RuntimeError("both peer members must be streaming standbys")
     peers = []
     for member in replicas:
         address = ipaddress.ip_address(member["host"])

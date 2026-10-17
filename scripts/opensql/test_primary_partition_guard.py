@@ -25,6 +25,14 @@ class PrimaryPartitionGuardTest(unittest.TestCase):
         with patch.object(guard.urllib.request, "urlopen", side_effect=self.responses()):
             self.assertEqual(guard.primary_peers(), ["10.0.0.2", "10.0.0.3"])
 
+    def test_selects_synchronous_standby_and_async_peer(self):
+        responses = self.responses()
+        cluster = json.load(responses[1])
+        cluster["members"][1]["role"] = "sync_standby"
+        values = [responses[0], io.BytesIO(json.dumps(cluster).encode())]
+        with patch.object(guard.urllib.request, "urlopen", side_effect=values):
+            self.assertEqual(guard.primary_peers(), ["10.0.0.2", "10.0.0.3"])
+
     def test_refuses_to_partition_a_replica(self):
         with patch.object(guard.urllib.request, "urlopen", side_effect=self.responses(role="replica")):
             with self.assertRaises(RuntimeError):
