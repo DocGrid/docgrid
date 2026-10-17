@@ -1,0 +1,13 @@
+run_id=guard-unit-01
+목적=Primary 및 peer 선택 안전 조건 검증
+위치=로컬 격리 작업 트리
+명령=PYTHONDONTWRITEBYTECODE=1 python3 scripts/opensql/test_primary_partition_guard.py
+성공 기준=4개 검사 통과
+시작_KST=2026-10-17 21:07:31 KST
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+종료_KST=2026-10-17 21:07:31 KST
+종료_코드=0

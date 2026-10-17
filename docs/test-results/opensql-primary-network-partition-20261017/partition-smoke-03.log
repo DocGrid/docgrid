@@ -1,0 +1,13 @@
+run_id=partition-smoke-03
+목적=자동 원복 타이머 반복 재현 확인
+위치=GCP 격리 DB 노드2
+방법=빈 nft 테이블 생성→5초 타이머→8초 뒤 제거 확인
+성공 기준=automatic_rollback=passed, systemd 서비스 성공, 테이블 없음
+시작_KST=2026-10-17 21:11:32 KST
+원격_결과=partition_guard_failed=smoke_table_remained
+Result=exit-code
+ExecMainStatus=1
+partition_active=no
+종료_KST=2026-10-17 21:11:49 KST
+종료_코드=0
+판정=실패. 가드가 smoke_table_remained를 출력하고 테이블을 정리함. 래퍼가 뒤이은 상태 조회의 종료 코드 0을 기록했으므로 이 종료 코드는 가드 성공을 뜻하지 않음.

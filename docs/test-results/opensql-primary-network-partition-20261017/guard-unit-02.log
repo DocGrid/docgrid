@@ -1,0 +1,8 @@
+run_id=guard-unit-02
+목적=실제 Replica state 반영 후 가드 단위 시험 재실행
+위치=로컬 격리 Git worktree
+방법=python3 -m unittest scripts/opensql/test_primary_partition_guard.py
+성공기준=4개 시험 통과
+실행시각_UTC=정확한 시각을 출력·수집하지 못함; 2026-10-17T12:44:49Z 이전
+관측=ImportError: primary_partition_guard 모듈을 찾지 못해 시험 0건 실행
+판정=FAIL. 프로젝트 루트에서 실행할 때 PYTHONPATH가 빠졌음.

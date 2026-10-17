@@ -1,0 +1,12 @@
+{
+  "run_id": "partbase01",
+  "iterations": 75,
+  "http_requests": 75,
+  "dropped_iterations": 0,
+  "failed_rate": 0,
+  "duration_ms": {
+    "p50": 18.053393,
+    "p95": 62.5449962,
+    "p99": 68.08452804000007
+  }
+}

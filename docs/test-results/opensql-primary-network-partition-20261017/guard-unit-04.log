@@ -1,0 +1,8 @@
+run_id=guard-unit-04
+목적=Replica 상태와 시험 입력을 맞춘 뒤 단위·구문 검증
+위치=로컬 격리 Git worktree
+방법=PYTHONPATH=scripts/opensql python3 -m unittest scripts/opensql/test_primary_partition_guard.py; Python ast.parse 5개 스크립트; bash -n run_ha_probe_k6.sh
+성공기준=4개 단위 시험 통과, Python·셸 구문 오류 0건
+실행시각_UTC=정확한 시각을 출력·수집하지 못함; 2026-10-17T12:44:49Z 이전
+관측=4/4 통과, Python 구문 검사 통과, bash 구문 검사 통과
+판정=PASS

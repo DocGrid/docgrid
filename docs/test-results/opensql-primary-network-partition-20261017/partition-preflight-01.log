@@ -1,0 +1,15 @@
+run_id=partition-preflight-01
+목적=Primary 분할 전 클러스터·프록시·부하·복구 경로 확인
+위치=새 GCP 격리 프로젝트, DB 3노드·앱 LB·부하 VM
+방법=GCP 읽기 전용 조회와 VM 로컬 Patroni/etcd API 조회
+성공 기준=VM 7/7 RUNNING, etcd 3/3, Primary 1+Replica 2, streaming 2, LB 2/2 HEALTHY, 스냅샷 3/3 READY, k6 존재
+시작_KST=2026-10-17 21:20:30 KST
+VM_총수_실행수=7 7
+임시스냅샷_총수_READY=3 3
+DB1_etcd_역할_상태_복제수_streaming수_ttl_loop_failsafe_sync=true primary running 2 2 30 10 True None
+DB2_etcd_역할_상태_복제수_streaming수_ttl_loop_failsafe_sync=true replica running 0 0 30 10 True None
+DB3_etcd_역할_상태_복제수_streaming수_ttl_loop_failsafe_sync=true replica running 0 0 30 10 True None
+LB_HEALTHY=2
+k6_설치=yes
+판정=PASS
+종료_KST=2026-10-17 21:21:03 KST
