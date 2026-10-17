@@ -1,0 +1,33 @@
+{"at": "2026-10-17T14:49:28.818Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v3-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:28.822Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v3-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:30.318Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v7-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:30.318Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v7-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:31.316Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v9-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:31.317Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v9-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:31.814Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v10-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:31.817Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v10-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:32.816Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v12-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:32.816Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v12-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:32.860Z", "event": "EXCEPTION", "phase": "COMMIT_PENDING", "request_id": "ha502diag01-v1-i1", "run_id": "ha502diag01", "sqlstate": "58000", "status": 500, "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:32.860Z", "event": "RESULT", "phase": "COMMIT_PENDING", "request_id": "ha502diag01-v1-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:33.311Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v2-i1", "run_id": "ha502diag01", "sqlstate": "08006", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:33.311Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v2-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:33.815Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v14-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:33.816Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v14-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:34.815Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v17-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:34.815Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v17-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:36.818Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v20-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:36.819Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v20-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:37.816Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v23-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:38.321Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v24-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:39.820Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v21-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:40.316Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v27-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:41.815Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v30-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:42.315Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v31-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:43.321Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v33-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:44.815Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v36-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:45.317Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v37-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:45.825Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v38-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:46.815Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v40-i1", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:47.816Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v5-i2", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:48.317Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v7-i2", "run_id": "ha502diag01", "sqlstate": "08001", "type": "DataAccessResourceFailureException"}

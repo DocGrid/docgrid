@@ -1,0 +1,12 @@
+2026-10-17T14:48:46.524Z 실행 ID=ha502diag01 목적=Primary 분할 중 500/503 계층·멱등 쓰기 진단
+2026-10-17T14:48:46.525Z 위치=격리 GCP 부하 VM→내부 LB→앱 A/B→OpenProxy A/B→OpenSQL 3노드
+2026-10-17T14:48:46.525Z 방법=2 req/s×120초; 약 20초 뒤 Primary peer 양방향 차단; 약 55초 뒤 해제; 자동 원복 180초
+2026-10-17T14:48:46.525Z 성공 기준=미전송 0, 최초 201의 최종 DB 누락·중복 0, 장애 규칙 제거·3노드 재합류; 500/503·불명 별도 집계
+2026-10-17T14:48:54.281Z 사전 점검=현재 Primary peer 2대, 빈 규칙 자동 원복 smoke 통과, 분할 규칙 없음
+2026-10-17T14:48:54.282Z 부하 시작=내부 LB 대상 2 req/s
+2026-10-17T14:49:20.532Z 분할 적용=Primary↔두 peer 양방향 차단, 자동 원복 180초
+2026-10-17T14:49:30.819Z 통신 관측 old_primary=peer_count=2 etcd_tcp_up=0 patroni_tcp_up=0 db_tcp_up=0
+2026-10-17T14:49:37.782Z 통신 관측 quorum_peer=peer_count=2 etcd_tcp_up=1 patroni_tcp_up=1 db_tcp_up=1
+2026-10-17T14:50:21.866Z 분할 수동 해제=partition_active=no
+2026-10-17T14:51:03.683Z 부하 종료 코드=0 run_id=ha502diag01 k6_exit=0 events=482
+2026-10-17T14:51:09.980Z 최종 분할 규칙 해제=확인

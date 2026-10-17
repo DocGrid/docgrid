@@ -1,0 +1,12 @@
+{
+  "run_id": "partnet01",
+  "iterations": 751,
+  "http_requests": 751,
+  "dropped_iterations": 0,
+  "failed_rate": 0.1584553928095872,
+  "duration_ms": {
+    "p50": 17.362917,
+    "p95": 5015.0074445,
+    "p99": 5052.4771820000005
+  }
+}

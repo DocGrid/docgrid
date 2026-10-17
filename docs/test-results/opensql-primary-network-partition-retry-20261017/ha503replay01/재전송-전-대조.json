@@ -1,0 +1,18 @@
+{
+  "run_id": "ha503part01",
+  "observed_at": "2026-10-17T15:02:42.914Z",
+  "events_sha256": "0a69366cb9cfcb79dc80883839d75d1ccbad4ab88df7ef98c8a899335391fce2",
+  "db_before_sha256": "1db0541b0326218034d06bf2837ec90b16eb2ac1981c35cf3e296714c966d506",
+  "initial_requests": 751,
+  "initial_201": 585,
+  "initial_failed": 158,
+  "initial_unknown": 8,
+  "initial_201_missing_before_retry": 0,
+  "db_duplicate_ids_before_retry": 0,
+  "failed_db_present_before_retry": 0,
+  "unknown_db_present_before_retry": 0,
+  "retry_candidates": 751,
+  "not_retried_4xx_or_3xx": 0,
+  "k6_dropped_iterations": 0,
+  "scope": "all_sent"
+}

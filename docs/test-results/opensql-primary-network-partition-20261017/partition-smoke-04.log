@@ -1,0 +1,14 @@
+run_id=partition-smoke-04
+목적=지연을 허용한 자동 원복 타이머 검증
+위치=GCP 격리 DB 노드2
+방법=빈 nft 테이블 생성→5초 타이머→최대 25초 관측
+성공 기준=가드 0, 서비스 Result=success, 테이블 없음
+시작_KST=2026-10-17 21:12:40 KST
+가드_출력=automatic_rollback=passed
+가드_종료=0
+후속_상태=Result=success
+ExecMainStatus=0
+partition_active=no
+후속_조회_종료=0
+판정=PASS
+종료_KST=2026-10-17 21:13:19 KST

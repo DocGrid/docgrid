@@ -1,0 +1,10 @@
+run_id=partition-smoke-02
+목적=자동 원복 타이머 재검증 및 안전한 오류 코드 확인
+위치=GCP 격리 DB 노드2
+방법=빈 nft 테이블 생성→5초 타이머→8초 뒤 제거 확인
+성공 기준=automatic_rollback=passed, 차단 규칙 0개
+시작_KST=2026-10-17 21:10:48 KST
+원격_결과=automatic_rollback=passed
+종료_KST=2026-10-17 21:11:04 KST
+종료_코드=0
+판정=통과. systemd 서비스 Result=success, ExecMainStatus=0, 테이블 없음은 별도 조회로 확인.

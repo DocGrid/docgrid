@@ -24,6 +24,8 @@ case "$purpose_code" in
   etcd-one-fault) purpose='etcd 한 멤버 중단 중 앱 HTTP 쓰기' ;;
   etcd-quorum-fault) purpose='etcd 정족수 상실 중 앱 HTTP 쓰기' ;;
   sync-standby-link-fault) purpose='OpenSQL 동기 standby 복제 연결 상실 중 앱 HTTP 쓰기' ;;
+  primary-network-partition) purpose='살아 있는 옛 Primary와 클러스터 다수 간 네트워크 분할 중 앱 HTTP 쓰기' ;;
+  primary-network-partition-idempotent) purpose='Primary 네트워크 분할 중 멱등 쓰기·재전송' ;;
   *) echo '시험 목적 코드가 잘못되었습니다' >&2; exit 2 ;;
 esac
 # A leader handoff can hold many requests until the 10 s client timeout.
@@ -33,11 +35,14 @@ if [[ "$purpose_code" == primary-switchover ||
       "$purpose_code" == primary-process-fault ||
       "$purpose_code" == primary-vm-fault ||
       "$purpose_code" == primary-vm-idempotent ||
+      "$purpose_code" == primary-network-partition ||
+      "$purpose_code" == primary-network-partition-idempotent ||
       "$purpose_code" == sync-standby-link-fault ||
       "$purpose_code" == etcd-quorum-fault ]]; then max_vus=800; fi
 idempotent=0
 target_path='/api/ha-probe/writes'
-if [[ "$purpose_code" == baseline-idempotent || "$purpose_code" == primary-vm-idempotent ]]; then
+if [[ "$purpose_code" == baseline-idempotent || "$purpose_code" == primary-vm-idempotent ||
+      "$purpose_code" == primary-network-partition-idempotent ]]; then
   idempotent=1
   target_path='/api/ha-probe/idempotent-writes'
 fi
@@ -56,8 +61,8 @@ if [[ ! -r "$script_dir/ha_load_telemetry.py" ]]; then
   exit 2
 fi
 
-run_dir="/home/giminkim/ha389-runs/$run_id"
-mkdir -m 0700 -p /home/giminkim/ha389-runs
+run_dir="$HOME/ha389-runs/$run_id"
+mkdir -m 0700 -p "$HOME/ha389-runs"
 mkdir -m 0700 "$run_dir"
 printf '실행 ID=%s\n위치=GCP 내부 부하 VM\n목적=%s\n시작 UTC=%s\n요청 속도=%s req/s\n계획 시간=%s\n성공 기준=HTTP 201, dropped_iterations 0, DB 대조 누락·중복 0\n' \
   "$run_id" "$purpose" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$rate" "$duration" > "$run_dir/실행-기록.txt"
@@ -67,6 +72,10 @@ export HA_TARGET_URL="$target" HA_JWT="$(< "$token_file")"
 export HA_SUMMARY_FILE="$run_dir/k6-summary.json"
 export HA_VUS="$initial_vus" HA_MAX_VUS="$max_vus" HA_TIMEOUT=10s
 export HA_IDEMPOTENT="$idempotent"
+if [[ "$purpose_code" == primary-network-partition ||
+      "$purpose_code" == primary-network-partition-idempotent ]]; then
+  export HA_FAULT_EXPECTED=1
+fi
 printf '멱등 쓰기 경로=%s\n' "$idempotent" >> "$run_dir/실행-기록.txt"
 printf '초기 VU=%s\n설정 최대 VU=%s\n계측 간격=1초\n지표 태그=모두 비활성\n' \
   "$HA_VUS" "$HA_MAX_VUS" >> "$run_dir/실행-기록.txt"

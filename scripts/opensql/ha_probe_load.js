@@ -10,6 +10,7 @@ const token = __ENV.HA_JWT;
 const rate = Number(__ENV.HA_RATE || 10);
 const duration = __ENV.HA_DURATION || '60s';
 const idempotent = __ENV.HA_IDEMPOTENT === '1';
+const faultExpected = __ENV.HA_FAULT_EXPECTED === '1';
 
 // Keep outcome metrics tag-free so the existing JSONL evidence gate stays strict.
 const outcome201 = new Counter('ha_outcome_201');
@@ -38,7 +39,11 @@ export const options = {
       preAllocatedVUs: Number(__ENV.HA_VUS || 20), maxVUs: Number(__ENV.HA_MAX_VUS || 100),
     },
   },
-  thresholds: { http_req_failed: ['rate<0.01'], dropped_iterations: ['count==0'] },
+  // A partition can legitimately return non-201 outcomes. Judge those from
+  // the first-response ledger and DB audit, not a baseline-only 1% threshold.
+  thresholds: faultExpected
+    ? { dropped_iterations: ['count==0'] }
+    : { http_req_failed: ['rate<0.01'], dropped_iterations: ['count==0'] },
 };
 
 function event(requestId, kind, fields = {}) {

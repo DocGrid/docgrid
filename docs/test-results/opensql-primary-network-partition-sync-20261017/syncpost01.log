@@ -1,0 +1,9 @@
+실행 ID=syncpost01
+목적=분할 해제 후 동기 strict 클러스터의 HTTP 쓰기 재개 확인
+위치=새 GCP 격리 환경의 내부 부하 VM→LB→앱 A/B→OpenProxy A/B→OpenSQL 3노드
+방법=5 req/s × 15초, 새 합성 요청 ID; 최초 HTTP 결과와 복구된 Primary의 DB 원장 대조
+성공 기준=75건 전송 예정, HTTP 201 누락·DB 중복 0, dropped iteration 0
+시작=2026-10-17T13:48:25+00:00
+계측=k6 종료 0, 실제 76 요청(설정 5 req/s×15초에서 경계 포함 76), dropped 0, HTTP 201 76, p95 63.264 ms
+최종 DB=76개 합성 ID·76행, 중복 0, 최초 201 누락 0
+판정=PASS; 분할 해제 뒤 새 Primary 경로에서 쓰기 회복 확인

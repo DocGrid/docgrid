@@ -1,0 +1,11 @@
+run_id=partition-switchover-01
+목적=프록시 설치 노드로 계획된 Primary 역할 이전
+위치=새 GCP 격리 DB 3노드
+방법=현재 Primary 로컬 Patroni POST /switchover, 후보는 건강한 DB 노드2
+성공 기준=HTTP 200, DB2 Primary, DB1·DB3 Replica, streaming 2, LB 2/2 HEALTHY
+시작_KST=2026-10-17 21:21:58 KST
+Patroni_응답=switchover_failed=RuntimeError
+역할이전_명령종료=1
+판정=FAIL
+종료_KST=2026-10-17 21:22:06 KST
+후속_분석=Patroni /cluster의 대상 Replica 상태는 streaming인데 스크립트가 running을 요구했고, 후보 이름 접미사 가정도 실제 멤버 이름과 달랐다. 이 회차에서 역할 이전 요청은 전송되지 않았다.

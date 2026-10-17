@@ -1,0 +1,9 @@
+run_id=partition-audit-01
+목적=원시 HTTP 최초 응답 원장과 새 Primary의 DB ID별 원장을 별도 오프라인 감사기로 재계산
+위치=로컬 격리 Git worktree; 민감 필드 allowlist 검사 후 보관한 합성 원장
+방법=python3 scripts/opensql/audit_primary_partition.py --run-id partnet01 --events docs/test-results/opensql-primary-network-partition-20261017/partnet01-http-events.jsonl --db docs/test-results/opensql-primary-network-partition-20261017/partnet01-db-audit.csv --post-recovery-utc 2026-10-17T12:47:34.377Z
+성공기준=HTTP 751건과 DB 593건에서 최초 201 누락 40건·중복 0건을 재계산하고 실제 실패 판정을 보존
+실행시각_UTC=2026-10-17T12:57:47Z 이전; 정확한 초는 별도 출력하지 못함
+관측=requests 751, acknowledged_missing_db 40, db_duplicate_ids 0, post_recovery_201_missing_db 0, verdict FAIL
+판정=PASS. 감사 도구가 원본 시험의 FAIL을 독립 재계산함. 이는 원본 장애 시험이 합격했다는 뜻이 아님.
+증거=partnet01-audit-summary.json

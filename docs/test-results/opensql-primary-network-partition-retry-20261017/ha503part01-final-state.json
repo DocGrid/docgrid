@@ -1,0 +1,17 @@
+{
+  "observed_at_utc": "2026-10-17T15:13:21.660Z",
+  "run_id": "ha503part01",
+  "db_roles_after": {
+    "db1": "replica",
+    "db2": "replica",
+    "db3": "primary"
+  },
+  "primary_count": 1,
+  "partition_rules_absent_on_all_three": true,
+  "lb_healthy_last_sample": 2,
+  "lb_total_backends": 2,
+  "limits": [
+    "roles are a post-run snapshot, not a continuous SQL writability proof",
+    "LB health is sampled, not a per-request trace"
+  ]
+}

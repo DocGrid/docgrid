@@ -1,0 +1,25 @@
+{
+  "requests": 751,
+  "first_outcomes": {
+    "acknowledged": 632,
+    "failed": 114,
+    "unknown": 5
+  },
+  "failed_http_statuses": {
+    "401": 6,
+    "500": 64,
+    "503": 44
+  },
+  "db_unique_ids": 593,
+  "db_rows": 593,
+  "db_duplicate_ids": 0,
+  "acknowledged_in_db": 592,
+  "acknowledged_missing_db": 40,
+  "failed_in_db": 0,
+  "unknown_in_db": 1,
+  "missing_201_first_utc": "2026-10-17T12:45:51.779Z",
+  "missing_201_last_utc": "2026-10-17T12:46:09.222Z",
+  "post_recovery_201": 56,
+  "post_recovery_201_missing_db": 0,
+  "verdict": "FAIL"
+}

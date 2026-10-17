@@ -1,0 +1,9 @@
+run_id=guard-unit-05
+목적=분할 가드와 오프라인 감사기의 최종 단위·구문 검증
+위치=로컬 격리 Git worktree
+방법=PYTHONPATH=scripts/opensql python3 -m unittest scripts/opensql/test_primary_partition_guard.py scripts/opensql/test_audit_primary_partition.py; Python ast.parse 6개 스크립트; bash -n scripts/opensql/run_ha_probe_k6.sh
+성공기준=7개 단위 시험 통과, Python·셸 구문 오류 0건
+시작_UTC=2026-10-17T12:57:47Z
+종료_UTC=2026-10-17T12:57:47Z
+결과=7/7 통과, Python 구문 6/6 통과, 셸 구문 통과
+판정=PASS

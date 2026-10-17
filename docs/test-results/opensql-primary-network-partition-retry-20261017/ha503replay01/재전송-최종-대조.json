@@ -1,0 +1,33 @@
+{
+  "run_id": "ha503part01",
+  "observed_at": "2026-10-17T15:05:14.315Z",
+  "initial_201_missing_before_retry": 0,
+  "initial_201_missing_after_retry": 0,
+  "retry_candidates": 751,
+  "retry_http_resolved": 751,
+  "retry_http_unresolved": 0,
+  "retry_200_already_present_before": 585,
+  "retry_200_not_present_before": 0,
+  "retry_201_new": 166,
+  "retry_201_was_present_before": 0,
+  "retry_conflict_409": 0,
+  "resolved_missing_from_final_db": 0,
+  "final_missing_sent_ids": 0,
+  "db_before_rows": 585,
+  "final_db_rows": 751,
+  "db_rows_added": 166,
+  "db_unique_ids_added": 166,
+  "db_duplicate_ids_after_retry": 0,
+  "sent_attempt_without_result": 0,
+  "db_after_sha256": "b5c13c7b50b7ca36adfdf1fa9ae8f88bd929460aaab2bc45653197415eecae34",
+  "scope": "all_sent",
+  "k6_replay_evidence_valid": true,
+  "k6_replay_status_counts": {
+    "200": 585,
+    "201": 166,
+    "other": 0,
+    "unknown": 0
+  },
+  "idempotency_pass": true,
+  "final_pass": true
+}

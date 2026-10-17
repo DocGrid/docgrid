@@ -1,0 +1,8 @@
+run_id=guard-unit-03
+목적=모듈 검색 경로 수정 후 가드 단위 시험 재실행
+위치=로컬 격리 Git worktree
+방법=PYTHONPATH=scripts/opensql python3 -m unittest scripts/opensql/test_primary_partition_guard.py
+성공기준=4개 시험 통과
+실행시각_UTC=정확한 시각을 출력·수집하지 못함; 2026-10-17T12:44:49Z 이전
+관측=4개 중 3개 통과·1개 오류. 시험 fixture가 Replica 상태를 running으로 가정했으나 실제 Patroni cluster는 streaming을 반환함.
+판정=FAIL. 시험 입력을 실제 API 상태에 맞춰 수정함.

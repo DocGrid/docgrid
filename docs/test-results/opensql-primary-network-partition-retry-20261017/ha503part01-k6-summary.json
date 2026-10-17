@@ -1,0 +1,12 @@
+{
+  "run_id": "ha503part01",
+  "iterations": 751,
+  "http_requests": 751,
+  "dropped_iterations": 0,
+  "failed_rate": 0.2210386151797603,
+  "duration_ms": {
+    "p50": 59.995856,
+    "p95": 5011.021892999999,
+    "p99": 9960.277211
+  }
+}
