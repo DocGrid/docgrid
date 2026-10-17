@@ -12,7 +12,9 @@ import com.opensource.docgrid.domain.embedding.entity.Embedding;
  * pgvector 코사인 거리 검색 전용 Repository.
  *
  * <p>queryVector는 float[]를 서비스 레이어에서 '[v1,v2,...]' 문자열로 변환해 전달하며,
- * SQL에서 CAST(:queryVector AS vector)로 pgvector 타입으로 변환한다.
+ * SQL에서 CAST(:queryVector AS vector)로 pgvector 타입으로 변환한다. 이 변환은 스칼라 서브쿼리
+ * {@code (SELECT CAST(:queryVector AS vector))}로 감싸 실행마다 한 번만 계산한다. 같은 SQL이 반복돼 Generic Plan이
+ * 쓰이면 감싸지 않은 CAST가 행마다 다시 실행돼 검색이 수십 배 느려지기 때문이다(#549).
  * permittedIds는 권한 pre-filter(F-SEARCH-04) 결과이며, 빈 목록이면 서비스에서 조기 반환해야 한다.
  */
 public interface VectorSearchRepository extends JpaRepository<Embedding, Long> {
@@ -27,7 +29,7 @@ public interface VectorSearchRepository extends JpaRepository<Embedding, Long> {
             dc.section_title AS section_title,
             dc.metadata_json AS metadata_json,
             d.title       AS document_title,
-            (e.vector <=> CAST(:queryVector AS vector)) AS distance
+            (e.vector <=> (SELECT CAST(:queryVector AS vector))) AS distance
         FROM embeddings e
           JOIN documents d        ON d.id  = e.document_id
           JOIN document_chunks dc ON dc.id = e.chunk_id
@@ -37,7 +39,7 @@ public interface VectorSearchRepository extends JpaRepository<Embedding, Long> {
           AND d.deleted_at         IS NULL
           AND d.status             = 'INDEXED'
           AND d.current_version_id = e.document_version_id
-        ORDER BY e.vector <=> CAST(:queryVector AS vector)
+        ORDER BY e.vector <=> (SELECT CAST(:queryVector AS vector))
         LIMIT :topK
         """, nativeQuery = true)
     List<VectorSearchRow> findTopK(
@@ -139,7 +141,7 @@ public interface VectorSearchRepository extends JpaRepository<Embedding, Long> {
             dc.section_title AS section_title,
             dc.metadata_json AS metadata_json,
             d.title       AS document_title,
-            (e.vector <=> CAST(:queryVector AS vector)) AS distance,
+            (e.vector <=> (SELECT CAST(:queryVector AS vector))) AS distance,
             sel.coverage  AS coverage
         FROM sel
           JOIN embeddings e       ON e.id  = sel.embedding_id
