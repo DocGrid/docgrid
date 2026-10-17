@@ -1,0 +1,9 @@
+{
+  "recorded_at_kst": "2026-10-17T14:09:12.957881+09:00",
+  "raw_sha256": "d252ad87c0a3ccceaa51ab17bd27c99a749b73212ca3ebea046ff72845fdd152",
+  "raw_bytes_preserved": true,
+  "invalid_jsonl_lines": 1,
+  "reason": "기존 제어 기록자와 추가 메타데이터 기록자가 같은 파일 위치를 공유해 한 줄이 손상됨",
+  "interpretation": "실패 시각·app_not_ready는 실행 도구 출력과 app.log에서 확인. ready 이전에 끝났고 장애 주입은 없었음. 원본 재구성·성공 판정에 사용하지 않음",
+  "future_fix": "새 회차 메타데이터는 제어 기록자 하나만 작성"
+}

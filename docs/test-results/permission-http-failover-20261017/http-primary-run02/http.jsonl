@@ -1,0 +1,1 @@
+{"at_kst":"2026-10-17T14:08:32.790395+09:00","event":"start","location":"루프백 HTTP → IAP → 격리 OpenSQL·OpenProxy·역할 어댑터","purpose":"인증 HTTP 회수·승격·응답 차단","criteria":"금지 내용 0·대조 정상·원장 보존","post_recovery_repetitions":3}
