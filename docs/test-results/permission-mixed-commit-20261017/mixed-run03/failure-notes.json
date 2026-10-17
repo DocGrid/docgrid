@@ -1,0 +1,9 @@
+{
+  "at_kst": "2026-10-17T15:02:07.165353+09:00",
+  "outcome": "실패 보존·최종 비교 제외",
+  "observed": "native 자동승격 뒤 즉시 감사에서 Proxy AllServersDown 및 Hikari total=0으로 연결 획득 실패",
+  "stage": "재확정 쓰기 전 최초 성공 키 감사",
+  "follow_up": "post-failure-audit.log에서 실제 새 Primary를 읽기만 조회: 회수 성공2/2, 독립local 성공5/5 존재. 실패 회차를 통과로 바꾸지 않음",
+  "harness_change": "Proxy의 실제 Primary 읽기 준비 확인과 감사 읽기만 최대45초 재시도. 키 감사 후에만 불명 요청 재확정",
+  "limitation": "정지중 local204 3건은 후속 감사에서 모두 존재. local 유실을 재현했다고 주장하지 않음. 컨테이너 pause는 네트워크 전달·커널 버퍼를 차단하지 않음"
+}

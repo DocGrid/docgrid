@@ -1,0 +1,8 @@
+실행 ID: failure-run01-jdbc
+목적: 실제 격리 OpenSQL·두 OpenProxy의 read-write Primary 도착·동기 적용 확인
+위치: 로컬 JDBC → IAP → 격리 GCP 컨테이너
+명령: PermissionHaPreflight (pgJDBC 42.7.11)
+성공 기준: Primary 도착 3경로·streaming 2대·on·동기 후보 확인
+시작: 2026-10-17T14:41:13.558402+09:00
+EVIDENCE alias=direct-primary error_class=PSQLException sqlstate=08001
+exit_code=1

@@ -1,0 +1,32 @@
+{"at_kst": "2026-10-17T15:05:42.084950+09:00", "run_id": "transport-holder-run01", "event": "start", "purpose": "전용 터널을 살아 있는 부모 세션에서 유지·종료 범주 안전 수집", "location": "로컬 SSH/IAP 전용 포트", "criteria": "시험 채널 유지, 원본 터널 보존, 원시 stderr·비공개 식별자 미기록"}
+{"at_kst": "2026-10-17T15:05:44.317317+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node1", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:44.317407+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node1", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:44.317424+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node1", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:44.317438+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node1", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:44.317450+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node1", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:46.810481+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node2", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:46.810561+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node2", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:46.810576+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node2", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:46.810588+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node2", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:46.810598+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node2", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:49.303576+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node3", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:49.306095+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node3", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:49.306126+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node3", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:49.306141+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node3", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:49.306153+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node3", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:05:49.547579+09:00", "run_id": "transport-holder-run01", "node_alias": "node1", "tunnel_ready": true}
+{"at_kst": "2026-10-17T15:05:50.052990+09:00", "run_id": "transport-holder-run01", "node_alias": "node2", "tunnel_ready": true}
+{"at_kst": "2026-10-17T15:05:53.073789+09:00", "run_id": "transport-holder-run01", "node_alias": "node3", "tunnel_ready": true}
+{"at_kst": "2026-10-17T15:06:32.252511+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node1", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:06:32.705273+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node1", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:06:37.364128+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node2", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:06:37.859575+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node2", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:06:45.443264+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node3", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:06:45.892156+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node3", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:09:23.095153+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node1", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:09:23.548420+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node1", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:09:28.262159+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node2", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:09:28.775920+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node2", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:09:36.446935+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node3", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:09:36.974856+09:00", "run_id": "transport-holder-run01", "event": "ssh-stderr-category", "node_alias": "node3", "category": "other_omitted", "raw_omitted": true}
+{"at_kst": "2026-10-17T15:12:52.470617+09:00", "run_id": "transport-holder-run01", "event": "all-own-channels-ended", "exit_codes": {"node1": 0, "node2": 0, "node3": 0}}

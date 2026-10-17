@@ -1,0 +1,11 @@
+{
+  "at_kst": "2026-10-17T15:05:42.043547+09:00",
+  "outcome": "준비 실패·장애 주입 없음",
+  "observations": [
+    "직접 Primary와 streaming2 확인 뒤 Proxy2 점검의 SQLSTATE08006",
+    "시험 전용 SSH Control socket3개가 모두 사라짐",
+    "업무 요청 원장 없음·fault.active 생성 전"
+  ],
+  "cause_not_determined": "채널 종료의 정확한 원인은 미확정. 기존 실행기는 SSH stderr를 보존하지 않았음.",
+  "next_action": "소유 접속 프로세스를 살아 있는 실행 세션에서 유지하고 안전한 종료 범주만 별도 수집. 새 회차로 재실행"
+}

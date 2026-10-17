@@ -1,0 +1,84 @@
+{
+  "run_id": "mixed-run05",
+  "outcome": "Primary 2조건 통과",
+  "initial_requests": 96,
+  "source_sha256": "0dda2ac9621658ec75e2f7e52a69e4198ceb399dd7531dfa544f8c07d3d13dc8",
+  "cases": [
+    {
+      "mode": "local",
+      "scenario": "primary-loss",
+      "revoke": {
+        "initial_requests": 24,
+        "initial_unconfirmed": 22,
+        "p50_ms": 5006.693375,
+        "initial_204": 2,
+        "acknowledged_missing_before_retry": 0,
+        "p95_ms": 9755.594792
+      },
+      "independent": {
+        "initial_requests": 24,
+        "initial_unconfirmed": 19,
+        "p50_ms": 5005.027375,
+        "initial_204": 5,
+        "acknowledged_missing_before_retry": 0,
+        "p95_ms": 5008.021833
+      },
+      "final_revocation_keys": 24,
+      "final_independent_keys": 24,
+      "hikari_max_active": 5,
+      "hikari_max_pending": 8,
+      "retry_requests": 41,
+      "pool_default_after_case": "on",
+      "run_id": "mixed-run05",
+      "source_sha256": "0dda2ac9621658ec75e2f7e52a69e4198ceb399dd7531dfa544f8c07d3d13dc8",
+      "initial_204_during_interruption": {
+        "revoke": 0,
+        "independent": 3
+      },
+      "interruption_until_restore_or_kill_ms": 11097.187999999998,
+      "pool_samples": 1254,
+      "raw_response_count": 89,
+      "first_four_baseline_204": true,
+      "promotion_after_confirmed_loss_ms": 19372.16145800001,
+      "proxy_read_ready_after_confirmed_loss_ms": 25158.119208000004
+    },
+    {
+      "mode": "on",
+      "scenario": "primary-loss",
+      "revoke": {
+        "initial_requests": 24,
+        "initial_unconfirmed": 22,
+        "p50_ms": 5004.960292,
+        "initial_204": 2,
+        "acknowledged_missing_before_retry": 0,
+        "p95_ms": 7940.10225
+      },
+      "independent": {
+        "initial_requests": 24,
+        "initial_unconfirmed": 22,
+        "p50_ms": 5005.883166,
+        "initial_204": 2,
+        "acknowledged_missing_before_retry": 0,
+        "p95_ms": 6898.675625
+      },
+      "final_revocation_keys": 24,
+      "final_independent_keys": 24,
+      "hikari_max_active": 5,
+      "hikari_max_pending": 8,
+      "retry_requests": 44,
+      "pool_default_after_case": "on",
+      "run_id": "mixed-run05",
+      "source_sha256": "0dda2ac9621658ec75e2f7e52a69e4198ceb399dd7531dfa544f8c07d3d13dc8",
+      "initial_204_during_interruption": {
+        "revoke": 0,
+        "independent": 0
+      },
+      "interruption_until_restore_or_kill_ms": 11028.784,
+      "pool_samples": 1277,
+      "raw_response_count": 92,
+      "first_four_baseline_204": true,
+      "promotion_after_confirmed_loss_ms": 19191.154375000024,
+      "proxy_read_ready_after_confirmed_loss_ms": 20963.27312500003
+    }
+  ]
+}

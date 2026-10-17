@@ -1,0 +1,4 @@
+{"at_kst": "2026-10-17T15:00:24.558524+09:00", "run_id": "mixed-run03-post-failure-read-audit", "purpose": "실패 회차의 최초204 원장만 읽고 local 성공 유실 확인", "location": "로컬 JDBC → 격리 시험 Proxy → 승격된 OpenSQL", "method": "UUID별 읽기 전용 원장 감사; 재확정 쓰기 없음", "criteria": "회수 성공 누락0; local 누락은 관측값 기록; 실패 회차를 성공으로 변경하지 않음"}
+EVIDENCE {"kind":"revoke","acknowledged_keys":2,"found_keys":2,"missing_keys":0,"writes_performed":false}
+EVIDENCE {"kind":"independent","acknowledged_keys":5,"found_keys":5,"missing_keys":0,"writes_performed":false}
+exit_code=0
