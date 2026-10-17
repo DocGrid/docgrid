@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 354" width="680" height="354" role="img" aria-label="Generic Plan 지연 개선율 (50,000 청크, topK 10)">
+<style>
+.surface{fill:#fcfcfb}.ink{fill:#0b0b0b}.ink2{fill:#52514e}.grid{stroke:#e4e3de}.axis{stroke:#b9b8b1}
+.ref{stroke:#8f8e87}.reffill{fill:#8f8e87}.ring{stroke:#fcfcfb}.link{stroke:#c9c8c1}
+.l0{stroke:#2a78d6}.d0{fill:#2a78d6}.l1{stroke:#eb6834}.d1{fill:#eb6834}.d2{fill:#1baf7a}
+@media (prefers-color-scheme: dark){.surface{fill:#1a1a19}.ink{fill:#f0efec}.ink2{fill:#c3c2b7}
+.grid{stroke:#33332f}.axis{stroke:#5b5a54}.ref{stroke:#8a897f}.reffill{fill:#8a897f}.ring{stroke:#1a1a19}
+.link{stroke:#4a4944}.l0{stroke:#3987e5}.d0{fill:#3987e5}.l1{stroke:#d95926}.d1{fill:#d95926}.d2{fill:#199e70}}
+text{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+</style>
+<rect class="surface" width="680" height="354" rx="8"/>
+<text class="ink" x="20" y="28" font-size="16" font-weight="600">Generic Plan 지연 개선율 (50,000 청크, topK 10)</text>
+<text class="ink2" x="20" y="48" font-size="12">질문 30개 p50. 허용 청크가 많을수록 행마다 하던 변환이 많아 개선 폭이 크다.</text>
+<rect class="d0" x="20" y="66" width="12" height="12" rx="2"/>
+<text class="ink2" x="38" y="76" font-size="12">벡터 단독 검색</text>
+<rect class="d2" x="147.92000000000002" y="66" width="12" height="12" rx="2"/>
+<text class="ink2" x="165.92000000000002" y="76" font-size="12">하이브리드 검색</text>
+<line class="grid" x1="90.0" y1="98" x2="90.0" y2="304" stroke-width="1"/>
+<text class="ink2" x="90.0" y="320" font-size="11" text-anchor="middle">0%</text>
+<line class="grid" x1="194.0" y1="98" x2="194.0" y2="304" stroke-width="1"/>
+<text class="ink2" x="194.0" y="320" font-size="11" text-anchor="middle">20%</text>
+<line class="grid" x1="298.0" y1="98" x2="298.0" y2="304" stroke-width="1"/>
+<text class="ink2" x="298.0" y="320" font-size="11" text-anchor="middle">40%</text>
+<line class="grid" x1="402.0" y1="98" x2="402.0" y2="304" stroke-width="1"/>
+<text class="ink2" x="402.0" y="320" font-size="11" text-anchor="middle">60%</text>
+<line class="grid" x1="506.0" y1="98" x2="506.0" y2="304" stroke-width="1"/>
+<text class="ink2" x="506.0" y="320" font-size="11" text-anchor="middle">80%</text>
+<line class="grid" x1="610.0" y1="98" x2="610.0" y2="304" stroke-width="1"/>
+<text class="ink2" x="610.0" y="320" font-size="11" text-anchor="middle">100%</text>
+<text class="ink2" x="20" y="124.0" font-size="12">허용 100%</text>
+<path class="d0" d="M90,104 h490.5 a4,4 0 0 1 4,4 v6 a4,4 0 0 1 -4,4 h-490.5 z"><title>벡터 단독 검색 · 허용 100%: 95.1%</title></path>
+<text class="ink" x="590.5" y="115" font-size="11">95.1%</text>
+<path class="d2" d="M90,120 h389.8 a4,4 0 0 1 4,4 v6 a4,4 0 0 1 -4,4 h-389.8 z"><title>하이브리드 검색 · 허용 100%: 75.7%</title></path>
+<text class="ink" x="489.8" y="131" font-size="11">75.7%</text>
+<text class="ink2" x="20" y="174.0" font-size="12">허용 10%</text>
+<path class="d0" d="M90,154 h489.1 a4,4 0 0 1 4,4 v6 a4,4 0 0 1 -4,4 h-489.1 z"><title>벡터 단독 검색 · 허용 10%: 94.8%</title></path>
+<text class="ink" x="589.1" y="165" font-size="11">94.8%</text>
+<path class="d2" d="M90,170 h388.7 a4,4 0 0 1 4,4 v6 a4,4 0 0 1 -4,4 h-388.7 z"><title>하이브리드 검색 · 허용 10%: 75.5%</title></path>
+<text class="ink" x="488.7" y="181" font-size="11">75.5%</text>
+<text class="ink2" x="20" y="224.0" font-size="12">허용 1%</text>
+<path class="d0" d="M90,204 h434.7 a4,4 0 0 1 4,4 v6 a4,4 0 0 1 -4,4 h-434.7 z"><title>벡터 단독 검색 · 허용 1%: 84.4%</title></path>
+<text class="ink" x="534.7" y="215" font-size="11">84.4%</text>
+<path class="d2" d="M90,220 h340.3 a4,4 0 0 1 4,4 v6 a4,4 0 0 1 -4,4 h-340.3 z"><title>하이브리드 검색 · 허용 1%: 66.2%</title></path>
+<text class="ink" x="440.3" y="231" font-size="11">66.2%</text>
+<text class="ink2" x="20" y="274.0" font-size="12">허용 0.1%</text>
+<path class="d0" d="M90,254 h273.6 a4,4 0 0 1 4,4 v6 a4,4 0 0 1 -4,4 h-273.6 z"><title>벡터 단독 검색 · 허용 0.1%: 53.4%</title></path>
+<text class="ink" x="373.6" y="265" font-size="11">53.4%</text>
+<path class="d2" d="M90,270 h198.9 a4,4 0 0 1 4,4 v6 a4,4 0 0 1 -4,4 h-198.9 z"><title>하이브리드 검색 · 허용 0.1%: 39.0%</title></path>
+<text class="ink" x="298.9" y="281" font-size="11">39.0%</text>
+<text class="ink2" x="20" y="340" font-size="11">x축: (수정 전 − 수정 후) ÷ 수정 전, p50 기준</text>
+</svg>
