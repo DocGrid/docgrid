@@ -1,0 +1,15 @@
+{"실행_ID": "mixed-run01", "목적": "혼합 부하 on/local 대조", "시작_KST": "2026-10-17T14:33:40.398652+09:00", "위치": "로컬 JVM → IAP → 격리 GCP OpenSQL·OpenProxy·역할 어댑터", "명령": "./backend/gradlew -p backend permissionMixedCommitTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :permissionMixedCommitTest
+> Task :permissionMixedCommitTest
+EVIDENCE {"pool_size":5,"samples_each_kind":24,"mode":"on","concurrency":8,"scenario":"ack-loss","event":"case-start"}
+EVIDENCE {"mode":"on","scenario":"ack-loss","revoke":{"p50_ms":5002.521709,"initial_204":17,"acknowledged_missing_before_retry":0,"p95_ms":7971.049958,"initial_requests":24,"initial_unconfirmed":7},"independent":{"p50_ms":2930.694917,"initial_204":15,"acknowledged_missing_before_retry":0,"p95_ms":8103.369333,"initial_requests":24,"initial_unconfirmed":9},"event":"audit-before-retry"}
+PermissionMixedCommitIntegrationTest > 같은 클러스터·풀·부하에서 독립 쓰기 on/local의 대기와 성공 원장 보존을 비교한다 FAILED
+> Task :permissionMixedCommitTest FAILED
+BUILD FAILED in 3m 19s
+{"종료_KST": "2026-10-17T14:36:59.989127+09:00", "exit_code": 1}

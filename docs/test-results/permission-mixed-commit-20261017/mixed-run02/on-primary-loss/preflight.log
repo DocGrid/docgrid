@@ -1,0 +1,13 @@
+실행 ID: mixed-run02/on-primary-loss/preflight
+목적: 실제 격리 OpenSQL·두 OpenProxy의 read-write Primary 도착·동기 적용 확인
+위치: 로컬 JDBC → IAP → 격리 GCP 컨테이너
+명령: PermissionHaPreflight (pgJDBC 42.7.11)
+성공 기준: Primary 도착 3경로·streaming 2대·on·동기 후보 확인
+시작: 2026-10-17T14:50:16.128539+09:00
+EVIDENCE alias=direct-primary recovery=false version_num=170008 commit=on sync_names="test-standby"
+EVIDENCE streaming_replicas=2
+EVIDENCE replica_alias=permission-node2 sync_state=sync
+EVIDENCE replica_alias=permission-node3 sync_state=async
+EVIDENCE alias=proxy-2 recovery=false version_num=170008 commit=on sync_names="test-standby"
+EVIDENCE alias=proxy-3 recovery=false version_num=170008 commit=on sync_names="test-standby"
+exit_code=0

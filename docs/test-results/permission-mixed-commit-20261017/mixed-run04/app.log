@@ -1,0 +1,10 @@
+{"실행_ID": "mixed-run04", "목적": "혼합 부하 on/local 대조", "시작_KST": "2026-10-17T15:02:07.250613+09:00", "위치": "로컬 JVM → IAP → 격리 GCP OpenSQL·OpenProxy·역할 어댑터", "명령": "./backend/gradlew -p backend permissionMixedCommitTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :permissionMixedCommitTest
+> Task :permissionMixedCommitTest
+EVIDENCE {"mode":"local","concurrency":8,"scenario":"primary-loss","pool_size":5,"samples_each_kind":24,"event":"case-start"}

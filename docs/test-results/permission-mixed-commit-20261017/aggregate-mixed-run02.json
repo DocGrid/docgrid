@@ -1,0 +1,149 @@
+{
+  "run_id": "mixed-run02",
+  "outcome": "4조건 통과",
+  "initial_requests": 192,
+  "case_count": 4,
+  "source_sha256": "7c692bbf2ae06f51a900f1912b825bde08d28d83261f76afab3d8cb39f8f1bd0",
+  "raw_response_count": 303,
+  "cases": [
+    {
+      "mode": "on",
+      "scenario": "ack-loss",
+      "revoke": {
+        "p95_ms": 7808.038208,
+        "acknowledged_missing_before_retry": 0,
+        "initial_204": 17,
+        "p50_ms": 5003.977666,
+        "initial_unconfirmed": 7,
+        "initial_requests": 24
+      },
+      "independent": {
+        "p95_ms": 9344.140375,
+        "acknowledged_missing_before_retry": 0,
+        "initial_204": 15,
+        "p50_ms": 2944.884459,
+        "initial_unconfirmed": 9,
+        "initial_requests": 24
+      },
+      "final_revocation_keys": 24,
+      "final_independent_keys": 24,
+      "hikari_max_active": 5,
+      "hikari_max_pending": 8,
+      "retry_requests": 16,
+      "pool_default_after_case": "on",
+      "initial_204_during_interruption": {
+        "revoke": 0,
+        "independent": 0
+      },
+      "interruption_until_restore_or_kill_ms": 13048.152999999998,
+      "pool_samples": 662,
+      "raw_response_count": 64,
+      "first_four_baseline_204": true
+    },
+    {
+      "mode": "local",
+      "scenario": "ack-loss",
+      "revoke": {
+        "p95_ms": 9839.547209,
+        "acknowledged_missing_before_retry": 0,
+        "initial_204": 15,
+        "p50_ms": 5007.183334,
+        "initial_unconfirmed": 9,
+        "initial_requests": 24
+      },
+      "independent": {
+        "p95_ms": 5006.850125,
+        "acknowledged_missing_before_retry": 0,
+        "initial_204": 21,
+        "p50_ms": 2345.498791,
+        "initial_unconfirmed": 3,
+        "initial_requests": 24
+      },
+      "final_revocation_keys": 24,
+      "final_independent_keys": 24,
+      "hikari_max_active": 5,
+      "hikari_max_pending": 8,
+      "retry_requests": 12,
+      "pool_default_after_case": "on",
+      "initial_204_during_interruption": {
+        "revoke": 0,
+        "independent": 5
+      },
+      "interruption_until_restore_or_kill_ms": 12916.909,
+      "pool_samples": 619,
+      "raw_response_count": 60,
+      "first_four_baseline_204": true
+    },
+    {
+      "mode": "local",
+      "scenario": "primary-loss",
+      "revoke": {
+        "p95_ms": 5019.433833,
+        "acknowledged_missing_before_retry": 0,
+        "initial_204": 3,
+        "p50_ms": 5005.27125,
+        "initial_unconfirmed": 21,
+        "initial_requests": 24
+      },
+      "independent": {
+        "p95_ms": 5006.847708,
+        "acknowledged_missing_before_retry": 0,
+        "initial_204": 3,
+        "p50_ms": 5005.472875,
+        "initial_unconfirmed": 21,
+        "initial_requests": 24
+      },
+      "final_revocation_keys": 24,
+      "final_independent_keys": 24,
+      "hikari_max_active": 4,
+      "hikari_max_pending": 8,
+      "retry_requests": 42,
+      "pool_default_after_case": "on",
+      "initial_204_during_interruption": {
+        "revoke": 0,
+        "independent": 0
+      },
+      "interruption_until_restore_or_kill_ms": 3045.71,
+      "pool_samples": 1244,
+      "raw_response_count": 90,
+      "first_four_baseline_204": true,
+      "promotion_after_confirmed_loss_ms": 20789.761499999997
+    },
+    {
+      "mode": "on",
+      "scenario": "primary-loss",
+      "revoke": {
+        "p95_ms": 5176.794625,
+        "acknowledged_missing_before_retry": 0,
+        "initial_204": 3,
+        "p50_ms": 5004.593292,
+        "initial_unconfirmed": 21,
+        "initial_requests": 24
+      },
+      "independent": {
+        "p95_ms": 5005.658,
+        "acknowledged_missing_before_retry": 0,
+        "initial_204": 4,
+        "p50_ms": 5002.869958,
+        "initial_unconfirmed": 20,
+        "initial_requests": 24
+      },
+      "final_revocation_keys": 24,
+      "final_independent_keys": 24,
+      "hikari_max_active": 4,
+      "hikari_max_pending": 8,
+      "retry_requests": 41,
+      "pool_default_after_case": "on",
+      "initial_204_during_interruption": {
+        "revoke": 0,
+        "independent": 0
+      },
+      "interruption_until_restore_or_kill_ms": 3051.695,
+      "pool_samples": 1223,
+      "raw_response_count": 89,
+      "first_four_baseline_204": true,
+      "promotion_after_confirmed_loss_ms": 19772.905874999993
+    }
+  ],
+  "scope": "MVC·공유 Hikari·격리 OpenSQL·역할 어댑터·시험 Proxy, 조건별 1회. 공개 HTTP 아님. Primary 상실은 Standby pause 후 종료하는 복합 장애."
+}

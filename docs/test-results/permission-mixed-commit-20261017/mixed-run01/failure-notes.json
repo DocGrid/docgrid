@@ -1,0 +1,15 @@
+{
+  "at_kst": "2026-10-17T14:42:43.447498+09:00",
+  "outcome": "실패·비교 결론 제외",
+  "category": "시험 전용 SSH 터널 3개 종료",
+  "observations": [
+    "전용 SSH PID·Control socket·DB/REST/Proxy 리스너가 모두 없음",
+    "기존 공개 터널 3개는 유지",
+    "직접 원격 조회: 격리 Primary 1대·replica 2대 running, strict 유지",
+    "Hikari total=0, 루프백 Proxy connection refused로 최종 감사 실패"
+  ],
+  "not_determined": "세 채널 종료의 정확한 원인은 확정하지 못함",
+  "partial_evidence": "ACK 해제 뒤 첫 감사: 최초204 회수17건·독립on15건의 누락0. 최종 재확정 실패.",
+  "invalid_probe": "SyncRep=0 표본은 Proxy 논리 DB 이름으로 실제 datname을 필터링하여 무효. 다음 회차는 current_database() 사용.",
+  "preserved": "실패 원장을 보존하고 성공 회차와 합치지 않음"
+}

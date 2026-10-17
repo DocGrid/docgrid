@@ -1,0 +1,20 @@
+{"실행_ID": "mixed-run03", "목적": "혼합 부하 on/local 대조", "시작_KST": "2026-10-17T14:53:00.232443+09:00", "위치": "로컬 JVM → IAP → 격리 GCP OpenSQL·OpenProxy·역할 어댑터", "명령": "./backend/gradlew -p backend permissionMixedCommitTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :permissionMixedCommitTest
+> Task :permissionMixedCommitTest
+EVIDENCE {"scenario":"ack-loss","pool_size":5,"samples_each_kind":24,"mode":"on","concurrency":8,"event":"case-start"}
+EVIDENCE {"mode":"on","scenario":"ack-loss","revoke":{"p50_ms":5002.045709,"initial_204":19,"acknowledged_missing_before_retry":0,"p95_ms":10938.941959,"initial_requests":24,"initial_unconfirmed":5},"independent":{"p50_ms":2877.987708,"initial_204":18,"acknowledged_missing_before_retry":0,"p95_ms":5006.611708,"initial_requests":24,"initial_unconfirmed":6},"event":"audit-before-retry"}
+EVIDENCE {"mode":"on","scenario":"ack-loss","revoke":{"p50_ms":5002.045709,"initial_204":19,"acknowledged_missing_before_retry":0,"p95_ms":10938.941959,"initial_requests":24,"initial_unconfirmed":5},"independent":{"p50_ms":2877.987708,"initial_204":18,"acknowledged_missing_before_retry":0,"p95_ms":5006.611708,"initial_requests":24,"initial_unconfirmed":6},"final_revocation_keys":24,"final_independent_keys":24,"hikari_max_active":5,"hikari_max_pending":7,"retry_requests":11,"pool_default_after_case":"on","event":"case-summary"}
+EVIDENCE {"scenario":"ack-loss","pool_size":5,"samples_each_kind":24,"mode":"local","concurrency":8,"event":"case-start"}
+EVIDENCE {"mode":"local","scenario":"ack-loss","revoke":{"p50_ms":4976.660042,"initial_204":16,"acknowledged_missing_before_retry":0,"p95_ms":9821.151042,"initial_requests":24,"initial_unconfirmed":8},"independent":{"p50_ms":2957.955291,"initial_204":20,"acknowledged_missing_before_retry":0,"p95_ms":5052.93775,"initial_requests":24,"initial_unconfirmed":4},"event":"audit-before-retry"}
+EVIDENCE {"mode":"local","scenario":"ack-loss","revoke":{"p50_ms":4976.660042,"initial_204":16,"acknowledged_missing_before_retry":0,"p95_ms":9821.151042,"initial_requests":24,"initial_unconfirmed":8},"independent":{"p50_ms":2957.955291,"initial_204":20,"acknowledged_missing_before_retry":0,"p95_ms":5052.93775,"initial_requests":24,"initial_unconfirmed":4},"final_revocation_keys":24,"final_independent_keys":24,"hikari_max_active":5,"hikari_max_pending":8,"retry_requests":12,"pool_default_after_case":"on","event":"case-summary"}
+EVIDENCE {"scenario":"primary-loss","pool_size":5,"samples_each_kind":24,"mode":"local","concurrency":8,"event":"case-start"}
+PermissionMixedCommitIntegrationTest > 같은 클러스터·풀·부하에서 독립 쓰기 on/local의 대기와 성공 원장 보존을 비교한다 FAILED
+> Task :permissionMixedCommitTest FAILED
+BUILD FAILED in 5m 2s
+{"종료_KST": "2026-10-17T14:58:03.006494+09:00", "exit_code": 1}
