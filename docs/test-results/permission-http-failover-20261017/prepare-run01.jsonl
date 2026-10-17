@@ -1,0 +1,14 @@
+{"at_kst": "2026-10-17T14:00:45.446902+09:00", "run_id": "prepare-run01", "event": "start", "purpose": "역할 어댑터·시험 Proxy·Valkey·JDBC 준비", "location": "격리 컨테이너와 루프백 Valkey", "criteria": "동기 Primary·streaming2·Proxy2경로·실제 Valkey 확인"}
+{"at_kst": "2026-10-17T14:00:46.314293+09:00", "run_id": "prepare-run01", "event": "remote", "node_alias": "node1", "result": {"adapter_launch_exit": 0, "role_only_normalization": true, "read_only": true, "scope_guard": true, "port": 18010}}
+{"at_kst": "2026-10-17T14:00:47.158416+09:00", "run_id": "prepare-run01", "event": "remote", "node_alias": "node2", "result": {"adapter_launch_exit": 0, "role_only_normalization": true, "read_only": true, "scope_guard": true, "port": 18010}}
+{"at_kst": "2026-10-17T14:00:47.999350+09:00", "run_id": "prepare-run01", "event": "remote", "node_alias": "node2", "result": {"isolated_proxy_launch_exit": 0, "proxy_listen_loopback": true, "backend_count": 3, "patroni_port": 18010, "public_proxy_changed": false}}
+{"at_kst": "2026-10-17T14:00:48.933123+09:00", "run_id": "prepare-run01", "event": "remote", "node_alias": "node3", "result": {"adapter_launch_exit": 0, "role_only_normalization": true, "read_only": true, "scope_guard": true, "port": 18010}}
+{"at_kst": "2026-10-17T14:00:49.777043+09:00", "run_id": "prepare-run01", "event": "remote", "node_alias": "node3", "result": {"isolated_proxy_launch_exit": 0, "proxy_listen_loopback": true, "backend_count": 3, "patroni_port": 18010, "public_proxy_changed": false}}
+{"at_kst": "2026-10-17T14:00:49.972443+09:00", "run_id": "prepare-run01", "event": "valkey-start", "exit": 0, "loopback_only": true}
+{"at_kst": "2026-10-17T14:00:55.314068+09:00", "run_id": "prepare-run01", "event": "jdbc", "observation": "EVIDENCE alias=direct-primary recovery=false version_num=170008 commit=on sync_names=\"test-standby\""}
+{"at_kst": "2026-10-17T14:00:55.314555+09:00", "run_id": "prepare-run01", "event": "jdbc", "observation": "EVIDENCE streaming_replicas=2"}
+{"at_kst": "2026-10-17T14:00:55.314596+09:00", "run_id": "prepare-run01", "event": "jdbc", "observation": "EVIDENCE replica_alias=permission-node2 sync_state=sync"}
+{"at_kst": "2026-10-17T14:00:55.314638+09:00", "run_id": "prepare-run01", "event": "jdbc", "observation": "EVIDENCE replica_alias=permission-node3 sync_state=async"}
+{"at_kst": "2026-10-17T14:00:55.314661+09:00", "run_id": "prepare-run01", "event": "jdbc", "observation": "EVIDENCE alias=proxy-2 recovery=false version_num=170008 commit=on sync_names=\"test-standby\""}
+{"at_kst": "2026-10-17T14:00:55.314688+09:00", "run_id": "prepare-run01", "event": "jdbc", "observation": "EVIDENCE alias=proxy-3 recovery=false version_num=170008 commit=on sync_names=\"test-standby\""}
+{"at_kst": "2026-10-17T14:00:55.314711+09:00", "run_id": "prepare-run01", "event": "complete", "exit": 0}

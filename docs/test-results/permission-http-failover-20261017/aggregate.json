@@ -1,0 +1,15 @@
+{
+  "run_id": "http-primary-run04",
+  "http_responses_excluding_login": 37,
+  "login_successes": 2,
+  "post_promotion_target_403": 9,
+  "post_promotion_allowed_200": 9,
+  "post_promotion_search_200": 3,
+  "post_promotion_forbidden_sentinel": 0,
+  "receipt_rows": 1,
+  "remaining_permissions": 0,
+  "promotion_after_confirmed_fault_seconds": 19.451936,
+  "repetitions": 3,
+  "native_old_primary_rejoin_in_success_run": false,
+  "file_storage_reads": 6
+}

@@ -1,0 +1,23 @@
+{"실행_ID": "http-primary-run01-app", "목적": "실제 HTTP 인증·회수·승격·금지 응답 차단", "시작_KST": "2026-10-17T14:01:17.924299+09:00", "위치": "로컬 격리 PostgreSQL 17.8 / JVM", "명령": "./backend/gradlew -p backend permissionHttpHaTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+> Task :permissionHttpHaTest
+EVIDENCE {"at_kst":"2026-10-17T14:05:24.186053+09:00","event":"start","post_recovery_repetitions":3,"criteria":"금지 내용 0·대조 정상·원장 보존","purpose":"인증 HTTP 회수·승격·응답 차단","location":"루프백 HTTP → IAP → 격리 OpenSQL·OpenProxy·역할 어댑터"}
+EVIDENCE {"at_kst":"2026-10-17T14:05:32.646015+09:00","event":"login","status":200,"latency_ms":1104.419708,"actor":"owner"}
+EVIDENCE {"at_kst":"2026-10-17T14:05:33.615538+09:00","event":"login","status":200,"latency_ms":964.842625,"actor":"target"}
+EVIDENCE {"at_kst":"2026-10-17T14:05:33.636546+09:00","event":"http","latency_ms":19.508542,"target":"detail","response_sha256":"0dabfc1eaee4b46495d0ea72e0f1a5c34ea1bb16f456b061f8b2ae737664529d","phase":"anonymous","status":401,"revoked_sentinel_present":false}
+EVIDENCE {"at_kst":"2026-10-17T14:05:35.824842+09:00","event":"http","latency_ms":2187.482875,"target":"revoked","response_sha256":"f5f84fd27a9f1915da22ae59969b5b15327e6bf5ddb30eab16fcad9162e970f6","phase":"before","status":200,"revoked_sentinel_present":true}
+EVIDENCE {"at_kst":"2026-10-17T14:05:37.605629+09:00","event":"http","latency_ms":1779.563833,"target":"allowed","response_sha256":"1bf73784bbd38d8f477997186d93b39311143ecc46d6b096bd4c8de436b46ef8","phase":"before","status":200,"revoked_sentinel_present":false}
+EVIDENCE {"at_kst":"2026-10-17T14:05:38.862989+09:00","event":"http","latency_ms":1256.119125,"target":"revoked/content","response_sha256":"47e17539fa6b02d8458990f8fa39199f947dcbffb0547038875522b894d31409","phase":"before","status":200,"revoked_sentinel_present":true}
+EVIDENCE {"at_kst":"2026-10-17T14:05:40.122178+09:00","event":"http","latency_ms":1258.260375,"target":"allowed/content","response_sha256":"bfce8383fb92bc6e422219200f2fbd654baea2e4c07c51348e8e60acaca80c0d","phase":"before","status":200,"revoked_sentinel_present":false}
+EVIDENCE {"at_kst":"2026-10-17T14:05:41.482917+09:00","event":"http","latency_ms":1359.76075,"target":"revoked/file","response_sha256":"69d177a49960b1d4cf3964b6ddf6e762b0721fd7550138240f625ad70d17a2e3","phase":"before","status":200,"revoked_sentinel_present":true}
+EVIDENCE {"at_kst":"2026-10-17T14:05:42.728498+09:00","event":"http","latency_ms":1244.737292,"target":"allowed/file","response_sha256":"5f956c08013de453c0826605cf6b86a9dba1dd00d0d4b3c9c19565970f9149d4","phase":"before","status":200,"revoked_sentinel_present":false}
+EVIDENCE {"at_kst":"2026-10-17T14:05:44.855105+09:00","event":"http","latency_ms":2124.112209,"target":"new-search","response_sha256":"641273f46cd8e93f6cfec8723e738e6af0e7d69acf87326cc796890888dba016","phase":"before","status":200,"revoked_sentinel_present":false}
+PermissionHttpFailoverIntegrationTest > 실제 HTTP 회수 확정 뒤 자동 승격해도 새 응답에 금지 문구가 없고 대조 문서는 정상이다 FAILED
+> Task :permissionHttpHaTest FAILED
+BUILD FAILED in 4m 27s
+{"종료_KST": "2026-10-17T14:05:45.364955+09:00", "exit_code": 1}

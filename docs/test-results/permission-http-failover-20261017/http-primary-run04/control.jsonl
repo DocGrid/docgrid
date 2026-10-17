@@ -1,0 +1,9 @@
+{"run_id": "http-primary-run04", "at_kst": "2026-10-17T14:18:46.733513+09:00", "event": "start", "purpose": "실제 HTTP 회수 확정 뒤 격리 Primary 상실·승격 검증", "location": "로컬 루프백 HTTP → IAP → 격리 OpenSQL·Proxy·역할 어댑터", "revision": "7e45248b81b219b5db37cc615d88632314e88cf5", "uncommitted_test_harness": true, "criteria": "확정 원장 보존·금지 응답0·대조 정상·반복3"}
+{"run_id": "http-primary-run04", "at_kst": "2026-10-17T14:18:46.734147+09:00", "event": "source-fingerprint", "files": {"backend/src/test/java/com/opensource/docgrid/domain/permission/integration/PermissionHttpFailoverIntegrationTest.java": "405fe0ae8bc9a09f7bf5e5f3c0f19924496ca6a85c927093bf32ed6a1c1d4b4b", "backend/build.gradle": "b13cc0b02760d8b28568a6223b6ab9b91a151cdc96c5f2c1cc44c58b8d24f81b"}}
+{"run_id": "http-primary-run04", "at_kst": "2026-10-17T14:19:47.258530+09:00", "event": "fault-requested", "target": "node1", "scope": "isolated-only"}
+{"run_id": "http-primary-run04", "at_kst": "2026-10-17T14:19:48.173350+09:00", "event": "remote", "node_alias": "node1", "result": {"node_alias": "node1", "action": "stop", "completed": true, "at_utc": "2026-10-17T05:19:48.059030+00:00", "production_config_unchanged": true}}
+{"run_id": "http-primary-run04", "at_kst": "2026-10-17T14:19:48.173526+09:00", "event": "fault-confirmed", "target": "node1"}
+{"run_id": "http-primary-run04", "at_kst": "2026-10-17T14:20:07.625462+09:00", "event": "automatic-promotion", "new_primary": "node2"}
+{"run_id": "http-primary-run04", "at_kst": "2026-10-17T14:20:07.628254+09:00", "event": "post-promotion-http-released", "old_primary_stopped": true}
+{"run_id": "http-primary-run04", "at_kst": "2026-10-17T14:20:54.937855+09:00", "event": "app-finished", "exit": 0}
+{"run_id": "http-primary-run04", "at_kst": "2026-10-17T14:20:54.938129+09:00", "event": "complete", "passed": true}

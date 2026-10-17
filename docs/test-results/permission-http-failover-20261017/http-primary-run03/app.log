@@ -1,0 +1,29 @@
+{"실행_ID": "http-primary-run03-app", "목적": "실제 HTTP 인증·회수·승격·금지 응답 차단", "시작_KST": "2026-10-17T14:09:13.025778+09:00", "위치": "로컬 JVM → IAP → 격리 GCP OpenSQL·OpenProxy·역할 어댑터", "명령": "./backend/gradlew -p backend permissionHttpHaTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+> Task :permissionHttpHaTest
+EVIDENCE {"at_kst":"2026-10-17T14:09:31.936450+09:00","event":"start","purpose":"인증 HTTP 회수·승격·응답 차단","criteria":"금지 내용 0·대조 정상·원장 보존","post_recovery_repetitions":3,"location":"루프백 HTTP → IAP → 격리 OpenSQL·OpenProxy·역할 어댑터"}
+EVIDENCE {"at_kst":"2026-10-17T14:09:39.090625+09:00","event":"search-strategy","controlled_vector_candidates":2,"hybrid_enabled":false}
+EVIDENCE {"at_kst":"2026-10-17T14:09:40.385777+09:00","event":"login","status":200,"actor":"owner","latency_ms":1266.397208}
+EVIDENCE {"at_kst":"2026-10-17T14:09:41.292212+09:00","event":"login","status":200,"actor":"target","latency_ms":901.395583}
+EVIDENCE {"at_kst":"2026-10-17T14:09:41.306596+09:00","event":"http","response_sha256":"dbcd71dc785bbbb13753adb742a94d7f57041b4234c28c38d5d353e61f8322a3","target":"detail","latency_ms":13.207916,"revoked_sentinel_present":false,"status":401,"phase":"anonymous"}
+EVIDENCE {"at_kst":"2026-10-17T14:09:43.397016+09:00","event":"http","response_sha256":"0a37a647fac9c51517818fb0f94fb34525e78affa28c00e14863b5991deaec8a","target":"revoked","latency_ms":2089.521958,"revoked_sentinel_present":true,"status":200,"phase":"before"}
+EVIDENCE {"at_kst":"2026-10-17T14:09:45.078209+09:00","event":"http","response_sha256":"c606aff57688863410f35079821c9f228b682bf90ae5ba512a9c032fbb1bc815","target":"allowed","latency_ms":1679.529584,"revoked_sentinel_present":false,"status":200,"phase":"before"}
+EVIDENCE {"at_kst":"2026-10-17T14:09:46.412625+09:00","event":"http","response_sha256":"7f1408e8870ab2a0f6317946c7e1a5bb84915bbdf9c52f0b9277b73bd030f905","target":"revoked/content","latency_ms":1333.46225,"revoked_sentinel_present":true,"status":200,"phase":"before"}
+EVIDENCE {"at_kst":"2026-10-17T14:09:47.699739+09:00","event":"http","response_sha256":"a5257f814b2e6bd899f1b4c1b3f97b295047e445c953ae77c980b216edb5869b","target":"allowed/content","latency_ms":1286.045333,"revoked_sentinel_present":false,"status":200,"phase":"before"}
+EVIDENCE {"at_kst":"2026-10-17T14:09:49.036283+09:00","event":"http","response_sha256":"fe0296dcf5b34b63f8627cef057c5c8e6234ed0bef96cca5c05a0de0fd9651e0","target":"revoked/file","latency_ms":1335.717084,"revoked_sentinel_present":true,"status":200,"phase":"before"}
+EVIDENCE {"at_kst":"2026-10-17T14:09:50.400838+09:00","event":"http","response_sha256":"b3b6abab37f5019641448c7f101100a24d4458920f6869bd3610c44824a581c1","target":"allowed/file","latency_ms":1363.668083,"revoked_sentinel_present":false,"status":200,"phase":"before"}
+EVIDENCE {"at_kst":"2026-10-17T14:09:54.770310+09:00","event":"http","response_sha256":"db5de9276f95d6945a7610c605314b2c7c034aaef818a2f5be63b75971c3f98c","target":"new-search","latency_ms":4367.443292,"revoked_sentinel_present":true,"status":200,"phase":"before"}
+EVIDENCE {"at_kst":"2026-10-17T14:09:57.956719+09:00","event":"http","response_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","target":"permission","latency_ms":3183.314083,"revoked_sentinel_present":false,"status":204,"phase":"revoke"}
+EVIDENCE {"at_kst":"2026-10-17T14:10:00.388852+09:00","event":"http","response_sha256":"357be73eea1a69d5d39d6692a6bfc466be1d1ad705c69da044382a2ffc77bf9a","target":"revoked","latency_ms":1980.57225,"revoked_sentinel_present":false,"status":403,"phase":"after-confirmation"}
+EVIDENCE {"at_kst":"2026-10-17T14:10:02.057049+09:00","event":"http","response_sha256":"da4a177bdbaa21c4d5b4bf302ee69c0e3ebcd2beaaed63b8bc89a38127525c46","target":"allowed","latency_ms":1667.0755,"revoked_sentinel_present":false,"status":200,"phase":"after-confirmation"}
+EVIDENCE {"at_kst":"2026-10-17T14:10:03.948176+09:00","event":"http","response_sha256":"edc77ab14c16862a92c5fbf2abb7aa42b16636c7e3bbe57365db47cc6b193463","target":"revoked/content","latency_ms":1890.060208,"revoked_sentinel_present":false,"status":403,"phase":"after-confirmation"}
+EVIDENCE {"at_kst":"2026-10-17T14:10:05.197694+09:00","event":"http","response_sha256":"0dfe88b9fdde4334dd3c06a21bb90fd852813c761ed71a37a9f06751e2295d2d","target":"allowed/content","latency_ms":1248.605417,"revoked_sentinel_present":false,"status":200,"phase":"after-confirmation"}
+EVIDENCE {"at_kst":"2026-10-17T14:10:07.093151+09:00","event":"http","response_sha256":"e89955a7776bd6743fd1e024e96e342cd832a39855f1978b2712757e7ed972fb","target":"revoked/file","latency_ms":1894.579166,"revoked_sentinel_present":false,"status":403,"phase":"after-confirmation"}
+EVIDENCE {"at_kst":"2026-10-17T14:10:08.340829+09:00","event":"http","response_sha256":"b3b6abab37f5019641448c7f101100a24d4458920f6869bd3610c44824a581c1","target":"allowed/file","latency_ms":1244.58025,"revoked_sentinel_present":false,"status":200,"phase":"after-confirmation"}
+EVIDENCE {"at_kst":"2026-10-17T14:10:13.387035+09:00","event":"http","response_sha256":"33f2b739ab9a74970f7c235f339fa92d0e499ed0780daa6a975a42a62a1d2e05","target":"new-search","latency_ms":5045.165583,"revoked_sentinel_present":false,"status":200,"phase":"after-confirmation"}
+EVIDENCE {"at_kst":"2026-10-17T14:10:13.388599+09:00","event":"revocation-confirmed","request_key":"6bba46a9-d7cf-401c-ae9f-9bc6f12671b0","stale_cache_injected":true}

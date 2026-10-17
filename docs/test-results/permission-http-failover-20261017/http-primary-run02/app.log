@@ -1,0 +1,13 @@
+{"실행_ID": "http-primary-run02-app", "목적": "실제 HTTP 인증·회수·승격·금지 응답 차단", "시작_KST": "2026-10-17T14:08:13.552033+09:00", "위치": "로컬 JVM → IAP → 격리 GCP OpenSQL·OpenProxy·역할 어댑터", "명령": "./backend/gradlew -p backend permissionHttpHaTest --console=plain", "성공_기준": "실제 커밋 경계·원장·인가 단언 전부 통과; 실패·미실행을 구분"}
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+> Task :permissionHttpHaTest
+EVIDENCE {"at_kst":"2026-10-17T14:08:32.790395+09:00","event":"start","location":"루프백 HTTP → IAP → 격리 OpenSQL·OpenProxy·역할 어댑터","purpose":"인증 HTTP 회수·승격·응답 차단","criteria":"금지 내용 0·대조 정상·원장 보존","post_recovery_repetitions":3}
+PermissionHttpFailoverIntegrationTest > 실제 HTTP 회수 확정 뒤 자동 승격해도 새 응답에 금지 문구가 없고 대조 문서는 정상이다 FAILED
+> Task :permissionHttpHaTest FAILED
+BUILD FAILED in 21s
+{"종료_KST": "2026-10-17T14:08:35.378294+09:00", "exit_code": 1}
