@@ -90,7 +90,7 @@ DB 역할 원장은 [DB1](syncpart01-db1-observer.csv), [DB2](syncpart01-db2-obs
 
 사용자의 재시험 요청에 따라 **VM·디스크·데이터·시험 도구·동기 strict 구성·역할 어댑터·OpenProxy 시험 설정·시험용 방화벽 규칙은 유지했다.** 동기/Proxy 설정의 자동 원복 타이머는 중지해 다음 실험까지 설정이 남도록 했다. 과금되는 VM은 계속 실행 중이다.
 
-장애 주입 규칙은 해제했고 guard가 inactive를 확인했다. 시험용 단기 관리자 계정과 앱·부하 VM·로컬의 JWT 파일은 제거했다. 최종 확인에서 DB 3/3·앱 2/2·부하 VM 1/1이 RUNNING이고 내부 LB 백엔드가 HEALTHY 2/2였다. OpenSQL은 Primary 1, 동기 standby 1, 비동기 replica 1 및 streaming 2였다. [환경 확인 기록](environment-final-01.log)을 남겼다. 재시험 시에는 새 합성 계정·JWT를 발급해야 한다.
+장애 주입 규칙은 해제했고 guard가 inactive를 확인했다. 시험용 단기 관리자 계정과 앱·부하 VM·로컬의 JWT 파일을 제거했다. 이번 시험용 OS Login SSH 키도 계정과 로컬에서 제거했으며, DB VM 3대의 임시 OS 관리자 IAM 바인딩은 각 0건이다. 최종 확인에서 전체 VM 7/7이 RUNNING이고 내부 LB 백엔드가 HEALTHY 2/2였다. OpenSQL은 Primary 1, 동기 standby 1, 비동기 replica 1 및 streaming 2였다. [환경 확인 기록](environment-final-01.log)을 남겼다. 재시험 시에는 새 합성 계정·JWT를 발급해야 한다.
 
 ## 준비 중 확인한 사항과 한계
 
