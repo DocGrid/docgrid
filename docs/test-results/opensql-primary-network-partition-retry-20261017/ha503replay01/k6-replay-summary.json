@@ -1,0 +1,13 @@
+{
+  "source_run_id": "ha503part01",
+  "manifest_requests": 751,
+  "iterations": 811,
+  "http_requests": 751,
+  "dropped_iterations": 0,
+  "status_counts": {
+    "200": 585,
+    "201": 166,
+    "other": 0,
+    "unknown": 0
+  }
+}

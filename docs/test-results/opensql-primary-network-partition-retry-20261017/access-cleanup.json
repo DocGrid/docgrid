@@ -1,0 +1,15 @@
+{
+  "observed_at_utc": "2026-10-17T15:13:21.660Z",
+  "synthetic_admin_removed": true,
+  "fixture_cleanup_timers_removed_on_db2_db3": true,
+  "temporary_jwt_removed_on_load_and_app1_and_local": true,
+  "instance_iam_roles_removed": 6,
+  "new_oslogin_keys_removed": 2,
+  "expired_duplicate_oslogin_entry_also_removed": 1,
+  "temporary_private_ssh_key_removed": true,
+  "fault_rules_removed_on_all_three": true,
+  "vm_count_retained": 7,
+  "db_data_retained": true,
+  "synchronous_strict_setting_retained": true,
+  "trial_role_adapter_retained": true
+}

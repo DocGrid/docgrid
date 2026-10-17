@@ -1,0 +1,25 @@
+{
+  "run_id": "ha501base01",
+  "purpose": "멱등 정상 기준선",
+  "location": "격리 GCP 내부 LB → 앱 A/B → OpenProxy A/B → OpenSQL 3노드",
+  "method": "5 req/s × 15초, 최초 HTTP 원장과 DB OpenProxy 경유 감사",
+  "success_criteria": "전송 누락 0, 최초 201 이외 0, DB ID당 1행",
+  "observed": {
+    "run_id": "ha501base01",
+    "observed_at": "2026-10-17T14:42:07.603Z",
+    "events_sha256": "2d0a27bca824b9d91e0c0709b2df21b1f2061e770aa326368ed268c567ffdb5f",
+    "db_before_sha256": "fd6f7472fb5d1af3a4d7b0e0543a49c22be2e03d934d8c263763eed66ea95f99",
+    "initial_requests": 76,
+    "initial_201": 76,
+    "initial_failed": 0,
+    "initial_unknown": 0,
+    "initial_201_missing_before_retry": 0,
+    "db_duplicate_ids_before_retry": 0,
+    "failed_db_present_before_retry": 0,
+    "unknown_db_present_before_retry": 0,
+    "retry_candidates": 0,
+    "not_retried_4xx_or_3xx": 0,
+    "k6_dropped_iterations": 0
+  },
+  "verdict": "PASS"
+}

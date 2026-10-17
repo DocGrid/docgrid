@@ -1,0 +1,9 @@
+{
+  "run_id": "ha503conflict01",
+  "source_run_id": "ha503part01",
+  "http_status": 409,
+  "row_count_after": 751,
+  "duplicate_ids": 0,
+  "audit_unchanged": true,
+  "sha256": "b5c13c7b50b7ca36adfdf1fa9ae8f88bd929460aaab2bc45653197415eecae34"
+}

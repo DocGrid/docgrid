@@ -74,7 +74,8 @@ def timer_active(unit):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("role", "proxy-role", "arm", "create", "status", "audit", "remove", "cancel"))
+    parser.add_argument("action", choices=("role", "proxy-role", "arm", "create", "create-via-proxy",
+                                           "status", "audit", "audit-idempotent", "remove", "cancel"))
     parser.add_argument("container")
     parser.add_argument("run_id")
     args = parser.parse_args()
@@ -105,13 +106,19 @@ def main():
         if not timer_active(unit):
             raise RuntimeError("fixture_timer_inactive")
         print("fixture_cleanup_armed=yes")
-    elif args.action == "create":
-        # 2. Only the Primary may insert a disabled-login synthetic ADMIN.
-        primary(args.container)
+    elif args.action in ("create", "create-via-proxy"):
+        # 2. The local Primary or an explicit read-write Proxy route may create the fixture.
+        via_proxy = args.action == "create-via-proxy"
+        if via_proxy:
+            result = query(args.container, "BEGIN READ WRITE; SELECT pg_is_in_recovery(); COMMIT;\n", port="6432")
+            if "f" not in result.splitlines():
+                raise RuntimeError("proxy_target_not_primary")
+        else:
+            primary(args.container)
         if not timer_active(unit) or fixture_count(args.container, email, port="6432"):
             raise RuntimeError("fixture_creation_guard_failed")
         sql = f"""
-BEGIN;
+{'BEGIN READ WRITE;' if via_proxy else 'BEGIN;'}
 INSERT INTO users (email, password_hash, name, status)
 VALUES ('{email}', '!disabled!', 'HA partition admin', 'ACTIVE');
 INSERT INTO user_roles (user_id, role_id, assigned_by, assigned_at)
@@ -122,22 +129,25 @@ COMMIT;
 SELECT u.id FROM users u JOIN user_roles ur ON ur.user_id = u.id
 JOIN roles r ON r.id = ur.role_id WHERE u.email = '{email}' AND r.code = 'ADMIN';
 """
-        user_id = query(args.container, sql)
+        user_id = query(args.container, sql, port="6432" if via_proxy else "5432")
         if not user_id.isdigit():
             raise RuntimeError("fixture_user_id_missing")
         print(f"fixture_user_id={user_id}")
     elif args.action == "status":
         print(f"fixture_count={fixture_count(args.container, email, port='6432')} "
               f"cleanup_armed={'yes' if timer_active(unit) else 'no'}")
-    elif args.action == "audit":
+    elif args.action in ("audit", "audit-idempotent"):
         # The explicit write transaction asks OpenProxy for the current
         # Primary. Return only synthetic request IDs and row multiplicities.
+        table = "ha_probe_idempotent_writes" if args.action == "audit-idempotent" else "ha_probe_writes"
         result = query(args.container, f"""
 BEGIN READ WRITE;
-SELECT request_id || ',' || count(*) FROM ha_probe_writes
+SELECT request_id || ',' || count(*) FROM {table}
 WHERE run_id = '{args.run_id}' GROUP BY request_id ORDER BY request_id;
 COMMIT;
 """, port="6432")
+        if args.action == "audit-idempotent":
+            print("request_id,row_count")
         for line in result.splitlines():
             if re.fullmatch(rf"{args.run_id}-[A-Za-z0-9._-]+,[0-9]+", line):
                 print(line)

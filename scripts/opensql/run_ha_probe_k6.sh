@@ -25,6 +25,7 @@ case "$purpose_code" in
   etcd-quorum-fault) purpose='etcd 정족수 상실 중 앱 HTTP 쓰기' ;;
   sync-standby-link-fault) purpose='OpenSQL 동기 standby 복제 연결 상실 중 앱 HTTP 쓰기' ;;
   primary-network-partition) purpose='살아 있는 옛 Primary와 클러스터 다수 간 네트워크 분할 중 앱 HTTP 쓰기' ;;
+  primary-network-partition-idempotent) purpose='Primary 네트워크 분할 중 멱등 쓰기·재전송' ;;
   *) echo '시험 목적 코드가 잘못되었습니다' >&2; exit 2 ;;
 esac
 # A leader handoff can hold many requests until the 10 s client timeout.
@@ -35,11 +36,13 @@ if [[ "$purpose_code" == primary-switchover ||
       "$purpose_code" == primary-vm-fault ||
       "$purpose_code" == primary-vm-idempotent ||
       "$purpose_code" == primary-network-partition ||
+      "$purpose_code" == primary-network-partition-idempotent ||
       "$purpose_code" == sync-standby-link-fault ||
       "$purpose_code" == etcd-quorum-fault ]]; then max_vus=800; fi
 idempotent=0
 target_path='/api/ha-probe/writes'
-if [[ "$purpose_code" == baseline-idempotent || "$purpose_code" == primary-vm-idempotent ]]; then
+if [[ "$purpose_code" == baseline-idempotent || "$purpose_code" == primary-vm-idempotent ||
+      "$purpose_code" == primary-network-partition-idempotent ]]; then
   idempotent=1
   target_path='/api/ha-probe/idempotent-writes'
 fi
@@ -69,7 +72,8 @@ export HA_TARGET_URL="$target" HA_JWT="$(< "$token_file")"
 export HA_SUMMARY_FILE="$run_dir/k6-summary.json"
 export HA_VUS="$initial_vus" HA_MAX_VUS="$max_vus" HA_TIMEOUT=10s
 export HA_IDEMPOTENT="$idempotent"
-if [[ "$purpose_code" == primary-network-partition ]]; then
+if [[ "$purpose_code" == primary-network-partition ||
+      "$purpose_code" == primary-network-partition-idempotent ]]; then
   export HA_FAULT_EXPECTED=1
 fi
 printf '멱등 쓰기 경로=%s\n' "$idempotent" >> "$run_dir/실행-기록.txt"

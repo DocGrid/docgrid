@@ -1,0 +1,31 @@
+{"at": "2026-10-17T14:49:29.820Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v5-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:29.824Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v5-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:32.319Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v11-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:32.319Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v11-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:33.315Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v13-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:33.317Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v13-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:33.359Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v4-i1", "run_id": "ha502diag01", "sqlstate": "58000", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:33.360Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v4-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:34.315Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v15-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:34.315Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v15-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:34.362Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v6-i1", "run_id": "ha502diag01", "sqlstate": "58000", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:34.363Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v6-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:35.317Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v16-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:35.318Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v16-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:35.816Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v19-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:35.816Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v19-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:35.858Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v8-i1", "run_id": "ha502diag01", "sqlstate": "58000", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:35.859Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v8-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:37.316Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v22-i1", "run_id": "ha502diag01", "sqlstate": "08003", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:37.316Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v22-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:38.827Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v25-i1", "run_id": "ha502diag01", "sqlstate": "08003", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:39.320Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v26-i1", "run_id": "ha502diag01", "sqlstate": "08003", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:40.817Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v28-i1", "run_id": "ha502diag01", "sqlstate": "08003", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:41.324Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v29-i1", "run_id": "ha502diag01", "sqlstate": "08003", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:42.820Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v32-i1", "run_id": "ha502diag01", "sqlstate": "08003", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:43.815Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v34-i1", "run_id": "ha502diag01", "sqlstate": "08003", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:44.314Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v35-i1", "run_id": "ha502diag01", "sqlstate": "08003", "type": "DataAccessResourceFailureException"}
+{"at": "2026-10-17T14:49:45.906Z", "event": "EXCEPTION", "phase": "TX_BEGIN", "request_id": "ha502diag01-v18-i1", "run_id": "ha502diag01", "sqlstate": "58000", "status": 500, "type": "CannotCreateTransactionException"}
+{"at": "2026-10-17T14:49:45.907Z", "event": "RESULT", "phase": "TX_BEGIN", "request_id": "ha502diag01-v18-i1", "run_id": "ha502diag01", "status": 500}
+{"at": "2026-10-17T14:49:54.459Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v39-i1", "run_id": "ha502diag01", "sqlstate": "58000", "type": "JpaSystemException"}
+{"at": "2026-10-17T14:49:55.955Z", "event": "THROW", "phase": "AUTHORIZATION", "request_id": "ha502diag01-v3-i2", "run_id": "ha502diag01", "sqlstate": "58000", "type": "JpaSystemException"}
