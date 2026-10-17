@@ -66,8 +66,11 @@ class PermissionMixedCommitIntegrationTest {
     @DisplayName("같은 클러스터·풀·부하에서 독립 쓰기 on/local의 대기와 성공 원장 보존을 비교한다")
     void compareCommitPolicies() throws Exception {
         root=Path.of(System.getenv("PERMISSION_HA_RUN_DIR"));Files.createDirectories(root);
+        String selected=System.getenv().getOrDefault("PERMISSION_MIXED_SCENARIO","all");
+        require(List.of("all","ack-loss","primary-loss").contains(selected),"invalid_scenario_selection");
         // 순서를 명시하며 Primary 상실 회차는 local을 먼저 실행해 항상 같은 순서의 편향을 줄인다.
         for(CaseSpec spec:List.of(new CaseSpec("on","ack-loss"),new CaseSpec("local","ack-loss"),new CaseSpec("local","primary-loss"),new CaseSpec("on","primary-loss"))) {
+            if(!selected.equals("all")&&!selected.equals(spec.scenario()))continue;
             directory=root.resolve(spec.id());Files.createDirectories(directory);responses.clear();
             event("case-start",Map.of("mode",spec.mode(),"scenario",spec.scenario(),"samples_each_kind",EACH_KIND,"concurrency",8,"pool_size",5));
             Files.writeString(directory.resolve("case.waiting"),"isolated_reset_required\n",StandardOpenOption.CREATE_NEW);
@@ -182,7 +185,21 @@ class PermissionMixedCommitIntegrationTest {
         return result;
     }
 
-    private Map<String,Set<UUID>> audit(List<Fixture> fixtures) {
+    private Map<String,Set<UUID>> audit(List<Fixture> fixtures) throws Exception {
+        // DB 승격과 Proxy/Hikari의 읽기 재개는 다른 시점이다. 읽기만 재시도해 최초 성공 키를 보존한다.
+        long deadline=System.nanoTime()+Duration.ofSeconds(45).toNanos();int attempts=0;
+        while(true) {
+            attempts++;
+            try {return auditOnce(fixtures);}
+            catch(org.springframework.transaction.TransactionException|org.springframework.dao.TransientDataAccessException failure) {
+                event("audit-read-retry",Map.of("attempt",attempts,"category",failure.getClass().getSimpleName(),"writes_performed",false));
+                if(System.nanoTime()>=deadline)throw failure;
+                Thread.sleep(500);
+            }
+        }
+    }
+
+    private Map<String,Set<UUID>> auditOnce(List<Fixture> fixtures) {
         return new TransactionTemplate(manager).execute(status->{
             JdbcTemplate jdbc=new JdbcTemplate(dataSource);
             require(Boolean.FALSE.equals(jdbc.queryForObject("SELECT pg_is_in_recovery()",Boolean.class)),"audit_not_primary");

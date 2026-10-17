@@ -705,6 +705,9 @@ tasks.register('permissionMixedCommitTest', Test) {
         ['PERMISSION_HA_PASSWORD','PERMISSION_HA_RUN_DIR'].each { name ->
             if (!System.getenv(name)?.trim()) throw new GradleException('격리 비교 실행 설정이 필요합니다: ' + name)
         }
+        if (!((System.getenv('PERMISSION_MIXED_SCENARIO') ?: 'all') in ['all','ack-loss','primary-loss'])) {
+            throw new GradleException('지원하는 혼합 부하 시나리오가 필요합니다.')
+        }
         def directory = file(System.getenv('PERMISSION_HA_RUN_DIR'))
         if (directory.exists() && directory.listFiles().any { it.isDirectory() }) {
             throw new GradleException('이전 회차가 없는 새 혼합 부하 디렉터리가 필요합니다.')
