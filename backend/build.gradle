@@ -65,7 +65,7 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform {
-		excludeTags 'permission-http-ha', 'permission-ha', 'permission-standby', 'permission-durability', 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract', 'opensql-outbox-isolated'
+		excludeTags 'permission-mixed', 'permission-http-ha', 'permission-ha', 'permission-standby', 'permission-durability', 'benchmark', 'dashboard-cloud-load', 'minio-integration', 'claim-concurrency', 'local-e2e', 'storage-worker-e2e', 'real-pdf-version-e2e', 'vector-search-performance', 'vector-storage-performance', 'worker-indexing-throughput', 'worker-horizontal-scaling', 'worker-queue-backpressure', 'document-indexing-e2e-load', 'chunk-quality-performance', 'section-path-quality', 'opensql-ha-connection', 'opensql-ha-contract', 'opensql-outbox-isolated'
 	}
 }
 
@@ -683,6 +683,31 @@ tasks.register('permissionHttpHaTest', Test) {
         def runDirectory = file(System.getenv('PERMISSION_HA_RUN_DIR'))
         if (['http.jsonl','ready','fault.done'].any { new File(runDirectory, it).exists() }) {
             throw new GradleException('새 HTTP 시험 회차 디렉터리가 필요합니다.')
+        }
+    }
+}
+
+
+// 같은 격리 동기 클러스터에서 회수 on·독립 쓰기 on/local 한 변수만 비교한다.
+tasks.register('permissionMixedCommitTest', Test) {
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'permission-mixed' }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    testLogging { events 'passed', 'failed'; showStandardStreams = true }
+    doFirst {
+        if (!(System.getenv('PERMISSION_HA_JDBC_URL') ?: '').matches('jdbc:postgresql://127\\.0\\.0\\.1:18443/permission_test.*') ||
+            !(System.getenv('PERMISSION_HA_MIGRATION_JDBC_URL') ?: '').matches('jdbc:postgresql://127\\.0\\.0\\.1:18431/postgres')) {
+            throw new GradleException('전용 루프백 격리 혼합 부하 DB 주소가 필요합니다.')
+        }
+        ['PERMISSION_HA_PASSWORD','PERMISSION_HA_RUN_DIR'].each { name ->
+            if (!System.getenv(name)?.trim()) throw new GradleException('격리 비교 실행 설정이 필요합니다: ' + name)
+        }
+        def directory = file(System.getenv('PERMISSION_HA_RUN_DIR'))
+        if (directory.exists() && directory.listFiles().any { it.isDirectory() }) {
+            throw new GradleException('이전 회차가 없는 새 혼합 부하 디렉터리가 필요합니다.')
         }
     }
 }
