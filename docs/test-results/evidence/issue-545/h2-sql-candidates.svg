@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 701 386" width="701" height="386" role="img" aria-label="허용 100%에서 SQL이 돌려준 후보 수">
+<style>
+.surface{fill:#fcfcfb}.ink{fill:#0b0b0b}.ink2{fill:#52514e}.grid{stroke:#e4e3de}.axis{stroke:#b9b8b1}
+.ref{stroke:#8f8e87}.ring{stroke:#fcfcfb}
+.l0{stroke:#2a78d6}.d0{fill:#2a78d6}.l1{stroke:#eb6834}.d1{fill:#eb6834}.l2{stroke:#1baf7a}.d2{fill:#1baf7a}
+@media (prefers-color-scheme: dark){.surface{fill:#1a1a19}.ink{fill:#f0efec}.ink2{fill:#c3c2b7}
+.grid{stroke:#33332f}.axis{stroke:#5b5a54}.ref{stroke:#8a897f}.ring{stroke:#1a1a19}.l0{stroke:#3987e5}.d0{fill:#3987e5}.l1{stroke:#d95926}.d1{fill:#d95926}.l2{stroke:#199e70}.d2{fill:#199e70}}
+text{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+</style>
+<rect class="surface" width="701" height="386" rx="8"/>
+<text class="ink" x="20" y="28" font-size="16" font-weight="600">허용 100%에서 SQL이 돌려준 후보 수</text>
+<text class="ink2" x="20" y="48" font-size="12">50,000 청크, 질문 30개 평균. SQL 요청 수는 topK × 4이다. HNSW 강제 ef100은 Exact와 같은 값이라 겹친다.</text>
+<line class="l0" x1="20" y1="70" x2="38" y2="70" stroke-width="2" stroke-linecap="round"/><circle class="l0 surface" cx="29" cy="70" r="5" stroke-width="2"/>
+<text class="ink2" x="44" y="74" font-size="12">Exact = 요청 수</text>
+<line class="l1" x1="164.64" y1="70" x2="182.64" y2="70" stroke-width="2" stroke-linecap="round"/><circle class="d1 ring" cx="173.64" cy="70" r="4" stroke-width="2"/>
+<text class="ink2" x="188.64" y="74" font-size="12">HNSW 강제 ef40</text>
+<line class="l2" x1="304.23999999999995" y1="70" x2="322.23999999999995" y2="70" stroke-width="2" stroke-linecap="round"/><circle class="d2 ring" cx="313.23999999999995" cy="70" r="4" stroke-width="2"/>
+<text class="ink2" x="328.23999999999995" y="74" font-size="12">HNSW 강제 ef100</text>
+<text class="ink" x="56" y="98" font-size="13" font-weight="600">topK별 SQL 반환 후보</text>
+<line class="grid" x1="56" y1="322.0" x2="536" y2="322.0" stroke-width="1"/>
+<text class="ink2" x="48" y="326.0" font-size="11" text-anchor="end">0</text>
+<line class="grid" x1="56" y1="269.5" x2="536" y2="269.5" stroke-width="1"/>
+<text class="ink2" x="48" y="273.5" font-size="11" text-anchor="end">20</text>
+<line class="grid" x1="56" y1="217.0" x2="536" y2="217.0" stroke-width="1"/>
+<text class="ink2" x="48" y="221.0" font-size="11" text-anchor="end">40</text>
+<line class="grid" x1="56" y1="164.5" x2="536" y2="164.5" stroke-width="1"/>
+<text class="ink2" x="48" y="168.5" font-size="11" text-anchor="end">60</text>
+<line class="grid" x1="56" y1="112.0" x2="536" y2="112.0" stroke-width="1"/>
+<text class="ink2" x="48" y="116.0" font-size="11" text-anchor="end">80</text>
+<line class="axis" x1="56" y1="322" x2="536" y2="322" stroke-width="1"/>
+<text class="ink2" x="56.0" y="340" font-size="11" text-anchor="start">topK 5 (요청 20)</text>
+<text class="ink2" x="296.0" y="340" font-size="11" text-anchor="middle">topK 10 (요청 40)</text>
+<text class="ink2" x="536.0" y="340" font-size="11" text-anchor="end">topK 20 (요청 80)</text>
+<polyline class="l1" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="56.0,269.5 296.0,217.0 536.0,217.0"/>
+<circle class="d1 ring" cx="56.0" cy="269.5" r="4" stroke-width="2"><title>HNSW 강제 ef40 · topK 5 (요청 20): 20.0</title></circle>
+<circle class="d1 ring" cx="296.0" cy="217.0" r="4" stroke-width="2"><title>HNSW 강제 ef40 · topK 10 (요청 40): 40.0</title></circle>
+<circle class="d1 ring" cx="536.0" cy="217.0" r="4" stroke-width="2"><title>HNSW 강제 ef40 · topK 20 (요청 80): 40.0</title></circle>
+<polyline class="l2" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="56.0,269.5 296.0,217.0 536.0,112.0"/>
+<circle class="d2 ring" cx="56.0" cy="269.5" r="4" stroke-width="2"><title>HNSW 강제 ef100 · topK 5 (요청 20): 20.0</title></circle>
+<circle class="d2 ring" cx="296.0" cy="217.0" r="4" stroke-width="2"><title>HNSW 강제 ef100 · topK 10 (요청 40): 40.0</title></circle>
+<circle class="d2 ring" cx="536.0" cy="112.0" r="4" stroke-width="2"><title>HNSW 강제 ef100 · topK 20 (요청 80): 80.0</title></circle>
+<polyline class="l0" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="56.0,269.5 296.0,217.0 536.0,112.0"/>
+<circle class="l0" fill="none" cx="56.0" cy="269.5" r="6.5" stroke-width="2"><title>Exact = 요청 수 · topK 5 (요청 20): 20.0</title></circle>
+<circle class="l0" fill="none" cx="296.0" cy="217.0" r="6.5" stroke-width="2"><title>Exact = 요청 수 · topK 10 (요청 40): 40.0</title></circle>
+<circle class="l0" fill="none" cx="536.0" cy="112.0" r="6.5" stroke-width="2"><title>Exact = 요청 수 · topK 20 (요청 80): 80.0</title></circle>
+<text class="ink2" x="20" y="372" font-size="11">y축: SQL 반환 후보 수 평균</text>
+</svg>
