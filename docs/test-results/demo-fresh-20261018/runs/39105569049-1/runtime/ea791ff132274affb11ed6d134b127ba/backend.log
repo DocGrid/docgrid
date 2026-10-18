@@ -1,0 +1,1 @@
+2026-10-18T15:56:54+09:00 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to <설정된 서버> in the Gradle documentation.

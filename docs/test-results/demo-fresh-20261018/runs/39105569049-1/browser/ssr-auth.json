@@ -1,0 +1,7 @@
+{
+  "purpose": "hydration 이전 인증정보 URL 제출 방지",
+  "timestamp": "2026-10-18T06:56:31.669Z",
+  "postFallback": true,
+  "initiallyDisabled": true,
+  "verdict": "PASS"
+}

@@ -196,6 +196,12 @@ class DemoVerdictTest(unittest.TestCase):
         self.assertNotIn("user@example.invalid", events)
         self.assertNotIn("server.invalid", events)
 
+    def test_query_credentials_are_redacted_without_knowing_the_password(self):
+        text = seed.safe_text('/login?email=fixture%40example.invalid&password=synthetic-unregistered-password&token=opaque-fixture-token')
+        self.assertNotIn('fixture%40example.invalid', text)
+        self.assertNotIn('synthetic-unregistered-password', text)
+        self.assertNotIn('opaque-fixture-token', text)
+
 
 class HttpBoundaryTest(unittest.TestCase):
     """HTTP 오류 코드 해석과 원본 응답 크기 제한의 실제 클라이언트 경계를 확인한다."""

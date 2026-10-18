@@ -1,0 +1,607 @@
+2026-10-18T15:35:49+09:00 [local-services] 로컬 PostgreSQL·Valkey·Embedding Provider를 시작합니다.
+2026-10-18T15:35:50+09:00  postgres Pulling 
+2026-10-18T15:35:50+09:00  valkey Pulling 
+2026-10-18T15:35:51+09:00  4831516dd0cb Pulling fs layer 
+2026-10-18T15:35:51+09:00  9f4a0348ad2e Pulling fs layer 
+2026-10-18T15:35:51+09:00  6b6aac9d7476 Pulling fs layer 
+2026-10-18T15:35:51+09:00  d8a310896f84 Pulling fs layer 
+2026-10-18T15:35:51+09:00  99bb4ce30ad3 Pulling fs layer 
+2026-10-18T15:35:51+09:00  31b6f2223c4b Pulling fs layer 
+2026-10-18T15:35:51+09:00  9da35c01411f Pulling fs layer 
+2026-10-18T15:35:51+09:00  a6809e067bc1 Pulling fs layer 
+2026-10-18T15:35:51+09:00  10643155f463 Pulling fs layer 
+2026-10-18T15:35:51+09:00  a7ef49b2a615 Pulling fs layer 
+2026-10-18T15:35:51+09:00  29d37472e7c3 Pulling fs layer 
+2026-10-18T15:35:51+09:00  4d2363af1825 Pulling fs layer 
+2026-10-18T15:35:51+09:00  4a14fbbe260a Pulling fs layer 
+2026-10-18T15:35:51+09:00  8cced4a98c7e Pulling fs layer 
+2026-10-18T15:35:51+09:00  4909bfb5f5ed Pulling fs layer 
+2026-10-18T15:35:51+09:00  3e1ddef0ec36 Pulling fs layer 
+2026-10-18T15:35:51+09:00  d8a310896f84 Waiting 
+2026-10-18T15:35:51+09:00  99bb4ce30ad3 Waiting 
+2026-10-18T15:35:51+09:00  31b6f2223c4b Waiting 
+2026-10-18T15:35:51+09:00  9da35c01411f Waiting 
+2026-10-18T15:35:51+09:00  a6809e067bc1 Waiting 
+2026-10-18T15:35:51+09:00  10643155f463 Waiting 
+2026-10-18T15:35:51+09:00  a7ef49b2a615 Waiting 
+2026-10-18T15:35:51+09:00  29d37472e7c3 Waiting 
+2026-10-18T15:35:51+09:00  4909bfb5f5ed Waiting 
+2026-10-18T15:35:51+09:00  4d2363af1825 Waiting 
+2026-10-18T15:35:51+09:00  3e1ddef0ec36 Waiting 
+2026-10-18T15:35:51+09:00  4a14fbbe260a Waiting 
+2026-10-18T15:35:51+09:00  8cced4a98c7e Waiting 
+2026-10-18T15:35:51+09:00  e2de96513ba9 Already exists 
+2026-10-18T15:35:51+09:00  d78be5cc1e53 Pulling fs layer 
+2026-10-18T15:35:51+09:00  fe2c7735354a Pulling fs layer 
+2026-10-18T15:35:51+09:00  95121e5a56c0 Pulling fs layer 
+2026-10-18T15:35:51+09:00  d9f591c70342 Pulling fs layer 
+2026-10-18T15:35:51+09:00  4f4fb700ef54 Pulling fs layer 
+2026-10-18T15:35:51+09:00  4ed485d78f72 Pulling fs layer 
+2026-10-18T15:35:51+09:00  d78be5cc1e53 Waiting 
+2026-10-18T15:35:51+09:00  fe2c7735354a Waiting 
+2026-10-18T15:35:51+09:00  95121e5a56c0 Waiting 
+2026-10-18T15:35:51+09:00  d9f591c70342 Waiting 
+2026-10-18T15:35:51+09:00  4f4fb700ef54 Waiting 
+2026-10-18T15:35:51+09:00  4ed485d78f72 Waiting 
+2026-10-18T15:35:51+09:00  9f4a0348ad2e Downloading [==================================================>]  1.169kB/1.169kB
+2026-10-18T15:35:51+09:00  6b6aac9d7476 Downloading [>                                                  ]  48.51kB/4.534MB
+2026-10-18T15:35:51+09:00  9f4a0348ad2e Verifying Checksum 
+2026-10-18T15:35:51+09:00  9f4a0348ad2e Download complete 
+2026-10-18T15:35:51+09:00  4831516dd0cb Downloading [>                                                  ]  294.2kB/28.23MB
+2026-10-18T15:35:51+09:00  6b6aac9d7476 Verifying Checksum 
+2026-10-18T15:35:51+09:00  6b6aac9d7476 Download complete 
+2026-10-18T15:35:51+09:00  4831516dd0cb Verifying Checksum 
+2026-10-18T15:35:51+09:00  4831516dd0cb Download complete 
+2026-10-18T15:35:51+09:00  4831516dd0cb Extracting [>                                                  ]  294.9kB/28.23MB
+2026-10-18T15:35:51+09:00  d8a310896f84 Downloading [>                                                  ]  15.74kB/1.25MB
+2026-10-18T15:35:51+09:00  4831516dd0cb Extracting [=========>                                         ]  5.308MB/28.23MB
+2026-10-18T15:35:51+09:00  d8a310896f84 Verifying Checksum 
+2026-10-18T15:35:51+09:00  d8a310896f84 Download complete 
+2026-10-18T15:35:51+09:00  99bb4ce30ad3 Downloading [>                                                  ]  81.28kB/8.066MB
+2026-10-18T15:35:51+09:00  99bb4ce30ad3 Verifying Checksum 
+2026-10-18T15:35:51+09:00  99bb4ce30ad3 Download complete 
+2026-10-18T15:35:51+09:00  31b6f2223c4b Downloading [>                                                  ]  15.74kB/1.196MB
+2026-10-18T15:35:51+09:00  31b6f2223c4b Verifying Checksum 
+2026-10-18T15:35:51+09:00  31b6f2223c4b Download complete 
+2026-10-18T15:35:51+09:00  4831516dd0cb Extracting [================>                                  ]  9.142MB/28.23MB
+2026-10-18T15:35:52+09:00  4831516dd0cb Extracting [=====================>                             ]  12.39MB/28.23MB
+2026-10-18T15:35:52+09:00  9da35c01411f Downloading [==================================================>]     116B/116B
+2026-10-18T15:35:52+09:00  9da35c01411f Verifying Checksum 
+2026-10-18T15:35:52+09:00  9da35c01411f Download complete 
+2026-10-18T15:35:52+09:00  a6809e067bc1 Downloading [==================================================>]  3.141kB/3.141kB
+2026-10-18T15:35:52+09:00  a6809e067bc1 Download complete 
+2026-10-18T15:35:52+09:00  10643155f463 Downloading [>                                                  ]  528.3kB/112.8MB
+2026-10-18T15:35:52+09:00  4831516dd0cb Extracting [====================================>              ]  20.64MB/28.23MB
+2026-10-18T15:35:52+09:00  10643155f463 Downloading [===>                                               ]  7.907MB/112.8MB
+2026-10-18T15:35:52+09:00  a7ef49b2a615 Downloading [================>                                  ]  3.499kB/10.3kB
+2026-10-18T15:35:52+09:00  a7ef49b2a615 Downloading [==================================================>]   10.3kB/10.3kB
+2026-10-18T15:35:52+09:00  a7ef49b2a615 Verifying Checksum 
+2026-10-18T15:35:52+09:00  a7ef49b2a615 Download complete 
+2026-10-18T15:35:52+09:00  29d37472e7c3 Download complete 
+2026-10-18T15:35:52+09:00  10643155f463 Downloading [=======>                                           ]  15.83MB/112.8MB
+2026-10-18T15:35:52+09:00  4831516dd0cb Extracting [==========================================>        ]  23.89MB/28.23MB
+2026-10-18T15:35:52+09:00  10643155f463 Downloading [====================>                              ]  46.27MB/112.8MB
+2026-10-18T15:35:52+09:00  4d2363af1825 Downloading [==================================================>]     168B/168B
+2026-10-18T15:35:52+09:00  4d2363af1825 Verifying Checksum 
+2026-10-18T15:35:52+09:00  4d2363af1825 Download complete 
+2026-10-18T15:35:52+09:00  4831516dd0cb Extracting [===============================================>   ]  26.54MB/28.23MB
+2026-10-18T15:35:52+09:00  10643155f463 Downloading [==================================>                ]  77.27MB/112.8MB
+2026-10-18T15:35:52+09:00  4a14fbbe260a Downloading [=============================>                     ]    3.5kB/5.84kB
+2026-10-18T15:35:52+09:00  4a14fbbe260a Download complete 
+2026-10-18T15:35:52+09:00  10643155f463 Downloading [================================================>  ]  110.4MB/112.8MB
+2026-10-18T15:35:52+09:00  10643155f463 Verifying Checksum 
+2026-10-18T15:35:52+09:00  10643155f463 Download complete 
+2026-10-18T15:35:52+09:00  4831516dd0cb Extracting [================================================>  ]  27.13MB/28.23MB
+2026-10-18T15:35:52+09:00  8cced4a98c7e Downloading [==================================================>]     186B/186B
+2026-10-18T15:35:52+09:00  8cced4a98c7e Verifying Checksum 
+2026-10-18T15:35:52+09:00  8cced4a98c7e Download complete 
+2026-10-18T15:35:52+09:00  4909bfb5f5ed Downloading [=>                                                 ]  3.498kB/123.1kB
+2026-10-18T15:35:52+09:00  4909bfb5f5ed Downloading [==================================================>]  123.1kB/123.1kB
+2026-10-18T15:35:52+09:00  4909bfb5f5ed Verifying Checksum 
+2026-10-18T15:35:52+09:00  4909bfb5f5ed Download complete 
+2026-10-18T15:35:52+09:00  3e1ddef0ec36 Downloading [>                                                  ]  15.74kB/1.451MB
+2026-10-18T15:35:52+09:00  3e1ddef0ec36 Verifying Checksum 
+2026-10-18T15:35:52+09:00  3e1ddef0ec36 Download complete 
+2026-10-18T15:35:52+09:00  4831516dd0cb Extracting [================================================>  ]  27.43MB/28.23MB
+2026-10-18T15:35:52+09:00  d78be5cc1e53 Downloading [==================================================>]     951B/951B
+2026-10-18T15:35:52+09:00  d78be5cc1e53 Verifying Checksum 
+2026-10-18T15:35:52+09:00  d78be5cc1e53 Download complete 
+2026-10-18T15:35:52+09:00  d78be5cc1e53 Extracting [==================================================>]     951B/951B
+2026-10-18T15:35:52+09:00  d78be5cc1e53 Extracting [==================================================>]     951B/951B
+2026-10-18T15:35:52+09:00  fe2c7735354a Downloading [=>                                                 ]  15.79kB/666.5kB
+2026-10-18T15:35:52+09:00  fe2c7735354a Downloading [==================================================>]  666.5kB/666.5kB
+2026-10-18T15:35:52+09:00  fe2c7735354a Verifying Checksum 
+2026-10-18T15:35:52+09:00  fe2c7735354a Download complete 
+2026-10-18T15:35:53+09:00  4831516dd0cb Extracting [==================================================>]  28.23MB/28.23MB
+2026-10-18T15:35:53+09:00  95121e5a56c0 Downloading [>                                                  ]  146.9kB/14.29MB
+2026-10-18T15:35:53+09:00  d9f591c70342 Downloading [==================================================>]     140B/140B
+2026-10-18T15:35:53+09:00  d9f591c70342 Verifying Checksum 
+2026-10-18T15:35:53+09:00  d9f591c70342 Download complete 
+2026-10-18T15:35:53+09:00  95121e5a56c0 Verifying Checksum 
+2026-10-18T15:35:53+09:00  95121e5a56c0 Download complete 
+2026-10-18T15:35:53+09:00  4f4fb700ef54 Downloading [==================================================>]      32B/32B
+2026-10-18T15:35:53+09:00  4f4fb700ef54 Download complete 
+2026-10-18T15:35:53+09:00  4831516dd0cb Pull complete 
+2026-10-18T15:35:53+09:00  9f4a0348ad2e Extracting [==================================================>]  1.169kB/1.169kB
+2026-10-18T15:35:53+09:00  9f4a0348ad2e Extracting [==================================================>]  1.169kB/1.169kB
+2026-10-18T15:35:53+09:00  4ed485d78f72 Downloading [==================================================>]     668B/668B
+2026-10-18T15:35:53+09:00  4ed485d78f72 Verifying Checksum 
+2026-10-18T15:35:53+09:00  4ed485d78f72 Download complete 
+2026-10-18T15:35:53+09:00  9f4a0348ad2e Pull complete 
+2026-10-18T15:35:53+09:00  6b6aac9d7476 Extracting [>                                                  ]  65.54kB/4.534MB
+2026-10-18T15:35:53+09:00  6b6aac9d7476 Extracting [==>                                                ]  262.1kB/4.534MB
+2026-10-18T15:35:54+09:00  d78be5cc1e53 Pull complete 
+2026-10-18T15:35:54+09:00  6b6aac9d7476 Extracting [=================================>                 ]   3.08MB/4.534MB
+2026-10-18T15:35:54+09:00  fe2c7735354a Extracting [==>                                                ]  32.77kB/666.5kB
+2026-10-18T15:35:54+09:00  6b6aac9d7476 Extracting [==================================================>]  4.534MB/4.534MB
+2026-10-18T15:35:54+09:00  fe2c7735354a Extracting [==================================================>]  666.5kB/666.5kB
+2026-10-18T15:35:54+09:00  fe2c7735354a Extracting [==================================================>]  666.5kB/666.5kB
+2026-10-18T15:35:54+09:00  6b6aac9d7476 Pull complete 
+2026-10-18T15:35:54+09:00  d8a310896f84 Extracting [=>                                                 ]  32.77kB/1.25MB
+2026-10-18T15:35:54+09:00  d8a310896f84 Extracting [==================================================>]   1.25MB/1.25MB
+2026-10-18T15:35:54+09:00  d8a310896f84 Pull complete 
+2026-10-18T15:35:54+09:00  99bb4ce30ad3 Extracting [>                                                  ]   98.3kB/8.066MB
+2026-10-18T15:35:54+09:00  fe2c7735354a Pull complete 
+2026-10-18T15:35:54+09:00  95121e5a56c0 Extracting [>                                                  ]  163.8kB/14.29MB
+2026-10-18T15:35:54+09:00  99bb4ce30ad3 Extracting [===================>                               ]  3.146MB/8.066MB
+2026-10-18T15:35:54+09:00  95121e5a56c0 Extracting [======================>                            ]  6.554MB/14.29MB
+2026-10-18T15:35:54+09:00  99bb4ce30ad3 Extracting [=============================>                     ]  4.817MB/8.066MB
+2026-10-18T15:35:54+09:00  95121e5a56c0 Extracting [===============================================>   ]   13.6MB/14.29MB
+2026-10-18T15:35:54+09:00  95121e5a56c0 Extracting [==================================================>]  14.29MB/14.29MB
+2026-10-18T15:35:54+09:00  99bb4ce30ad3 Extracting [======================================>            ]  6.291MB/8.066MB
+2026-10-18T15:35:54+09:00  95121e5a56c0 Pull complete 
+2026-10-18T15:35:54+09:00  d9f591c70342 Extracting [==================================================>]     140B/140B
+2026-10-18T15:35:54+09:00  d9f591c70342 Extracting [==================================================>]     140B/140B
+2026-10-18T15:35:54+09:00  d9f591c70342 Pull complete 
+2026-10-18T15:35:54+09:00  4f4fb700ef54 Extracting [==================================================>]      32B/32B
+2026-10-18T15:35:54+09:00  4f4fb700ef54 Extracting [==================================================>]      32B/32B
+2026-10-18T15:35:54+09:00  4f4fb700ef54 Pull complete 
+2026-10-18T15:35:54+09:00  4ed485d78f72 Extracting [==================================================>]     668B/668B
+2026-10-18T15:35:54+09:00  4ed485d78f72 Extracting [==================================================>]     668B/668B
+2026-10-18T15:35:54+09:00  4ed485d78f72 Pull complete 
+2026-10-18T15:35:54+09:00  valkey Pulled 
+2026-10-18T15:35:54+09:00  99bb4ce30ad3 Extracting [==================================================>]  8.066MB/8.066MB
+2026-10-18T15:35:54+09:00  99bb4ce30ad3 Pull complete 
+2026-10-18T15:35:54+09:00  31b6f2223c4b Extracting [=>                                                 ]  32.77kB/1.196MB
+2026-10-18T15:35:54+09:00  31b6f2223c4b Extracting [==================================================>]  1.196MB/1.196MB
+2026-10-18T15:35:54+09:00  31b6f2223c4b Extracting [==================================================>]  1.196MB/1.196MB
+2026-10-18T15:35:54+09:00  31b6f2223c4b Pull complete 
+2026-10-18T15:35:54+09:00  9da35c01411f Extracting [==================================================>]     116B/116B
+2026-10-18T15:35:54+09:00  9da35c01411f Extracting [==================================================>]     116B/116B
+2026-10-18T15:35:54+09:00  9da35c01411f Pull complete 
+2026-10-18T15:35:54+09:00  a6809e067bc1 Extracting [==================================================>]  3.141kB/3.141kB
+2026-10-18T15:35:54+09:00  a6809e067bc1 Extracting [==================================================>]  3.141kB/3.141kB
+2026-10-18T15:35:54+09:00  a6809e067bc1 Pull complete 
+2026-10-18T15:35:54+09:00  10643155f463 Extracting [>                                                  ]  557.1kB/112.8MB
+2026-10-18T15:35:54+09:00  10643155f463 Extracting [===>                                               ]  7.242MB/112.8MB
+2026-10-18T15:35:54+09:00  10643155f463 Extracting [====>                                              ]  10.03MB/112.8MB
+2026-10-18T15:35:55+09:00  10643155f463 Extracting [======>                                            ]  14.48MB/112.8MB
+2026-10-18T15:35:55+09:00  10643155f463 Extracting [========>                                          ]  18.94MB/112.8MB
+2026-10-18T15:35:55+09:00  10643155f463 Extracting [===========>                                       ]  25.07MB/112.8MB
+2026-10-18T15:35:55+09:00  10643155f463 Extracting [===============>                                   ]  33.98MB/112.8MB
+2026-10-18T15:35:55+09:00  10643155f463 Extracting [===================>                               ]  42.89MB/112.8MB
+2026-10-18T15:35:55+09:00  10643155f463 Extracting [=======================>                           ]  52.36MB/112.8MB
+2026-10-18T15:35:55+09:00  10643155f463 Extracting [=========================>                         ]  57.38MB/112.8MB
+2026-10-18T15:35:55+09:00  10643155f463 Extracting [============================>                      ]   63.5MB/112.8MB
+2026-10-18T15:35:55+09:00  10643155f463 Extracting [================================>                  ]  74.09MB/112.8MB
+2026-10-18T15:35:56+09:00  10643155f463 Extracting [====================================>              ]     83MB/112.8MB
+2026-10-18T15:35:56+09:00  10643155f463 Extracting [========================================>          ]  91.91MB/112.8MB
+2026-10-18T15:35:56+09:00  10643155f463 Extracting [==========================================>        ]  96.93MB/112.8MB
+2026-10-18T15:35:56+09:00  10643155f463 Extracting [============================================>      ]  100.8MB/112.8MB
+2026-10-18T15:35:56+09:00  10643155f463 Extracting [==============================================>    ]  104.7MB/112.8MB
+2026-10-18T15:35:56+09:00  10643155f463 Extracting [===============================================>   ]  107.5MB/112.8MB
+2026-10-18T15:35:56+09:00  10643155f463 Extracting [================================================>  ]  109.2MB/112.8MB
+2026-10-18T15:35:56+09:00  10643155f463 Extracting [=================================================> ]  111.4MB/112.8MB
+2026-10-18T15:35:57+09:00  10643155f463 Extracting [==================================================>]  112.8MB/112.8MB
+2026-10-18T15:35:57+09:00  10643155f463 Pull complete 
+2026-10-18T15:35:57+09:00  a7ef49b2a615 Extracting [==================================================>]   10.3kB/10.3kB
+2026-10-18T15:35:57+09:00  a7ef49b2a615 Extracting [==================================================>]   10.3kB/10.3kB
+2026-10-18T15:35:57+09:00  a7ef49b2a615 Pull complete 
+2026-10-18T15:35:57+09:00  29d37472e7c3 Extracting [==================================================>]     128B/128B
+2026-10-18T15:35:57+09:00  29d37472e7c3 Extracting [==================================================>]     128B/128B
+2026-10-18T15:35:57+09:00  29d37472e7c3 Pull complete 
+2026-10-18T15:35:57+09:00  4d2363af1825 Extracting [==================================================>]     168B/168B
+2026-10-18T15:35:57+09:00  4d2363af1825 Extracting [==================================================>]     168B/168B
+2026-10-18T15:35:57+09:00  4d2363af1825 Pull complete 
+2026-10-18T15:35:57+09:00  4a14fbbe260a Extracting [==================================================>]   5.84kB/5.84kB
+2026-10-18T15:35:57+09:00  4a14fbbe260a Extracting [==================================================>]   5.84kB/5.84kB
+2026-10-18T15:35:57+09:00  4a14fbbe260a Pull complete 
+2026-10-18T15:35:57+09:00  8cced4a98c7e Extracting [==================================================>]     186B/186B
+2026-10-18T15:35:57+09:00  8cced4a98c7e Extracting [==================================================>]     186B/186B
+2026-10-18T15:35:57+09:00  8cced4a98c7e Pull complete 
+2026-10-18T15:35:57+09:00  4909bfb5f5ed Extracting [=============>                                     ]  32.77kB/123.1kB
+2026-10-18T15:35:57+09:00  4909bfb5f5ed Extracting [==================================================>]  123.1kB/123.1kB
+2026-10-18T15:35:57+09:00  4909bfb5f5ed Pull complete 
+2026-10-18T15:35:57+09:00  3e1ddef0ec36 Extracting [=>                                                 ]  32.77kB/1.451MB
+2026-10-18T15:35:57+09:00  3e1ddef0ec36 Extracting [==================================================>]  1.451MB/1.451MB
+2026-10-18T15:35:57+09:00  3e1ddef0ec36 Pull complete 
+2026-10-18T15:35:57+09:00  postgres Pulled 
+2026-10-18T15:35:58+09:00 #1 [internal] load local bake definitions
+2026-10-18T15:35:58+09:00 #1 reading from stdin 449B done
+2026-10-18T15:35:58+09:00 #1 DONE 0.0s
+2026-10-18T15:35:58+09:00 
+2026-10-18T15:35:58+09:00 #2 [internal] load build definition from Dockerfile
+2026-10-18T15:35:58+09:00 #2 transferring dockerfile: 500B 0.0s done
+2026-10-18T15:35:58+09:00 #2 DONE 0.0s
+2026-10-18T15:35:58+09:00 
+2026-10-18T15:35:58+09:00 #3 [internal] load metadata for docker.io/library/python:3.11-slim
+2026-10-18T15:35:58+09:00 #3 ...
+2026-10-18T15:35:58+09:00 
+2026-10-18T15:35:58+09:00 #4 [auth] library/python:pull token for registry-1.docker.io
+2026-10-18T15:35:58+09:00 #4 DONE 0.0s
+2026-10-18T15:35:58+09:00 
+2026-10-18T15:35:58+09:00 #3 [internal] load metadata for docker.io/library/python:3.11-slim
+2026-10-18T15:35:59+09:00 #3 DONE 0.9s
+2026-10-18T15:35:59+09:00 
+2026-10-18T15:35:59+09:00 #5 [internal] load .dockerignore
+2026-10-18T15:35:59+09:00 #5 transferring context: 2B done
+2026-10-18T15:35:59+09:00 #5 DONE 0.0s
+2026-10-18T15:35:59+09:00 
+2026-10-18T15:35:59+09:00 #6 [internal] load build context
+2026-10-18T15:35:59+09:00 #6 transferring context: 16.83kB done
+2026-10-18T15:35:59+09:00 #6 DONE 0.0s
+2026-10-18T15:35:59+09:00 
+2026-10-18T15:35:59+09:00 #7 [1/8] FROM docker.io/library/python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce
+2026-10-18T15:35:59+09:00 #7 resolve docker.io/library/python:3.11-slim@sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce done
+2026-10-18T15:35:59+09:00 #7 sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce 10.37kB / 10.37kB done
+2026-10-18T15:35:59+09:00 #7 sha256:e529028263dbe6910a2d96f7d2b8f5266385e917fd45d286ef166977c094a51e 1.75kB / 1.75kB done
+2026-10-18T15:35:59+09:00 #7 sha256:541096ae9b05d3b850341b78790e2ed31e94d5aa0ea086933c6ff0c09ffa2e63 5.49kB / 5.49kB done
+2026-10-18T15:35:59+09:00 #7 sha256:ecc510c1e359bdc007b39802570bb7e4dec7d6ebccf357c3201a74299113e05e 5.24MB / 29.84MB 0.1s
+2026-10-18T15:35:59+09:00 #7 sha256:0f752a1982d6f819fc2c9e78ac1514c63f2f2e1dec7885ffd4cb6809ba4a26ca 0B / 1.29MB 0.1s
+2026-10-18T15:35:59+09:00 #7 sha256:759a7f30c31818dda4c97b407b24d93da479c306568d185ced927e1a749164f1 0B / 14.46MB 0.1s
+2026-10-18T15:35:59+09:00 #7 sha256:ecc510c1e359bdc007b39802570bb7e4dec7d6ebccf357c3201a74299113e05e 29.84MB / 29.84MB 0.2s done
+2026-10-18T15:35:59+09:00 #7 sha256:0f752a1982d6f819fc2c9e78ac1514c63f2f2e1dec7885ffd4cb6809ba4a26ca 1.29MB / 1.29MB 0.2s done
+2026-10-18T15:35:59+09:00 #7 sha256:496c1a902b3a93cea3e54b90b79dbcaa0e58ad90c3fe9dd0a43c9557dc47f17d 0B / 250B 0.2s
+2026-10-18T15:35:59+09:00 #7 extracting sha256:ecc510c1e359bdc007b39802570bb7e4dec7d6ebccf357c3201a74299113e05e
+2026-10-18T15:35:59+09:00 #7 sha256:759a7f30c31818dda4c97b407b24d93da479c306568d185ced927e1a749164f1 14.46MB / 14.46MB 0.3s done
+2026-10-18T15:35:59+09:00 #7 sha256:496c1a902b3a93cea3e54b90b79dbcaa0e58ad90c3fe9dd0a43c9557dc47f17d 250B / 250B 0.3s done
+2026-10-18T15:36:00+09:00 #7 extracting sha256:ecc510c1e359bdc007b39802570bb7e4dec7d6ebccf357c3201a74299113e05e 0.9s done
+2026-10-18T15:36:00+09:00 #7 extracting sha256:0f752a1982d6f819fc2c9e78ac1514c63f2f2e1dec7885ffd4cb6809ba4a26ca
+2026-10-18T15:36:00+09:00 #7 extracting sha256:0f752a1982d6f819fc2c9e78ac1514c63f2f2e1dec7885ffd4cb6809ba4a26ca 0.1s done
+2026-10-18T15:36:00+09:00 #7 extracting sha256:759a7f30c31818dda4c97b407b24d93da479c306568d185ced927e1a749164f1 0.1s
+2026-10-18T15:36:01+09:00 #7 extracting sha256:759a7f30c31818dda4c97b407b24d93da479c306568d185ced927e1a749164f1 0.7s done
+2026-10-18T15:36:01+09:00 #7 extracting sha256:496c1a902b3a93cea3e54b90b79dbcaa0e58ad90c3fe9dd0a43c9557dc47f17d
+2026-10-18T15:36:01+09:00 #7 extracting sha256:496c1a902b3a93cea3e54b90b79dbcaa0e58ad90c3fe9dd0a43c9557dc47f17d done
+2026-10-18T15:36:01+09:00 #7 DONE 2.2s
+2026-10-18T15:36:01+09:00 
+2026-10-18T15:36:01+09:00 #8 [2/8] WORKDIR /app
+2026-10-18T15:36:01+09:00 #8 DONE 0.0s
+2026-10-18T15:36:01+09:00 
+2026-10-18T15:36:01+09:00 #9 [3/8] COPY requirements.txt .
+2026-10-18T15:36:01+09:00 #9 DONE 0.0s
+2026-10-18T15:36:01+09:00 
+2026-10-18T15:36:01+09:00 #10 [4/8] RUN pip install --no-cache-dir -r requirements.txt
+2026-10-18T15:36:03+09:00 #10 1.539 Looking in indexes: <설정된 서버> <설정된 서버>
+2026-10-18T15:36:03+09:00 #10 1.541 Ignoring torch: markers 'sys_platform != "linux" or platform_machine != "x86_64"' don't match your environment
+2026-10-18T15:36:03+09:00 #10 1.901 Collecting fastapi==0.115.0 (from -r requirements.txt (line 4))
+2026-10-18T15:36:03+09:00 #10 1.923   Downloading fastapi-0.115.0-py3-none-any.whl.metadata (27 kB)
+2026-10-18T15:36:03+09:00 #10 2.161 Collecting uvicorn==0.30.6 (from -r requirements.txt (line 5))
+2026-10-18T15:36:03+09:00 #10 2.164   Downloading uvicorn-0.30.6-py3-none-any.whl.metadata (6.6 kB)
+2026-10-18T15:36:03+09:00 #10 2.382 Collecting FlagEmbedding==1.2.11 (from -r requirements.txt (line 6))
+2026-10-18T15:36:04+09:00 #10 2.386   Downloading FlagEmbedding-1.2.11.tar.gz (147 kB)
+2026-10-18T15:36:04+09:00 #10 2.390      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 147.1/147.1 kB 90.0 MB/s eta 0:00:00
+2026-10-18T15:36:04+09:00 #10 2.417   Preparing metadata (setup.py): started
+2026-10-18T15:36:04+09:00 #10 2.735   Preparing metadata (setup.py): finished with status 'done'
+2026-10-18T15:36:04+09:00 #10 2.894 Collecting torch==2.4.1+cpu (from -r requirements.txt (line 9))
+2026-10-18T15:36:04+09:00 #10 2.948   Downloading <설정된 서버> (194.9 MB)
+2026-10-18T15:36:05+09:00 #10 3.671      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 194.9/194.9 MB 278.9 MB/s eta 0:00:00
+2026-10-18T15:36:05+09:00 #10 4.193 Collecting transformers==4.44.2 (from -r requirements.txt (line 11))
+2026-10-18T15:36:05+09:00 #10 4.197   Downloading transformers-4.44.2-py3-none-any.whl.metadata (43 kB)
+2026-10-18T15:36:05+09:00 #10 4.200      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 43.7/43.7 kB 263.9 MB/s eta 0:00:00
+2026-10-18T15:36:05+09:00 #10 4.440 Collecting peft==0.12.0 (from -r requirements.txt (line 12))
+2026-10-18T15:36:06+09:00 #10 4.444   Downloading peft-0.12.0-py3-none-any.whl.metadata (13 kB)
+2026-10-18T15:36:06+09:00 #10 5.015 Collecting numpy==1.26.4 (from -r requirements.txt (line 13))
+2026-10-18T15:36:06+09:00 #10 5.019   Downloading numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (61 kB)
+2026-10-18T15:36:06+09:00 #10 5.021      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 61.0/61.0 kB 247.4 MB/s eta 0:00:00
+2026-10-18T15:36:06+09:00 #10 5.366 Collecting pyarrow==21.0.0 (from -r requirements.txt (line 15))
+2026-10-18T15:36:07+09:00 #10 5.371   Downloading pyarrow-21.0.0-cp311-cp311-manylinux_2_28_x86_64.whl.metadata (3.3 kB)
+2026-10-18T15:36:07+09:00 #10 5.504 Collecting starlette<0.39.0,>=0.37.2 (from fastapi==0.115.0->-r requirements.txt (line 4))
+2026-10-18T15:36:07+09:00 #10 5.509   Downloading starlette-0.38.6-py3-none-any.whl.metadata (6.0 kB)
+2026-10-18T15:36:07+09:00 #10 5.907 Collecting pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4 (from fastapi==0.115.0->-r requirements.txt (line 4))
+2026-10-18T15:36:07+09:00 #10 5.910   Downloading pydantic-2.14.1-py3-none-any.whl.metadata (133 kB)
+2026-10-18T15:36:07+09:00 #10 5.913      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.0/133.0 kB 276.8 MB/s eta 0:00:00
+2026-10-18T15:36:07+09:00 #10 5.959 Collecting typing-extensions>=4.8.0 (from fastapi==0.115.0->-r requirements.txt (line 4))
+2026-10-18T15:36:07+09:00 #10 5.962   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+2026-10-18T15:36:07+09:00 #10 6.209 Collecting click>=7.0 (from uvicorn==0.30.6->-r requirements.txt (line 5))
+2026-10-18T15:36:07+09:00 #10 6.212   Downloading click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+2026-10-18T15:36:07+09:00 #10 6.430 Collecting h11>=0.8 (from uvicorn==0.30.6->-r requirements.txt (line 5))
+2026-10-18T15:36:08+09:00 #10 6.433   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+2026-10-18T15:36:08+09:00 #10 6.695 Collecting datasets (from FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:08+09:00 #10 6.699   Downloading datasets-5.1.0-py3-none-any.whl.metadata (24 kB)
+2026-10-18T15:36:08+09:00 #10 6.945 Collecting accelerate>=0.20.1 (from FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:08+09:00 #10 6.949   Downloading accelerate-1.15.0-py3-none-any.whl.metadata (19 kB)
+2026-10-18T15:36:08+09:00 #10 7.183 Collecting sentence_transformers (from FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:08+09:00 #10 7.188   Downloading sentence_transformers-6.1.0-py3-none-any.whl.metadata (20 kB)
+2026-10-18T15:36:08+09:00 #10 7.266 Collecting filelock (from torch==2.4.1+cpu->-r requirements.txt (line 9))
+2026-10-18T15:36:08+09:00 #10 7.269   Downloading filelock-4.2.1-py3-none-any.whl.metadata (2.0 kB)
+2026-10-18T15:36:08+09:00 #10 7.361 Collecting sympy (from torch==2.4.1+cpu->-r requirements.txt (line 9))
+2026-10-18T15:36:09+09:00 #10 7.364   Downloading sympy-1.14.0-py3-none-any.whl.metadata (12 kB)
+2026-10-18T15:36:09+09:00 #10 7.423 Collecting networkx (from torch==2.4.1+cpu->-r requirements.txt (line 9))
+2026-10-18T15:36:09+09:00 #10 7.427   Downloading networkx-3.6.1-py3-none-any.whl.metadata (6.8 kB)
+2026-10-18T15:36:09+09:00 #10 7.454 Collecting jinja2 (from torch==2.4.1+cpu->-r requirements.txt (line 9))
+2026-10-18T15:36:09+09:00 #10 7.458   Downloading <설정된 서버> (2.9 kB)
+2026-10-18T15:36:09+09:00 #10 7.517 Collecting fsspec (from torch==2.4.1+cpu->-r requirements.txt (line 9))
+2026-10-18T15:36:09+09:00 #10 7.521   Downloading fsspec-2026.9.0-py3-none-any.whl.metadata (10 kB)
+2026-10-18T15:36:09+09:00 #10 8.001 Collecting huggingface-hub<1.0,>=0.23.2 (from transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:09+09:00 #10 8.005   Downloading huggingface_hub-0.36.2-py3-none-any.whl.metadata (15 kB)
+2026-10-18T15:36:09+09:00 #10 8.022 Requirement already satisfied: packaging>=20.0 in /usr/local/lib/python3.11/site-packages (from transformers==4.44.2->-r requirements.txt (line 11)) (26.3)
+2026-10-18T15:36:09+09:00 #10 8.268 Collecting pyyaml>=5.1 (from transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:09+09:00 #10 8.272   Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+2026-10-18T15:36:10+09:00 #10 8.994 Collecting regex!=2019.12.17 (from transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:10+09:00 #10 8.997   Downloading regex-2026.9.29-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
+2026-10-18T15:36:10+09:00 #10 9.000      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.6/40.6 kB 264.5 MB/s eta 0:00:00
+2026-10-18T15:36:10+09:00 #10 9.040 Collecting requests (from transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:10+09:00 #10 9.044   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+2026-10-18T15:36:10+09:00 #10 9.388 Collecting safetensors>=0.4.1 (from transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:11+09:00 #10 9.391   Downloading safetensors-0.8.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.2 kB)
+2026-10-18T15:36:11+09:00 #10 9.833 Collecting tokenizers<0.20,>=0.19 (from transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:11+09:00 #10 9.838   Downloading tokenizers-0.19.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.7 kB)
+2026-10-18T15:36:11+09:00 #10 9.898 Collecting tqdm>=4.27 (from transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:11+09:00 #10 9.902   Downloading tqdm-4.70.1-py3-none-any.whl.metadata (57 kB)
+2026-10-18T15:36:11+09:00 #10 9.904      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 57.4/57.4 kB 270.9 MB/s eta 0:00:00
+2026-10-18T15:36:11+09:00 #10 10.21 Collecting psutil (from peft==0.12.0->-r requirements.txt (line 12))
+2026-10-18T15:36:11+09:00 #10 10.22   Downloading psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl.metadata (22 kB)
+2026-10-18T15:36:12+09:00 #10 10.65 Collecting hf-xet<2.0.0,>=1.1.3 (from huggingface-hub<1.0,>=0.23.2->transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:12+09:00 #10 10.66   Downloading hf_xet-1.7.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (4.9 kB)
+2026-10-18T15:36:12+09:00 #10 10.96 Collecting annotated-types>=0.6.0 (from pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4->fastapi==0.115.0->-r requirements.txt (line 4))
+2026-10-18T15:36:12+09:00 #10 10.96   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+2026-10-18T15:36:13+09:00 #10 12.03 Collecting pydantic-core==2.50.1 (from pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4->fastapi==0.115.0->-r requirements.txt (line 4))
+2026-10-18T15:36:13+09:00 #10 12.03   Downloading pydantic_core-2.50.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.5 kB)
+2026-10-18T15:36:13+09:00 #10 12.26 Collecting typing-inspection>=0.4.4 (from pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4->fastapi==0.115.0->-r requirements.txt (line 4))
+2026-10-18T15:36:13+09:00 #10 12.26   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+2026-10-18T15:36:14+09:00 #10 12.53 Collecting anyio<5,>=3.4.0 (from starlette<0.39.0,>=0.37.2->fastapi==0.115.0->-r requirements.txt (line 4))
+2026-10-18T15:36:14+09:00 #10 12.53   Downloading anyio-4.15.1-py3-none-any.whl.metadata (4.7 kB)
+2026-10-18T15:36:14+09:00 #10 12.68 INFO: pip is looking at multiple versions of datasets to determine which version is compatible with other requirements. This could take a while.
+2026-10-18T15:36:14+09:00 #10 12.68 Collecting datasets (from FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:14+09:00 #10 12.69   Downloading datasets-5.0.1-py3-none-any.whl.metadata (23 kB)
+2026-10-18T15:36:14+09:00 #10 13.00 Collecting dill<0.4.2,>=0.3.0 (from datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:14+09:00 #10 13.00   Downloading dill-0.4.1-py3-none-any.whl.metadata (10 kB)
+2026-10-18T15:36:14+09:00 #10 13.35 Collecting pandas (from datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:15+09:00 #10 13.35   Downloading pandas-3.0.6-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (79 kB)
+2026-10-18T15:36:15+09:00 #10 13.35      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 79.5/79.5 kB 298.6 MB/s eta 0:00:00
+2026-10-18T15:36:15+09:00 #10 13.74 Collecting httpx<1.0.0 (from datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:15+09:00 #10 13.74   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+2026-10-18T15:36:15+09:00 #10 14.13 Collecting xxhash (from datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:15+09:00 #10 14.14   Downloading xxhash-4.0.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (17 kB)
+2026-10-18T15:36:15+09:00 #10 14.37 Collecting multiprocess<0.70.20 (from datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:16+09:00 #10 14.37   Downloading multiprocess-0.70.19-py311-none-any.whl.metadata (7.5 kB)
+2026-10-18T15:36:16+09:00 #10 14.40 Collecting fsspec (from torch==2.4.1+cpu->-r requirements.txt (line 9))
+2026-10-18T15:36:16+09:00 #10 14.40   Downloading fsspec-2026.6.0-py3-none-any.whl.metadata (10 kB)
+2026-10-18T15:36:16+09:00 #10 14.64 Collecting charset_normalizer<4,>=2 (from requests->transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:16+09:00 #10 14.65   Downloading charset_normalizer-3.5.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (46 kB)
+2026-10-18T15:36:16+09:00 #10 14.65      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 46.4/46.4 kB 189.9 MB/s eta 0:00:00
+2026-10-18T15:36:16+09:00 #10 14.68 Collecting idna<4,>=2.5 (from requests->transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:16+09:00 #10 14.68   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+2026-10-18T15:36:16+09:00 #10 14.73 Collecting urllib3<3,>=1.26 (from requests->transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:16+09:00 #10 14.73   Downloading urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+2026-10-18T15:36:16+09:00 #10 14.76 Collecting certifi>=2023.5.7 (from requests->transformers==4.44.2->-r requirements.txt (line 11))
+2026-10-18T15:36:16+09:00 #10 14.77   Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+2026-10-18T15:36:16+09:00 #10 14.85 Collecting MarkupSafe>=2.0 (from jinja2->torch==2.4.1+cpu->-r requirements.txt (line 9))
+2026-10-18T15:36:16+09:00 #10 14.86   Downloading markupsafe-3.0.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+2026-10-18T15:36:16+09:00 #10 14.95 INFO: pip is looking at multiple versions of sentence-transformers to determine which version is compatible with other requirements. This could take a while.
+2026-10-18T15:36:16+09:00 #10 14.95 Collecting sentence_transformers (from FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:16+09:00 #10 14.96   Downloading sentence_transformers-6.0.1-py3-none-any.whl.metadata (20 kB)
+2026-10-18T15:36:16+09:00 #10 14.98   Downloading sentence_transformers-6.0.0-py3-none-any.whl.metadata (20 kB)
+2026-10-18T15:36:16+09:00 #10 15.01   Downloading sentence_transformers-5.7.0-py3-none-any.whl.metadata (18 kB)
+2026-10-18T15:36:16+09:00 #10 15.40 Collecting scikit-learn>=0.22.0 (from sentence_transformers->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:17+09:00 #10 15.40   Downloading scikit_learn-1.9.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.3 kB)
+2026-10-18T15:36:17+09:00 #10 15.75 Collecting scipy>=1.0.0 (from sentence_transformers->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:17+09:00 #10 15.76   Downloading scipy-1.17.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+2026-10-18T15:36:17+09:00 #10 15.76      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.1/62.1 kB 278.4 MB/s eta 0:00:00
+2026-10-18T15:36:17+09:00 #10 15.82 Collecting mpmath<1.4,>=1.1.0 (from sympy->torch==2.4.1+cpu->-r requirements.txt (line 9))
+2026-10-18T15:36:17+09:00 #10 15.83   Downloading mpmath-1.3.0-py3-none-any.whl.metadata (8.6 kB)
+2026-10-18T15:36:18+09:00 #10 16.73 Collecting aiohttp!=4.0.0a0,!=4.0.0a1 (from fsspec[http]<=2026.6.0,>=2023.1.0->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:18+09:00 #10 16.74   Downloading aiohttp-3.14.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.3 kB)
+2026-10-18T15:36:18+09:00 #10 16.97 Collecting httpcore==1.* (from httpx<1.0.0->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:18+09:00 #10 16.98   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+2026-10-18T15:36:18+09:00 #10 17.15 Collecting joblib>=1.4.0 (from scikit-learn>=0.22.0->sentence_transformers->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:18+09:00 #10 17.16   Downloading joblib-1.6.0-py3-none-any.whl.metadata (6.5 kB)
+2026-10-18T15:36:18+09:00 #10 17.30 Collecting narwhals>=2.0.1 (from scikit-learn>=0.22.0->sentence_transformers->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:18+09:00 #10 17.32   Downloading narwhals-2.27.1-py3-none-any.whl.metadata (15 kB)
+2026-10-18T15:36:19+09:00 #10 17.53 Collecting threadpoolctl>=3.5.0 (from scikit-learn>=0.22.0->sentence_transformers->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:19+09:00 #10 17.54   Downloading threadpoolctl-3.7.0-py3-none-any.whl.metadata (24 kB)
+2026-10-18T15:36:19+09:00 #10 17.90 Collecting python-dateutil>=2.8.2 (from pandas->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:19+09:00 #10 17.90   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+2026-10-18T15:36:19+09:00 #10 18.22 Collecting aiohappyeyeballs>=2.5.0 (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:19+09:00 #10 18.22   Downloading aiohappyeyeballs-2.7.1-py3-none-any.whl.metadata (5.9 kB)
+2026-10-18T15:36:19+09:00 #10 18.43 Collecting aiosignal>=1.4.0 (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:20+09:00 #10 18.44   Downloading aiosignal-1.4.0-py3-none-any.whl.metadata (3.7 kB)
+2026-10-18T15:36:20+09:00 #10 18.65 Collecting attrs>=17.3.0 (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:20+09:00 #10 18.68   Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+2026-10-18T15:36:20+09:00 #10 18.96 Collecting frozenlist>=1.1.1 (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:20+09:00 #10 18.97   Downloading frozenlist-1.8.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (20 kB)
+2026-10-18T15:36:21+09:00 #10 19.66 Collecting multidict<8.0,>=4.5 (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:21+09:00 #10 19.67   Downloading multidict-7.1.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (6.2 kB)
+2026-10-18T15:36:21+09:00 #10 19.94 Collecting propcache>=0.2.0 (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:21+09:00 #10 19.95   Downloading propcache-0.5.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (25 kB)
+2026-10-18T15:36:21+09:00 #10 20.46 Collecting yarl<2.0,>=1.25.1 (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]<=2026.6.0,>=2023.1.0->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:22+09:00 #10 20.46   Downloading yarl-1.25.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (111 kB)
+2026-10-18T15:36:22+09:00 #10 20.46      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 111.6/111.6 kB 321.5 MB/s eta 0:00:00
+2026-10-18T15:36:22+09:00 #10 20.72 Collecting cloudpickle>=3.0 (from joblib>=1.4.0->scikit-learn>=0.22.0->sentence_transformers->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:22+09:00 #10 20.72   Downloading cloudpickle-3.1.2-py3-none-any.whl.metadata (7.1 kB)
+2026-10-18T15:36:22+09:00 #10 20.98 Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas->datasets->FlagEmbedding==1.2.11->-r requirements.txt (line 6))
+2026-10-18T15:36:22+09:00 #10 20.98   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-10-18T15:36:22+09:00 #10 21.11 Downloading fastapi-0.115.0-py3-none-any.whl (94 kB)
+2026-10-18T15:36:22+09:00 #10 21.11    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 94.6/94.6 kB 241.5 MB/s eta 0:00:00
+2026-10-18T15:36:22+09:00 #10 21.11 Downloading uvicorn-0.30.6-py3-none-any.whl (62 kB)
+2026-10-18T15:36:22+09:00 #10 21.11    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.8/62.8 kB 278.9 MB/s eta 0:00:00
+2026-10-18T15:36:22+09:00 #10 21.12 Downloading transformers-4.44.2-py3-none-any.whl (9.5 MB)
+2026-10-18T15:36:22+09:00 #10 21.17    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.5/9.5 MB 188.1 MB/s eta 0:00:00
+2026-10-18T15:36:22+09:00 #10 21.18 Downloading peft-0.12.0-py3-none-any.whl (296 kB)
+2026-10-18T15:36:22+09:00 #10 21.18    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 296.4/296.4 kB 326.0 MB/s eta 0:00:00
+2026-10-18T15:36:22+09:00 #10 21.18 Downloading numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (18.3 MB)
+2026-10-18T15:36:22+09:00 #10 21.27    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 18.3/18.3 MB 238.7 MB/s eta 0:00:00
+2026-10-18T15:36:22+09:00 #10 21.27 Downloading pyarrow-21.0.0-cp311-cp311-manylinux_2_28_x86_64.whl (42.8 MB)
+2026-10-18T15:36:23+09:00 #10 21.55    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.8/42.8 MB 214.9 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.56 Downloading accelerate-1.15.0-py3-none-any.whl (394 kB)
+2026-10-18T15:36:23+09:00 #10 21.56    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 394.3/394.3 kB 327.4 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.56 Downloading click-8.5.0-py3-none-any.whl (125 kB)
+2026-10-18T15:36:23+09:00 #10 21.57    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 293.9 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.57 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+2026-10-18T15:36:23+09:00 #10 21.57 Downloading huggingface_hub-0.36.2-py3-none-any.whl (566 kB)
+2026-10-18T15:36:23+09:00 #10 21.58    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 566.4/566.4 kB 324.5 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.58 Downloading pydantic-2.14.1-py3-none-any.whl (488 kB)
+2026-10-18T15:36:23+09:00 #10 21.58    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 488.1/488.1 kB 345.3 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.58 Downloading pydantic_core-2.50.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.2 MB)
+2026-10-18T15:36:23+09:00 #10 21.59    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 300.5 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.60 Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+2026-10-18T15:36:23+09:00 #10 21.61    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 119.1 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.61 Downloading regex-2026.9.29-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (804 kB)
+2026-10-18T15:36:23+09:00 #10 21.62    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 805.0/805.0 kB 265.8 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.62 Downloading safetensors-0.8.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (516 kB)
+2026-10-18T15:36:23+09:00 #10 21.63    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 516.0/516.0 kB 302.4 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.63 Downloading starlette-0.38.6-py3-none-any.whl (71 kB)
+2026-10-18T15:36:23+09:00 #10 21.63    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 71.5/71.5 kB 253.7 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.64 Downloading tokenizers-0.19.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.6 MB)
+2026-10-18T15:36:23+09:00 #10 21.66    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.6/3.6 MB 171.8 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.67 Downloading tqdm-4.70.1-py3-none-any.whl (80 kB)
+2026-10-18T15:36:23+09:00 #10 21.67    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 80.2/80.2 kB 309.5 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.67 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+2026-10-18T15:36:23+09:00 #10 21.67    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 254.5 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.68 Downloading datasets-5.0.1-py3-none-any.whl (559 kB)
+2026-10-18T15:36:23+09:00 #10 21.68    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 559.1/559.1 kB 244.7 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.69 Downloading fsspec-2026.6.0-py3-none-any.whl (203 kB)
+2026-10-18T15:36:23+09:00 #10 21.69    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 203.9/203.9 kB 343.0 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.69 Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+2026-10-18T15:36:23+09:00 #10 21.69    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.1/73.1 kB 258.0 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.70 Downloading filelock-4.2.1-py3-none-any.whl (162 kB)
+2026-10-18T15:36:23+09:00 #10 21.70    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 162.5/162.5 kB 299.3 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.70 Downloading <설정된 서버> (134 kB)
+2026-10-18T15:36:23+09:00 #10 21.70    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 293.2 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.71 Downloading networkx-3.6.1-py3-none-any.whl (2.1 MB)
+2026-10-18T15:36:23+09:00 #10 21.72    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 197.6 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.73 Downloading psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (155 kB)
+2026-10-18T15:36:23+09:00 #10 21.73    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 155.6/155.6 kB 328.2 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.73 Downloading sentence_transformers-5.7.0-py3-none-any.whl (611 kB)
+2026-10-18T15:36:23+09:00 #10 21.74    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 611.3/611.3 kB 309.2 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.74 Downloading sympy-1.14.0-py3-none-any.whl (6.3 MB)
+2026-10-18T15:36:23+09:00 #10 21.77    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 298.8 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.77 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+2026-10-18T15:36:23+09:00 #10 21.77 Downloading anyio-4.15.1-py3-none-any.whl (132 kB)
+2026-10-18T15:36:23+09:00 #10 21.77    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 132.1/132.1 kB 266.2 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.78 Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+2026-10-18T15:36:23+09:00 #10 21.78    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 137.0/137.0 kB 333.8 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.78 Downloading charset_normalizer-3.5.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (269 kB)
+2026-10-18T15:36:23+09:00 #10 21.79    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 270.0/270.0 kB 308.3 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.79 Downloading dill-0.4.1-py3-none-any.whl (120 kB)
+2026-10-18T15:36:23+09:00 #10 21.79    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 120.0/120.0 kB 329.7 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.79 Downloading hf_xet-1.7.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.2 MB)
+2026-10-18T15:36:23+09:00 #10 21.81    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/4.2 MB 266.9 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.82 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+2026-10-18T15:36:23+09:00 #10 21.82    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 305.4 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.82 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+2026-10-18T15:36:23+09:00 #10 21.82    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 304.1 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.83 Downloading idna-3.20-py3-none-any.whl (69 kB)
+2026-10-18T15:36:23+09:00 #10 21.83    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.6/69.6 kB 250.9 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.83 Downloading markupsafe-3.0.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+2026-10-18T15:36:23+09:00 #10 21.83 Downloading mpmath-1.3.0-py3-none-any.whl (536 kB)
+2026-10-18T15:36:23+09:00 #10 21.84    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 262.3 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.84 Downloading multiprocess-0.70.19-py311-none-any.whl (144 kB)
+2026-10-18T15:36:23+09:00 #10 21.85    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 144.5/144.5 kB 314.6 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.85 Downloading scikit_learn-1.9.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (9.3 MB)
+2026-10-18T15:36:23+09:00 #10 21.89    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.3/9.3 MB 250.8 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 21.89 Downloading scipy-1.17.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+2026-10-18T15:36:23+09:00 #10 22.02    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.3/35.3 MB 302.2 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.02 Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+2026-10-18T15:36:23+09:00 #10 22.02 Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+2026-10-18T15:36:23+09:00 #10 22.03    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 135.7/135.7 kB 327.2 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.03 Downloading pandas-3.0.6-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (11.1 MB)
+2026-10-18T15:36:23+09:00 #10 22.07    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.1/11.1 MB 295.6 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.07 Downloading xxhash-4.0.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (261 kB)
+2026-10-18T15:36:23+09:00 #10 22.07    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 261.0/261.0 kB 329.8 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.08 Downloading aiohttp-3.14.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.9 MB)
+2026-10-18T15:36:23+09:00 #10 22.09    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.9/1.9 MB 249.3 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.09 Downloading joblib-1.6.0-py3-none-any.whl (306 kB)
+2026-10-18T15:36:23+09:00 #10 22.09    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 306.1/306.1 kB 339.8 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.10 Downloading narwhals-2.27.1-py3-none-any.whl (483 kB)
+2026-10-18T15:36:23+09:00 #10 22.10    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 483.2/483.2 kB 344.8 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.10 Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+2026-10-18T15:36:23+09:00 #10 22.10    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 kB 349.8 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.11 Downloading threadpoolctl-3.7.0-py3-none-any.whl (26 kB)
+2026-10-18T15:36:23+09:00 #10 22.11 Downloading aiohappyeyeballs-2.7.1-py3-none-any.whl (15 kB)
+2026-10-18T15:36:23+09:00 #10 22.11 Downloading aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+2026-10-18T15:36:23+09:00 #10 22.12 Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+2026-10-18T15:36:23+09:00 #10 22.12    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 67.5/67.5 kB 279.9 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.12 Downloading cloudpickle-3.1.2-py3-none-any.whl (22 kB)
+2026-10-18T15:36:23+09:00 #10 22.13 Downloading frozenlist-1.8.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (231 kB)
+2026-10-18T15:36:23+09:00 #10 22.13    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 231.1/231.1 kB 245.6 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.13 Downloading multidict-7.1.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (480 kB)
+2026-10-18T15:36:23+09:00 #10 22.14    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 480.4/480.4 kB 336.2 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.14 Downloading propcache-0.5.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (235 kB)
+2026-10-18T15:36:23+09:00 #10 22.14    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 235.4/235.4 kB 331.0 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.15 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2026-10-18T15:36:23+09:00 #10 22.15 Downloading yarl-1.25.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (117 kB)
+2026-10-18T15:36:23+09:00 #10 22.15    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 117.7/117.7 kB 186.5 MB/s eta 0:00:00
+2026-10-18T15:36:23+09:00 #10 22.38 Building wheels for collected packages: FlagEmbedding
+2026-10-18T15:36:24+09:00 #10 22.39   Building wheel for FlagEmbedding (setup.py): started
+2026-10-18T15:36:24+09:00 #10 22.66   Building wheel for FlagEmbedding (setup.py): finished with status 'done'
+2026-10-18T15:36:24+09:00 #10 22.66   Created wheel for FlagEmbedding: filename=flagembedding-1.2.11-py3-none-any.whl size=171233 sha256=e0599ec9e354476a738470530d082956ad51beeb097284fad08395bc9cdcb051
+2026-10-18T15:36:24+09:00 #10 22.66   Stored in directory: /tmp/pip-ephem-wheel-cache-7i9yea58/wheels/cc/30/56/331f855b95583721e80ba4d5630f701387dcade9d050c88d9d
+2026-10-18T15:36:24+09:00 #10 22.66 Successfully built FlagEmbedding
+2026-10-18T15:36:25+09:00 #10 23.53 Installing collected packages: mpmath, xxhash, urllib3, typing-extensions, tqdm, threadpoolctl, sympy, six, safetensors, regex, pyyaml, pyarrow, psutil, propcache, numpy, networkx, narwhals, multidict, MarkupSafe, idna, hf-xet, h11, fsspec, frozenlist, filelock, dill, cloudpickle, click, charset_normalizer, certifi, attrs, annotated-types, aiohappyeyeballs, yarl, uvicorn, typing-inspection, scipy, requests, python-dateutil, pydantic-core, multiprocess, joblib, jinja2, httpcore, anyio, aiosignal, torch, starlette, scikit-learn, pydantic, pandas, huggingface-hub, httpx, aiohttp, tokenizers, fastapi, accelerate, transformers, datasets, sentence_transformers, peft, FlagEmbedding
+2026-10-18T15:37:00+09:00 #10 58.83 Successfully installed FlagEmbedding-1.2.11 MarkupSafe-3.0.4 accelerate-1.15.0 aiohappyeyeballs-2.7.1 aiohttp-3.14.5 aiosignal-1.4.0 annotated-types-0.8.0 anyio-4.15.1 attrs-26.1.0 certifi-2026.7.22 charset_normalizer-3.5.2 click-8.5.0 cloudpickle-3.1.2 datasets-5.0.1 dill-0.4.1 fastapi-0.115.0 filelock-4.2.1 frozenlist-1.8.0 fsspec-2026.6.0 h11-0.16.0 hf-xet-1.7.0 httpcore-1.0.9 httpx-0.28.1 huggingface-hub-0.36.2 idna-3.20 jinja2-3.1.6 joblib-1.6.0 mpmath-1.3.0 multidict-7.1.0 multiprocess-0.70.19 narwhals-2.27.1 networkx-3.6.1 numpy-1.26.4 pandas-3.0.6 peft-0.12.0 propcache-0.5.4 psutil-7.2.2 pyarrow-21.0.0 pydantic-2.14.1 pydantic-core-2.50.1 python-dateutil-2.9.0.post0 pyyaml-6.0.3 regex-2026.9.29 requests-2.34.2 safetensors-0.8.0 scikit-learn-1.9.1 scipy-1.17.1 sentence_transformers-5.7.0 six-1.17.0 starlette-0.38.6 sympy-1.14.0 threadpoolctl-3.7.0 tokenizers-0.19.1 torch-2.4.1+cpu tqdm-4.70.1 transformers-4.44.2 typing-extensions-4.16.0 typing-inspection-0.4.4 urllib3-2.8.0 uvicorn-0.30.6 xxhash-4.0.1 yarl-1.25.1
+2026-10-18T15:37:00+09:00 #10 58.83 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: <설정된 서버>
+2026-10-18T15:37:00+09:00 #10 58.94 
+2026-10-18T15:37:00+09:00 #10 58.94 [notice] A new release of pip is available: 24.0 -> 26.2.1
+2026-10-18T15:37:00+09:00 #10 58.94 [notice] To update, run: pip install --upgrade pip
+2026-10-18T15:37:04+09:00 #10 DONE 63.3s
+2026-10-18T15:37:04+09:00 
+2026-10-18T15:37:04+09:00 #11 [5/8] COPY requirements-observability.txt .
+2026-10-18T15:37:04+09:00 #11 DONE 0.0s
+2026-10-18T15:37:04+09:00 
+2026-10-18T15:37:04+09:00 #12 [6/8] RUN pip install --no-cache-dir -r requirements-observability.txt
+2026-10-18T15:37:05+09:00 #12 0.597 Collecting prometheus-client==0.25.0 (from -r requirements-observability.txt (line 1))
+2026-10-18T15:37:05+09:00 #12 0.637   Downloading prometheus_client-0.25.0-py3-none-any.whl.metadata (2.1 kB)
+2026-10-18T15:37:05+09:00 #12 0.651 Downloading prometheus_client-0.25.0-py3-none-any.whl (64 kB)
+2026-10-18T15:37:05+09:00 #12 0.662    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.2/64.2 kB 6.2 MB/s eta 0:00:00
+2026-10-18T15:37:06+09:00 #12 1.461 Installing collected packages: prometheus-client
+2026-10-18T15:37:06+09:00 #12 1.509 Successfully installed prometheus-client-0.25.0
+2026-10-18T15:37:06+09:00 #12 1.510 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: <설정된 서버>
+2026-10-18T15:37:06+09:00 #12 1.634 
+2026-10-18T15:37:06+09:00 #12 1.634 [notice] A new release of pip is available: 24.0 -> 26.2.1
+2026-10-18T15:37:06+09:00 #12 1.634 [notice] To update, run: pip install --upgrade pip
+2026-10-18T15:37:06+09:00 #12 DONE 1.7s
+2026-10-18T15:37:06+09:00 
+2026-10-18T15:37:06+09:00 #13 [7/8] RUN python -c "from FlagEmbedding import BGEM3FlagModel"
+2026-10-18T15:37:10+09:00 #13 DONE 4.4s
+2026-10-18T15:37:11+09:00 
+2026-10-18T15:37:11+09:00 #14 [8/8] COPY main.py .
+2026-10-18T15:37:11+09:00 #14 DONE 0.0s
+2026-10-18T15:37:11+09:00 
+2026-10-18T15:37:11+09:00 #15 exporting to image
+2026-10-18T15:37:11+09:00 #15 exporting layers
+2026-10-18T15:37:19+09:00 #15 exporting layers 8.4s done
+2026-10-18T15:37:19+09:00 #15 writing image sha256:8e58ee069b38f6d0557cacd4d8e0510ee793b4f9082bbf654a96879d1c8a5300 done
+2026-10-18T15:37:19+09:00 #15 naming to docker.io/library/docgrid-embedding-server done
+2026-10-18T15:37:19+09:00 #15 DONE 8.4s
+2026-10-18T15:37:19+09:00 
+2026-10-18T15:37:19+09:00 #16 resolving provenance for metadata file
+2026-10-18T15:37:19+09:00 #16 DONE 0.0s
+2026-10-18T15:37:19+09:00  embedding-server  Built
+2026-10-18T15:37:19+09:00  Network docgrid_docgrid-local  Creating
+2026-10-18T15:37:19+09:00  Network docgrid_docgrid-local  Created
+2026-10-18T15:37:19+09:00  Volume "docgrid_huggingface-cache"  Creating
+2026-10-18T15:37:19+09:00  Volume "docgrid_huggingface-cache"  Created
+2026-10-18T15:37:19+09:00  Volume "docgrid_valkey-data"  Creating
+2026-10-18T15:37:19+09:00  Volume "docgrid_valkey-data"  Created
+2026-10-18T15:37:19+09:00  Volume "docgrid_postgres17_data"  Creating
+2026-10-18T15:37:19+09:00  Volume "docgrid_postgres17_data"  Created
+2026-10-18T15:37:19+09:00  Container docgrid-embedding  Creating
+2026-10-18T15:37:19+09:00  Container docgrid-postgres17  Creating
+2026-10-18T15:37:19+09:00  Container docgrid-valkey  Creating
+2026-10-18T15:37:19+09:00  Container docgrid-valkey  Created
+2026-10-18T15:37:19+09:00  Container docgrid-postgres17  Created
+2026-10-18T15:37:19+09:00  Container docgrid-embedding  Created
+2026-10-18T15:37:19+09:00  Container docgrid-postgres17  Starting
+2026-10-18T15:37:19+09:00  Container docgrid-valkey  Starting
+2026-10-18T15:37:19+09:00  Container docgrid-embedding  Starting
+2026-10-18T15:37:20+09:00  Container docgrid-embedding  Started
+2026-10-18T15:37:20+09:00  Container docgrid-valkey  Started
+2026-10-18T15:37:20+09:00  Container docgrid-postgres17  Started
+2026-10-18T15:37:23+09:00 [OK] 대상 PostgreSQL 준비 완료
+2026-10-18T15:37:23+09:00 [OK] Valkey 준비 완료
+2026-10-18T15:38:08+09:00 [OK] Embedding Provider 준비 완료
+2026-10-18T15:38:08+09:00 [OK] 대상 PostgreSQL 인증·pgvector 0.8.1 확인
+2026-10-18T15:38:08+09:00 [OK] Valkey 연결 가능
+2026-10-18T15:38:08+09:00 [OK] Embedding Provider 준비 완료 (<설정된 서버>)
+2026-10-18T15:38:08+09:00 [OK] 검색 범위 준비 완료 · 생성 답변은 미검증

@@ -1,0 +1,117 @@
+{
+  "runId": "39104533807-1",
+  "revision": "ae146127179227f74205e189f7fd49dbe59a77fd",
+  "environment": "GitHub hosted Ubuntu 24.04 · actual PostgreSQL/Valkey/BGE-M3 · no Ollama",
+  "results": [
+    {
+      "id": "preflight",
+      "purpose": "독립 실행기의 새 환경 확인",
+      "timestamp": "2026-10-18T15:35:26+09:00",
+      "verdict": "PASS",
+      "existingContainers": 0,
+      "existingImageCount": 6,
+      "existingVolumes": 0,
+      "environmentFilesInitiallyPresent": 0,
+      "workload": {
+        "documents": 15,
+        "searchQuestions": 3,
+        "browserSessions": 1
+      }
+    },
+    {
+      "id": "concurrent-start",
+      "purpose": "진행 중 start의 잠금으로 두 번째 start 거부",
+      "timestamp": "2026-10-18T15:35:31+09:00",
+      "verdict": "PASS",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "elapsedSeconds": 0.114,
+      "log": "concurrent-start.log"
+    },
+    {
+      "id": "cold-start",
+      "purpose": "모델·의존성 최초 준비를 포함한 전체 기동",
+      "timestamp": "2026-10-18T15:39:51+09:00",
+      "verdict": "PASS",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 265.87,
+      "log": "cold-start.log"
+    },
+    {
+      "id": "verify-first",
+      "purpose": "실제 모델 인덱싱·검색·프록시·원본 대조",
+      "timestamp": "2026-10-18T15:40:27+09:00",
+      "verdict": "PASS",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 35.68,
+      "log": "verify-first.log"
+    },
+    {
+      "id": "first-result",
+      "purpose": "예제 필수 단계 수와 이전 원장 문서 ID 검사",
+      "timestamp": "2026-10-18T15:40:27+09:00",
+      "verdict": "PASS",
+      "counts": {
+        "upload": 15,
+        "indexing": 15,
+        "search": 3,
+        "download": 15
+      },
+      "rag": "NOT_RUN"
+    },
+    {
+      "id": "verify-replay",
+      "purpose": "같은 계정 재실행과 문서 ID 재사용",
+      "timestamp": "2026-10-18T15:40:31+09:00",
+      "verdict": "PASS",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 3.527,
+      "log": "verify-replay.log"
+    },
+    {
+      "id": "replay-result",
+      "purpose": "예제 필수 단계 수와 이전 원장 문서 ID 검사",
+      "timestamp": "2026-10-18T15:40:31+09:00",
+      "verdict": "PASS",
+      "counts": {
+        "upload": 15,
+        "indexing": 15,
+        "search": 3,
+        "download": 15,
+        "replay": 15
+      },
+      "rag": "NOT_RUN"
+    },
+    {
+      "id": "browser",
+      "purpose": "실제 Chromium 로그인·질문 전송·원본 다운로드 해시",
+      "timestamp": "2026-10-18T15:41:19+09:00",
+      "verdict": "FAIL",
+      "exitCode": 1,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 48.381,
+      "log": "browser.log"
+    },
+    {
+      "id": "incomplete",
+      "purpose": "현재 회차의 완료 여부",
+      "timestamp": "2026-10-18T15:41:19+09:00",
+      "verdict": "FAIL",
+      "at": "browser",
+      "errorType": "RuntimeError"
+    },
+    {
+      "id": "always-cleanup",
+      "purpose": "시험 중단·완료 후 소유 자원 종료",
+      "timestamp": "2026-10-18T15:41:22+09:00",
+      "verdict": "PASS",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 3.422,
+      "log": "always-cleanup.log"
+    }
+  ]
+}

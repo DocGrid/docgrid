@@ -1,0 +1,7 @@
+{"timestamp": "2026-10-18T15:52:48+09:00", "message": "[시작] 로컬 시연 세션 1bd07e5ccd714d77a817b67f1d272a0f · 범위 search"}
+{"timestamp": "2026-10-18T15:56:02+09:00", "message": "[준비 완료] Web: <설정된 서버> · verify로 예제 시연을 검사하세요."}
+{"timestamp": "2026-10-18T15:56:27+09:00", "message": "[검증 통과] 업로드·인덱싱·검색·원본 검사 완료. 기록: .demo/reports/43aaa87d4ac94307a3639f790aabf3a1/summary.json"}
+{"timestamp": "2026-10-18T15:56:30+09:00", "message": "[검증 통과] 업로드·인덱싱·검색·원본 검사 완료. 기록: .demo/reports/3abd7182177c4cc4a95e4d956b49ebed/summary.json"}
+{"timestamp": "2026-10-18T15:56:36+09:00", "message": "[재사용] 이미 준비된 시연 세션입니다. Web: <설정된 서버>"}
+{"timestamp": "2026-10-18T15:56:39+09:00", "message": "[종료 완료] 소유 서버·컨테이너 중지, 데이터·원본·모델 캐시 보존"}
+{"timestamp": "2026-10-18T15:56:39+09:00", "message": "[종료] 이미 종료된 세션입니다."}
