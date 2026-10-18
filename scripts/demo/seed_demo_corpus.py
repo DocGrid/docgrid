@@ -61,6 +61,8 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def safe_text(message: str) -> str:
     """터미널·파일에 기록하기 전에 자격증명·이메일·서버 주소를 제거한다."""
+    message = re.sub(r"(?i)([?&](?:password|passwordConfirmation|token|access_token|accessToken|refresh_token|secret|email)=)[^&#\s\"']+",
+                     r"\1<비밀값 생략>", message)
     for value in SECRET_VALUES:
         if value:
             message = message.replace(value, "<비밀값 생략>")
