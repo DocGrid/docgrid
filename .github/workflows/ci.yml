@@ -14,6 +14,15 @@ permissions:
   contents: read
 
 jobs:
+  demo-scripts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Test demo decisions without external services
+        run: python3 -m unittest discover -s scripts/demo -p 'test_*.py' -v
+
   backend:
     runs-on: ubuntu-latest
     timeout-minutes: 15
