@@ -16,12 +16,21 @@ const { chromium } = require(process.env.DEMO_BROWSER_MODULE);
   const browser = await chromium.launch();
   const page = await browser.newPage({ acceptDownloads: true });
   page.setDefaultTimeout(45000);
-  let stage = 'login';
+  const clean = value => String(value).replaceAll(process.env.DOCGRID_DEMO_PASSWORD, '<비밀값 생략>')
+    .replaceAll(process.cwd(), '<작업공간>')
+    .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '<토큰 생략>')
+    .replace(/[\w.+%-]+@[\w.-]+\.[\w.-]+/g, '<이메일 생략>');
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(clean(error.message)));
+  let stage = 'login-page';
   try {
     await page.goto('http://127.0.0.1:3000/login?returnTo=%2Fsearch');
+    stage = 'login-form';
     await page.getByLabel('이메일', { exact: true }).fill('demo@docgrid.local');
     await page.getByLabel('비밀번호', { exact: true }).fill(process.env.DOCGRID_DEMO_PASSWORD);
+    stage = 'login-submit';
     await page.getByRole('button', { name: '로그인', exact: true }).click();
+    stage = 'login-navigation';
     await page.waitForURL('**/search');
     stage = 'search';
     await page.getByRole('textbox', { name: '문서 검색', exact: true }).fill(query.query);
@@ -47,8 +56,13 @@ const { chromium } = require(process.env.DEMO_BROWSER_MODULE);
       download: 'PASS', documentId, bytes: bytes.length, sha256: sha(bytes) }, null, 2));
     console.log(JSON.stringify({ login: 'PASS', search: 'PASS', download: 'PASS', downloadedBytes: bytes.length }));
   } catch (error) {
-    // Playwright 오류 본문에는 입력값이 포함될 수 있으므로 유형과 단계만 보존한다.
-    await fs.writeFile(path.join(directory, 'summary.json'), JSON.stringify({ verdict: 'FAIL', stage, errorType: error.name }));
+    // 입력값·토큰을 제거한 뒤에만 실패 원인과 화면을 보존한다.
+    await fs.writeFile(path.join(directory, 'summary.json'), JSON.stringify({ verdict: 'FAIL', stage,
+      errorType: error.name, message: clean(error.message), pageErrors,
+      pagePath: new URL(page.url()).pathname,
+      alerts: (await page.getByRole('alert').allTextContents()).map(clean) }, null, 2));
+    await page.screenshot({ path: path.join(directory, 'failure.png'), fullPage: true,
+      mask: [page.locator('input'), page.getByText('demo@docgrid.local', { exact: true })] });
     console.log(JSON.stringify({ verdict: 'FAIL', stage, errorType: error.name }));
     process.exitCode = 1;
   } finally {
