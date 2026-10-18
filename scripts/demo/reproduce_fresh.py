@@ -162,7 +162,8 @@ class Reproduction:
             raise RuntimeError("fresh Docker environment required")
         self.record("preflight", "독립 실행기의 새 환경 확인", "PASS", existingContainers=0,
                     existingImageCount=len(set(images)), existingVolumes=0, environmentFilesInitiallyPresent=0,
-                    workload={"documents": 15, "searchQuestions": 3, "browserSessions": 1})
+                    workload={"documents": 15, "searchQuestions": 3, "interactiveBrowserSessions": 1,
+                              "noScriptBoundarySessions": 1})
         command = ["./scripts/demo.py"]
         self.execute("cold-start", "모델·의존성 최초 준비를 포함한 전체 기동", command + ["start", "--timeout", "1200"], probe=self.concurrent_probe, timeout=1800)
         paths = [ROOT / ".env", ROOT / "frontend/.env.local"]
