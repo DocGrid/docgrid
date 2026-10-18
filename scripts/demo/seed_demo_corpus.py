@@ -52,6 +52,13 @@ class SeedError(Exception):
     """사용자가 바로 조치할 수 있는 실패 안내를 담는다."""
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """검증 요청이 다른 서버로 리다이렉트돼 인증정보·파일을 전달하는 것을 막는다."""
+
+    def redirect_request(self, request, fp, code, message, headers, new_url):
+        return None
+
+
 def safe_text(message: str) -> str:
     """터미널·파일에 기록하기 전에 자격증명·이메일·서버 주소를 제거한다."""
     for value in SECRET_VALUES:
@@ -167,6 +174,7 @@ class DocGridClient:
     def __init__(self, base_url: str):
         self.base_url = base_url.rstrip("/")
         self.token: str | None = None
+        self.opener = urllib.request.build_opener(NoRedirect)
 
     def call_bytes(self, method: str, path: str, body: bytes | None = None,
                    headers: dict[str, str] | None = None, timeout: float = 60,
@@ -177,7 +185,7 @@ class DocGridClient:
         request = urllib.request.Request(self.base_url + path, data=body, method=method,
                                          headers=outgoing)
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
+            with self.opener.open(request, timeout=timeout) as response:
                 status, raw = response.status, response.read(limit + 1)
         except urllib.error.HTTPError as error:
             with error:

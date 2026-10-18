@@ -106,6 +106,9 @@ class LocalConfig:
             raise ConfigError("기본 로컬 Compose Valkey는 인증 없는 로컬 연결을 사용합니다.")
         if not values.get("DB_PASSWORD"):
             raise ConfigError("DB_PASSWORD를 설정하세요.")
+        if any(("\n" in value or "\r" in value) for key, value in values.items()
+               if any(word in key for word in ["PASSWORD", "SECRET", "TOKEN", "KEY"])):
+            raise ConfigError("출력 전 마스킹을 보장할 수 없는 여러 줄 비밀값은 지원하지 않습니다.")
         for key in ["DB_NAME", "DB_USER", "DB_SCHEMA", "STORAGE_BUCKET"]:
             if not re.fullmatch(r"[A-Za-z0-9_-]+", values[key]):
                 raise ConfigError(f"로컬 식별자 형식이 잘못됐습니다: {key}")
