@@ -1,0 +1,18 @@
+{
+  "topK": 3,
+  "queries": [
+    {
+      "query": "재택근무는 일주일에 며칠까지 할 수 있고 언제까지 신청해야 하나요?",
+      "expectedFile": "01-remote-work-policy.pdf"
+    },
+    {
+      "query": "본인 결혼 시 경조금과 경조휴가는 얼마나 되나요?",
+      "expectedFile": "06-family-event-support.docx",
+      "requiredContent": ["50만원", "5일"]
+    },
+    {
+      "query": "계약서는 몇 년 동안 보관해야 하나요?",
+      "expectedFile": "11-records-retention.hwpx"
+    }
+  ]
+}
