@@ -1,10 +1,21 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# DocGrid 로컬 실행에 필수인 Valkey, Embedding Provider, Ollama의 기동과 준비 상태만 관리한다.
+# 기존 서비스 기동을 유지하고 명시적 search/rag 범위에서는 검증된 로컬 설정만 사용한다.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ACTION="${1:-status}"
+# 1. .env를 셸로 실행하지 않고 Python의 제한된 설정 해석기로 명시적 범위를 확정한다.
+if (( $# > 1 )); then
+    if [[ $# -ne 3 || "$2" != "--scope" || ! "$3" =~ ^(search|rag)$ ]]; then
+        printf '[FAIL] 사용법: local-services.sh <start|status> --scope <search|rag>\n' >&2
+        exit 2
+    fi
+    command -v python3 >/dev/null 2>&1 || { printf '[FAIL] Python 3가 필요합니다.\n' >&2; exit 2; }
+    exec python3 "$SCRIPT_DIR/demo/local_config.py" services --scope "$3" --service-action "$ACTION"
+fi
+LOCAL_SCOPE="${DOCGRID_LOCAL_SCOPE:-rag}"
+LOCAL_EXPLICIT="${DOCGRID_LOCAL_EXPLICIT:-0}"
 WAIT_TIMEOUT_SECONDS="${LOCAL_SERVICES_WAIT_TIMEOUT_SECONDS:-900}"
 POLL_INTERVAL_SECONDS="${LOCAL_SERVICES_POLL_INTERVAL_SECONDS:-2}"
 EMBEDDING_BASE_URL="${EMBEDDING_SERVER_URL:-http://127.0.0.1:8000}"
@@ -30,10 +41,14 @@ warn() {
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/local-services.sh <start|status>
+Usage: ./scripts/local-services.sh <start|status> [--scope search|rag]
 
   start   Valkey, Embedding Provider, Ollama를 기동하고 준비 완료까지 기다립니다.
   status  세 서비스의 실제 연결 상태와 Ollama 모델 준비 상태를 즉시 확인합니다.
+
+  --scope search  로컬 PostgreSQL·Valkey·BGE-M3만 기동·점검합니다. Ollama는 호출하지 않습니다.
+  --scope rag     위 항목과 사전 기동된 Native Ollama API·모델을 점검합니다.
+  인자 없는 기존 명령의 Native Ollama 기동 방식은 유지합니다.
 
 Environment:
   LOCAL_SERVICES_WAIT_TIMEOUT_SECONDS  start 대기 시간(기본 900초)
@@ -53,8 +68,20 @@ require_positive_integer() {
     fi
 }
 
+compose() {
+    if [[ "$LOCAL_EXPLICIT" == "1" ]]; then
+        docker compose --project-directory "$PROJECT_ROOT" -f "$PROJECT_ROOT/docker-compose.yml" "$@"
+    else
+        docker compose "$@"
+    fi
+}
+
+postgres_ready() {
+    python3 "$SCRIPT_DIR/demo/local_config.py" database >/dev/null 2>&1
+}
+
 valkey_ready() {
-    docker compose exec -T valkey valkey-cli ping 2>/dev/null | grep -qx 'PONG'
+    compose exec -T valkey valkey-cli ping 2>/dev/null | grep -qx 'PONG'
 }
 
 embedding_ready() {
@@ -152,6 +179,18 @@ start_ollama() {
 print_status() {
     local failures=0
 
+    if [[ "$LOCAL_EXPLICIT" == "1" ]]; then
+        if ! python3 "$SCRIPT_DIR/demo/local_config.py" bindings; then
+            failures=$((failures + 1))
+        fi
+        if postgres_ready; then
+            ok "대상 PostgreSQL 인증·pgvector 0.8.1 확인"
+        else
+            fail "대상 PostgreSQL 인증·확장 확인 실패 — DB 설정과 준비 상태를 확인하세요."
+            failures=$((failures + 1))
+        fi
+    fi
+
     # 1. 실행 상태가 아니라 실제 Valkey 명령 응답으로 로그인 캐시 사용 가능 여부를 확인한다.
     if valkey_ready; then
         ok "Valkey 연결 가능"
@@ -167,6 +206,16 @@ print_status() {
         fail "Embedding Provider 준비 안 됨 — 복구: docker compose up -d embedding-server"
         fail "진행 확인: docker compose logs -f embedding-server"
         failures=$((failures + 1))
+    fi
+
+    # search 범위는 생성 모델의 기동·준비 상태를 호출하지 않는다.
+    if [[ "$LOCAL_SCOPE" == "search" ]]; then
+        if (( failures > 0 )); then
+            fail "검색 범위 준비 점검 ${failures}개 실패"
+            return 1
+        fi
+        ok "검색 범위 준비 완료 · 생성 답변은 미검증"
+        return 0
     fi
 
     # 3. Ollama API와 애플리케이션이 요구하는 모델을 분리해 AI 답변 가능 여부를 확인한다.
@@ -211,17 +260,31 @@ start_services() {
         return 1
     }
 
-    # 1. Compose 서비스는 기존 Volume을 유지한 채 필요한 두 서비스만 멱등하게 기동한다.
-    log "Valkey와 Embedding Provider를 시작합니다."
-    COMPOSE_IGNORE_ORPHANS=true docker compose up -d valkey embedding-server
+    # 1. Native 서비스 관리자·앱은 명시적 시연의 소유 자원이 아니므로 준비된 서버만 재사용한다.
+    if [[ "$LOCAL_EXPLICIT" == "1" && "$LOCAL_SCOPE" == "rag" ]]; then
+        if ! ollama_ready || ! ollama_model_ready; then
+            fail "rag 범위에는 사전 기동된 Native Ollama와 지정 모델이 필요합니다."
+            return 1
+        fi
+    fi
 
-    # 2. Native Ollama를 기동해 Docker Desktop의 CPU 추론 경로를 피한다.
-    start_ollama
+    # 2. 명시적 로컬 범위는 DB까지 포함하고, 기존 인자 없는 기동 계약은 유지한다.
+    if [[ "$LOCAL_EXPLICIT" == "1" ]]; then
+        log "로컬 PostgreSQL·Valkey·Embedding Provider를 시작합니다."
+        COMPOSE_IGNORE_ORPHANS=true compose up -d --no-recreate postgres valkey embedding-server
+        python3 "$SCRIPT_DIR/demo/local_config.py" bindings
+        wait_until_ready "대상 PostgreSQL" postgres_ready
+    else
+        COMPOSE_IGNORE_ORPHANS=true compose up -d valkey embedding-server
+        start_ollama
+    fi
 
-    # 3. 각 서비스가 실제 요청을 받을 수 있을 때까지 제한 시간 안에서 기다린다.
+    # 3. 필요한 서비스만 실제 요청을 받을 수 있을 때까지 기다린다.
     wait_until_ready "Valkey" valkey_ready
     wait_until_ready "Embedding Provider" embedding_ready
-    wait_until_ready "Ollama API" ollama_ready
+    if [[ "$LOCAL_SCOPE" == "rag" ]]; then
+        wait_until_ready "Ollama API" ollama_ready
+    fi
 
     # 4. 마지막으로 모델을 포함한 전체 상태를 같은 기준으로 다시 검증한다.
     print_status
