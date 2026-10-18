@@ -1,0 +1,27 @@
+test_empty_results_must_fail (__main__.VerdictRegression) ... FAIL
+test_search_http_error_must_fail (__main__.VerdictRegression) ... FAIL
+
+======================================================================
+FAIL: test_empty_results_must_fail (__main__.VerdictRegression)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<로컬 시험 도구>/baseline_verdict.py", line 40, in test_empty_results_must_fail
+    self.assert_search_failure(200, {'data': {'results': [], 'ragStatus': 'FAILED'}})
+  File "<로컬 시험 도구>/baseline_verdict.py", line 34, in assert_search_failure
+    self.assertNotEqual(result, 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_search_http_error_must_fail (__main__.VerdictRegression)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<로컬 시험 도구>/baseline_verdict.py", line 37, in test_search_http_error_must_fail
+    self.assert_search_failure(500, {'code': 'SYNTHETIC-ERROR'})
+  File "<로컬 시험 도구>/baseline_verdict.py", line 34, in assert_search_failure
+    self.assertNotEqual(result, 0)
+AssertionError: 0 == 0
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.002s
+
+FAILED (failures=2)

@@ -10,6 +10,16 @@ python3 scripts/demo/seed_demo_corpus.py
 스크립트는 `manifest.json`의 제목·설명으로 문서를 PUBLIC 업로드하고, 인덱싱 완료와 예시 검색까지
 확인합니다. 사용법은 [README 「빠른 실행」 6단계](../../README.md#6-핵심-흐름-확인)를 참고하세요.
 
+기본 범위는 `search`이며 고정 질문 3개의 기대 문서 포함(topK 3), DOCX 표 본문과 원본 15건의
+길이·SHA-256까지 검사합니다. 검색 오류·빈 결과·원본 불일치는 실패 종료합니다.
+생성 답변까지 검증하려면 Ollama를 준비하고 `--scope rag`를 지정합니다. 답변 문장 일치가 아니라
+완료 상태·답변 존재·검색 근거에 속한 인용을 검사합니다. search 범위의 RAG는 미검증입니다.
+
+실행별 결과는 Git 제외 경로 `.demo/reports/<run-id>/`의 `summary.json`·`events.jsonl`에 저장됩니다.
+`--report-dir`로 새 결과 경로를 지정할 수 있고 기존 디렉터리는 덮어쓰지 않습니다.
+`--previous-report <이전 summary.json>`으로 같은 대상·계정·예제의 문서 ID 재사용을 확인합니다.
+`--query`는 사용자 질문 1건의 기본 검색 검사이며 고정 기대 문서 3/3 검사와 구분합니다.
+
 ## 문서 목록
 
 | 파일 | 형식 | 제목 |

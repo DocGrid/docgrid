@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""DocGrid 예제 문서를 업로드하고 인덱싱 완료와 예시 검색·RAG 답변까지 한 번에 확인한다.
+"""예제 업로드·인덱싱·검색·원본을 검증하고 선택한 범위의 결과로 종료한다.
 
 examples/demo-corpus/manifest.json의 문서를 PUBLIC으로 업로드한다. 파일 해시로 만든
 Idempotency-Key를 보내므로 같은 계정으로 다시 실행해도 문서가 중복 생성되지 않는다.
-계정이 없으면 회원가입 후 로그인한다. 비밀번호와 Access Token은 출력하지 않는다.
+계정이 없으면 회원가입 후 로그인한다. search 범위에서는 생성 모델을 검증하지 않는다.
+실행별 원장에는 안전한 상태·건수·식별자만 기록하며 응답 본문과 자격증명을 보존하지 않는다.
 """
 
 from __future__ import annotations
@@ -12,13 +13,17 @@ import argparse
 import getpass
 import hashlib
 import json
+import math
 import os
+import re
+import subprocess
 import sys
 import time
 import urllib.error
 import urllib.request
 import uuid
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CORPUS_DIR = REPO_ROOT / "examples" / "demo-corpus"
@@ -37,16 +42,80 @@ EMAIL_ALREADY_EXISTS = "USER-002"
 UPLOAD_RETRY_LIMIT = 6
 UPLOAD_RETRY_DELAY_SECONDS = 5
 STALL_HINT_SECONDS = 90
-SNIPPET_LENGTH = 70
-ANSWER_PREVIEW_LENGTH = 300
+ACTIVE_REPORT = None
+SECRET_VALUES = []
+STAGE_LABELS = {"upload": "업로드", "indexing": "인덱싱", "search": "검색",
+                "download": "원본 해시", "rag": "생성 답변·인용", "replay": "문서 ID 재사용"}
 
 
 class SeedError(Exception):
     """사용자가 바로 조치할 수 있는 실패 안내를 담는다."""
 
 
+def safe_text(message: str) -> str:
+    """터미널·파일에 기록하기 전에 자격증명·이메일·서버 주소를 제거한다."""
+    for value in SECRET_VALUES:
+        if value:
+            message = message.replace(value, "<비밀값 생략>")
+    message = re.sub(r"https?://[^\s)]+", "<설정된 서버>", message)
+    message = re.sub(r"[\w.+%-]+@[\w.-]+\.[\w.-]+", "<이메일 생략>", message)
+    message = re.sub(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+", "<토큰 생략>", message)
+    return message
+
+
 def log(message: str) -> None:
-    print(message, flush=True)
+    safe = safe_text(message)
+    print(safe, flush=True)
+    if ACTIVE_REPORT:
+        ACTIVE_REPORT.event(safe)
+
+
+class DemoReport:
+    """한 실행의 단계 판정·안전한 이벤트·문서 원장만 독립된 디렉터리에 보존한다."""
+
+    def __init__(self, args):
+        self.run_id = datetime.now(timezone(timedelta(hours=9))).strftime("%Y%m%dT%H%M%S%f%z")
+        self.directory = args.report_dir or REPO_ROOT / ".demo" / "reports" / self.run_id
+        self.directory.mkdir(parents=True, exist_ok=False)
+        self.events = (self.directory / "events.jsonl").open("x", encoding="utf-8")
+        self.started = time.monotonic()
+        try:
+            revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT,
+                                               stderr=subprocess.DEVNULL, text=True).strip()
+        except (OSError, subprocess.CalledProcessError):
+            revision = "unknown"
+        self.data = {"schemaVersion": 1, "runId": self.run_id, "revision": revision,
+                     "scope": args.scope, "startedAt": self.timestamp(), "stages": {},
+                     "documents": {}, "queries": []}
+        for name in STAGE_LABELS:
+            self.stage(name, "NOT_RUN", 0, 0)
+
+    @staticmethod
+    def timestamp():
+        return datetime.now(timezone(timedelta(hours=9))).isoformat(timespec="milliseconds")
+
+    def event(self, message):
+        self.events.write(json.dumps({"timestamp": self.timestamp(), "message": message},
+                                     ensure_ascii=False) + "\n")
+        self.events.flush()
+
+    def stage(self, name, status, passed, expected):
+        self.data["stages"][name] = {"status": status, "passed": passed, "expected": expected}
+
+    def finish(self, exit_code):
+        self.data.update(exitCode=exit_code, finishedAt=self.timestamp(),
+                         elapsedSeconds=round(time.monotonic() - self.started, 3))
+        with (self.directory / "summary.json").open("x", encoding="utf-8") as target:
+            json.dump(self.data, target, ensure_ascii=False, indent=2)
+        self.events.close()
+
+    def required_passed(self, compare_previous):
+        required = ["upload", "indexing", "search", "download"]
+        if self.data["scope"] == "rag":
+            required.append("rag")
+        if compare_previous:
+            required.append("replay")
+        return all(self.data["stages"][name]["status"] == "PASS" for name in required)
 
 
 def elapsed_text(seconds: float) -> str:
@@ -73,6 +142,8 @@ def load_manifest(corpus_dir: Path) -> list[dict]:
             raise SeedError(f"지원하지 않는 확장자입니다: {document['file']}")
         if not path.is_file():
             raise SeedError(f"예제 문서 파일이 없습니다: {path}")
+    if not documents or len({d["file"] for d in documents}) != len(documents):
+        raise SeedError("예제 목록은 비어 있지 않아야 하며 파일명이 중복되면 안 됩니다.")
     return documents
 
 
@@ -97,8 +168,9 @@ class DocGridClient:
         self.base_url = base_url.rstrip("/")
         self.token: str | None = None
 
-    def call(self, method: str, path: str, body: bytes | None = None,
-             headers: dict[str, str] | None = None, timeout: float = 60) -> tuple[int, dict]:
+    def call_bytes(self, method: str, path: str, body: bytes | None = None,
+                   headers: dict[str, str] | None = None, timeout: float = 60,
+                   limit: int = 2 * 1024 * 1024) -> tuple[int, bytes]:
         outgoing = dict(headers or {})
         if self.token:
             outgoing["Authorization"] = "Bearer " + self.token
@@ -106,15 +178,23 @@ class DocGridClient:
                                          headers=outgoing)
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
-                status, raw = response.status, response.read()
+                status, raw = response.status, response.read(limit + 1)
         except urllib.error.HTTPError as error:
-            status, raw = error.code, error.read()
+            with error:
+                status, raw = error.code, error.read(limit + 1)
         except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
             raise SeedError(
-                f"Backend({self.base_url})에 연결할 수 없습니다: {getattr(error, 'reason', error)}\n"
+                "Backend에 연결할 수 없습니다.\n"
                 "  → 빠른 실행 5단계의 `./backend/gradlew -p backend bootRun`이 떠 있는지, "
                 "--base-url(DOCGRID_BASE_URL)이 맞는지 확인하세요."
             ) from None
+        if len(raw) > limit:
+            raise SeedError("응답 크기가 검증 상한을 초과했습니다.")
+        return status, raw
+
+    def call(self, method: str, path: str, body: bytes | None = None,
+             headers: dict[str, str] | None = None, timeout: float = 60) -> tuple[int, dict]:
+        status, raw = self.call_bytes(method, path, body, headers, timeout)
         try:
             payload = json.loads(raw) if raw else {}
         except ValueError:
@@ -127,8 +207,9 @@ class DocGridClient:
 
 
 def error_text(payload: dict) -> str:
-    code, message = payload.get("code"), payload.get("message")
-    return f"{code} {message}" if code else "응답 본문 없음"
+    # 서버의 임의 오류 본문에 개인정보·인증정보가 들어갈 수 있어 코드만 허용한다.
+    code = str(payload.get("code") or "")
+    return code if re.fullmatch(r"[A-Z0-9._-]{1,80}", code) else "응답 상세 생략"
 
 
 def authenticate(client: DocGridClient, email: str, password: str, name: str,
@@ -141,18 +222,19 @@ def authenticate(client: DocGridClient, email: str, password: str, name: str,
             **credentials, "name": name, "departmentId": department_id,
         })
         if status == 409 and payload.get("code") == EMAIL_ALREADY_EXISTS:
-            raise SeedError(f"{email} 계정은 이미 있지만 비밀번호가 다릅니다. "
+            raise SeedError("계정은 이미 있지만 비밀번호가 다릅니다. "
                             "DOCGRID_DEMO_PASSWORD 또는 --email을 확인하세요.")
         if status != 201:
             raise SeedError(f"회원가입 실패(HTTP {status}): {error_text(payload)} "
                             "(비밀번호는 12~64자여야 합니다)")
-        log(f"[계정] {email} 회원가입 완료")
+        log("[계정] 회원가입 완료")
         status, payload = client.call_json("POST", "/auth/login", credentials)
     token = (payload.get("data") or {}).get("accessToken")
     if status != 200 or not token:
         raise SeedError(f"로그인 실패(HTTP {status}): {error_text(payload)}")
     client.token = token
-    log(f"[계정] {email} 로그인 완료")
+    SECRET_VALUES.append(token)
+    log("[계정] 로그인 완료")
 
 
 def upload(client: DocGridClient, corpus_dir: Path, document: dict) -> dict:
@@ -268,153 +350,241 @@ def wait_for_indexing(client: DocGridClient, uploaded: dict[int, str], timeout: 
     return states, ever_started
 
 
-def example_search(client: DocGridClient, query: str, rag_wait: float) -> None:
-    log(f"\n== 예시 검색 ==\n질문: {query}")
-    status, payload = client.call_json("POST", "/search", {"queryText": query, "topK": 3})
+def example_search(client: DocGridClient, query: str, rag_wait: float,
+                   scope: str = "search", expected_id: int | None = None,
+                   top_k: int = 3) -> dict:
+    """검색의 실제 결과와 선택 RAG만 판정하며 임의 응답 본문은 출력하지 않는다."""
+    verdict = {"search": "FAIL", "rag": "NOT_RUN", "queryId": None}
+    status, payload = client.call_json("POST", "/search", {"queryText": query, "topK": top_k})
     if status != 200:
-        log(f"[검색] 실패(HTTP {status}): {error_text(payload)}")
-        return
+        log(f"[검색] 실패(HTTP {status})")
+        return verdict
     data = payload.get("data") or {}
     results = data.get("results") or []
-    if not results:
-        log("[검색] 결과 없음 — 인덱싱이 끝난 문서가 질문과 관련이 없거나 아직 검색할 수 없습니다.")
-    for item in results:
-        snippet = " ".join((item.get("chunkText") or "").split())[:SNIPPET_LENGTH]
-        log(f"  {item.get('rank')}. {item.get('documentTitle')} "
-            f"(유사도 {float(item.get('similarityScore') or 0) * 100:.1f}%) {snippet}…")
+    query_id = data.get("queryId")
+    verdict["queryId"] = query_id if type(query_id) is int and query_id > 0 else None
+    valid_results = bool(results) and all(isinstance(item, dict) and
+        type(item.get("documentId")) is int and item["documentId"] > 0 and
+        type(item.get("chunkId")) is int and item["chunkId"] > 0 for item in results)
+    if verdict["queryId"] is None or not valid_results or (expected_id is not None and
+                       expected_id not in {r.get("documentId") for r in results[:top_k]}):
+        log("[검색] 실패: 빈 결과이거나 정해진 범위에 기대 문서가 없습니다.")
+        return verdict
+    verdict["search"] = "PASS"
+    log(f"[검색] 통과: 결과 {len(results)}건, 기대 문서 포함 여부 확인")
+    if scope == "search":
+        log("[RAG] 미검증: search 범위에서는 생성 답변 성공을 주장하지 않습니다.")
+        return verdict
 
     started = time.monotonic()
     while data.get("ragStatus") == "PROCESSING" and time.monotonic() - started < rag_wait:
-        time.sleep(2)
+        time.sleep(min(2, max(0, rag_wait - (time.monotonic() - started))))
         status, payload = client.call("GET", f"/search/{data.get('queryId')}")
         if status != 200:
-            log(f"[RAG] 답변 상태 조회 실패(HTTP {status}): {error_text(payload)}")
-            return
+            verdict["rag"] = "FAIL"
+            return verdict
         data = payload.get("data") or {}
-    rag_status = data.get("ragStatus")
-    answer = " ".join((data.get("answer") or "").split())
-    waited = elapsed_text(time.monotonic() - started)
-    if rag_status == "SUCCESS":
-        log(f"[RAG] 답변 생성 완료({waited} 대기): {answer[:ANSWER_PREVIEW_LENGTH]}")
-    elif rag_status == "FAILED":
-        log(f"[RAG] LLM 답변 생성 실패 → 대체 답변 표시({waited} 대기): {answer[:ANSWER_PREVIEW_LENGTH]}")
-        log("  → Ollama와 qwen2.5:7b가 준비됐는지 `./scripts/local-services.sh status`로 확인하세요. "
-            "검색 결과는 Ollama 없이도 제공됩니다.")
-    else:
-        log(f"[RAG] {elapsed_text(rag_wait)} 안에 답변이 완성되지 않았습니다. 웹 화면에서 이어서 확인하세요.")
+    candidates = {(r.get("documentId"), r.get("chunkId")) for r in results}
+    citations = data.get("citations") or []
+    valid_citations = bool(citations) and all(
+        (c.get("documentId"), c.get("chunkId")) in candidates and
+        isinstance(c.get("quotedText"), str) and bool(c["quotedText"].strip())
+        for c in citations)
+    verdict["rag"] = "PASS" if (data.get("ragStatus") == "SUCCESS" and
+                                  bool(str(data.get("answer") or "").strip()) and
+                                  valid_citations) else "FAIL"
+    log(f"[RAG] {verdict['rag']}: 완료 상태·답변 존재·검색 근거 인용 검사")
+    return verdict
+
+
+def load_checks(args, documents):
+    """질문과 topK를 실행 전에 고정하고 기대 파일을 실제 예제 목록과 대조한다."""
+    if args.query:
+        return 3, [{"query": args.query}]
+    try:
+        checks = json.loads((args.corpus_dir / "checks.json").read_text(encoding="utf-8"))
+        top_k, queries = checks["topK"], checks["queries"]
+        files = {d["file"] for d in documents}
+        if not isinstance(top_k, int) or not 1 <= top_k <= 20 or not queries:
+            raise ValueError()
+        for check in queries:
+            if not str(check["query"]).strip() or check["expectedFile"] not in files:
+                raise ValueError()
+        return top_k, queries
+    except (OSError, ValueError, KeyError, TypeError):
+        raise SeedError("검색 기대값 checks.json이 잘못됐습니다. 사용자 예제는 --query로 기본 검색을 확인할 수 있습니다.") from None
+
+
+def verify_downloads(client, files, corpus_dir):
+    """파일 API로 내려받은 바이트를 로컬 예제의 길이·SHA-256과 비교한다."""
+    passed = 0
+    for filename, document_id in files.items():
+        expected = (corpus_dir / filename).read_bytes()
+        try:
+            status, actual = client.call_bytes("GET", f"/api/documents/{document_id}/file",
+                                               limit=len(expected))
+            matched = status == 200 and len(actual) == len(expected) and (
+                hashlib.sha256(actual).digest() == hashlib.sha256(expected).digest())
+        except SeedError:
+            matched = False
+        passed += int(matched)
+        log(f"[원본] 문서 {document_id}: {'PASS' if matched else 'FAIL'}")
+    return passed
+
+
+def verify_searches(client, checks, files, args, top_k, report):
+    """기대 문서와 선택 본문 조건을 검사하고 질문별 결과를 안전한 원장에 남긴다."""
+    search_passed, rag_passed = 0, 0
+    for number, check in enumerate(checks, 1):
+        expected_id = files.get(check.get("expectedFile"))
+        if check.get("expectedFile") and expected_id is None:
+            result = {"search": "NOT_RUN", "rag": "NOT_RUN", "queryId": None}
+        else:
+            try:
+                result = example_search(client, check["query"], args.rag_wait,
+                                        args.scope, expected_id, top_k)
+                if result["search"] == "PASS" and check.get("requiredContent"):
+                    status, body = client.call("GET", f"/api/documents/{expected_id}/content")
+                    content = "".join(str((body.get("data") or {}).get("content") or "").split())
+                    if status != 200 or not all("".join(text.split()) in content
+                                                for text in check["requiredContent"]):
+                        result["search"] = "FAIL"
+            except SeedError:
+                result = {"search": "FAIL", "rag": "NOT_RUN", "queryId": None}
+        report.data["queries"].append({"number": number, "expectedDocumentId": expected_id,
+                                       **result})
+        search_passed += int(result["search"] == "PASS")
+        rag_passed += int(result["rag"] == "PASS")
+        log(f"[질문 {number}] 검색 {result['search']} · 생성 답변 {result['rag']}")
+    report.stage("search", "PASS" if search_passed == len(checks) else "FAIL",
+                 search_passed, len(checks))
+    if args.scope == "rag":
+        report.stage("rag", "PASS" if rag_passed == len(checks) else "FAIL", rag_passed, len(checks))
 
 
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--base-url", default=os.environ.get("DOCGRID_BASE_URL", "http://localhost:8080"),
-                        help="Backend 주소 (환경변수 DOCGRID_BASE_URL, 기본 http://localhost:8080)")
-    parser.add_argument("--email", default=os.environ.get("DOCGRID_DEMO_EMAIL", "demo@docgrid.local"),
-                        help="업로드할 계정 이메일 (환경변수 DOCGRID_DEMO_EMAIL, 기본 demo@docgrid.local)")
-    parser.add_argument("--name", default="DocGrid 데모", help="계정이 없을 때 회원가입에 쓸 이름")
-    parser.add_argument("--department-id", type=int, default=1,
-                        help="계정이 없을 때 회원가입에 쓸 부서 ID (기본 1: 개발팀)")
-    parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR, help="예제 문서 디렉터리")
-    parser.add_argument("--timeout", type=float,
-                        default=float(os.environ.get("DOCGRID_SEED_TIMEOUT", "600")),
-                        help="INDEXED 대기 상한(초, 환경변수 DOCGRID_SEED_TIMEOUT, 기본 600)")
-    parser.add_argument("--poll-interval", type=float, default=3, help="인덱싱 상태 확인 주기(초)")
-    parser.add_argument("--embedding-url", default=os.environ.get("EMBEDDING_SERVER_URL", "http://localhost:8000"),
-                        help="업로드 전 준비 확인과 진단에 쓸 임베딩 서버 주소 (환경변수 EMBEDDING_SERVER_URL)")
-    parser.add_argument("--skip-embedding-check", action="store_true",
-                        help="업로드 전 임베딩 서버 준비 확인을 건너뜀")
-    parser.add_argument("--query", default=DEFAULT_QUERY, help="마지막에 실행할 예시 검색 질문")
-    parser.add_argument("--rag-wait", type=float, default=60, help="예시 검색의 RAG 답변 대기 상한(초)")
-    return parser.parse_args(argv)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base-url", default=os.environ.get("DOCGRID_BASE_URL", "http://localhost:8080"))
+    parser.add_argument("--email", default=os.environ.get("DOCGRID_DEMO_EMAIL", "demo@docgrid.local"))
+    parser.add_argument("--name", default="DocGrid 데모")
+    parser.add_argument("--department-id", type=int, default=1)
+    parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
+    parser.add_argument("--timeout", type=float, default=os.environ.get("DOCGRID_SEED_TIMEOUT", "600"))
+    parser.add_argument("--poll-interval", type=float, default=3)
+    parser.add_argument("--embedding-url", default=os.environ.get("EMBEDDING_SERVER_URL", "http://localhost:8000"))
+    parser.add_argument("--skip-embedding-check", action="store_true")
+    parser.add_argument("--query", help="고정 3문항 대신 사용자 질문 1건의 비어 있지 않은 결과 확인")
+    parser.add_argument("--rag-wait", type=float, default=60)
+    parser.add_argument("--scope", choices=["search", "rag"], default="search")
+    parser.add_argument("--report-dir", type=Path, help="새 실행 결과 디렉터리(기존 디렉터리 거부)")
+    parser.add_argument("--previous-report", type=Path, help="같은 대상·계정·예제의 이전 summary.json")
+    parser.add_argument("--context-id", default="", help="호출자가 제공하는 실행 대상 식별자")
+    args = parser.parse_args(argv)
+    for name in ("timeout", "poll_interval", "rag_wait"):
+        value = getattr(args, name)
+        if not math.isfinite(value) or value < 0 or (name != "rag_wait" and value == 0):
+            parser.error(f"{name} 값의 범위가 잘못됐습니다.")
+    return args
 
 
 def read_password(email: str) -> str:
     password = os.environ.get("DOCGRID_DEMO_PASSWORD")
-    if password:
-        return password
-    if not sys.stdin.isatty():
-        raise SeedError("비밀번호가 없습니다. DOCGRID_DEMO_PASSWORD 환경변수로 전달하세요.")
-    return getpass.getpass(f"{email} 비밀번호(12자 이상, 계정이 없으면 이 비밀번호로 가입): ")
+    if not password:
+        if not sys.stdin.isatty():
+            raise SeedError("비밀번호가 없습니다. DOCGRID_DEMO_PASSWORD 환경변수로 전달하세요.")
+        password = getpass.getpass("예제 계정 비밀번호(12자 이상): ")
+    SECRET_VALUES.append(password)
+    return password
+
+
+def execute(args, report):
+    # 1. 검증 질문과 파일 바이트를 업로드 전에 고정한다.
+    documents = load_manifest(args.corpus_dir)
+    top_k, checks = load_checks(args, documents)
+    hashes = {d["file"]: hashlib.sha256((args.corpus_dir / d["file"]).read_bytes()).hexdigest()
+              for d in documents}
+    corpus_hash = hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest()
+    # 원문 계정·주소 대신 비교에 필요한 fingerprint만 로컬 원장에 보존한다.
+    target_hash = hashlib.sha256(json.dumps([args.base_url, args.email, args.context_id]).encode()).hexdigest()
+    report.data.update(corpusSha256=corpus_hash, targetFingerprint=target_hash, topK=top_k,
+                       checksSha256=hashlib.sha256(json.dumps(checks, sort_keys=True).encode()).hexdigest())
+    previous = None
+    if args.previous_report:
+        previous = json.loads(args.previous_report.read_text(encoding="utf-8"))
+        if previous.get("corpusSha256") != corpus_hash or previous.get("targetFingerprint") != target_hash:
+            raise SeedError("이전 원장의 대상·계정·예제가 현재 실행과 일치하지 않습니다.")
+    if not args.skip_embedding_check and not embedding_ready(args.embedding_url):
+        raise SeedError("BGE-M3가 준비되지 않아 업로드하지 않았습니다. /health/ready를 확인하세요.")
+
+    # 2. 기존 인증·멱등 업로드·인덱싱 대기를 그대로 사용한다.
+    client = DocGridClient(args.base_url)
+    authenticate(client, args.email, read_password(args.email), args.name, args.department_id)
+    files, uploaded = {}, {}
+    for number, document in enumerate(documents, 1):
+        try:
+            document_id = upload(client, args.corpus_dir, document)["documentId"]
+            if type(document_id) is not int or document_id <= 0:
+                raise SeedError("업로드 응답의 문서 ID가 잘못됐습니다.")
+            files[document["file"]] = document_id
+            uploaded[document_id] = document["title"]
+            report.data["documents"][hashes[document["file"]]] = document_id
+            log(f"[업로드] {number}/{len(documents)} · 문서 {document_id}")
+        except SeedError:
+            log(f"[업로드] {number}/{len(documents)} · FAIL")
+    count = len(documents)
+    report.stage("upload", "PASS" if len(uploaded) == count else "FAIL", len(uploaded), count)
+    states, ever_started = wait_for_indexing(client, uploaded, args.timeout, args.poll_interval,
+                                             args.embedding_url) if uploaded else ({}, set())
+    indexed = sum(s == "INDEXED" for s in states.values())
+    report.stage("indexing", "PASS" if indexed == count else "FAIL", indexed, count)
+    for hint in diagnose(states, ever_started, embedding_ready(args.embedding_url), args.embedding_url):
+        log(hint)
+
+    # 3. 인덱싱과 별개로 검색·원본·선택 RAG의 필수 결과를 판정한다.
+    if indexed:
+        verify_searches(client, checks, files, args, top_k, report)
+        downloads = verify_downloads(client, files, args.corpus_dir)
+        report.stage("download", "PASS" if downloads == count else "FAIL", downloads, count)
+    if previous:
+        matches = sum(previous.get("documents", {}).get(digest) == doc_id
+                      for digest, doc_id in report.data["documents"].items())
+        report.stage("replay", "PASS" if matches == count else "FAIL", matches, count)
+    return 0 if report.required_passed(previous is not None) else 1
 
 
 def run(argv: list[str] | None = None) -> int:
+    """선택 범위의 필수 단계가 모두 통과한 경우에만 0으로 종료한다."""
+    global ACTIVE_REPORT
     args = parse_args(argv)
-    documents = load_manifest(args.corpus_dir)
-    client = DocGridClient(args.base_url)
-    started = time.monotonic()
-    log(f"[시작] Backend {client.base_url} · 예제 문서 {len(documents)}건 · 계정 {args.email}")
-    if not args.skip_embedding_check and not embedding_ready(args.embedding_url):
-        # 준비 전에 올리면 Job이 자동 재시도 3회를 다 쓰고 실패하므로 업로드 전에 멈춘다.
-        raise SeedError(
-            f"임베딩 서버({args.embedding_url})가 아직 준비되지 않아 업로드하지 않았습니다.\n"
-            f"  → `curl -f {args.embedding_url.rstrip('/')}/health/ready`가 성공한 뒤 다시 실행하세요. "
-            "BGE-M3 첫 실행은 모델 다운로드로 오래 걸릴 수 있습니다(`docker compose logs -f embedding-server`).\n"
-            "  → Backend가 다른 임베딩 주소를 쓰면 --embedding-url로 지정하거나 --skip-embedding-check를 붙이세요."
-        )
-    authenticate(client, args.email, read_password(args.email), args.name, args.department_id)
-
-    uploaded: dict[int, str] = {}
-    already: set[int] = set()
-    upload_failures = 0
-    for index, document in enumerate(documents, start=1):
-        prefix = f"[업로드] {index:2}/{len(documents)} {document['file']}"
-        try:
-            doc_id = upload(client, args.corpus_dir, document)["documentId"]
-        except SeedError as error:
-            upload_failures += 1
-            log(f"{prefix} 실패: {error}")
-            continue
-        uploaded[doc_id] = document["title"]
-        # 방금 만든 문서는 Worker가 처리하기 전이므로, 응답 직후 INDEXED면 이전 실행에서 올린 문서다.
-        status, payload = client.call("GET", f"/api/documents/{doc_id}/status")
-        if status == 200 and classify(payload.get("data") or {}) == "INDEXED":
-            already.add(doc_id)
-            log(f"{prefix} → 문서 {doc_id} (이전 실행에서 올린 문서, 이미 INDEXED)")
-        else:
-            log(f"{prefix} → 문서 {doc_id}")
-    upload_seconds = time.monotonic() - started
-
-    states, ever_started = wait_for_indexing(client, uploaded, args.timeout, args.poll_interval,
-                                             args.embedding_url) if uploaded else ({}, set())
-    indexed = [doc_id for doc_id, state in states.items() if state == "INDEXED"]
-    failed = [doc_id for doc_id, state in states.items() if state == "FAILED"]
-    deleted = [doc_id for doc_id, state in states.items() if state == "DELETED"]
-    unfinished = [doc_id for doc_id, state in states.items() if state in ("PENDING", "PROCESSING")]
-    total_seconds = time.monotonic() - started
-
-    log("\n== 요약 ==")
-    log(f"업로드: {len(uploaded)}/{len(documents)}건 성공 (실패 {upload_failures}건, "
-        f"이미 INDEXED였던 기존 문서 {len(already)}건)")
-    log(f"INDEXED: {len(indexed)}건 · 인덱싱 실패: {len(failed) + len(deleted)}건 · "
-        f"시간 안에 끝나지 않음: {len(unfinished)}건")
-    log(f"소요 시간: 업로드 {elapsed_text(upload_seconds)} · 전체 {elapsed_text(total_seconds)}")
-    for doc_id in failed:
-        log(f"  - 실패 문서 {doc_id} {uploaded[doc_id]}")
-    for doc_id in deleted:
-        log(f"  - 문서 {doc_id} {uploaded[doc_id]}: 이 계정에서 삭제된 문서입니다. "
-            "같은 파일은 다시 만들지 않으므로 다른 --email로 실행하세요.")
-    hints = diagnose(states, ever_started, embedding_ready(args.embedding_url), args.embedding_url)
-    if hints:
-        log("원인 후보:")
-        for hint in hints:
-            log("  - " + hint)
-    if failed:
-        log("실패 사유 확인과 재처리는 ADMIN 계정의 웹 대시보드에서 할 수 있습니다. "
-            "원인을 해결한 뒤 다른 --email로 다시 실행하면 새 문서로 다시 올립니다.")
-
-    if indexed:
-        example_search(client, args.query, args.rag_wait)
-        log("\n웹 화면(기본 http://localhost:3000)에서 같은 계정이나 다른 계정으로 로그인해 검색할 수 "
-            "있습니다. 예제 문서는 PUBLIC으로 올라가 모든 로그인 사용자가 검색할 수 있습니다.")
-    return 0 if len(indexed) == len(documents) else 1
+    SECRET_VALUES.clear()
+    try:
+        report = DemoReport(args)
+    except OSError:
+        raise SeedError("새 결과 디렉터리를 만들 수 없습니다. 기존 원장은 덮어쓰지 않습니다.") from None
+    ACTIVE_REPORT = report
+    exit_code = 2
+    try:
+        log(f"[실행] {report.run_id} · 범위 {args.scope}")
+        exit_code = execute(args, report)
+    except KeyboardInterrupt:
+        exit_code = 130
+        log("[중단] 필수 검증이 완료되지 않았습니다.")
+    except (SeedError, OSError, ValueError, KeyError, TypeError) as error:
+        report.data["errorType"] = type(error).__name__
+        log(f"[오류] {error if isinstance(error, SeedError) else type(error).__name__}")
+    finally:
+        for name, result in report.data["stages"].items():
+            log(f"[{STAGE_LABELS[name]}] {result['status']} · {result['passed']}/{result['expected']}")
+        log(f"[최종] 종료 코드 {exit_code}")
+        ACTIVE_REPORT = None
+        report.finish(exit_code)
+        SECRET_VALUES.clear()
+    return exit_code
 
 
 if __name__ == "__main__":
     try:
         raise SystemExit(run())
     except SeedError as error:
-        log(f"[실패] {error}")
+        log(f"[오류] {error}")
         raise SystemExit(2) from None
-    except KeyboardInterrupt:
-        log("\n[중단] 다시 실행해도 이미 올린 문서는 중복 생성되지 않습니다.")
-        raise SystemExit(130) from None
