@@ -671,7 +671,7 @@ def supervise(runtime, session_id, component):
                 "install": ["npm", "--prefix", "frontend", "ci"],
                 "services": ["bash", "scripts/local-services.sh", "start", "--scope", state["scope"]],
                 "backend": [str(runtime.root / "backend/gradlew"), "-p", "backend", "--no-daemon", "bootRun"],
-                "frontend": ["npm", "--prefix", "frontend", "run", "dev"],
+                "frontend": ["npm", "--prefix", "frontend", "run", "dev", "--", "--hostname", "127.0.0.1"],
             }
             if component == "verify":
                 check = state["verification"]
