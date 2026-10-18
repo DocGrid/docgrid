@@ -1,0 +1,152 @@
+{
+  "artifacts": [
+    {
+      "artifact": "unit-r1/spec.json",
+      "source_sha256": "62aa678ad1d3d21cb0892fc5863285f26b9ebeeb849cfce996c4c98d39244167",
+      "export_sha256": "b6c53531bb99fd8db3e79229c429df64ae4f96ca673d38d628b6425a12cc78f3",
+      "redacted": false
+    },
+    {
+      "artifact": "unit-r1/result.json",
+      "source_sha256": "cdb3d2284d06dfa87277ff4efe17820ccc91460b28c2937790c0fdab6d07a005",
+      "export_sha256": "4b32f75c232f3688c906a912a1a3cbbc0317bea7c351e5adcd7dd9328f375e5d",
+      "redacted": false
+    },
+    {
+      "artifact": "unit-r1/events.log",
+      "source_sha256": "dc84c377ffd5cc9e973c8e0f51bc38ad1034d6ebf1719546f67d0ee5be85e4a5",
+      "export_sha256": "dc84c377ffd5cc9e973c8e0f51bc38ad1034d6ebf1719546f67d0ee5be85e4a5",
+      "redacted": false
+    },
+    {
+      "artifact": "unit-r2/spec.json",
+      "source_sha256": "aa153e22b8c769462852e13954523f5dbfe65066a3a60f3ebc9ab78480373b22",
+      "export_sha256": "583fa0e58e5a3e55d17a7ea22484701d9f27a8746e1e43f54a85fa32eb61050b",
+      "redacted": false
+    },
+    {
+      "artifact": "unit-r2/result.json",
+      "source_sha256": "bab0b6a86ef117ea5fa915c5fc947ae3c5099211a7b61803d7c1dc8086833b6a",
+      "export_sha256": "a7ab9b4562f5a2247fac4c5829f4994226a13c2636f121dc15d93d1639ef50fd",
+      "redacted": false
+    },
+    {
+      "artifact": "unit-r2/suite-1.log",
+      "source_sha256": "b63792ff221645a58c2b2fb1022dd1ccc31ecab8fe9689ad23638735be79d54d",
+      "export_sha256": "b63792ff221645a58c2b2fb1022dd1ccc31ecab8fe9689ad23638735be79d54d",
+      "redacted": false
+    },
+    {
+      "artifact": "unit-r2/suite-2.log",
+      "source_sha256": "6fc3db25f1afb9b3cb047ed346e4e4851352054cbffc25beb9b50b3bdd238388",
+      "export_sha256": "6fc3db25f1afb9b3cb047ed346e4e4851352054cbffc25beb9b50b3bdd238388",
+      "redacted": false
+    },
+    {
+      "artifact": "static-source-r1/result.json",
+      "source_sha256": "c56fbe393cf77a8cd68b8b655b39b81dba8496a5b5c36dd1e66bba4d9a34fb3e",
+      "export_sha256": "5ff62eee530cc49508f7ad4499a92b3f2d34e42f87b20f1751fc8f5c6fbc1f40",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE1/spec.json",
+      "source_sha256": "d63f6b60b24ef214fe265f27ee257bf305dceca79b367da99bf0d8f3478eb3e7",
+      "export_sha256": "526b4cd345488a2adaf58f763ffc4ae3309e646eb79ffb971de5db7807a96a25",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE1/result.json",
+      "source_sha256": "90250b793347a8105a40f92d3f2d2f50b5c3da61b6df23305aea56c51d05ef02",
+      "export_sha256": "e2d2e536269432f6d832160c5e2d58d0e2bf75f719d2454d05d3aeaaefa3a38f",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE1/cleanup-result.json",
+      "source_sha256": "ecb54d2f846a4ee5d926b9719e502f21640d1c95c6193cc041692e43853de1c0",
+      "export_sha256": "f97cc817bdab84a49d6e8c4fb18d8a8b74405379c2d094f44c7679de9c5a5d5d",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE1/runtime-cleanup-observations.json",
+      "source_sha256": "06fb96bb6488b00a4d2005007cf5998d49094fc7854958dce80ec37b6bc7a81e",
+      "export_sha256": "4474c7acf281e08da20f865571fe16196291d5ed1f1cc7bbbab8d22ad9bd26e3",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE2/spec.json",
+      "source_sha256": "73547610f21e3f775cf7da540b8cc5df8fa580d51cb86a8b63556020418d4771",
+      "export_sha256": "7f2a5a8b6e7e2a75334f4c39accf7e9bb0d0f31df1cdd1b3867f0d292c242edb",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE2/result.json",
+      "source_sha256": "8aab6ba6212283719035143dadfafb4ef265f086fca7ea391216028d7aa92049",
+      "export_sha256": "32de0cc4b42bd39bfbbe4441eb68c7cd18b0158f3c45cc7dcd95e8e6646ada26",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE2/cleanup-result.json",
+      "source_sha256": "ecb54d2f846a4ee5d926b9719e502f21640d1c95c6193cc041692e43853de1c0",
+      "export_sha256": "f97cc817bdab84a49d6e8c4fb18d8a8b74405379c2d094f44c7679de9c5a5d5d",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE2/runtime-cleanup-observations.json",
+      "source_sha256": "90b0ef980fdb44f32544feebf471036de3301f8a28f2ee352c06b84e77ff3626",
+      "export_sha256": "b6d1f18c821a9794ba7e576c6b9f30fb7af397352efd26e652572439c22a7d47",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE2/probe-1-result.json",
+      "source_sha256": "91251cd7f73fbafd00ea8d3fa8fc813b2c3f8f318c3e0d8cbc1c0f996a2195f6",
+      "export_sha256": "8faea340048505a44981b6e70189b142ab229861cebb72b83da6f61863285b20",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE2/probe-2-result.json",
+      "source_sha256": "485a9dedc1efc0d87a456aa97f5c45eae934e1115ea47d915670947d1512ccc8",
+      "export_sha256": "32ef5a46b6dcce17c1fc6d59dd5c821f6f83dc39a8a47d9157654c221f856cc2",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE2/probe-3-result.json",
+      "source_sha256": "baff285a7da3bbabbc4909ac4f1c516574575ae9a75d1fe4e384a6b3312b792f",
+      "export_sha256": "d3b905d6462879169a8f709251c2376cbb47d6495d8d9e59d58a2e9739225091",
+      "redacted": false
+    },
+    {
+      "artifact": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE2/probe-1-without-advance-result.json",
+      "source_sha256": "2248b424c1ef5d5d70fc5d3a850e37c5b1d3069a753e12e110bd475ea16543bf",
+      "export_sha256": "74630b3bce9ae38b6dfa59651308ab1e77982588d1d961ed3a99cec591d889a5",
+      "redacted": false
+    }
+  ],
+  "checks": [
+    {
+      "pattern": "gs://",
+      "matches": 0
+    },
+    {
+      "pattern": "(?<![0-9])(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?![0-9])",
+      "matches": 0
+    },
+    {
+      "pattern": "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}",
+      "matches": 0
+    },
+    {
+      "pattern": "/Users/|/private/|/var/folders/",
+      "matches": 0
+    },
+    {
+      "pattern": "-----BEGIN .*PRIVATE KEY",
+      "matches": 0
+    },
+    {
+      "pattern": "Bearer [A-Za-z0-9]",
+      "matches": 0
+    }
+  ],
+  "known_private_values_checked": 42,
+  "known_private_values_remaining": 0
+}

@@ -1,0 +1,14 @@
+{
+  "location": "existing Barman 3.19.1 image, network disabled, no cloud access",
+  "method": "inspect.getsource(StreamingWalArchiver.get_next_batch)",
+  "observations": {
+    "last_complete_file_kept_if_no_partial": true,
+    "partial_files_skipped": true,
+    "reason_in_upstream_docstring": "receiver restart-position detection"
+  },
+  "observed_at_utc": "2026-10-18T14:06:45.364011+00:00",
+  "public_or_personal_settings_changed": false,
+  "purpose": "설치 도구의 실제 StreamingWalArchiver 완료/보류 조건 확인",
+  "run_id": "WAL-BARMAN-STATIC-20261018-R1",
+  "verdict": "OBSERVED"
+}

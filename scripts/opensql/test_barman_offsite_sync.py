@@ -12,7 +12,7 @@ import barman_offsite_sync as sync
 
 
 class BarmanOffsiteSyncTest(unittest.TestCase):
-    """Verify that only checked exports become complete remote backups."""
+    """Verify export integrity and explicit local/remote WAL completion boundaries."""
 
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -160,6 +160,101 @@ class BarmanOffsiteSyncTest(unittest.TestCase):
         state = json.loads(self.config["status_file"].read_text())
         self.assertEqual(state["last_success_utc"], previous)
         self.assertEqual(state["last_error"], "wal_sync")
+
+    def test_delayed_required_wal_is_archived_before_returning(self):
+        directory = self.root / "wals"
+        directory.mkdir()
+        wal = "000000010000000000000007"
+        target = directory / wal[:16] / wal
+        calls = []
+        clock = [0.0]
+        def archive(*args, **kwargs):
+            calls.append(args)
+            if len(calls) == 3:
+                target.parent.mkdir()
+                target.write_bytes(b"sealed WAL")
+            return ""
+        with patch.object(sync, "run", side_effect=archive), \
+                patch.object(sync.time, "monotonic", side_effect=lambda: clock[0]), \
+                patch.object(sync.time, "sleep", side_effect=lambda n: clock.__setitem__(0, clock[0] + n)):
+            self.assertEqual(sync.wait_for_archived_wal("test_server", directory, wal), target)
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(clock[0], 2.0)
+
+    def test_partial_or_unrelated_wal_does_not_satisfy_barrier(self):
+        directory = self.root / "wals"
+        directory.mkdir()
+        wal = "000000010000000000000007"
+        (directory / (wal + ".partial")).write_bytes(b"active")
+        (directory / "000000010000000000000006").write_bytes(b"older")
+        clock = [0.0]
+        with patch.object(sync, "run", return_value=""), \
+                patch.object(sync.time, "monotonic", side_effect=lambda: clock[0]), \
+                patch.object(sync.time, "sleep", side_effect=lambda n: clock.__setitem__(0, clock[0] + n)):
+            with self.assertRaises(sync.SyncError) as raised:
+                sync.wait_for_archived_wal("test_server", directory, wal, timeout_seconds=3)
+        self.assertEqual(raised.exception.step, "required_wal_timeout")
+
+    def test_invalid_required_names_are_rejected_before_archiving(self):
+        for wal in ["../escape", "00000001.history", "000000010000000000000007.partial", "", None]:
+            with self.subTest(wal=wal), patch.object(sync, "run") as command:
+                with self.assertRaises(sync.SyncError):
+                    sync.wait_for_archived_wal("test_server", self.root, wal)
+                command.assert_not_called()
+
+    def test_required_wait_rejects_unbounded_or_invalid_timing(self):
+        for timeout in [0, -1, 301, float("nan"), float("inf"), True]:
+            with self.subTest(timeout=timeout), patch.object(sync, "run") as command:
+                with self.assertRaises(sync.SyncError):
+                    sync.wait_for_archived_wal("test_server", self.root, "0" * 24, timeout_seconds=timeout)
+                command.assert_not_called()
+
+    def test_archive_failure_is_not_reported_as_timeout_or_success(self):
+        with patch.object(sync, "run", side_effect=sync.SyncError("required_wal_archive")):
+            with self.assertRaises(sync.SyncError) as raised:
+                sync.wait_for_archived_wal("test_server", self.root, "0" * 24)
+        self.assertEqual(raised.exception.step, "required_wal_archive")
+
+    def test_remote_required_wal_is_verified_before_success(self):
+        wal = "000000010000000000000007"
+        directory = self.root / "wals"
+        target = directory / wal[:16] / wal
+        target.parent.mkdir(parents=True)
+        target.write_bytes(b"sealed WAL")
+        with patch.object(sync, "barman_paths", return_value={"wals_directory": directory}), \
+                patch.object(sync, "completed_backups", return_value=[self.backup_id]), \
+                patch.object(sync, "wait_for_archived_wal", return_value=target) as barrier, \
+                patch.object(sync, "local_crc32c", return_value="abc123"), \
+                patch.object(sync, "sync_wals", return_value=1), \
+                patch.object(sync, "remote_metadata", return_value={"size": 10, "crc32c": "abc123"}) as metadata, \
+                patch.object(sync, "sync_backup"):
+            sync.sync(self.config, required_wal=wal)
+        barrier.assert_called_once()
+        self.assertTrue(metadata.call_args.args[0].endswith("/wals/" + wal[:16] + "/" + wal))
+        state = json.loads(self.config["status_file"].read_text())
+        self.assertTrue(state['required_wal_verified'])
+        self.assertEqual(state['required_wal'], wal)
+
+    def test_remote_required_wal_mismatch_keeps_previous_success(self):
+        wal = "000000010000000000000007"
+        directory = self.root / "wals"
+        target = directory / wal[:16] / wal
+        target.parent.mkdir(parents=True)
+        target.write_bytes(b"sealed WAL")
+        previous = "2026-10-17T00:00:00+00:00"
+        sync.write_status(self.config['status_file'], {'last_success_utc': previous, 'last_error': None})
+        with patch.object(sync, "barman_paths", return_value={"wals_directory": directory}), \
+                patch.object(sync, "completed_backups", return_value=[self.backup_id]), \
+                patch.object(sync, "wait_for_archived_wal", return_value=target), \
+                patch.object(sync, "local_crc32c", return_value="abc123"), \
+                patch.object(sync, "sync_wals", return_value=1), \
+                patch.object(sync, "remote_metadata", return_value=None):
+            with self.assertRaises(sync.SyncError) as raised:
+                sync.sync(self.config, required_wal=wal)
+        self.assertEqual(raised.exception.step, 'required_wal_remote_integrity')
+        state = json.loads(self.config['status_file'].read_text())
+        self.assertEqual(state['last_success_utc'], previous)
+        self.assertEqual(state['last_error'], 'required_wal_remote_integrity')
 
 
 if __name__ == "__main__":

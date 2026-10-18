@@ -1,0 +1,11 @@
+{
+  "commands": [
+    "python3 -m unittest discover -s scripts/opensql -p test_barman_offsite_sync.py -v",
+    "python3 -m unittest discover -s scripts/opensql -p test_dr_recovery.py -v"
+  ],
+  "location": "local Python; controlled synthetic input; no cloud",
+  "purpose": "수정된 WAL 완료 계약과 기존 최초 복원 감사·Worker 순서 계약의 회귀 검증",
+  "run_id": "WAL-RECOVERY-CONTRACT-20261018-R2",
+  "started_at_utc": "2026-10-18T14:12:48.419842+00:00",
+  "success_criteria": "두 unittest 모음의 실패·오류 0"
+}

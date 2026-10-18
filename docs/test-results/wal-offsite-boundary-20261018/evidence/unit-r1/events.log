@@ -1,0 +1,22 @@
+{"healthy": false, "age_seconds": 214494977}
+{"result": "ok", "completed_backups": 1, "local_wal_files": 1}
+test_archive_failure_is_not_reported_as_timeout_or_success (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_barman_status_column_spacing_is_accepted (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_delayed_required_wal_is_archived_before_returning (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_export_from_another_backup_id_is_rejected (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_failed_marker_upload_keeps_export_for_retry (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_failed_sync_keeps_last_success_timestamp (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_health_uses_last_success_and_reports_failure (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_interrupted_export_is_never_uploaded (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_invalid_required_names_are_rejected_before_archiving (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_marker_is_published_only_after_archive_checksum_matches (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_missing_wal_segments_are_excluded_from_success_count (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_partial_or_unrelated_wal_does_not_satisfy_barrier (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_remote_required_wal_is_verified_before_success (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_remote_required_wal_mismatch_keeps_previous_success (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+test_required_wait_rejects_unbounded_or_invalid_timing (test_barman_offsite_sync.BarmanOffsiteSyncTest) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.015s
+
+OK

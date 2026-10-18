@@ -1,0 +1,13 @@
+{
+  "cases": 3,
+  "finished_at_utc": "2026-10-18T14:06:19.688138+00:00",
+  "fixed_barrier_passed": 3,
+  "location": "owned cloud OpenSQL logical database + local Barman 3.19.1 collector",
+  "method": "합성 marker commit·pg_switch_wal → 2초·archive-wal 1회 → 실제 파일 상태 → 같은 WAL 제한 시간 대기",
+  "purpose": "기존 2초 대기와 실제 특정 WAL 보관 완료 대기의 차이를 동일한 실시간 스트리밍에서 재현",
+  "run_id": "WAL-ARCHIVE-BOUNDARY-20261018-LIVE2",
+  "stale_success_reproduced": 2,
+  "started_at_utc": "2026-10-18T14:03:42.034308+00:00",
+  "success_criteria": "실제 required WAL 상태·보관 시각 수집; 끝에는 소유 DB/역할/수집기/터널 정리·원래 클러스터 복귀",
+  "verdict": "PASS"
+}
