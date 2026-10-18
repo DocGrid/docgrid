@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Test demo decisions without external services
         run: python3 -m unittest discover -s scripts/demo -p 'test_*.py' -v
 
