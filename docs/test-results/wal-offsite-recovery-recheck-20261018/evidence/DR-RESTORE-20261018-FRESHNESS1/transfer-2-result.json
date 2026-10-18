@@ -1,0 +1,11 @@
+{
+  "backup_bytes": 104355840,
+  "completed_wals": 7,
+  "elapsed_seconds": 67.315,
+  "finished_at_utc": "2026-10-18T14:35:40.297898+00:00",
+  "preserved_originals": 60,
+  "purpose": "완성 WAL·identity·기준 백업과 원본 보존본의 외부 전송 및 바이트 대조",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-TRANSFER-2",
+  "started_at_utc": "2026-10-18T14:34:32.984484+00:00",
+  "verdict": "PASS"
+}

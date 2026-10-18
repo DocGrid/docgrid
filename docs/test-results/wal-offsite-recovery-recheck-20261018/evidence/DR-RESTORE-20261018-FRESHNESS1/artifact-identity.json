@@ -1,0 +1,6 @@
+{
+  "identical_to_baseline": true,
+  "jar_sha256": "08c5c458110bc96fc4c92cc5b02bd160f6c08b59e21d9ef536f2fa50aa76b27d",
+  "java_source_revision": "3bff887a5f6abdf4155957a658599f8f0366a141",
+  "wal_fix_revision": "44de876fb55a1c02cf9653ef863ccc21c4b40ba5"
+}

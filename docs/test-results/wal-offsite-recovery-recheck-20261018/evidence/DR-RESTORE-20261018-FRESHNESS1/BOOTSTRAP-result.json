@@ -1,0 +1,16 @@
+{
+  "elapsed_seconds": 29.582,
+  "finished_at_utc": "2026-10-18T14:22:50.306115+00:00",
+  "location": "isolated local runtime and owned cloud source database",
+  "observations": {
+    "bootstrap_sha256": "984bbf5381b611daf7c1e57781686c6e74762eae2a0238f1947444da494366ab",
+    "license_environment_present": true,
+    "source_settings": 8,
+    "target_settings": 8
+  },
+  "purpose": "장애 전 설치 환경·클러스터 식별 보존",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-BOOTSTRAP",
+  "started_at_utc": "2026-10-18T14:22:20.724864+00:00",
+  "success_criteria": "라이선스 환경·소스/대상 설정 고정, 클라이언트 계정 ID 고정",
+  "verdict": "PASS"
+}

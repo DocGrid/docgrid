@@ -1,0 +1,8 @@
+{
+  "location": "original workspace and local Docker",
+  "method": "git status counters and exact existing model container inspect",
+  "purpose": "기존 개인 작업·모델 컨테이너 유지 및 시험 컨테이너 제거 확인",
+  "run_id": "WAL-RECOVERY-PRESERVATION-20261018-R1",
+  "started_at_utc": "2026-10-18T14:55:04.940008+00:00",
+  "success_criteria": "원래 HEAD/branch 유지·tracked 변경 0·기존 untracked 28·기존 BGE 실행·시험 컨테이너 0"
+}

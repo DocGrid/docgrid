@@ -1,0 +1,8 @@
+{
+  "location": "restored owned logical database; read only",
+  "method": "identity-checked SQL aggregate embedding_jobs by status",
+  "purpose": "새 인덱싱이 대기하는 동안 복원 작업 대기열이 실제로 소진되는지 관측",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-QUEUE1",
+  "started_at_utc": "2026-10-18T14:43:45.671043+00:00",
+  "success_criteria": "대기열 카운터와 새 Job 상태를 읽고 추가 작업 생성·상태 변경하지 않음"
+}

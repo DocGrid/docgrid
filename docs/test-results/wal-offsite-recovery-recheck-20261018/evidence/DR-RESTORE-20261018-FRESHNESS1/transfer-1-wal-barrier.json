@@ -1,0 +1,27 @@
+{
+  "advance_lsn": "0/30000090",
+  "archive_attempts": [
+    {
+      "at_utc": "2026-10-18T14:29:46.962446+00:00",
+      "elapsed_seconds": 0.161,
+      "exit_code": 0
+    },
+    {
+      "at_utc": "2026-10-18T14:29:48.110029+00:00",
+      "elapsed_seconds": 0.142,
+      "exit_code": 0
+    },
+    {
+      "at_utc": "2026-10-18T14:29:49.266988+00:00",
+      "elapsed_seconds": 0.152,
+      "exit_code": 0
+    }
+  ],
+  "at_utc": "2026-10-18T14:30:43.006289+00:00",
+  "covered_acknowledged_requests": 33,
+  "generation": "1792333839694782",
+  "remote_bytes_verified": true,
+  "required_wal": "00000006000000000000002F",
+  "sha256": "18d14efba2fe22e9444403cffd5707a84ac1587783d7e28f181d6018b183ba81",
+  "size": 16777216
+}

@@ -1,0 +1,205 @@
+{
+  "acknowledged": 65,
+  "artifact_identity": {
+    "identical_to_baseline": true,
+    "jar_sha256": "08c5c458110bc96fc4c92cc5b02bd160f6c08b59e21d9ef536f2fa50aa76b27d",
+    "java_source_revision": "3bff887a5f6abdf4155957a658599f8f0366a141",
+    "wal_fix_revision": "44de876fb55a1c02cf9653ef863ccc21c4b40ba5"
+  },
+  "checkpoint_coverage": {
+    "checked_before_worker": true,
+    "covered_acknowledged_requests": 60,
+    "covered_missing": 0,
+    "covered_restored": 60,
+    "required_wal": "000000060000000000000030",
+    "tail_missing": 5,
+    "tail_requests": 5,
+    "tail_restored": 0,
+    "verdict": "PASS"
+  },
+  "cohorts": {
+    "functional": {
+      "acknowledged": 5,
+      "restored": 5,
+      "states": {
+        "RESTORED": 5
+      }
+    },
+    "loss": {
+      "acknowledged": 60,
+      "restored": 55,
+      "states": {
+        "DB_MISSING": 5,
+        "RESTORED": 55
+      }
+    }
+  },
+  "contiguous_prefix_acknowledged": 60,
+  "cutoff_minus_t0_seconds": 10.4,
+  "cutoff_utc": "2026-10-18T14:36:37.353+00:00",
+  "execution": "PASS",
+  "fault_t0_utc": "2026-10-18T14:36:26.952847+00:00",
+  "frozen_original_count": 60,
+  "functional_checks": {
+    "download": {
+      "at_utc": "2026-10-18T14:39:09.852552+00:00",
+      "elapsed_since_t0_seconds": 162.9,
+      "from_cutoff_seconds": 152.5,
+      "passed": true,
+      "samples": 4
+    },
+    "job_resume": {
+      "at_utc": "2026-10-18T14:40:21.317855+00:00",
+      "elapsed_since_t0_seconds": 234.365,
+      "from_cutoff_seconds": 223.965,
+      "passed": true,
+      "samples": 1
+    },
+    "new_download": {
+      "at_utc": "2026-10-18T14:51:39.754136+00:00",
+      "elapsed_since_t0_seconds": 912.801,
+      "from_cutoff_seconds": 902.401,
+      "passed": true,
+      "samples": 1
+    },
+    "new_indexing": {
+      "at_utc": "2026-10-18T14:51:37.672099+00:00",
+      "elapsed_since_t0_seconds": 910.719,
+      "from_cutoff_seconds": 900.319,
+      "passed": true,
+      "samples": 1
+    },
+    "new_upload": {
+      "at_utc": "2026-10-18T14:40:28.376043+00:00",
+      "elapsed_since_t0_seconds": 241.423,
+      "from_cutoff_seconds": 231.023,
+      "passed": true,
+      "samples": 1
+    },
+    "search": {
+      "at_utc": "2026-10-18T14:39:25.400051+00:00",
+      "elapsed_since_t0_seconds": 178.447,
+      "from_cutoff_seconds": 168.047,
+      "passed": true,
+      "samples": 1
+    }
+  },
+  "initial_states": {
+    "DB_MISSING": 5,
+    "RESTORED": 60
+  },
+  "latest_restored_ack_utc": "2026-10-18T14:34:32.975000+00:00",
+  "loss_request_actual_intervals_seconds": {
+    "intervals": 59,
+    "maximum": 74.887,
+    "median": 10.997,
+    "minimum": 7.068,
+    "samples": 60
+  },
+  "missing_db_with_preserved_original": 0,
+  "observed_prefix_boundary_gap_seconds": 113.978,
+  "offsite_rounds": [
+    {
+      "complete_wals": 5,
+      "elapsed_seconds": 67.284,
+      "event_at_utc": "2026-10-18T14:23:57.593+00:00",
+      "ordinal": 0,
+      "preserved_originals": 5
+    },
+    {
+      "completed_upload_requests": 33,
+      "event_at_utc": "2026-10-18T14:29:36.275+00:00",
+      "ordinal": 1,
+      "scheduled_at_utc": "2026-10-18T14:29:31.420159+00:00",
+      "start_lag_seconds": 4.86
+    },
+    {
+      "complete_wals": 6,
+      "elapsed_seconds": 66.737,
+      "event_at_utc": "2026-10-18T14:30:43.014+00:00",
+      "ordinal": 1,
+      "preserved_originals": 33
+    },
+    {
+      "completed_upload_requests": 60,
+      "event_at_utc": "2026-10-18T14:34:32.984+00:00",
+      "ordinal": 2,
+      "scheduled_at_utc": "2026-10-18T14:34:31.420159+00:00",
+      "start_lag_seconds": 1.578
+    },
+    {
+      "complete_wals": 7,
+      "elapsed_seconds": 67.315,
+      "event_at_utc": "2026-10-18T14:35:40.306+00:00",
+      "ordinal": 2,
+      "preserved_originals": 60
+    }
+  ],
+  "ordering": {
+    "activated": 319,
+    "checkpoint_coverage_audited": 314,
+    "cleanup": 336,
+    "cutoff": 308,
+    "final_audit": 335,
+    "initial_audit": 313,
+    "isolated_bucket_rebound": 315,
+    "restore_started": 310,
+    "restored": 312
+  },
+  "reason": null,
+  "replay_boundary": {
+    "finished_at_utc": "2026-10-18T14:39:22.640971+00:00",
+    "last_frozen_wal": "000000060000000000000030",
+    "location": "licensed OpenSQL separate restored PGDATA; read only",
+    "method": "restored identity-checked socket SQL: pg_last_wal_replay_lsn and pg_last_xact_replay_timestamp",
+    "observations": {
+      "in_recovery": false,
+      "last_replay_commit_utc": "2026-10-18T14:34:33.013865+00:00",
+      "replay_lsn": "0/31000000",
+      "wal_segment_size": "16MB"
+    },
+    "purpose": "외부에 고정한 마지막 WAL과 실제 복원 서버의 재생 끝 위치 대조",
+    "run_id": "DR-RESTORE-20261018-FRESHNESS1-REPLAY-BOUNDARY",
+    "started_at_utc": "2026-10-18T14:39:11.960326+00:00",
+    "success_criteria": "복원 서버 식별 후 비어 있지 않은 replay LSN 관측",
+    "verdict": "PASS"
+  },
+  "restored_after_first_hole": 0,
+  "rpo_guarantee": "NOT_EVALUATED",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1",
+  "transfers": [
+    {
+      "backup_bytes": 104355840,
+      "completed_wals": 5,
+      "elapsed_seconds": 67.284,
+      "finished_at_utc": "2026-10-18T14:23:57.591442+00:00",
+      "preserved_originals": 5,
+      "purpose": "완성 WAL·identity·기준 백업과 원본 보존본의 외부 전송 및 바이트 대조",
+      "run_id": "DR-RESTORE-20261018-FRESHNESS1-TRANSFER-0",
+      "started_at_utc": "2026-10-18T14:22:50.309279+00:00",
+      "verdict": "PASS"
+    },
+    {
+      "backup_bytes": 104355840,
+      "completed_wals": 6,
+      "elapsed_seconds": 66.737,
+      "finished_at_utc": "2026-10-18T14:30:43.010845+00:00",
+      "preserved_originals": 33,
+      "purpose": "완성 WAL·identity·기준 백업과 원본 보존본의 외부 전송 및 바이트 대조",
+      "run_id": "DR-RESTORE-20261018-FRESHNESS1-TRANSFER-1",
+      "started_at_utc": "2026-10-18T14:29:36.275974+00:00",
+      "verdict": "PASS"
+    },
+    {
+      "backup_bytes": 104355840,
+      "completed_wals": 7,
+      "elapsed_seconds": 67.315,
+      "finished_at_utc": "2026-10-18T14:35:40.297898+00:00",
+      "preserved_originals": 60,
+      "purpose": "완성 WAL·identity·기준 백업과 원본 보존본의 외부 전송 및 바이트 대조",
+      "run_id": "DR-RESTORE-20261018-FRESHNESS1-TRANSFER-2",
+      "started_at_utc": "2026-10-18T14:34:32.984484+00:00",
+      "verdict": "PASS"
+    }
+  ]
+}

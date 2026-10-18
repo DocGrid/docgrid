@@ -1,0 +1,11 @@
+{
+  "checked_before_worker": true,
+  "covered_acknowledged_requests": 60,
+  "covered_missing": 0,
+  "covered_restored": 60,
+  "required_wal": "000000060000000000000030",
+  "tail_missing": 5,
+  "tail_requests": 5,
+  "tail_restored": 0,
+  "verdict": "PASS"
+}

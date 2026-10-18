@@ -1,0 +1,5 @@
+{
+  "purpose": "완성 WAL 및 원본의 외부 보존",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-TRANSFER-1",
+  "started_at_utc": "2026-10-18T14:29:36.275540+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "at_utc": "2026-10-18T14:36:26.951830+00:00",
+  "backup_verified": true,
+  "begin_wal": "00000006000000000000002B",
+  "bootstrap_frozen_before_cutoff": true,
+  "contiguous_wal_segments": 6,
+  "license_environment_present": true,
+  "receiver": {
+    "streaming_receivers": 1
+  },
+  "source_code_hashes_unchanged": true
+}

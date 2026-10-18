@@ -1,0 +1,22 @@
+{
+  "advance_lsn": "0/31000090",
+  "archive_attempts": [
+    {
+      "at_utc": "2026-10-18T14:34:43.738557+00:00",
+      "elapsed_seconds": 0.143,
+      "exit_code": 0
+    },
+    {
+      "at_utc": "2026-10-18T14:34:44.892523+00:00",
+      "elapsed_seconds": 0.153,
+      "exit_code": 0
+    }
+  ],
+  "at_utc": "2026-10-18T14:35:40.286094+00:00",
+  "covered_acknowledged_requests": 60,
+  "generation": "1792334136908930",
+  "remote_bytes_verified": true,
+  "required_wal": "000000060000000000000030",
+  "sha256": "459e502dfa8b809cc0e9e758f193f956bb19ffcddc4da19560c2e1f41a7d05d3",
+  "size": 16777216
+}

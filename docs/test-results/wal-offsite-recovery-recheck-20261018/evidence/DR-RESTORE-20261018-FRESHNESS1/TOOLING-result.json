@@ -1,0 +1,14 @@
+{
+  "elapsed_seconds": 9.049,
+  "finished_at_utc": "2026-10-18T14:11:34.282138+00:00",
+  "location": "isolated local runtime and owned cloud source database",
+  "observations": {
+    "database_matched": true,
+    "standby": false
+  },
+  "purpose": "전용 암호화 터널·Barman 도구 접속",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-TOOLING",
+  "started_at_utc": "2026-10-18T14:11:25.232998+00:00",
+  "success_criteria": "새 DB 일치·Primary 확인, 공개 설정 변경 없음",
+  "verdict": "PASS"
+}

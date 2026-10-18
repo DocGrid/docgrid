@@ -1,0 +1,21 @@
+{
+  "elapsed_seconds": 67.286,
+  "finished_at_utc": "2026-10-18T14:23:57.593514+00:00",
+  "location": "isolated local runtime and owned cloud source database",
+  "observations": {
+    "backup_bytes": 104355840,
+    "completed_wals": 5,
+    "elapsed_seconds": 67.284,
+    "finished_at_utc": "2026-10-18T14:23:57.591442+00:00",
+    "preserved_originals": 5,
+    "purpose": "완성 WAL·identity·기준 백업과 원본 보존본의 외부 전송 및 바이트 대조",
+    "run_id": "DR-RESTORE-20261018-FRESHNESS1-TRANSFER-0",
+    "started_at_utc": "2026-10-18T14:22:50.309279+00:00",
+    "verdict": "PASS"
+  },
+  "purpose": "기준 백업·identity·WAL·원본 5건 외부 보존",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-OFFSITE",
+  "started_at_utc": "2026-10-18T14:22:50.309035+00:00",
+  "success_criteria": "generation 읽기·SHA·크기 일치",
+  "verdict": "PASS"
+}

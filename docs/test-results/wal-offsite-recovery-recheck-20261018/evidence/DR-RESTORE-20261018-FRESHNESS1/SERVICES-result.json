@@ -1,0 +1,14 @@
+{
+  "elapsed_seconds": 290.033,
+  "finished_at_utc": "2026-10-18T14:16:24.307469+00:00",
+  "location": "isolated local runtime and owned cloud source database",
+  "observations": {
+    "ready": true,
+    "worker_enabled": true
+  },
+  "purpose": "소유 캐시·실제 BGE 프록시·새 JVM 준비",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-SERVICES",
+  "started_at_utc": "2026-10-18T14:11:34.283216+00:00",
+  "success_criteria": "readiness 200·리스너 소유권 확인",
+  "verdict": "PASS"
+}

@@ -1,0 +1,18 @@
+{
+  "expected_search_top_k": 20,
+  "formal_workload": true,
+  "measurement_scope": "isolated document download/search/indexing; no public switchover, OpenProxy or Ollama generation",
+  "purpose": "업로드 성공 응답 원장과 실제 OpenSQL·GCS 최초 복원 상태 및 기능별 재개 경과 시간 대조",
+  "recovery_worker_max_concurrency": 2,
+  "revision": "3bff887a5f6abdf4155957a658599f8f0366a141",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1",
+  "started_at_utc": "2026-10-18T14:24:21.367734+00:00",
+  "success_criteria": "마지막 원격 WAL 확인 구간 ACK 누락 0, 기능 코호트 원본·관계 일치, 최초 감사 후 Worker 활성화, 기능 6종 성공, Job 1개·Attempt 2, 최종 미완료/중복/누락 벡터 0, 원복·정리",
+  "workload": {
+    "functional_completed": 4,
+    "functional_interrupted": 1,
+    "loss_uploads": 60,
+    "nominal_request_interval_seconds": 11,
+    "offsite_interval_seconds": 300
+  }
+}

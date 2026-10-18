@@ -1,0 +1,18 @@
+{
+  "elapsed_seconds": 57.008,
+  "finished_at_utc": "2026-10-18T14:20:57.546547+00:00",
+  "location": "isolated local runtime and owned cloud source database",
+  "observations": {
+    "attempt_count": 1,
+    "chunk_count": 3,
+    "document_status": "INDEXING",
+    "embedding_count": 0,
+    "job_status": "PROCESSING",
+    "version_status": "EMBEDDING"
+  },
+  "purpose": "실제 BGE 응답 대기 중 Job 중단",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-INTERRUPT",
+  "started_at_utc": "2026-10-18T14:20:00.539568+00:00",
+  "success_criteria": "Job PROCESSING·Attempt 1·Worker=false 재기동",
+  "verdict": "PASS"
+}
