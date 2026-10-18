@@ -1,0 +1,15 @@
+{
+  "run_id": "DR-CONTRACT-20261018-R1",
+  "purpose": "Synthetic contract and isolated child-process lifecycle",
+  "location": "local Python; no Docker/GCP/DB",
+  "started_at_utc": "2026-10-18T08:13:06.433309+00:00",
+  "ended_at_utc": "2026-10-18T08:13:06.717076+00:00",
+  "exit_code": 1,
+  "command": "python3 -m unittest discover -s scripts/opensql -p test_dr_recovery.py -v",
+  "revision": "4cfe9666ac3a670bb72c8cd4d933bc7d7238fce0 + submitted recovery contract changes",
+  "test_count": 26,
+  "passed": 21,
+  "failures": 3,
+  "errors": 2,
+  "verdict": "FAIL"
+}

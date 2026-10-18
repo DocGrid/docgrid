@@ -1,0 +1,15 @@
+{
+  "run_id": "DR-CONTRACT-20261018-R2",
+  "purpose": "Contract rerun after child-driver module naming fix",
+  "location": "local Python; no Docker/GCP/DB",
+  "started_at_utc": "2026-10-18T08:13:55.061338+00:00",
+  "ended_at_utc": "2026-10-18T08:13:55.649096+00:00",
+  "exit_code": 0,
+  "command": "python3 -m unittest discover -s scripts/opensql -p test_dr_recovery.py -v",
+  "revision": "4cfe9666ac3a670bb72c8cd4d933bc7d7238fce0 + submitted recovery contract changes",
+  "test_count": 26,
+  "passed": 26,
+  "failures": 0,
+  "errors": 0,
+  "verdict": "PASS"
+}

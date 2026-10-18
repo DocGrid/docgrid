@@ -1,0 +1,94 @@
+test_audit_failure_never_activates_and_cleans_up (test_dr_recovery.RecoveryContractTest) ... ERROR
+test_bad_later_command_blocks_restore (test_dr_recovery.RecoveryContractTest) ... ok
+test_changed_inputs_block_operator (test_dr_recovery.RecoveryContractTest) ... ok
+test_cleanup_failure_is_not_pass (test_dr_recovery.RecoveryContractTest) ... FAIL
+test_corrupt_ledger_is_not_summarized (test_dr_recovery.RecoveryContractTest) ... ok
+test_duplicate_response_rejected (test_dr_recovery.RecoveryContractTest) ... ok
+test_duplicate_wal_rejected (test_dr_recovery.RecoveryContractTest) ... ok
+test_finished_run_cannot_be_executed_again (test_dr_recovery.RecoveryContractTest) ... ok
+test_frozen_inputs_cannot_be_replaced (test_dr_recovery.RecoveryContractTest) ... ok
+test_http_error_may_be_present_in_restored_db (test_dr_recovery.RecoveryContractTest) ... ok
+test_initial_loss_preserved_when_final_snapshot_is_repaired (test_dr_recovery.RecoveryContractTest) ... FAIL
+test_initial_state_rejects_started_worker_or_flyway (test_dr_recovery.RecoveryContractTest) ... ok
+test_inputs_missing_check_is_no_go (test_dr_recovery.RecoveryContractTest) ... ok
+test_missing_cleanup_blocks_all_actions (test_dr_recovery.RecoveryContractTest) ... ok
+test_missing_observation_is_not_db_loss (test_dr_recovery.RecoveryContractTest) ... ok
+test_missing_response_is_unknown_not_failure (test_dr_recovery.RecoveryContractTest) ... ok
+test_object_missing_blocks_worker (test_dr_recovery.RecoveryContractTest) ... ok
+test_old_and_new_success_do_not_hide_middle_loss (test_dr_recovery.RecoveryContractTest) ... ok
+test_original_identity_must_be_preserved (test_dr_recovery.RecoveryContractTest) ... ok
+test_partial_wal_rejected (test_dr_recovery.RecoveryContractTest) ... ok
+test_real_hash_mismatch_is_not_restored (test_dr_recovery.RecoveryContractTest) ... ok
+test_response_ledger_is_durable_and_private (test_dr_recovery.RecoveryContractTest) ... ok
+test_restore_failure_cleans_up (test_dr_recovery.RecoveryContractTest) ... ERROR
+test_success_requires_all_four_ids (test_dr_recovery.RecoveryContractTest) ... ok
+test_success_response_ids_must_match_restored_relations (test_dr_recovery.RecoveryContractTest) ... ok
+test_success_stages_audit_before_activation_then_final_audit (test_dr_recovery.RecoveryContractTest) ... FAIL
+
+======================================================================
+ERROR: test_audit_failure_never_activates_and_cleans_up (test_dr_recovery.RecoveryContractTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<local-path>", line 204, in test_audit_failure_never_activates_and_cleans_up
+    self.assertEqual((self.root/'calls.txt').read_text().splitlines(), ['restore', 'snapshot', 'cleanup'])
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1242, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1110, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '<temporary-path>
+
+======================================================================
+ERROR: test_restore_failure_cleans_up (test_dr_recovery.RecoveryContractTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<local-path>", line 210, in test_restore_failure_cleans_up
+    self.assertEqual((self.root/'calls.txt').read_text().splitlines(), ['restore', 'cleanup'])
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1242, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1110, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '<temporary-path>
+
+======================================================================
+FAIL: test_cleanup_failure_is_not_pass (test_dr_recovery.RecoveryContractTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<local-path>", line 227, in test_cleanup_failure_is_not_pass
+    self.assertEqual(result['reason'], 'OPERATOR_CLEANUP_FAILED')
+AssertionError: 'OPERATOR_RESTORE_FAILED' != 'OPERATOR_CLEANUP_FAILED'
+- OPERATOR_RESTORE_FAILED
+?          ^ ^^^^^
++ OPERATOR_CLEANUP_FAILED
+?          ^^ ^^^^
+
+
+======================================================================
+FAIL: test_initial_loss_preserved_when_final_snapshot_is_repaired (test_dr_recovery.RecoveryContractTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<local-path>", line 196, in test_initial_loss_preserved_when_final_snapshot_is_repaired
+    self.assertEqual(result['execution'], 'PASS')
+AssertionError: 'INCOMPLETE' != 'PASS'
+- INCOMPLETE
++ PASS
+
+
+======================================================================
+FAIL: test_success_stages_audit_before_activation_then_final_audit (test_dr_recovery.RecoveryContractTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<local-path>", line 185, in test_success_stages_audit_before_activation_then_final_audit
+    self.assertEqual(result["execution"], "PASS")
+AssertionError: 'INCOMPLETE' != 'PASS'
+- INCOMPLETE
++ PASS
+
+
+----------------------------------------------------------------------
+Ran 26 tests in 0.236s
+
+FAILED (failures=3, errors=2)
