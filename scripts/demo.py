@@ -15,6 +15,7 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -92,14 +93,43 @@ def port_open(port):
         return False
 
 
-def listener_owned(port, record):
+def listener_owned(port, record, children=()):
     """HTTP 성공 외에 실제 수신 프로세스가 소유 그룹에 속하는지도 확인한다."""
     result = subprocess.run(["lsof", "-nP", "-a", f"-iTCP:{port}", "-sTCP:LISTEN", "-t"],
                             capture_output=True, text=True)
     pids = set(result.stdout.split())
     if result.returncode or not pids:
         return False
-    return all(p.isdigit() and (item := identity(int(p))) and item["pgid"] == record["pgid"] for p in pids)
+    return all(p.isdigit() and (item := identity(int(p))) and
+               (item["pgid"] == record["pgid"] or item in children) for p in pids)
+
+
+def children_snapshot(owner, previous):
+    """확인된 현재 부모에서만 자식을 확장하고 PID 재사용으로 달라진 기록은 버린다."""
+    rows = subprocess.run(["ps", "-eo", "pid=,ppid="], capture_output=True, text=True)
+    if rows.returncode:
+        raise DemoError("자식 프로세스 계보를 확인할 수 없습니다.")
+    pairs = [tuple(map(int, line.split())) for line in rows.stdout.splitlines() if len(line.split()) == 2]
+    live = {item["pid"]: item for item in [owner, *previous] if identity(item["pid"]) == item}
+    pending = True
+    while pending:
+        pending = False
+        for pid, parent in pairs:
+            if parent in live and pid not in live:
+                item = identity(pid)
+                if item:
+                    live[pid] = item
+                    pending = True
+    return [item for pid, item in live.items() if pid != owner["pid"]]
+
+
+def track_children(owner, stopped, path):
+    """Gradle처럼 그룹을 분리하는 자식도 확인한 계보와 식별정보로만 기록한다."""
+    known = []
+    while not stopped.is_set():
+        known = children_snapshot(owner, known)
+        write_json(path, {"owner": owner, "children": known})
+        stopped.wait(0.25)
 
 
 def http_bytes(url):
@@ -325,11 +355,12 @@ class DemoRuntime:
         record = self.state["processes"].get("backend", {})
         body = http_json(f"http://127.0.0.1:{self.config.values['MANAGEMENT_PORT']}/actuator/health/readiness")
         return (body and body.get("status") == "UP" and identity(record.get("pid")) == record and
-                listener_owned(8080, record) and listener_owned(int(self.config.values["MANAGEMENT_PORT"]), record))
+                listener_owned(8080, record, self.owned_children("backend")) and
+                listener_owned(int(self.config.values["MANAGEMENT_PORT"]), record, self.owned_children("backend")))
 
     def frontend_ready(self):
         record = self.state["processes"].get("frontend", {})
-        if identity(record.get("pid")) != record or not listener_owned(3000, record):
+        if identity(record.get("pid")) != record or not listener_owned(3000, record, self.owned_children("frontend")):
             return False
         direct = http_json("http://127.0.0.1:8080/departments")
         proxied = http_json("http://127.0.0.1:3000/api/backend/departments")
@@ -445,6 +476,20 @@ class DemoRuntime:
         self.event(f"[검증 통과] 업로드·인덱싱·검색·원본 검사 완료. 기록: {report}/summary.json")
         return 0
 
+    def owned_children(self, name):
+        path = self.component_path(name, ".children.json")
+        if not path.exists():
+            return []
+        tree = read_json(path)
+        if tree.get("owner") != self.state.get("processes", {}).get(name):
+            raise DemoError("자식 프로세스 기록의 실행 소유자가 다릅니다.")
+        children = tree.get("children")
+        if not isinstance(children, list) or any(not isinstance(item, dict) or
+                type(item.get("pid")) is not int or item["pid"] <= 1 or not item.get("started") or
+                not item.get("commandHash") for item in children):
+            raise DemoError("자식 프로세스 식별정보가 잘못됐습니다.")
+        return children
+
     def stop_process(self, name):
         record = self.state.get("processes", {}).get(name)
         if name == "verify" and not self.state.get("verification"):
@@ -460,18 +505,28 @@ class DemoRuntime:
             record.get("pgid") != record["pid"] or not record.get("started") or not record.get("commandHash")):
             return False
         current = identity(record.get("pid"))
-        if current is None:
-            handle = self.handles.get(name)
-            if handle and handle.poll() is not None:
-                handle.wait()
-            return not group_members(record.get("pgid"))
-        if current != record or record["pgid"] != record["pid"]:
+        if current is not None and (current != record or record["pgid"] != record["pid"]):
             self.event(f"[조치 필요] 식별정보가 달라 자동 종료하지 않습니다: {name}")
             return False
+        children = children_snapshot(record, self.owned_children(name))
+        # 3. 분리된 JVM은 계보에서 확인한 PID·시작 시각·명령이 같은 경우에만 개별 종료한다.
+        for item in reversed(children):
+            if identity(item["pid"]) == item:
+                with contextlib.suppress(ProcessLookupError):
+                    os.kill(item["pid"], signal.SIGTERM)
         members = {pid: identity(pid) for pid in group_members(record["pgid"])}
-        os.killpg(record["pgid"], signal.SIGTERM)
+        if identity(record["pid"]) == record:
+            try:
+                os.killpg(record["pgid"], signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            except PermissionError:
+                # 자식 종료로 부모도 끝나 그룹이 사라진 경우만 이미 정리된 것으로 판단한다.
+                if group_members(record["pgid"]):
+                    raise
         deadline = time.monotonic() + 10
-        while time.monotonic() < deadline and group_members(record["pgid"]):
+        while time.monotonic() < deadline and (group_members(record["pgid"]) or
+                any(identity(item["pid"]) == item for item in children)):
             time.sleep(0.2)
         remaining = group_members(record["pgid"])
         if remaining:
@@ -479,7 +534,11 @@ class DemoRuntime:
                 return False
             os.killpg(record["pgid"], signal.SIGKILL)
             time.sleep(0.2)
-        released = not group_members(record["pgid"])
+        for item in children:
+            if identity(item["pid"]) == item:
+                with contextlib.suppress(ProcessLookupError):
+                    os.kill(item["pid"], signal.SIGKILL)
+        released = not group_members(record["pgid"]) and not any(identity(item["pid"]) == item for item in children)
         handle = self.handles.get(name)
         if released and handle:
             handle.wait(timeout=2)
@@ -595,7 +654,11 @@ def supervise(runtime, session_id, component):
     if (state.get("id") != session_id or state.get("status") not in {"STARTING", "READY"} or
             component not in {"install", "services", "backend", "frontend", "verify"}):
         raise DemoError("소유 세션과 실행 구성요소가 일치하지 않습니다.")
-    write_json(runtime.component_path(component, ".pid.json"), identity(os.getpid()))
+    owner = identity(os.getpid())
+    write_json(runtime.component_path(component, ".pid.json"), owner)
+    stopped = threading.Event()
+    tracker = threading.Thread(target=track_children, args=(owner, stopped, runtime.component_path(component, ".children.json")), daemon=True)
+    tracker.start()
     code = 2
     with runtime.component_path(component, ".log").open("x", encoding="utf-8") as output:
         try:
@@ -637,6 +700,8 @@ def supervise(runtime, session_id, component):
             code = child.wait()
         except Exception as error:
             output.write(now() + " 하위 실행 오류: " + type(error).__name__ + "\n")
+    stopped.set()
+    tracker.join(timeout=2)
     write_json(runtime.component_path(component, ".exit.json"), {"code": code, "finishedAt": now()})
     return code
 
