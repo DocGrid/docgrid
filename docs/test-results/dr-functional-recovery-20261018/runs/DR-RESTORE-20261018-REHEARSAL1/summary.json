@@ -1,0 +1,10 @@
+{
+  "execution": "INCOMPLETE",
+  "final_audit": null,
+  "functional_checks": {},
+  "initial_audit": null,
+  "reason": "OPERATOR_RESTORE_FAILED",
+  "rpo_guarantee": "NOT_EVALUATED",
+  "run_id": "DR-RESTORE-20261018-REHEARSAL1",
+  "scope": "isolated_document_download_search_indexing"
+}

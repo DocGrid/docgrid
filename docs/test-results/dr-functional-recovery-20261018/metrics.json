@@ -1,0 +1,118 @@
+{
+  "acknowledged": 65,
+  "cohorts": {
+    "functional": {
+      "acknowledged": 5,
+      "restored": 5,
+      "states": {
+        "RESTORED": 5
+      }
+    },
+    "loss": {
+      "acknowledged": 60,
+      "restored": 28,
+      "states": {
+        "DB_MISSING": 32,
+        "RESTORED": 28
+      }
+    }
+  },
+  "contiguous_prefix_acknowledged": 33,
+  "cutoff_minus_t0_seconds": 10.646,
+  "cutoff_utc": "2026-10-18T13:01:24.539+00:00",
+  "execution": "PASS",
+  "fault_t0_utc": "2026-10-18T13:01:13.892692+00:00",
+  "frozen_original_count": 60,
+  "functional_checks": {
+    "download": {
+      "at_utc": "2026-10-18T13:04:21.530770+00:00",
+      "elapsed_since_t0_seconds": 187.638,
+      "from_cutoff_seconds": 176.992,
+      "passed": true,
+      "samples": 4
+    },
+    "job_resume": {
+      "at_utc": "2026-10-18T13:05:23.022354+00:00",
+      "elapsed_since_t0_seconds": 249.13,
+      "from_cutoff_seconds": 238.483,
+      "passed": true,
+      "samples": 1
+    },
+    "new_download": {
+      "at_utc": "2026-10-18T13:10:57.724793+00:00",
+      "elapsed_since_t0_seconds": 583.832,
+      "from_cutoff_seconds": 573.186,
+      "passed": true,
+      "samples": 1
+    },
+    "new_indexing": {
+      "at_utc": "2026-10-18T13:10:55.947040+00:00",
+      "elapsed_since_t0_seconds": 582.054,
+      "from_cutoff_seconds": 571.408,
+      "passed": true,
+      "samples": 1
+    },
+    "new_upload": {
+      "at_utc": "2026-10-18T13:05:30.661209+00:00",
+      "elapsed_since_t0_seconds": 256.769,
+      "from_cutoff_seconds": 246.122,
+      "passed": true,
+      "samples": 1
+    },
+    "search": {
+      "at_utc": "2026-10-18T13:04:37.379579+00:00",
+      "elapsed_since_t0_seconds": 203.487,
+      "from_cutoff_seconds": 192.841,
+      "passed": true,
+      "samples": 1
+    }
+  },
+  "initial_states": {
+    "DB_MISSING": 32,
+    "RESTORED": 33
+  },
+  "latest_restored_ack_utc": "2026-10-18T12:54:21.832000+00:00",
+  "missing_db_with_preserved_original": 27,
+  "observed_prefix_boundary_gap_seconds": 412.061,
+  "offsite_rounds": [
+    {
+      "complete_wals": 4,
+      "elapsed_seconds": 59.888,
+      "event_at_utc": "2026-10-18T12:44:55.930+00:00",
+      "ordinal": 0,
+      "preserved_originals": 5
+    },
+    {
+      "completed_upload_requests": 33,
+      "event_at_utc": "2026-10-18T12:54:21.843+00:00",
+      "ordinal": 1,
+      "scheduled_at_utc": "2026-10-18T12:54:16.828378+00:00",
+      "start_lag_seconds": 5.005
+    },
+    {
+      "complete_wals": 7,
+      "elapsed_seconds": 73.514,
+      "event_at_utc": "2026-10-18T12:55:35.364+00:00",
+      "ordinal": 1,
+      "preserved_originals": 33
+    },
+    {
+      "completed_upload_requests": 60,
+      "event_at_utc": "2026-10-18T12:59:18.878+00:00",
+      "ordinal": 2,
+      "scheduled_at_utc": "2026-10-18T12:59:16.828378+00:00",
+      "start_lag_seconds": 2.033
+    },
+    {
+      "complete_wals": 8,
+      "elapsed_seconds": 63.774,
+      "event_at_utc": "2026-10-18T13:00:22.660+00:00",
+      "ordinal": 2,
+      "preserved_originals": 60
+    }
+  ],
+  "reason": null,
+  "restored_after_first_hole": 0,
+  "rpo_guarantee": "NOT_EVALUATED",
+  "run_id": "DR-RESTORE-20261018-FORMAL1"
+}

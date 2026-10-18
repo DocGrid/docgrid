@@ -12,7 +12,7 @@ import dr_recovery as dr
 
 
 class RecoveryContractTest(unittest.TestCase):
-    """Keep first-restoration evidence immutable before any simulated Worker activation."""
+    """Validate first-restoration ordering and status compatibility with actual Java enums."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -220,6 +220,39 @@ else:print(json.dumps(json.loads((root/'receipts.json').read_text())[phase]))
         dr.append(self.run, 'response', {'request_id': 'r1', 'http_status': None, 'outcome': 'UNKNOWN'})
         with self.assertRaisesRegex(dr.ContractError, 'RESPONSE_AFTER_AUDIT'):
             dr.requests(self.run)
+
+    def assert_wire_statuses(self, field, enum_path):
+        # Java enum values are an independent input contract, not the Python allow-list.
+        import re
+        text = (Path(__file__).resolve().parents[2] / enum_path).read_text()
+        body = text.split('public enum ', 1)[1].split('{', 1)[1].split('}', 1)[0]
+        values = re.findall(r'^\s*([A-Z][A-Z_]+)\s*[,;]?\s*$', body, re.MULTILINE)
+        self.assertTrue(values)
+        self.sent()
+        for value in values:
+            with self.subTest(field=field, value=value):
+                snapshot = self.snapshot(); snapshot['records'][0][field] = value
+                self.assertTrue(dr.audit_records(dr.requests(self.run), snapshot)['activation_allowed'])
+
+    def test_document_status_wire_contract(self):
+        self.assert_wire_statuses('document_status',
+            'backend/src/main/java/com/opensource/docgrid/domain/document/enums/DocumentStatus.java')
+
+    def test_version_status_wire_contract(self):
+        self.assert_wire_statuses('version_status',
+            'backend/src/main/java/com/opensource/docgrid/domain/document/enums/DocumentVersionStatus.java')
+
+    def test_job_status_wire_contract(self):
+        self.assert_wire_statuses('job_status',
+            'backend/src/main/java/com/opensource/docgrid/domain/embedding/enums/EmbeddingJobStatus.java')
+
+    def test_status_from_another_entity_is_rejected(self):
+        self.sent()
+        for field, value in [('document_status', 'PENDING'), ('version_status', 'PROCESSING'), ('job_status', 'UPLOADED')]:
+            with self.subTest(field=field):
+                snapshot = self.snapshot(); snapshot['records'][0][field] = value
+                with self.assertRaisesRegex(dr.ContractError, 'INVALID_SNAPSHOT_STATUS'):
+                    dr.audit_records(dr.requests(self.run), snapshot)
 
     def test_object_missing_blocks_worker(self):
         self.sent(); result = dr.audit_records(dr.requests(self.run), self.snapshot({"r1": "OBJECT_MISSING"}))

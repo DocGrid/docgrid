@@ -1,0 +1,25 @@
+{
+  "finished_at_utc": "2026-10-18T13:05:37.215284+00:00",
+  "frozen_wal_segments": [
+    "00000006000000000000001E",
+    "00000006000000000000001F",
+    "000000060000000000000020",
+    "000000060000000000000021",
+    "000000060000000000000022",
+    "000000060000000000000023",
+    "000000060000000000000024"
+  ],
+  "location": "same isolated restored OpenSQL, explicit recovery socket",
+  "method": "pg_last_wal_replay_lsn / pg_last_xact_replay_timestamp read-only SQL",
+  "observation": {
+    "last_replay_lsn": "0/25000000",
+    "last_replay_transaction_utc": "2026-10-18T12:54:21.655964",
+    "standby": false,
+    "wal_segment_size": "16MB"
+  },
+  "purpose": "동결 WAL 입력의 끝과 실제 복원 DB 재생 경계를 읽기 전용 대조",
+  "run_id": "DR-RESTORE-WAL-BOUNDARY-20261018-R1",
+  "started_at_utc": "2026-10-18T13:05:27.031743+00:00",
+  "success_criteria": "복원 DB 전용 소켓 확인·실제 재생 LSN과 입력 목록 보존; 사용자 쓰기·원본 조회 없음",
+  "verdict": "OBSERVED"
+}

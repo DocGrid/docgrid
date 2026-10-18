@@ -1,0 +1,975 @@
+{
+  "execution": "PASS",
+  "final_audit": {
+    "acknowledged": 65,
+    "activation_allowed": true,
+    "http_error": 0,
+    "lost_or_incomplete_acknowledged": 32,
+    "requests": [
+      {
+        "ack_at_utc": "2026-10-18T12:37:05.356+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-965c69a074e94cacb37ed7cd2f1cfb2a",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:37:50.492+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3a043da834f14436b70a14733f2252b8",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:38:29.983+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-aa478ffa2f2a43acb43c84ce2d8ac431",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:39:12.453+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-9ca175c82653458b92bed4bcd9537a5f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:41:01.038+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-9e7df4353fed4e7aaa5a3c7f1408e4e5",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:49:25.127+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-c9166086f88c466d8a756e6f6d9622c5",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:49:34.772+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-66ba7d8a8de148629607f6a26bbc8f90",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:49:46.064+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-99d323fbaa964760a0b71ef6412e025d",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:49:57.093+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-b331678e5a7d42cf8a4c4db431cd19bf",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:08.644+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-0ba3a720b65e417f807def554042667e",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:20.001+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-49eb7ad416b24429afb537f16ae6333f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:31.133+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-c7f7b9de82414e0889a3e52223279673",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:41.632+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3332040234024f5fab7f4545b4bb1f9f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:52.682+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-0935757b0cd5475ab423f04174c1a17b",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:03.643+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-dd0d63abe92b4a9192a897b7af26e314",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:16.097+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-4ae3860380ef4bfcb24944535960303e",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:25.209+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-6192da40bdbd4619821046d81292d3c7",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:37.046+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-b29f691bda084cf783174e730f6e277f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:47.680+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-abee4f99bb7a48bb9c763fdd49bd16f8",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:58.226+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-d73359977ccb452089a0bee66a0103ec",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:09.841+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1cf0c03bbe594bb5827f2e273bc9cb14",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:21.081+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-491bc1dea1d34d1fb175a4a78130b40d",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:31.532+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1528b4c8ea56434286fd24803372273f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:42.854+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-5bbe80c1080d48dea97625043e1d6cb0",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:53.221+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-134f03b858e8450b8b08c854a839ac90",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:04.581+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1289f0ebaa3f4751a0ad788c9b648ea3",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:15.508+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-2fb35853a420491c971f6c971b63896b",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:27.678+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-dd1a5e718ce24ce8b4508229da0951aa",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:37.267+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-c01c1678cb594cd993a9a0170bb18cd2",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:48.798+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-83040d6892d74b63ab768e9d90bb9d04",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:59.902+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-603a571ae0c147bea35927c304f9d772",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:54:10.932+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1a65c1542f684feeb034c3b1a6b92c37",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:54:21.832+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-0e631fa0a6ea4ee1afac2ce5f99f4327",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:55:43.909+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-80ba1cb578334f68b4712ec46271edab",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:55:50.968+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-fbaf3249ead041aab8c8729f7cfe6bb5",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:55:58.082+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-f9cecc4bc6e645ebae7a7d8f0b60833f",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:05.900+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-266e9cd10bf44c4099c45351aff5a213",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:13.259+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-f385c020c7394b5993fc0d23dd0c4314",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:20.688+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-cd52989eefdc4d01993e077360b6e844",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:28.515+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-d008622649b04e9f871b3bd2296cc053",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:36.324+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-d3b7eec6c2394e2495f06d66006c6f00",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:44.441+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-665e96a9ada843efa78379b0e921ec48",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:51.804+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-046c77ba2e4a4b88ad0d1c6f7bf11bb9",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:59.481+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-607f1c2f64d64fb7b6632acc5f472d59",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:08.320+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3ff63ce9c7b4402fbcbee28935a5d414",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:16.165+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3a2ac04a9ac346d2b292f89ba0b096b3",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:24.035+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-24735b8cf98347f091b106994e210a7b",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:31.231+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-b0e8c7e2aea24562b5813170fa6a816d",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:38.977+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-04233cdad305433abee26af93d8356e6",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:47.528+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3697e70376084b83a4129e6cc3d6d33f",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:56.017+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-23e0f579e82146679e7c3a58a1605aba",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:03.981+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-cf72758cb0624f18a5632f23c4419586",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:11.999+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-29c885e4f88d4e57aa18663fad3b240f",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:19.128+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-0ac416309fb24af199ca7e931bb45a7b",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:27.247+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1daf93dff41c468f85bfdbbe70d6fcc0",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:35.374+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-4f5d46c32ba04d24957cc1780db113b4",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:46.615+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-e1cbe18e321045978d12d708efb76b72",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:56.309+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-e871accf911d4c9c9c1345f38362122b",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:59:07.914+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-04c4842d79894d72903e7b423e0d593a",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:59:18.865+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-09b3714d1ed542ecad7affd1258265e4",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:00:30.969+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-66a683aeca184c1a9fef9e2c5430947e",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:00:38.813+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-c278df614f444546967f1e1fa5ee1845",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:00:46.695+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-24f9a22d31904c4585030acce87e0473",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:00:54.537+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-28392863101e4285a08246980789e32f",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:01:03.210+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3a06ef2536ca481fb0df95fd45d69bc6",
+        "restored_state": "DB_MISSING"
+      }
+    ],
+    "restored_acknowledged": 33,
+    "unknown_http": 0
+  },
+  "functional_checks": {
+    "download": {
+      "at_utc": "2026-10-18T13:04:21.530770+00:00",
+      "from_cutoff_seconds": 176.992,
+      "passed": true,
+      "samples": 4
+    },
+    "job_resume": {
+      "at_utc": "2026-10-18T13:05:23.022354+00:00",
+      "from_cutoff_seconds": 238.483,
+      "passed": true,
+      "samples": 1
+    },
+    "new_download": {
+      "at_utc": "2026-10-18T13:10:57.724793+00:00",
+      "from_cutoff_seconds": 573.186,
+      "passed": true,
+      "samples": 1
+    },
+    "new_indexing": {
+      "at_utc": "2026-10-18T13:10:55.947040+00:00",
+      "from_cutoff_seconds": 571.408,
+      "passed": true,
+      "samples": 1
+    },
+    "new_upload": {
+      "at_utc": "2026-10-18T13:05:30.661209+00:00",
+      "from_cutoff_seconds": 246.122,
+      "passed": true,
+      "samples": 1
+    },
+    "search": {
+      "at_utc": "2026-10-18T13:04:37.379579+00:00",
+      "from_cutoff_seconds": 192.841,
+      "passed": true,
+      "samples": 1
+    }
+  },
+  "initial_audit": {
+    "acknowledged": 65,
+    "activation_allowed": true,
+    "http_error": 0,
+    "lost_or_incomplete_acknowledged": 32,
+    "requests": [
+      {
+        "ack_at_utc": "2026-10-18T12:37:05.356+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-965c69a074e94cacb37ed7cd2f1cfb2a",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:37:50.492+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3a043da834f14436b70a14733f2252b8",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:38:29.983+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-aa478ffa2f2a43acb43c84ce2d8ac431",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:39:12.453+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-9ca175c82653458b92bed4bcd9537a5f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:41:01.038+00:00",
+        "cohort": "functional",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-9e7df4353fed4e7aaa5a3c7f1408e4e5",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:49:25.127+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-c9166086f88c466d8a756e6f6d9622c5",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:49:34.772+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-66ba7d8a8de148629607f6a26bbc8f90",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:49:46.064+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-99d323fbaa964760a0b71ef6412e025d",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:49:57.093+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-b331678e5a7d42cf8a4c4db431cd19bf",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:08.644+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-0ba3a720b65e417f807def554042667e",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:20.001+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-49eb7ad416b24429afb537f16ae6333f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:31.133+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-c7f7b9de82414e0889a3e52223279673",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:41.632+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3332040234024f5fab7f4545b4bb1f9f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:50:52.682+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-0935757b0cd5475ab423f04174c1a17b",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:03.643+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-dd0d63abe92b4a9192a897b7af26e314",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:16.097+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-4ae3860380ef4bfcb24944535960303e",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:25.209+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-6192da40bdbd4619821046d81292d3c7",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:37.046+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-b29f691bda084cf783174e730f6e277f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:47.680+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-abee4f99bb7a48bb9c763fdd49bd16f8",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:51:58.226+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-d73359977ccb452089a0bee66a0103ec",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:09.841+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1cf0c03bbe594bb5827f2e273bc9cb14",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:21.081+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-491bc1dea1d34d1fb175a4a78130b40d",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:31.532+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1528b4c8ea56434286fd24803372273f",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:42.854+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-5bbe80c1080d48dea97625043e1d6cb0",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:52:53.221+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-134f03b858e8450b8b08c854a839ac90",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:04.581+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1289f0ebaa3f4751a0ad788c9b648ea3",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:15.508+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-2fb35853a420491c971f6c971b63896b",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:27.678+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-dd1a5e718ce24ce8b4508229da0951aa",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:37.267+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-c01c1678cb594cd993a9a0170bb18cd2",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:48.798+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-83040d6892d74b63ab768e9d90bb9d04",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:53:59.902+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-603a571ae0c147bea35927c304f9d772",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:54:10.932+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1a65c1542f684feeb034c3b1a6b92c37",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:54:21.832+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-0e631fa0a6ea4ee1afac2ce5f99f4327",
+        "restored_state": "RESTORED"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:55:43.909+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-80ba1cb578334f68b4712ec46271edab",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:55:50.968+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-fbaf3249ead041aab8c8729f7cfe6bb5",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:55:58.082+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-f9cecc4bc6e645ebae7a7d8f0b60833f",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:05.900+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-266e9cd10bf44c4099c45351aff5a213",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:13.259+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-f385c020c7394b5993fc0d23dd0c4314",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:20.688+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-cd52989eefdc4d01993e077360b6e844",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:28.515+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-d008622649b04e9f871b3bd2296cc053",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:36.324+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-d3b7eec6c2394e2495f06d66006c6f00",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:44.441+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-665e96a9ada843efa78379b0e921ec48",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:51.804+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-046c77ba2e4a4b88ad0d1c6f7bf11bb9",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:56:59.481+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-607f1c2f64d64fb7b6632acc5f472d59",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:08.320+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3ff63ce9c7b4402fbcbee28935a5d414",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:16.165+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3a2ac04a9ac346d2b292f89ba0b096b3",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:24.035+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-24735b8cf98347f091b106994e210a7b",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:31.231+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-b0e8c7e2aea24562b5813170fa6a816d",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:38.977+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-04233cdad305433abee26af93d8356e6",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:47.528+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3697e70376084b83a4129e6cc3d6d33f",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:57:56.017+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-23e0f579e82146679e7c3a58a1605aba",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:03.981+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-cf72758cb0624f18a5632f23c4419586",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:11.999+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-29c885e4f88d4e57aa18663fad3b240f",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:19.128+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-0ac416309fb24af199ca7e931bb45a7b",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:27.247+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-1daf93dff41c468f85bfdbbe70d6fcc0",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:35.374+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-4f5d46c32ba04d24957cc1780db113b4",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:46.615+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-e1cbe18e321045978d12d708efb76b72",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:58:56.309+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-e871accf911d4c9c9c1345f38362122b",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:59:07.914+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-04c4842d79894d72903e7b423e0d593a",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T12:59:18.865+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-09b3714d1ed542ecad7affd1258265e4",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:00:30.969+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-66a683aeca184c1a9fef9e2c5430947e",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:00:38.813+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-c278df614f444546967f1e1fa5ee1845",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:00:46.695+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-24f9a22d31904c4585030acce87e0473",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:00:54.537+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-28392863101e4285a08246980789e32f",
+        "restored_state": "DB_MISSING"
+      },
+      {
+        "ack_at_utc": "2026-10-18T13:01:03.210+00:00",
+        "cohort": "loss",
+        "http_outcome": "ACKNOWLEDGED",
+        "request_id": "upload-3a06ef2536ca481fb0df95fd45d69bc6",
+        "restored_state": "DB_MISSING"
+      }
+    ],
+    "restored_acknowledged": 33,
+    "unknown_http": 0
+  },
+  "reason": null,
+  "rpo_guarantee": "NOT_EVALUATED",
+  "run_id": "DR-RESTORE-20261018-FORMAL1",
+  "scope": "isolated_document_download_search_indexing"
+}

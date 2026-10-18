@@ -28,6 +28,13 @@ CHECKS = ("backup_verified", "wal_chain_verified", "receiver_healthy",
           "identity_available_offsite", "restore_target_isolated", "rollback_ready",
           "public_config_preserved")
 FUNCTIONS = ("download", "search", "job_resume", "new_upload", "new_indexing", "new_download")
+# Match each Java enum independently: a Job status is not a DocumentVersion status.
+SNAPSHOT_STATUSES = {
+    "document_status": {"DRAFT", "UPLOADED", "INDEXING", "INDEXED", "FAILED", "ARCHIVED", "DELETED"},
+    "version_status": {"UPLOADED", "PARSING", "CHUNKED", "EMBEDDING", "INDEXED", "FAILED"},
+    "job_status": {"PENDING", "PROCESSING", "INDEXED", "FAILED", "CANCELED"},
+}
+
 
 
 class ContractError(ValueError):
@@ -275,8 +282,8 @@ def audit_records(records, snapshot, *, pristine=True, originals=None):
         for key in ("attempt_count", "chunk_count", "embedding_count"):
             if key in row and (type(row[key]) is not int or row[key] < 0):
                 raise ContractError("INVALID_SNAPSHOT_COUNTER")
-        for key in ("document_status", "version_status", "job_status"):
-            if key in row and row[key] not in ("UPLOADED", "PENDING", "PROCESSING", "INDEXED", "FAILED", "DELETED"):
+        for key, statuses in SNAPSHOT_STATUSES.items():
+            if key in row and row[key] not in statuses:
                 raise ContractError("INVALID_SNAPSHOT_STATUS")
         key = row.get("request_id")
         if key in indexed or key not in {r["request_id"] for r in records}:

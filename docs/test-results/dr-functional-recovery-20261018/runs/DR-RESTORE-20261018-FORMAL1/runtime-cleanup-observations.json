@@ -1,0 +1,34 @@
+{
+  "containers_removed": true,
+  "failures": [],
+  "finished_at_utc": "2026-10-18T13:13:05.675975+00:00",
+  "gcs": {
+    "active_objects_remaining": 0,
+    "deleted_active_objects": {
+      "database": 10,
+      "preserved": 61,
+      "source": 65
+    },
+    "immediate_physical_erasure_claimed": false,
+    "soft_delete_policy_may_retain_deleted_objects": true
+  },
+  "private_runtime_data_removed": true,
+  "processes_removed": true,
+  "public_config_unchanged": true,
+  "shared_trial_buckets_retained_for_next_serial_run": true,
+  "source_objects_removed": true,
+  "ssh_keys_removed": true,
+  "started_at_utc": "2026-10-18T13:11:30.221813+00:00",
+  "target": {
+    "guard": {
+      "completed": true,
+      "patroni_resumed": 2,
+      "scratch_stopped": true
+    },
+    "scratch_removed": true,
+    "scratch_stopped": true,
+    "source_cluster_restored": true,
+    "target_never_borrowed": false,
+    "temporary_key_removed": true
+  }
+}
