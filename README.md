@@ -246,6 +246,18 @@ Ollama가 없어도 업로드, 인덱싱과 검색은 동작합니다. 검색 �
 
 `start`는 BGE-M3 준비 완료까지 최대 15분 기다리며, 실패하면 서비스별 복구 명령을 출력합니다.
 
+검색만 시연할 때는 명시적 로컬 범위를 사용합니다. `.env`의 local·Local Filesystem 설정과 실제
+Compose 대상 DB를 확인하고 PostgreSQL·Valkey·BGE-M3를 준비하며 Ollama는 호출하지 않습니다.
+
+```bash
+./scripts/local-services.sh start --scope search
+./scripts/local-services.sh status --scope search
+```
+
+`--scope rag`는 위 서비스와 사전 기동된 Native Ollama·모델을 확인합니다. 이 명시적 범위에서는
+Homebrew 서비스나 Ollama 앱을 자동 기동하지 않습니다. 인자 없는 기존 명령의 동작은 유지됩니다.
+설정 파일은 실행하지 않고 `KEY=VALUE` 형식만 읽으며, 원격 프로필·저장소·모호한 설정은 자동 수정하지 않고 거부합니다.
+
 Apple Silicon에서는 `ollama ps`의 `PROCESSOR`가 GPU인지 확인합니다. 설치와 성능 관련 상세 내용은
 [백엔드 실행 문서](backend/README.md#ollama-rag-llm-서버)를 참고하세요.
 
