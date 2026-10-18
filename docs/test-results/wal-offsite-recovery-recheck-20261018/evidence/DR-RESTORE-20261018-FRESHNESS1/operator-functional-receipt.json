@@ -1,0 +1,36 @@
+{
+  "at_utc": "2026-10-18T14:51:39.757916+00:00",
+  "result": {
+    "download": {
+      "at_utc": "2026-10-18T14:39:09.852552+00:00",
+      "passed": true,
+      "samples": 4
+    },
+    "job_resume": {
+      "at_utc": "2026-10-18T14:40:21.317855+00:00",
+      "passed": true,
+      "samples": 1
+    },
+    "new_download": {
+      "at_utc": "2026-10-18T14:51:39.754136+00:00",
+      "passed": true,
+      "samples": 1
+    },
+    "new_indexing": {
+      "at_utc": "2026-10-18T14:51:37.672099+00:00",
+      "passed": true,
+      "samples": 1
+    },
+    "new_upload": {
+      "at_utc": "2026-10-18T14:40:28.376043+00:00",
+      "passed": true,
+      "samples": 1
+    },
+    "search": {
+      "at_utc": "2026-10-18T14:39:25.400051+00:00",
+      "passed": true,
+      "samples": 1
+    }
+  },
+  "started_at_utc": "2026-10-18T14:39:01.842928+00:00"
+}

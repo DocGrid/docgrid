@@ -1,0 +1,32 @@
+{
+  "elapsed_seconds": 140.662,
+  "finished_at_utc": "2026-10-18T14:18:44.965938+00:00",
+  "location": "isolated local runtime and owned cloud source database",
+  "observations": [
+    {
+      "elapsed_seconds": 32.716,
+      "ordinal": 1,
+      "state": "INDEXED"
+    },
+    {
+      "elapsed_seconds": 24.861,
+      "ordinal": 2,
+      "state": "INDEXED"
+    },
+    {
+      "elapsed_seconds": 28.196,
+      "ordinal": 3,
+      "state": "INDEXED"
+    },
+    {
+      "elapsed_seconds": 25.107,
+      "ordinal": 4,
+      "state": "INDEXED"
+    }
+  ],
+  "purpose": "기능용 PDF·DOCX 4건 준비",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-CORPUS",
+  "started_at_utc": "2026-10-18T14:16:24.307909+00:00",
+  "success_criteria": "업로드 201 4건·INDEXED 4건, 실제 BGE",
+  "verdict": "PASS"
+}

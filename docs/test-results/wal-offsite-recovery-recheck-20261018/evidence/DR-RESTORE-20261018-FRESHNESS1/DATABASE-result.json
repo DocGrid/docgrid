@@ -1,0 +1,15 @@
+{
+  "elapsed_seconds": 29.674,
+  "finished_at_utc": "2026-10-18T14:11:25.232088+00:00",
+  "location": "isolated local runtime and owned cloud source database",
+  "observations": {
+    "database_created": true,
+    "roles_created": 2,
+    "vector_version": "0.8.1"
+  },
+  "purpose": "전용 논리 DB·두 계정 준비",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-DATABASE",
+  "started_at_utc": "2026-10-18T14:10:55.559295+00:00",
+  "success_criteria": "소유 마커·역할·vector 확장 및 해당 DB 함수 권한",
+  "verdict": "PASS"
+}

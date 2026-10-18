@@ -1,0 +1,43 @@
+{
+  "finished_at_utc": "2026-10-18T14:54:11.997238+00:00",
+  "intended_original_bucket_preserved": true,
+  "key_files_checked": 0,
+  "personal_environment_comparison": {
+    ".env": {
+      "exists": true,
+      "unchanged": true
+    },
+    "frontend/.env.local": {
+      "exists": true,
+      "unchanged": true
+    }
+  },
+  "purpose": "시험 소유 버킷·임시 ADC 복사본·남은 소유 SSH 키 정리 및 개인 환경 보존 확인",
+  "remaining_owned_keys_confirmed_removed": true,
+  "run_id": "DR-TASK-CLEANUP-20261018-R1",
+  "soft_delete_is_not_physical_erasure": true,
+  "source_adc_file_present": true,
+  "source_adc_revoked": false,
+  "started_at_utc": "2026-10-18T14:54:07.607585+00:00",
+  "success_criteria": "시험 버킷 3개 삭제·의도한 공개 원본 버킷 유지·임시 인증 파일 제거, 원래 자격 증명 보존",
+  "temporary_adc_copy_removed": true,
+  "temporary_replication_config_removed": true,
+  "trial_buckets": [
+    {
+      "delete_http_status": 204,
+      "role": "source",
+      "soft_deleted_generations_may_remain": true
+    },
+    {
+      "delete_http_status": 204,
+      "role": "preserved",
+      "soft_deleted_generations_may_remain": true
+    },
+    {
+      "delete_http_status": 204,
+      "role": "database",
+      "soft_deleted_generations_may_remain": true
+    }
+  ],
+  "verdict": "PASS"
+}

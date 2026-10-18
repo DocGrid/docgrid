@@ -1,0 +1,8 @@
+{
+  "location": "licensed OpenSQL separate restored PGDATA; read only",
+  "method": "restored identity-checked socket SQL: pg_last_wal_replay_lsn and pg_last_xact_replay_timestamp",
+  "purpose": "외부에 고정한 마지막 WAL과 실제 복원 서버의 재생 끝 위치 대조",
+  "run_id": "DR-RESTORE-20261018-FRESHNESS1-REPLAY-BOUNDARY",
+  "started_at_utc": "2026-10-18T14:39:11.960326+00:00",
+  "success_criteria": "복원 서버 식별 후 비어 있지 않은 replay LSN 관측"
+}
