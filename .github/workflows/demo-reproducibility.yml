@@ -21,7 +21,6 @@ jobs:
     timeout-minutes: 45
     env:
       EMBEDDING_CONTAINER_CPUS: "2.0"
-      DEMO_BROWSER_MODULE: ${{ runner.temp }}/docgrid-demo-browser/node_modules/playwright
     steps:
       - uses: actions/checkout@v7
         with:
@@ -34,10 +33,14 @@ jobs:
         with:
           node-version: "22"
       - name: Prepare isolated Chromium dependency
+        env:
+          DEMO_BROWSER_MODULE: ${{ runner.temp }}/docgrid-demo-browser/node_modules/playwright
         run: |
           npm install --prefix "$RUNNER_TEMP/docgrid-demo-browser" --no-save --package-lock=false playwright@1.64.1
           node "$DEMO_BROWSER_MODULE/cli.js" install --with-deps chromium
       - name: Reproduce start, verify, browser and stop with real BGE-M3
+        env:
+          DEMO_BROWSER_MODULE: ${{ runner.temp }}/docgrid-demo-browser/node_modules/playwright
         run: python3 scripts/demo/reproduce_fresh.py
       - name: Preserve redacted per-purpose evidence
         if: always()
