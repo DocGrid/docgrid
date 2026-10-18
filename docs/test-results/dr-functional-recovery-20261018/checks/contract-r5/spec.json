@@ -1,0 +1,9 @@
+{
+  "command": "python3 -m unittest discover -s scripts/opensql -p test_dr_recovery.py -v",
+  "location": "local Python, no cloud changes",
+  "purpose": "실제 Java 상태 enum 정합성과 복원 판정·최초 감사 관문 회귀 확인",
+  "revision": "3bff887 plus uncommitted enum-contract fix",
+  "run_id": "DR-CONTRACT-20261018-R5",
+  "started_at_utc": "2026-10-18T12:32:20.930547+00:00",
+  "success_criteria": "40개 테스트 메서드 통과, 실패·오류 0"
+}

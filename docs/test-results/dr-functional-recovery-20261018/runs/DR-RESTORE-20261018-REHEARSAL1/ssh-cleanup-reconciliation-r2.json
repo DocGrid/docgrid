@@ -1,0 +1,10 @@
+{
+  "at_utc": "2026-10-18T11:57:58.120273+00:00",
+  "existing_unrelated_keys_changed": false,
+  "key_values_retained_or_printed": false,
+  "matching_keys_removed": 0,
+  "matching_owned_expiry_window_keys": 0,
+  "no_matching_key_remaining": true,
+  "purpose": "만료된 시험 전용 터널 키 제거 결과의 신선한 프로필 재확인",
+  "run_id": "DR-SSH-CLEANUP-20261018-R2"
+}

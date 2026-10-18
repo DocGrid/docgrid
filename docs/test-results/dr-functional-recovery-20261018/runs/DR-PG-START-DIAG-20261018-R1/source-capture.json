@@ -1,0 +1,13 @@
+{
+  "all_source_mtimes_precede_start": true,
+  "captured_after_start": true,
+  "captured_at_utc": "2026-10-18T12:12:52.114819+00:00",
+  "sha256": {
+    "dr_cleanup_private.py": "6871e436112ce8a944c303e09ad2f587b75a609e37047e726a1ec9e5d73958fa",
+    "dr_gcs_private.py": "d718eb5c761293cf6cc738014139e023f85f8177d0391140fc12a55675c69dd0",
+    "dr_operator_private.py": "2691974bc7d390f38448fa5bcb01dc49b0464f084d76be72d4fc733a9ce83700",
+    "dr_runtime_private.py": "6728715e0d982171526f6873ff873e1a1525cd18dbd12a4f7495c5a78c90d2f0",
+    "dr_target_private.py": "f606e7d7bf2001db6a27b15fe34c95c3e869500dbe380b6c92f28486a04d1f01",
+    "native_pg_filter.py": "04f7c3d3fd6c518dbfa00902a3f70078d7d1dd66b4b4adf095ed93facfad2a66"
+  }
+}

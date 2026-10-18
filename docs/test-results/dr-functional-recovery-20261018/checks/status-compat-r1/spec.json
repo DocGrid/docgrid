@@ -1,0 +1,10 @@
+{
+  "command": "python3 -m unittest discover -s scripts/opensql -p test_dr_recovery.py -v",
+  "controller_sha256": "f14e3732386f568ad62b206897a49a668ffd1a11b5acf3cd3d204ab05bcee03f",
+  "location": "local Python, synthetic snapshot and actual enum source",
+  "purpose": "Reproduce actual Java enum values rejected by the recovery snapshot contract",
+  "revision": "3bff887 + added protocol tests; controller unchanged",
+  "run_id": "DR-STATUS-COMPAT-20261018-R1",
+  "started_at_utc": "2026-10-18T09:22:57.294170+00:00",
+  "success_criteria": "All 40 test methods pass, including actual Java enum acceptance and wrong-entity rejection"
+}

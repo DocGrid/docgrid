@@ -1,0 +1,19 @@
+{
+  "cleanup": {
+    "owned_resources_removed": true,
+    "public_config_preserved": true,
+    "source_cluster_restored": true
+  },
+  "diagnostic_verdict": "INCOMPLETE",
+  "error_type": "RuntimeError",
+  "finished_at_utc": "2026-10-18T12:12:04.265169+00:00",
+  "functional_or_rpo_measurement": false,
+  "inputs": "previous offsite bytes restored from soft-deleted objects, exact SHA checked, new generations recorded",
+  "location": "same licensed asynchronous replica, new empty PGDATA, offline restore container",
+  "purpose": "첫 리허설의 실제 OpenSQL 기동 실패 원인 진단, 오류를 사전 마스킹해 보존",
+  "run_id": "DR-PG-START-DIAG-20261018-R1",
+  "source_data_requeried": false,
+  "stage": "LICENSED_TARGET_START_FAILED",
+  "started_at_utc": "2026-10-18T12:09:52.656314+00:00",
+  "success_criteria": "기동 성공 또는 구체적인 비밀 제거 오류 확보, 최초 노드 3대 원복"
+}

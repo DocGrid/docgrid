@@ -1,0 +1,16 @@
+{
+  "elapsed_seconds": 87.7,
+  "finished_at_utc": "2026-10-18T12:43:25.674130+00:00",
+  "location": "isolated local runtime and owned cloud source database",
+  "observations": {
+    "backup_command_exit_code": 0,
+    "backup_id": "20261018T124224",
+    "final_status": "DONE",
+    "verify_exit_code": 0
+  },
+  "purpose": "새 OpenSQL 물리 기준 백업 검증",
+  "run_id": "DR-RESTORE-20261018-FORMAL1-BACKUP",
+  "started_at_utc": "2026-10-18T12:41:57.972085+00:00",
+  "success_criteria": "DONE·pg_verifybackup 0",
+  "verdict": "PASS"
+}

@@ -1,0 +1,113 @@
+{
+  "elapsed_seconds": 75.116,
+  "finished_at_utc": "2026-10-18T12:40:52.734048+00:00",
+  "location": "isolated local runtime and owned cloud source database",
+  "observations": {
+    "checks": [
+      {
+        "check": "PostgreSQL",
+        "status": "OK"
+      },
+      {
+        "check": "superuser or standard user with backup privileges",
+        "status": "OK"
+      },
+      {
+        "check": "PostgreSQL streaming",
+        "status": "OK"
+      },
+      {
+        "check": "wal_level",
+        "status": "OK"
+      },
+      {
+        "check": "directories",
+        "status": "OK"
+      },
+      {
+        "check": "retention policy settings",
+        "status": "OK"
+      },
+      {
+        "check": "backup maximum age",
+        "status": "OK"
+      },
+      {
+        "check": "backup minimum size",
+        "status": "OK"
+      },
+      {
+        "check": "wal maximum age",
+        "status": "OK"
+      },
+      {
+        "check": "wal size",
+        "status": "OK"
+      },
+      {
+        "check": "compression settings",
+        "status": "OK"
+      },
+      {
+        "check": "failed backups",
+        "status": "OK"
+      },
+      {
+        "check": "minimum redundancy requirements",
+        "status": "OK"
+      },
+      {
+        "check": "pg_basebackup",
+        "status": "OK"
+      },
+      {
+        "check": "pg_basebackup compatible",
+        "status": "OK"
+      },
+      {
+        "check": "pg_basebackup supports tablespaces mapping",
+        "status": "OK"
+      },
+      {
+        "check": "systemid coherence",
+        "status": "OK"
+      },
+      {
+        "check": "pg_receivexlog",
+        "status": "OK"
+      },
+      {
+        "check": "pg_receivexlog compatible",
+        "status": "OK"
+      },
+      {
+        "check": "receive-wal running",
+        "status": "OK"
+      },
+      {
+        "check": "archive_mode",
+        "status": "OK"
+      },
+      {
+        "check": "archive_command",
+        "status": "OK"
+      },
+      {
+        "check": "continuous archiving",
+        "status": "OK"
+      },
+      {
+        "check": "archiver errors",
+        "status": "OK"
+      }
+    ],
+    "failed": 0,
+    "passed": 24,
+    "permanent_slot_created": false
+  },
+  "purpose": "실제 WAL 수신·Barman 준비 점검",
+  "run_id": "DR-RESTORE-20261018-FORMAL1-RECEIVER",
+  "started_at_utc": "2026-10-18T12:39:37.618562+00:00",
+  "success_criteria": "수신기 1·완성 WAL·준비 항목 통과",
+  "verdict": "PASS"
+}

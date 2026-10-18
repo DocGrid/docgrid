@@ -1,0 +1,185 @@
+{
+  "purpose": "Only evidence required by the recovery report; full private preparation material is not published",
+  "artifacts": [
+    {
+      "artifact": "checks/contract-r5/events.log",
+      "bytes": 3698,
+      "sha256": "b9cca6fd4c25a8b35e79fecbf27ab1d0e642e2665fdec8c109b0a6a4444fcd59"
+    },
+    {
+      "artifact": "checks/contract-r5/result.json",
+      "bytes": 621,
+      "sha256": "b7e3993b68c52fa563c28a47dc26acceee49949fe47ec8201d7a6b883a8c1777"
+    },
+    {
+      "artifact": "checks/contract-r5/spec.json",
+      "bytes": 475,
+      "sha256": "0b76e84ad9cae46c76e512285dbd028dd63e27ba41a34e5c1050683f4f5549a0"
+    },
+    {
+      "artifact": "checks/status-compat-r1/result.json",
+      "bytes": 823,
+      "sha256": "13d6bea528716ca35a667ecbe52d758c21ddd594fb5382f0f1b3933b7d2e31d8"
+    },
+    {
+      "artifact": "checks/status-compat-r1/spec.json",
+      "bytes": 636,
+      "sha256": "8644b2da9b9a9edd164a9c93c9357149cd37b1773f9f22c3301424966ad49b6e"
+    },
+    {
+      "artifact": "checks/status-compat-r2/result.json",
+      "bytes": 814,
+      "sha256": "f9b1184427e3adf35c0ca1c558453af26064e44a811f2aa87a11678c6910318b"
+    },
+    {
+      "artifact": "checks/status-compat-r2/spec.json",
+      "bytes": 627,
+      "sha256": "f034358a064c051333169f550d95328d33253bc335e56d418ccaed3ee32cd67c"
+    },
+    {
+      "artifact": "checks/task-cleanup-r1/result.json",
+      "bytes": 1304,
+      "sha256": "d38337dd61fb112efe2a4e10426e4d70f612f517db0ac7677880f119dc2b6de6"
+    },
+    {
+      "artifact": "checks/task-cleanup-r1/spec.json",
+      "bytes": 371,
+      "sha256": "171b66b5f39f09ab2e00ee551f695e7f9ad4d5241af51f3752c54e49c073ddf7"
+    },
+    {
+      "artifact": "checks/wal-boundary-r1/analysis.json",
+      "bytes": 541,
+      "sha256": "82ce943dbc2496683930f53146f755c3f5e700e475a14838190deaa92efdfcdb"
+    },
+    {
+      "artifact": "checks/wal-boundary-r1/result.json",
+      "bytes": 1022,
+      "sha256": "56e85e22a72b71e8e79c898fb476c426f1828758ef5f7544e83384932a326981"
+    },
+    {
+      "artifact": "checks/wal-boundary-r1/spec.json",
+      "bytes": 506,
+      "sha256": "a945b765d82218b27fc0758eab643c40c5866b40625d361e2a11fe74c629bf6f"
+    },
+    {
+      "artifact": "metrics.json",
+      "bytes": 3140,
+      "sha256": "3c4ddf939768ada18efa33ec76b3296e874febee674c8ff36133e8dc882aec23"
+    },
+    {
+      "artifact": "runs/DR-PG-START-DIAG-20261018-R1/result.json",
+      "bytes": 922,
+      "sha256": "c35548f9ed461502c960e0b95d3fc8e2f983da68eff89d7b1dbafdd34272f2ed"
+    },
+    {
+      "artifact": "runs/DR-PG-START-DIAG-20261018-R1/source-capture.json",
+      "bytes": 729,
+      "sha256": "09cb643b0c046ae1e8f8c4aed8d1cf98af7a93a2efcb176039ae14151559318b"
+    },
+    {
+      "artifact": "runs/DR-PG-START-DIAG-20261018-R1/spec.json",
+      "bytes": 622,
+      "sha256": "434ee42d5e089735aec252065bf2134a8e23078e84dc910e46073148fee58909"
+    },
+    {
+      "artifact": "runs/DR-PG-START-DIAG-20261018-R2/result.json",
+      "bytes": 1132,
+      "sha256": "cb34f18d677f2db4c353d362e54f49288eb2b44eba53b59446bd11f6f67e4460"
+    },
+    {
+      "artifact": "runs/DR-PG-START-DIAG-20261018-R2/spec.json",
+      "bytes": 720,
+      "sha256": "0e54b35d612a74f5ce4e2809736081eba6902f0841432be1a6a6226988d47b50"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/BACKUP-result.json",
+      "bytes": 541,
+      "sha256": "07637e7594d6368a47ab47a03260f9151082fe7c975c309401566c4d4f12264c"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/INTERRUPT-result.json",
+      "bytes": 620,
+      "sha256": "e2b332f82c67f2c15f56388f006fbade29a1ea451f56b72d460c32051c85a38c"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/RECEIVER-result.json",
+      "bytes": 2465,
+      "sha256": "20bef6bb1e90f33b642137f560432ef841c48242d35a2f1fc38890115a25a8d5"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/events.jsonl",
+      "bytes": 143528,
+      "sha256": "ff93e425516fcba5e4e504bd1da54b8a7dfd0e730eed75900bfc1f9a6d2c5f75"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/final-audit.json",
+      "bytes": 14971,
+      "sha256": "88ee63810f780eebff125d5844d06568fe8905efa41a3013af43e4aa6e90501b"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/final-snapshot.json",
+      "bytes": 23269,
+      "sha256": "6ff1af3002e9812ea86024aea8b47bf81d985cdf07caf2130bd8936103bd2058"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/formal-spec.json",
+      "bytes": 901,
+      "sha256": "bd87ef31dfd91351d58bd0aaeaa4e111a2ddc8ce963648cfe7e5ecd04b8cc2e4"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/functional-observations.json",
+      "bytes": 661,
+      "sha256": "ee57b78f4aedf70f3d6cf9763cd18631f4e80cc51c0324d0cfa474c4427af5fd"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/initial-audit.json",
+      "bytes": 14971,
+      "sha256": "88ee63810f780eebff125d5844d06568fe8905efa41a3013af43e4aa6e90501b"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/initial-snapshot.json",
+      "bytes": 23190,
+      "sha256": "a9f0d38fd7da13c17f23ca1042f8854b9a7cc104c0c3ff0c8f3941a5282d377e"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/inputs.json",
+      "bytes": 13135,
+      "sha256": "2c5afe03e8ed47c1924cc6082873d9e5ec52c5de808a98f0f351e807d9b20b95"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/manifest.json",
+      "bytes": 180,
+      "sha256": "297041f2f6ce019115950c70a034edea6f1aac6d1a61d7e2018a258ff1c1231f"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/preparation-result.json",
+      "bytes": 165,
+      "sha256": "99c1cd8b51cdeb61c77337e8b2e905a99c06be0a6c2aaa65504daaa5793b24eb"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/runtime-cleanup-observations.json",
+      "bytes": 941,
+      "sha256": "35021669a095eb43998dd44d087e2962b3847bab731d465bfe3bd5d029b3b424"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-FORMAL1/summary.json",
+      "bytes": 32991,
+      "sha256": "7a634d7020ef885f82cdf1e3a8789a627ef759157f8ab2c8da8f8cecbe2a1f7c"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-REHEARSAL1/operator-restore-error.json",
+      "bytes": 182,
+      "sha256": "ffbe5c1e7ec814163b391eb39826ee2c940349aaa75ef24debefb7e3101c8096"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-REHEARSAL1/ssh-cleanup-reconciliation-r2.json",
+      "bytes": 387,
+      "sha256": "6777087caf0ed94e93f6becebafa6193eedca1cfbb5df0a1c2702c41eec1c461"
+    },
+    {
+      "artifact": "runs/DR-RESTORE-20261018-REHEARSAL1/summary.json",
+      "bytes": 285,
+      "sha256": "94ff5d2948841d83c758f16e1367e54a1d0357b35dce14b74f3bb035216df15c"
+    }
+  ]
+}
