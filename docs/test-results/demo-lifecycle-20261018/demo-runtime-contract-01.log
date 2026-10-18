@@ -1,0 +1,83 @@
+실행 ID: demo-runtime-contract-01
+목적: 통합 실행의 소유권·잠금·실제 제어 프로세스 종료 회귀
+환경: 로컬 Python 3.9.6·POSIX·lsof, 임시 HTTP 서버와 명령 대체물
+합격 기준: 69개 검사 통과, 제어 서버 포트·자식 프로세스 정리, 실제 Docker 변경 없음
+명령: python3 -m unittest discover -s scripts/demo -p test_*.py -v
+시작 시각: 2026-10-18T14:56:51+09:00
+test_changed_configuration_refuses_before_database_or_upload (test_demo_runtime.RuntimeContractTest) ... ok
+test_changed_identity_never_kills_live_process (test_demo_runtime.RuntimeContractTest) ... ok
+test_child_record_recovers_parent_missing_process_map (test_demo_runtime.RuntimeContractTest) ... ok
+test_concurrent_command_lock_refuses_second_process (test_demo_runtime.RuntimeContractTest) ... ok
+test_existing_personal_environment_files_are_preserved (test_demo_runtime.RuntimeContractTest) ... ok
+test_frontend_proxy_comparison_ignores_response_timestamp (test_demo_runtime.RuntimeContractTest) ... ok
+test_new_env_is_initialized_without_default_jwt (test_demo_runtime.RuntimeContractTest) ... ok
+test_partial_start_failure_runs_cleanup (test_demo_runtime.RuntimeContractTest) ... ok
+test_starting_component_records_actual_group_and_listener (test_demo_runtime.RuntimeContractTest) ... ok
+test_stop_preserves_reused_containers (test_demo_runtime.RuntimeContractTest) ... ok
+test_stop_releases_children_and_actual_server_port (test_demo_runtime.RuntimeContractTest) ... ok
+test_supervisor_redacts_before_writing (test_demo_runtime.RuntimeContractTest) ... ok
+test_verify_records_use_distinct_paths (test_demo_runtime.RuntimeContractTest) ... ok
+test_changed_target_refuses_replay_before_upload (test_demo_verdict.DemoVerdictTest) ... ok
+test_citation_outside_search_candidates_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_different_previous_document_id_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_download_hash_mismatch_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_empty_search_results_fail (test_demo_verdict.DemoVerdictTest) ... ok
+test_event_redaction_happens_before_storage (test_demo_verdict.DemoVerdictTest) ... ok
+test_existing_report_is_never_overwritten (test_demo_verdict.DemoVerdictTest) ... ok
+test_full_search_scope_passes_without_rag_polling (test_demo_verdict.DemoVerdictTest) ... ok
+test_invalid_candidate_is_not_a_valid_search (test_demo_verdict.DemoVerdictTest) ... ok
+test_missing_expected_document_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_missing_query_id_is_not_a_valid_search (test_demo_verdict.DemoVerdictTest) ... ok
+test_previous_document_ids_are_compared (test_demo_verdict.DemoVerdictTest) ... ok
+test_rag_failed_is_not_success (test_demo_verdict.DemoVerdictTest) ... ok
+test_rag_incomplete_is_not_success (test_demo_verdict.DemoVerdictTest) ... ok
+test_rag_scope_requires_success_and_valid_citations (test_demo_verdict.DemoVerdictTest) ... ok
+test_search_http_error_fails_after_all_documents_indexed (test_demo_verdict.DemoVerdictTest) ... ok
+test_table_text_missing_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_unrun_required_stages_cannot_pass (test_demo_verdict.DemoVerdictTest) ... ok
+test_http_error_preserves_code_for_signup_decision (test_demo_verdict.HttpBoundaryTest) ... ok
+test_oversized_original_is_rejected (test_demo_verdict.HttpBoundaryTest) ... ok
+test_redirect_does_not_forward_credentials (test_demo_verdict.HttpBoundaryTest) ... ok
+test_ambiguous_quotes_and_inline_comments_are_refused (test_local_config.LocalConfigTest) ... ok
+test_container_from_another_checkout_is_refused (test_local_config.LocalConfigTest) ... ok
+test_database_check_is_readonly_and_password_is_not_an_argument (test_local_config.LocalConfigTest) ... ok
+test_defaults_match_local_quickstart (test_local_config.LocalConfigTest) ... ok
+test_disabled_worker_is_refused (test_local_config.LocalConfigTest) ... ok
+test_docker_context_takes_precedence_over_host (test_local_config.LocalConfigTest) ... ok
+test_duplicate_key_is_refused (test_local_config.LocalConfigTest) ... ok
+test_environment_overrides_file (test_local_config.LocalConfigTest) ... ok
+test_foreign_container_is_refused_before_up (test_local_config.LocalConfigTest) ... ok
+test_frontend_remote_or_different_api_is_refused (test_local_config.LocalConfigTest) ... ok
+test_loopback_port_without_matching_container_is_refused (test_local_config.LocalConfigTest) ... ok
+test_missing_host_port_is_not_ready_even_if_container_runs (test_local_config.LocalConfigTest) ... ok
+test_remote_database_and_model_are_refused (test_local_config.LocalConfigTest) ... ok
+test_remote_docker_endpoint_is_refused (test_local_config.LocalConfigTest) ... ok
+test_remote_profile_and_storage_are_refused (test_local_config.LocalConfigTest) ... ok
+test_shell_substitution_is_refused_without_execution (test_local_config.LocalConfigTest) ... ok
+test_spring_or_jvm_bypass_is_refused (test_local_config.LocalConfigTest) ... ok
+test_storage_outside_checkout_is_refused (test_local_config.LocalConfigTest) ... ok
+test_url_credentials_query_and_non_http_are_refused (test_local_config.LocalConfigTest) ... ok
+test_wrong_extension_version_fails (test_local_config.LocalConfigTest) ... ok
+test_explicit_rag_without_ready_ollama_does_not_start_compose (test_local_config.ServiceScopeTest) ... ok
+test_legacy_status_still_requires_ollama (test_local_config.ServiceScopeTest) ... ok
+test_search_start_never_calls_ollama (test_local_config.ServiceScopeTest) ... ok
+test_claimed_or_retrying_job_is_processing (test_seed_demo_corpus.ClassifyTest) ... ok
+test_failed_job (test_seed_demo_corpus.ClassifyTest) ... ok
+test_indexed_document (test_seed_demo_corpus.ClassifyTest) ... ok
+test_new_upload_waits_for_worker (test_seed_demo_corpus.ClassifyTest) ... ok
+test_embedding_hint_first_when_server_not_ready (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_embedding_hint_for_failed_documents (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_no_hint_when_everything_indexed (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_slow_hint_when_worker_and_server_are_up (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_worker_hint_when_no_job_started (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_different_bytes_produce_different_keys (test_seed_demo_corpus.IdempotencyKeyTest) ... ok
+test_same_bytes_produce_same_valid_key (test_seed_demo_corpus.IdempotencyKeyTest) ... ok
+test_committed_corpus_is_complete (test_seed_demo_corpus.ManifestTest) ... ok
+
+----------------------------------------------------------------------
+Ran 69 tests in 6.809s
+
+OK
+종료 시각: 2026-10-18T14:56:58+09:00
+종료 코드: 0
+소요 시간: 6.904초
