@@ -168,6 +168,42 @@ class ServiceScopeTest(unittest.TestCase):
             self.assertNotIn('11434', calls.read_text())
             self.assertIn('postgres valkey embedding-server', calls.read_text())
 
+    def test_legacy_status_still_requires_ollama(self):
+        script = Path(__file__).resolve().parents[1] / 'local-services.sh'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, body in {
+                'docker': 'case "$*" in *valkey-cli*) echo PONG;; esac\n',
+                'curl': 'case "$*" in *11434*) exit 88;; esac\n',
+                'python3': 'exit 0\n',
+            }.items():
+                file = root / name
+                file.write_text('#!/bin/sh\n'+body)
+                file.chmod(0o755)
+            env = {k:v for k,v in os.environ.items() if not k.startswith('DOCGRID_LOCAL_')}
+            env['PATH'] = str(root)+os.pathsep+os.environ['PATH']
+            result = subprocess.run(['bash', str(script), 'status'], env=env, capture_output=True, text=True)
+            self.assertEqual(1, result.returncode)
+            self.assertIn('Ollama API 연결 실패', result.stderr)
+
+    def test_explicit_rag_without_ready_ollama_does_not_start_compose(self):
+        script = Path(__file__).resolve().parents[1] / 'local-services.sh'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            calls = root / 'calls'
+            for name, body in {
+                'docker': 'printf "docker %s\\n" "$*" >> "$CALLS"\n',
+                'curl': 'exit 88\n',
+            }.items():
+                file = root / name
+                file.write_text('#!/bin/sh\n'+body)
+                file.chmod(0o755)
+            env = {**os.environ, 'PATH': str(root)+os.pathsep+os.environ['PATH'], 'CALLS': str(calls),
+                   'DOCGRID_LOCAL_EXPLICIT': '1', 'DOCGRID_LOCAL_SCOPE': 'rag'}
+            result = subprocess.run(['bash', str(script), 'start'], env=env, capture_output=True, text=True)
+            self.assertEqual(1, result.returncode)
+            self.assertNotIn(' up ', calls.read_text())
+
 
 if __name__ == '__main__':
     unittest.main()
