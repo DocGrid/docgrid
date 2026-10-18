@@ -54,12 +54,13 @@ class RuntimeContractTest(unittest.TestCase):
             'engineHash': demo.digest('controlled-engine')}
         self.runtime.save()
 
-    def start_controlled_backend(self):
+    def start_controlled_backend(self, detached=False):
         script = self.root / 'backend/gradlew'
         script.write_text('''#!/usr/bin/env python3
 import os, subprocess, sys, time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
+if os.environ.get('CONTROLLED_DETACH') == 'true': os.setsid()
 child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(120)'])
 server = HTTPServer(('127.0.0.1', 0), BaseHTTPRequestHandler)
 Path(os.environ['CONTROLLED_PORT_FILE']).write_text(str(server.server_port))
@@ -67,6 +68,8 @@ print('controlled-ready', os.environ['DB_PASSWORD'], os.environ['JWT_SECRET'], '
 server.serve_forever()
 ''')
         script.chmod(0o755)
+        if detached:
+            self.runtime.config.values['CONTROLLED_DETACH'] = 'true'
         record = self.runtime.spawn('backend')
         def cleanup():
             if demo.identity(record['pid']) == record:
@@ -93,6 +96,27 @@ server.serve_forever()
         self.assertTrue(self.runtime.stop_process('backend'))
         self.assertFalse(demo.port_open(port))
         self.assertEqual([], demo.group_members(record['pgid']))
+
+    def test_detached_child_is_identified_and_stopped_by_registered_identity(self):
+        record, port = self.start_controlled_backend(detached=True)
+        deadline = time.monotonic() + 5
+        children = []
+        while time.monotonic() < deadline:
+            children = self.runtime.owned_children('backend')
+            if demo.listener_owned(port, record, children):
+                break
+            time.sleep(0.05)
+        self.assertFalse(demo.listener_owned(port, record))
+        self.assertTrue(demo.listener_owned(port, record, children))
+        self.assertTrue(self.runtime.stop_process('backend'))
+        self.assertFalse(demo.port_open(port))
+        self.assertFalse(any(demo.identity(item['pid']) == item for item in children))
+
+    def test_child_record_from_another_owner_is_refused(self):
+        self.start_controlled_backend()
+        self.runtime.stop_process('backend')
+        demo.write_json(self.runtime.component_path('backend', '.children.json'), {'owner': {}, 'children': []})
+        with self.assertRaises(demo.DemoError): self.runtime.owned_children('backend')
 
     def test_changed_identity_never_kills_live_process(self):
         record, port = self.start_controlled_backend()

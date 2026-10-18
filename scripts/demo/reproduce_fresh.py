@@ -34,6 +34,17 @@ class Reproduction:
         self.environment = {**os.environ, "DOCGRID_DEMO_PASSWORD": self.password}
         self.results = []
         self.stage = "preflight"
+        self.collect_stopped = threading.Event()
+        self.collector = threading.Thread(target=self.collect_live, daemon=True)
+        self.collector.start()
+
+    def collect_live(self):
+        """취소로 최종 정리가 중단돼도 이미 정제된 구성요소 로그의 최근 사본을 보존한다."""
+        while not self.collect_stopped.wait(2):
+            try:
+                self.collect()
+            except OSError:
+                pass
 
     def save(self):
         demo.write_json(self.directory / "summary.json", {"runId": self.run_id,
@@ -69,6 +80,7 @@ class Reproduction:
                     probe(proc)
                 code = proc.wait(timeout=timeout)
             except BaseException:
+                self.collect()
                 if proc.poll() is None:
                     proc.terminate()
                     try:
@@ -208,6 +220,8 @@ def main():
             run.execute("always-cleanup", "시험 중단·완료 후 소유 자원 종료", ["./scripts/demo.py", "stop"], timeout=120)
         except Exception:
             code = 1
+        run.collect_stopped.set()
+        run.collector.join(timeout=5)
         run.collect()
     return code
 
