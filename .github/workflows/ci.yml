@@ -25,6 +25,17 @@ jobs:
       - name: Test demo decisions without external services
         run: python3 -m unittest discover -s scripts/demo -p 'test_*.py' -v
 
+  recovery-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Test isolated recovery decisions without cloud access
+        run: python3 -m unittest discover -s scripts/opensql -p 'test_dr_recovery.py' -v
+
   backend:
     runs-on: ubuntu-latest
     timeout-minutes: 15

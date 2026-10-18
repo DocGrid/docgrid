@@ -1,0 +1,16 @@
+{
+  "run_id": "DR-CONTRACT-20261018-R4",
+  "purpose": "최종 감사 원본 의존·잘못된 응답 기록·감사 이후 경합 차단",
+  "environment": "local Python synthetic input and controlled child commands",
+  "revision": "4cfe9666ac3a670bb72c8cd4d933bc7d7238fce0 + submitted recovery contract changes",
+  "command": "python3 -m unittest discover -s scripts/opensql -p test_dr_recovery.py -v",
+  "started_at_utc": "2026-10-18T08:27:14.595070+00:00",
+  "finished_at_utc": "2026-10-18T08:27:15.364571+00:00",
+  "duration_seconds": 0.769,
+  "test_count": 36,
+  "exit_code": 0,
+  "verdict": "PASS",
+  "passed": 36,
+  "failures": 0,
+  "errors": 0
+}
