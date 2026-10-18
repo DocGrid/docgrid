@@ -1,0 +1,11 @@
+{
+  "verdict": "PASS",
+  "timestamp": "2026-10-18T06:56:33.938Z",
+  "browser": "156.0.8078.4",
+  "login": "PASS",
+  "search": "PASS",
+  "download": "PASS",
+  "documentId": 3,
+  "bytes": 52683,
+  "sha256": "b8dae14d4ba98ceda83e672be41d20895a70ee01f4cf128a0431d137ea581304"
+}

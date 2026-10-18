@@ -1,0 +1,8 @@
+2026-10-18T15:56:40+09:00 [local-services] 로컬 PostgreSQL·Valkey·Embedding Provider를 시작합니다.
+2026-10-18T15:56:40+09:00  Container docgrid-valkey  Starting
+2026-10-18T15:56:40+09:00  Container docgrid-postgres17  Starting
+2026-10-18T15:56:40+09:00  Container docgrid-embedding  Starting
+2026-10-18T15:56:40+09:00  Container docgrid-postgres17  Started
+2026-10-18T15:56:40+09:00  Container docgrid-valkey  Started
+2026-10-18T15:56:40+09:00  Container docgrid-embedding  Started
+2026-10-18T15:56:41+09:00 [FAIL] 앱의 대상 포트와 실행 중 컨테이너가 일치하지 않습니다: embedding-server

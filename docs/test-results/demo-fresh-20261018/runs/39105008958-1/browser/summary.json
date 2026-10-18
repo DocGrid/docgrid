@@ -1,0 +1,9 @@
+{
+  "verdict": "FAIL",
+  "stage": "login-navigation",
+  "errorType": "TimeoutError",
+  "message": "page.waitForURL: Timeout 45000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to \"**/search\" until \"load\"\n  navigated to \"http://127.0.0.1:3000/login?email=<인증정보생략>&password=<인증정보생략> 생략>\"\n  navigated to \"http://127.0.0.1:3000/login?email=<인증정보생략>&password=<인증정보생략> 생략>\"\n============================================================",
+  "pageErrors": [],
+  "pagePath": "/login",
+  "alerts": []
+}

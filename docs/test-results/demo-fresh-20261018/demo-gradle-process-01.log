@@ -1,0 +1,31 @@
+실행 ID: demo-gradle-process-01
+목적: 실제 Gradle 자식 JVM의 전용 프로세스 그룹 유지 확인
+환경: 로컬 Java 17·Gradle, DB·Docker 사용 없음
+합격 기준: Gradle 도움말 종료 0, 관측 자식이 같은 프로세스 그룹
+명령: python3 <로컬 검사 도구>/gradle_process_probe.py
+시작 시각: 2026-10-18T15:22:03+09:00
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to <서버 주소 생략> in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Task :help
+
+Welcome to Gradle 8.14.5.
+
+To run a build, run gradlew <task> ...
+
+To see a list of available tasks, run gradlew tasks
+
+To see more detail about a task, run gradlew help --task <task>
+
+To see a list of command-line options, run gradlew --help
+
+For more detail on using Gradle, see <서버 주소 생략>
+
+For troubleshooting, visit <서버 주소 생략>
+
+BUILD SUCCESSFUL in 2s
+1 actionable task: 1 executed
+{"gradleExitCode": 0, "directChildren": [{"role": "gradle-child", "sameGroup": false}]}
+종료 시각: 2026-10-18T15:22:05+09:00
+종료 코드: 1
+소요 시간: 2.834초

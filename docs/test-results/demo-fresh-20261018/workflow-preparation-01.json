@@ -1,0 +1,9 @@
+{
+  "runId": 39103167964,
+  "revision": "5722aa56276a556d2fe591233aef9ebbea6de796",
+  "observedConclusion": "failure",
+  "jobCount": 0,
+  "serviceTestExecuted": false,
+  "evidenceLimitation": "GitHub reports workflow file issue; no job log exists",
+  "correction": "Move runner.temp from job env to step env"
+}

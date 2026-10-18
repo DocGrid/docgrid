@@ -1,0 +1,17 @@
+2026-10-18T15:28:51+09:00 npm warn deprecated @esbuild-kit/<이메일 생략>: Merged into tsx: <설정된 서버>
+2026-10-18T15:28:51+09:00 npm warn deprecated @esbuild-kit/<이메일 생략>: Merged into tsx: <설정된 서버>
+2026-10-18T15:29:02+09:00 
+2026-10-18T15:29:02+09:00 added 502 packages, and audited 503 packages in 13s
+2026-10-18T15:29:02+09:00 
+2026-10-18T15:29:02+09:00 156 packages are looking for funding
+2026-10-18T15:29:02+09:00   run `npm fund` for details
+2026-10-18T15:29:02+09:00 
+2026-10-18T15:29:02+09:00 30 vulnerabilities (1 low, 6 moderate, 23 high)
+2026-10-18T15:29:02+09:00 
+2026-10-18T15:29:02+09:00 To address issues that do not require attention, run:
+2026-10-18T15:29:02+09:00   npm audit fix
+2026-10-18T15:29:02+09:00 
+2026-10-18T15:29:02+09:00 To address all issues (including breaking changes), run:
+2026-10-18T15:29:02+09:00   npm audit fix --force
+2026-10-18T15:29:02+09:00 
+2026-10-18T15:29:02+09:00 Run `npm audit` for details.

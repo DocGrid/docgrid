@@ -1,0 +1,32 @@
+{
+  "runId": "39103254726-1",
+  "revision": "f459f0c63ca9f7656c2b1ce9b6b26a82c83bdae5",
+  "environment": "GitHub hosted Ubuntu 24.04 · actual PostgreSQL/Valkey/BGE-M3 · no Ollama",
+  "results": [
+    {
+      "id": "preflight",
+      "purpose": "독립 실행기의 새 환경 확인",
+      "timestamp": "2026-10-18T15:13:35+09:00",
+      "verdict": "PASS",
+      "existingContainers": 0,
+      "existingImageCount": 6,
+      "existingVolumes": 0,
+      "environmentFilesInitiallyPresent": 0,
+      "workload": {
+        "documents": 15,
+        "searchQuestions": 3,
+        "browserSessions": 1
+      }
+    },
+    {
+      "id": "concurrent-start",
+      "purpose": "진행 중 start의 잠금으로 두 번째 start 거부",
+      "timestamp": "2026-10-18T15:13:40+09:00",
+      "verdict": "PASS",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "elapsedSeconds": 0.116,
+      "log": "concurrent-start.log"
+    }
+  ]
+}

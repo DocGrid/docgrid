@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "runId": "20261018T154637726025+0900",
+  "revision": "148ae4c04dd1301094cdb0c67fa1086293f217bf",
+  "scope": "search",
+  "startedAt": "2026-10-18T15:46:37.727+09:00",
+  "stages": {
+    "upload": {
+      "status": "PASS",
+      "passed": 15,
+      "expected": 15
+    },
+    "indexing": {
+      "status": "PASS",
+      "passed": 15,
+      "expected": 15
+    },
+    "search": {
+      "status": "PASS",
+      "passed": 3,
+      "expected": 3
+    },
+    "download": {
+      "status": "PASS",
+      "passed": 15,
+      "expected": 15
+    },
+    "rag": {
+      "status": "NOT_RUN",
+      "passed": 0,
+      "expected": 0
+    },
+    "replay": {
+      "status": "NOT_RUN",
+      "passed": 0,
+      "expected": 0
+    }
+  },
+  "documents": {
+    "b8dae14d4ba98ceda83e672be41d20895a70ee01f4cf128a0431d137ea581304": 3,
+    "924112041275f193f2296a55ba5ea098e14ff98b8908eff2051e37b8c2848fb3": 4,
+    "82d7205d795868938f73eb871b0ca29aff632ce5948e0a5c60d7614222265379": 5,
+    "f0fb63cf9f42118f799082c74d8d1237434313270ff6b9ac12bb05d1d2955d9a": 6,
+    "6672c9b2faa6d5b1d04bd287d7a7a71746262c6fb126333f217249aacef6caeb": 7,
+    "3295bab5db9c7ddcd5a6d8e141b25960f167e553b03f80abaaabcc7670cf7760": 8,
+    "d5e11dad0ac802f01925eaac1c98efff483616ca0bb02f4be098bcbe1e2d315b": 9,
+    "ece687b9507957c5bc1ba7e0deff426e8803b81332e0cd507b3558974bdd78b0": 10,
+    "1830ee48e2942f6e80c5d72f26917ea5384e5c6ff2ca10c4b2ff2c2739e61547": 11,
+    "6d383df3849d304aa941d6733a0e8205c024d9fa2cfb37d21880af32f7c5c43d": 12,
+    "a5635fe4c4f3f60d0aa52e3cf7e493da741f6e7e8b15adef534f50030cdafa03": 13,
+    "fab797bb45eef73ace164770c5fc8d47c8e1c9378e87c1aa296b706759b30831": 14,
+    "c1bc83a520b4b05557ef8cbf48da15b82a16df02c04274c56cf4604ff9ee50b3": 15,
+    "d1e0658cf5d053175cab29dff6d21667c5e8527def7c6acc6c0efb814baf6285": 16,
+    "0bebba1fec7239ddd92b23f81b3b35910ae1d031ac02b5432cd460b1d9445244": 17
+  },
+  "queries": [
+    {
+      "number": 1,
+      "expectedDocumentId": 3,
+      "search": "PASS",
+      "rag": "NOT_RUN",
+      "queryId": 1
+    },
+    {
+      "number": 2,
+      "expectedDocumentId": 8,
+      "search": "PASS",
+      "rag": "NOT_RUN",
+      "queryId": 2
+    },
+    {
+      "number": 3,
+      "expectedDocumentId": 13,
+      "search": "PASS",
+      "rag": "NOT_RUN",
+      "queryId": 3
+    }
+  ],
+  "corpusSha256": "e27ae024506149089279f92b88e13262fa96d651f00e360b2815bc96d648e70d",
+  "targetFingerprint": "710f80b15be84b1c810005d494cc5c8ecd79a67a3d6300c8ba885f1540ef7474",
+  "topK": 3,
+  "checksSha256": "103c1585e7dd2b45f03eb9ba61463bb9a8647efa8026b270c41a45c8eb677c6c",
+  "exitCode": 0,
+  "finishedAt": "2026-10-18T15:47:06.206+09:00",
+  "elapsedSeconds": 28.481
+}

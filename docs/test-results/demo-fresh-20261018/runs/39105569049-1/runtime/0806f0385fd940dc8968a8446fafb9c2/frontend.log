@@ -1,0 +1,65 @@
+2026-10-18T15:57:19+09:00 
+2026-10-18T15:57:19+09:00 > <이메일 생략> dev
+2026-10-18T15:57:19+09:00 > WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev --hostname 127.0.0.1
+2026-10-18T15:57:19+09:00 
+2026-10-18T15:57:19+09:00 
+2026-10-18T15:57:19+09:00   vinext dev  (Vite 8.0.13)
+2026-10-18T15:57:19+09:00 
+2026-10-18T15:57:20+09:00 Using secrets defined in .env.local
+2026-10-18T15:57:21+09:00   ➜  Local:   <설정된 서버>
+2026-10-18T15:57:21+09:00   ➜  Debug:   <설정된 서버>
+2026-10-18T15:57:22+09:00  GET /api/backend/departments 200 in 245ms
+2026-10-18T15:57:23+09:00  GET /login 200 in 1.1s (compile: 1792306639.4s, render: 1.0s)
+2026-10-18T15:57:23+09:00  GET /api/backend/departments 200 in 17ms
+2026-10-18T15:57:23+09:00  GET /login 200 in 29ms (compile: 1792306639.4s, render: 18ms)
+2026-10-18T15:57:24+09:00  POST /api/backend/auth/login 200 in 157ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 353ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 25ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 22ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 21ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 20ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 19ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 20ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 20ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 21ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 25ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 24ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 19ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 21ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 23ms
+2026-10-18T15:57:25+09:00  POST /api/backend/api/documents 201 in 20ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/3/status 200 in 55ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/4/status 200 in 34ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/5/status 200 in 18ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/6/status 200 in 19ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/7/status 200 in 22ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/8/status 200 in 25ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/9/status 200 in 22ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/10/status 200 in 23ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/11/status 200 in 19ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/12/status 200 in 20ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/13/status 200 in 22ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/14/status 200 in 17ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/15/status 200 in 19ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/16/status 200 in 18ms
+2026-10-18T15:57:25+09:00  GET /api/backend/api/documents/17/status 200 in 19ms
+2026-10-18T15:57:26+09:00  POST /api/backend/search 200 in 345ms
+2026-10-18T15:57:26+09:00  POST /api/backend/search 200 in 218ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/8/content 200 in 30ms
+2026-10-18T15:57:26+09:00  POST /api/backend/search 200 in 167ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/3/file 200 in 22ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/4/file 200 in 34ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/5/file 200 in 25ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/6/file 200 in 17ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/7/file 200 in 15ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/8/file 200 in 16ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/9/file 200 in 17ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/10/file 200 in 17ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/11/file 200 in 17ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/12/file 200 in 16ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/13/file 200 in 16ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/14/file 200 in 21ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/15/file 200 in 23ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/16/file 200 in 18ms
+2026-10-18T15:57:26+09:00  GET /api/backend/api/documents/17/file 200 in 18ms
+2026-10-18T15:57:27+09:00   ➜  Tunnel closed
