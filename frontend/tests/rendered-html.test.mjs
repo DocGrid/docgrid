@@ -64,6 +64,10 @@ test("renders DocGrid auth and protected loading boundaries", async () => {
   assert.match(homeHtml, /<title>DocGrid — 팀의 지식에서 정확한 답을<\/title>/i);
   assert.match(homeHtml, /세션을 확인하는 중입니다/);
   assert.match(loginHtml, /DocGrid 이메일과 비밀번호/);
+  // 클라이언트 이벤트가 연결되기 전 기본 GET 제출로 인증정보가 URL에 붙으면 안 된다.
+  assert.match(loginHtml, /<form[^>]*method="post"/);
+  assert.match(signupHtml, /<form[^>]*method="post"/);
+  assert.match(loginHtml, /<button class="primary-button auth-submit" disabled="">로그인<\/button>/);
   assert.match(loginHtml, /<a href="\/signup" target="_top">회원가입<\/a>/);
   assert.match(signupHtml, /가입 가능한 부서 목록을 불러오는 중입니다/);
   assert.match(signupHtml, /<button class="primary-button auth-submit" disabled="">부서 목록 불러오는 중…<\/button>/);
