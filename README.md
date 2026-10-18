@@ -176,6 +176,29 @@ Pub/Sub 신호는 재조회 계기이며, 내구성 있는 메시지 큐로 사�
 아래는 GCP 접근 권한 없이 로컬 PostgreSQL·Valkey와 Local Filesystem 저장소로 핵심 기능을 확인하는 경로입니다.
 명령은 저장소 루트에서 실행합니다.
 
+### 통합 명령으로 시작·검증·종료
+
+macOS·Linux에서 아래 사전 준비 도구와 Python 3.9 이상, Bash·curl·lsof·ps를 준비한 뒤 실행합니다.
+
+```bash
+./scripts/demo.py start
+./scripts/demo.py verify
+./scripts/demo.py stop
+```
+
+`start`는 없는 환경 파일만 만들고 PostgreSQL·Valkey·BGE-M3·백엔드·프런트엔드를 연결합니다.
+Web은 `http://localhost:3000`이며, `verify`는 비밀번호를 입력받아 프런트엔드 API 프록시로 예제 15건의
+인덱싱·기대 검색 3개·원본 해시 15개를 확인합니다. 반복 실행은 이전 원장과 문서 ID도 대조합니다.
+준비 상태는 `./scripts/demo.py status`로 다시 확인합니다.
+
+기본 범위 `search`는 Ollama가 필요 없습니다. 실제 생성 답변·인용까지 검증하려면 Native Ollama와 지정
+모델을 먼저 준비하고 `start --scope rag`를 사용합니다. Native Ollama는 이 명령이 자동 종료하지 않습니다.
+기존 개인 환경 파일은 덮어쓰지 않으며, 원격 OpenSQL·GCS나 지원하지 않는 설정이면 자동 변경 없이 거부합니다.
+`stop`은 이번 실행이 시작한 자원만 중지하고 DB·원본·모델 캐시를 보존합니다. 다른 작업공간의 고정 이름
+컨테이너가 있으면 별도 Docker 환경을 사용하세요. 상세 경계는 [통합 명령 설계](docs/design/local-demo-lifecycle.md)를 참고하세요.
+
+아래 개별 실행 절차도 계속 사용할 수 있습니다.
+
 ### 1. 사전 준비
 
 - Git
