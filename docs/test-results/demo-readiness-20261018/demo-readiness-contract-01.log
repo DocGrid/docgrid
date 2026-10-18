@@ -1,0 +1,65 @@
+실행 ID: demo-readiness-contract-01
+목적: 로컬 설정·컨테이너 식별·검색 범위 회귀
+환경: Python 3.9.6, 제어 명령·API 응답, 실제 Docker 변경 없음
+합격 기준: 51개 검사 통과, search의 Ollama 호출 0건
+명령: python3 -m unittest discover -s scripts/demo -p test_*.py -v
+시작 시각: 2026-10-18T14:32:40+09:00
+test_changed_target_refuses_replay_before_upload (test_demo_verdict.DemoVerdictTest) ... ok
+test_citation_outside_search_candidates_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_different_previous_document_id_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_download_hash_mismatch_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_empty_search_results_fail (test_demo_verdict.DemoVerdictTest) ... ok
+test_event_redaction_happens_before_storage (test_demo_verdict.DemoVerdictTest) ... ok
+test_existing_report_is_never_overwritten (test_demo_verdict.DemoVerdictTest) ... ok
+test_full_search_scope_passes_without_rag_polling (test_demo_verdict.DemoVerdictTest) ... ok
+test_invalid_candidate_is_not_a_valid_search (test_demo_verdict.DemoVerdictTest) ... ok
+test_missing_expected_document_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_missing_query_id_is_not_a_valid_search (test_demo_verdict.DemoVerdictTest) ... ok
+test_previous_document_ids_are_compared (test_demo_verdict.DemoVerdictTest) ... ok
+test_rag_failed_is_not_success (test_demo_verdict.DemoVerdictTest) ... ok
+test_rag_incomplete_is_not_success (test_demo_verdict.DemoVerdictTest) ... ok
+test_rag_scope_requires_success_and_valid_citations (test_demo_verdict.DemoVerdictTest) ... ok
+test_search_http_error_fails_after_all_documents_indexed (test_demo_verdict.DemoVerdictTest) ... ok
+test_table_text_missing_fails (test_demo_verdict.DemoVerdictTest) ... ok
+test_unrun_required_stages_cannot_pass (test_demo_verdict.DemoVerdictTest) ... ok
+test_http_error_preserves_code_for_signup_decision (test_demo_verdict.HttpBoundaryTest) ... ok
+test_oversized_original_is_rejected (test_demo_verdict.HttpBoundaryTest) ... ok
+test_ambiguous_quotes_and_inline_comments_are_refused (test_local_config.LocalConfigTest) ... ok
+test_container_from_another_checkout_is_refused (test_local_config.LocalConfigTest) ... ok
+test_database_check_is_readonly_and_password_is_not_an_argument (test_local_config.LocalConfigTest) ... ok
+test_defaults_match_local_quickstart (test_local_config.LocalConfigTest) ... ok
+test_disabled_worker_is_refused (test_local_config.LocalConfigTest) ... ok
+test_duplicate_key_is_refused (test_local_config.LocalConfigTest) ... ok
+test_environment_overrides_file (test_local_config.LocalConfigTest) ... ok
+test_foreign_container_is_refused_before_up (test_local_config.LocalConfigTest) ... ok
+test_frontend_remote_or_different_api_is_refused (test_local_config.LocalConfigTest) ... ok
+test_loopback_port_without_matching_container_is_refused (test_local_config.LocalConfigTest) ... ok
+test_remote_database_and_model_are_refused (test_local_config.LocalConfigTest) ... ok
+test_remote_docker_endpoint_is_refused (test_local_config.LocalConfigTest) ... ok
+test_remote_profile_and_storage_are_refused (test_local_config.LocalConfigTest) ... ok
+test_shell_substitution_is_refused_without_execution (test_local_config.LocalConfigTest) ... ok
+test_spring_or_jvm_bypass_is_refused (test_local_config.LocalConfigTest) ... ok
+test_storage_outside_checkout_is_refused (test_local_config.LocalConfigTest) ... ok
+test_url_credentials_query_and_non_http_are_refused (test_local_config.LocalConfigTest) ... ok
+test_wrong_extension_version_fails (test_local_config.LocalConfigTest) ... ok
+test_search_start_never_calls_ollama (test_local_config.ServiceScopeTest) ... ok
+test_claimed_or_retrying_job_is_processing (test_seed_demo_corpus.ClassifyTest) ... ok
+test_failed_job (test_seed_demo_corpus.ClassifyTest) ... ok
+test_indexed_document (test_seed_demo_corpus.ClassifyTest) ... ok
+test_new_upload_waits_for_worker (test_seed_demo_corpus.ClassifyTest) ... ok
+test_embedding_hint_first_when_server_not_ready (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_embedding_hint_for_failed_documents (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_no_hint_when_everything_indexed (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_slow_hint_when_worker_and_server_are_up (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_worker_hint_when_no_job_started (test_seed_demo_corpus.DiagnoseTest) ... ok
+test_different_bytes_produce_different_keys (test_seed_demo_corpus.IdempotencyKeyTest) ... ok
+test_same_bytes_produce_same_valid_key (test_seed_demo_corpus.IdempotencyKeyTest) ... ok
+test_committed_corpus_is_complete (test_seed_demo_corpus.ManifestTest) ... ok
+
+----------------------------------------------------------------------
+Ran 51 tests in 1.219s
+
+OK
+종료 시각: 2026-10-18T14:32:42+09:00
+종료 코드: 0
+소요 시간: 1.315초

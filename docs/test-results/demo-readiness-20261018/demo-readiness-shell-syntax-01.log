@@ -1,0 +1,9 @@
+실행 ID: demo-readiness-shell-syntax-01
+목적: 서비스 범위 변경 후 Bash 문법 점검
+환경: 로컬 Bash, 서비스 기동 없음
+합격 기준: bash -n 종료 코드 0
+명령: bash -n scripts/local-services.sh
+시작 시각: 2026-10-18T14:32:40+09:00
+종료 시각: 2026-10-18T14:32:40+09:00
+종료 코드: 0
+소요 시간: 0.004초
