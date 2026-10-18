@@ -203,8 +203,9 @@ class HttpBoundaryTest(unittest.TestCase):
     def test_http_error_preserves_code_for_signup_decision(self):
         error = urllib.error.HTTPError("http://localhost:8080/auth/login", 401, "controlled", {},
                                        io.BytesIO(b'{"code":"USER-004"}'))
-        with patch.object(seed.urllib.request, "urlopen", side_effect=error):
-            status, body = seed.DocGridClient("http://localhost:8080").call("POST", "/auth/login")
+        client = seed.DocGridClient("http://localhost:8080")
+        with patch.object(client.opener, "open", side_effect=error):
+            status, body = client.call("POST", "/auth/login")
         self.assertEqual((401, "USER-004"), (status, body["code"]))
 
     def test_oversized_original_is_rejected(self):
@@ -212,9 +213,14 @@ class HttpBoundaryTest(unittest.TestCase):
         response.__enter__.return_value = response
         response.status = 200
         response.read.return_value = b"12345"
-        with patch.object(seed.urllib.request, "urlopen", return_value=response):
+        client = seed.DocGridClient("http://localhost:8080")
+        with patch.object(client.opener, "open", return_value=response):
             with self.assertRaises(seed.SeedError):
-                seed.DocGridClient("http://localhost:8080").call_bytes("GET", "/file", limit=4)
+                client.call_bytes("GET", "/file", limit=4)
+
+    def test_redirect_does_not_forward_credentials(self):
+        self.assertIsNone(seed.NoRedirect().redirect_request(None, None, 302, 'controlled', {},
+                                                           'http://remote.invalid/'))
 
 
 if __name__ == "__main__":

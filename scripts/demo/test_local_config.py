@@ -80,6 +80,9 @@ class LocalConfigTest(unittest.TestCase):
     def test_disabled_worker_is_refused(self):
         with self.assertRaises(ConfigError): self.load({'INDEXING_WORKER_ENABLED': 'false'})
 
+    def test_multiline_secret_is_refused_before_logging(self):
+        with self.assertRaises(ConfigError): self.load({'JWT_SECRET': 'controlled\nprivate'})
+
     def container(self, port='55432', cwd=None):
         return {'Id': 'controlled-container', 'Config': {'Labels': {
             'com.docker.compose.service': 'postgres',
