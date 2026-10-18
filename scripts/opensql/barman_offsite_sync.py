@@ -9,11 +9,13 @@ import argparse
 import fcntl
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 
 
@@ -196,7 +198,7 @@ def sync_wals(config, directory):
     if not directory.is_dir():
         raise SyncError("wals_missing")
     wal_files = [p for p in directory.rglob("*") if p.is_file() and WAL_NAME.fullmatch(p.name)]
-    # 1. Copy only locally archived files; a streaming .partial is not recoverable WAL.
+    # 1. Publish immutable archived files only; never copy the receiver's active .partial file.
     run(
         ["gsutil", "-m", "rsync", "-r", "-c", "-x", WAL_EXCLUDE,
          str(directory), config["destination"] + "/wals"],
@@ -205,7 +207,33 @@ def sync_wals(config, directory):
     return len(wal_files)
 
 
-def sync(config):
+def wait_for_archived_wal(server, directory, required_wal, *, timeout_seconds=120, poll_seconds=1):
+    """Wait for a specific immutable segment; receiver connectivity is not an archive barrier."""
+    if not isinstance(required_wal, str) or not re.fullmatch(r"[0-9A-F]{24}", required_wal):
+        raise SyncError("required_wal_name")
+    if (type(timeout_seconds) not in (int, float) or not math.isfinite(timeout_seconds)
+            or not 0 < timeout_seconds <= 300 or type(poll_seconds) not in (int, float)
+            or not math.isfinite(poll_seconds) or not 0 < poll_seconds <= timeout_seconds):
+        raise SyncError("required_wal_wait_config")
+    target = directory / required_wal[:16] / required_wal
+    deadline = time.monotonic() + timeout_seconds
+    while True:
+        # 1. A switch can finish before receive-wal closes the segment. Re-run archiving
+        # until this exact segment reaches the catalog, rather than sleeping a fixed time.
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise SyncError("required_wal_timeout")
+        run(["barman", "archive-wal", server], "required_wal_archive", timeout=min(60, remaining))
+        if (time.monotonic() <= deadline and target.is_file()
+                and not target.is_symlink() and target.stat().st_size > 0):
+            return target
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise SyncError("required_wal_timeout")
+        time.sleep(min(poll_seconds, remaining))
+
+
+def sync(config, *, required_wal=None, wait_timeout=120):
     config["work_dir"].mkdir(mode=0o700, parents=True, exist_ok=True)
     lock_path = config["work_dir"] / ".sync.lock"
     with lock_path.open("w", encoding="utf-8") as lock:
@@ -218,8 +246,19 @@ def sync(config):
             backup_ids = completed_backups(config["server"])
             if not backup_ids:
                 raise SyncError("no_completed_backup")
-            # 2. WAL goes first so a large base export cannot delay the ongoing stream.
+            # 2. An explicit checkpoint must be archived and match its remote bytes.
+            # Copy-only timer calls keep their existing behavior and do not prove freshness.
+            required = None
+            if required_wal is not None:
+                path = wait_for_archived_wal(config["server"], paths["wals_directory"], required_wal,
+                                             timeout_seconds=wait_timeout)
+                required = {"size": path.stat().st_size, "crc32c": local_crc32c(path)}
+            # WAL goes first so a large base export cannot delay the ongoing stream.
             wal_count = sync_wals(config, paths["wals_directory"])
+            if required is not None:
+                uri = config["destination"] + "/wals/" + required_wal[:16] + "/" + required_wal
+                if remote_metadata(uri) != required:
+                    raise SyncError("required_wal_remote_integrity")
             for backup_id in backup_ids:
                 sync_backup(config, backup_id)
             now = datetime.now(timezone.utc).isoformat()
@@ -229,6 +268,7 @@ def sync(config):
                 "last_error": None,
                 "completed_backups": len(backup_ids),
                 "local_wal_files": wal_count,
+                **({"required_wal": required_wal, "required_wal_verified": True} if required else {}),
             })
             print(json.dumps({"result": "ok", "completed_backups": len(backup_ids), "local_wal_files": wal_count}))
         except (SyncError, OSError, ValueError) as error:
@@ -255,16 +295,20 @@ def check_health(config):
     return 0 if healthy else 1
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["sync", "check"])
     parser.add_argument("--config", required=True)
-    args = parser.parse_args()
+    parser.add_argument("--required-wal", help="Complete segment required by this sync; does not switch WAL")
+    parser.add_argument("--wait-timeout", type=int, default=120)
+    args = parser.parse_args(argv)
     try:
         config = load_config(args.config)
         if args.action == "check":
+            if args.required_wal is not None:
+                raise SyncError("required_wal_only_for_sync")
             return check_health(config)
-        sync(config)
+        sync(config, required_wal=args.required_wal, wait_timeout=args.wait_timeout)
         return 0
     except (SyncError, OSError, ValueError, KeyError, BlockingIOError) as error:
         step = error.step if isinstance(error, SyncError) else "local_state"

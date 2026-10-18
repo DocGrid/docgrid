@@ -1,0 +1,35 @@
+{
+  "archive_attempts": [
+    {
+      "at_utc": "2026-10-18T14:05:57.168054+00:00",
+      "elapsed_seconds": 0.139,
+      "exit_code": 0,
+      "required_archived": true,
+      "required_stream_complete": false,
+      "required_stream_partial": false,
+      "stream_names": [
+        "000000060000000000000028.partial"
+      ]
+    }
+  ],
+  "fixed_barrier": {
+    "elapsed_seconds": 0.139,
+    "post_switch_restore_point": true,
+    "required_archived": true,
+    "size": 16777216,
+    "without_advance": null
+  },
+  "old_method": {
+    "archive_exit_code": 0,
+    "elapsed_since_switch_return_seconds": 2.154,
+    "required_archived": true,
+    "required_stream_complete": false,
+    "required_stream_partial": false,
+    "stream_names": [
+      "000000060000000000000028.partial"
+    ]
+  },
+  "ordinal": 2,
+  "required_wal": "000000060000000000000027",
+  "stale_success_reproduced": false
+}
