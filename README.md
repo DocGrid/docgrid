@@ -4,11 +4,13 @@
 
 > 팀의 지식에서 권한을 지키며 근거가 포함된 답을 찾는 오픈소스 문서 검색 워크스페이스
 
-DocGrid는 조직의 PDF·DOCX·HWP 5.x·HWPX 문서를 저장·인덱싱하고, 사용자가 열람할 수 있는 문서만 벡터 검색과
-RAG 답변에 활용합니다. 문서·컬렉션 관리, 인용 근거, MCP 연동, 인덱싱 상태와 복구 작업을 웹에서
-제공합니다. 로컬 개발은 PostgreSQL·Valkey와 Local Filesystem 저장소로 재현할 수 있습니다. 최종 배포 구성은
-Vercel 프런트엔드, Cloud Run 공개 게이트웨이, GCP의 백엔드 A/B·AI·캐시 VM,
-OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합니다.
+DocGrid는 PDF·DOCX·HWP 5.x·HWPX·TXT·Markdown(MD) 문서를 저장·인덱싱하고, 현재 열람할 수 있는
+문서를 검색과 RAG 답변에 활용합니다. 문서·컬렉션·권한·인용 근거와 작업 복구를 웹에서 관리합니다.
+로컬 실행은 PostgreSQL·Valkey·Local Filesystem을 사용하며, GCP에서는 OpenProxy를 통한 OpenSQL 3노드와
+GCS 경로를 시험했습니다. 배포 구성과 각 시험의 적용 범위는 아래에서 구분합니다.
+
+[빠른 실행](#빠른-실행) · [검증된 범위](#검증된-범위) · [아키텍처](#아키텍처) · [환경 선택](#환경-선택) · [테스트](#테스트)
+
 <!--
 ## 시연 영상
 
@@ -22,76 +24,167 @@ OpenProxy를 경유하는 OpenSQL 3노드와 GCS 원본 저장소를 연결합�
 -->
 ## 주요 기능
 
-- **문서 인덱싱 파이프라인**: PDF·DOCX·HWP 5.x·HWPX 원본을 저장하고 본문과 표 셀 텍스트 Parsing, Chunk 분할, BGE-M3 Batch
-  Embedding, pgvector 저장을 Worker가 처리합니다. Worker는 환경별로 명시적으로 켭니다.
-- **권한 기반 AI 검색**: 사용자·역할·부서와 문서·컬렉션 공개 범위를 검색 전에 적용해 접근 가능한
-  문서만 의미 검색합니다.
-- **근거가 남는 RAG 답변**: Ollama로 답변을 생성하고 사용한 문서와 Chunk를 인용 근거로 함께 저장하고
-  표시합니다. 답변·대화 재조회와 모델 입력 준비 시 이전 대화를 포함한 모든 문서 출처를 현재 Primary 권한으로
-  재검증합니다. 출처 기록이 없는 기존 답변은 본문·인용·후속 문맥 사용을 보류하고 재검색을 안내합니다.
-- **지식 워크스페이스 관리**: 문서 Version, 원본 미리보기·다운로드, 계층형 컬렉션, 직접 권한 부여·회수를
-  웹에서 관리합니다.
-- **MCP 연동**: 전용 Access Token으로 문서 검색·상세 조회·인덱싱 상태 도구를 제공하고 Rate Limit과
-  출력 Sanitization을 적용합니다.
-- **RAGOps 운영 화면**: WebSocket으로 Job·Worker 상태를 갱신하고 실패 원인, Retry, Queue·동기화 상태를
-  관측하고 복구할 수 있습니다.
-- **정합성 점검과 안전 복구**: 문서 원장과 Job·Chunk·Vector를 8가지 기준으로 비교해 Issue로 남기고, 기존 데이터를
-  지우거나 덮지 않는 Job·Vector 누락만 Outbox로 복구합니다. 관리자가 수동 실행하며 주기 점검은 기본으로 꺼져 있습니다.
-- **환경별 저장소와 OpenSQL 연결**: Local Filesystem·GCS 저장소 Adapter와 OpenProxy A/B를 통한
-  OpenSQL 3노드 연결을 지원합니다. MinIO·AWS S3 Adapter도 코드에 남아 있어 선택해 쓸 수 있지만
-  현재 GCP 시험 저장소는 GCS입니다.
+- **문서 인덱싱:** 원본 Parsing·Chunk 분할·BGE-M3 Batch Embedding·pgvector 저장을 Worker가 처리합니다.
+  HWP/HWPX는 본문·표 셀 텍스트, Markdown은 Heading 구조를 추출합니다. HWP 3.x·암호 문서·이미지 OCR은 지원하지 않습니다.
+- **현재 권한 기반 검색·답변:** 사용자·역할·부서와 공개 범위를 확인합니다. 저장 답변·대화 조회 및 모델 입력 준비 시
+  이전 대화를 포함한 문서 출처를 현재 Primary 권한으로 재검증합니다. [권한 시험](docs/test-results/permission-current-auth-20261019/README.md)
+- **근거와 작업 복구:** Ollama 답변과 Chunk 인용을 저장합니다. 다중 백엔드의 RAG 작업은 token·lease로 소유권을
+  관리하며, 재선점 뒤 이전 작업자의 늦은 결과 확정을 차단합니다.
+- **지식 워크스페이스:** 문서 Version·형식별 미리보기·원본 다운로드·계층형 컬렉션·직접 권한 부여와 회수를 제공합니다.
+- **MCP 연동:** 전용 Access Token으로 검색·문서 상세·인덱싱 상태 도구를 제공하고 Rate Limit·출력 Sanitization을 적용합니다.
+- **운영·정합성 점검:** WebSocket 대시보드, Retry·Queue 관측과 원장·Job·Chunk·Vector의 8종 점검을 제공합니다.
+  관리자가 수동 실행하며, Job·Vector 누락의 안전 복구를 지원합니다. 주기 점검은 기본으로 꺼져 있습니다.
+- **저장소·DB 연결:** 로컬 파일·GCS Adapter와 OpenProxy A/B·OpenSQL 연결을 지원합니다. MinIO·S3는 선택형 Adapter입니다.
+
+## 빠른 실행
+
+GCP 접근 권한 없이 실행하는 macOS·Linux 로컬 경로입니다. Git·Java 17·Node.js 22.13.0 이상·Python 3.9 이상,
+실행 중인 Docker Engine과 Compose, Bash·curl·lsof·ps를 준비합니다. macOS에서는 Docker Desktop을 사용할 수 있습니다.
+
+```bash
+git clone https://github.com/DocGrid/docgrid.git
+cd docgrid
+./scripts/demo.py start --scope search
+./scripts/demo.py verify
+./scripts/demo.py stop
+```
+
+| 명령 | 동작 |
+|---|---|
+| `start` | 없는 환경 파일만 만들고 PostgreSQL·Valkey·BGE-M3·Backend·Frontend를 준비 |
+| `status` | 활성 세션의 실제 연결·준비 상태 재확인 |
+| `verify` | 프런트엔드 API 프록시로 예제 업로드·인덱싱·기대 검색·원본 해시 검증. 실패·미실행 구분 |
+| `stop` | 이번 세션 소유 자원만 중지하고 DB·원본·모델 캐시 보존 |
+
+- Web: `http://localhost:3000` · API 문서: `http://localhost:8080/swagger-ui/index.html`
+- `verify`는 예제 계정 비밀번호를 입력받습니다. 같은 계정의 재실행은 이전 원장과 문서 ID도 대조합니다.
+  결과는 `.demo/reports/<run-id>/`에 남습니다.
+- 기본 `search` 범위는 Ollama를 시작하거나 필수로 요구하지 않습니다. 생성 답변·인용까지 검사하려면
+  [Native Ollama·모델](backend/README.md#ollama-rag-llm-서버)을 먼저 준비하고 `start --scope rag`를 사용합니다.
+  `verify`는 시작한 세션의 범위를 이어받습니다. Native Ollama는 자동 종료하지 않습니다.
+- 기존 `.env`·`frontend/.env.local`은 덮어쓰지 않습니다. 원격 OpenSQL·GCS나 지원하지 않는 설정은 자동 변경 없이 거부합니다.
+  다른 작업공간의 고정 이름 컨테이너가 있으면 별도 Docker 환경을 사용합니다.
+- `local` 프로필은 인덱싱 Worker 기본값이 `true`이며, 다른 프로필의 기본값은 `false`입니다.
+  [실행·소유권 경계](docs/design/local-demo-lifecycle.md)를 참고하세요.
+
+<a id="6-핵심-흐름-확인"></a>
+
+### 예제와 재현 결과
+
+2026-10-18 독립 GitHub Ubuntu 실행기의 실제 PostgreSQL·Valkey·BGE-M3·Backend·Frontend·Chromium 회차입니다.
+예제는 PDF 5·DOCX 5·HWPX 5건이며, **실제 Ollama 생성 답변·인용은 미실행**입니다.
+
+| 확인 항목 | 관측 결과 |
+|---|---|
+| 최초 시연 | 업로드·INDEXED 15/15, 기대 검색 3/3, 원본 해시 15/15 |
+| 같은 계정 재실행·종료 후 재기동 | 기존 문서 ID 15/15 유지, 필수 단계 통과 |
+| 실제 브라우저 | 로그인·검색·원본 다운로드 해시 확인 |
+| 시작·검증 시간 | 첫 start 196.632초, 첫 verify 24.135초, 같은 계정 verify 3.072초, 캐시 보존 start 26.061초 |
+
+시간은 해당 실행기의 명령 wall time이며 운영 RTO나 성능 보장값이 아닙니다. 준비 오류·중단·브라우저 진단과 최종 회차는
+[독립 환경 기록](docs/test-results/demo-fresh-20261018/README.md)에 구분했습니다.
+
+| 예제 질문 | 기대 문서·내용 |
+|---|---|
+| 재택근무는 일주일에 며칠까지 할 수 있고 언제까지 신청해야 하나요? | 재택근무 운영 규정(PDF): 주 2일, 예정일 2영업일 전 |
+| 본인 결혼 시 경조금과 경조휴가는 얼마나 되나요? | 경조사 지원 규정(DOCX 표): 50만원, 5일 |
+| 계약서는 몇 년 동안 보관해야 하나요? | 문서 보존 및 폐기 기준(HWPX): 계약 종료 뒤 10년 |
+
+[예제 문서·라이선스·검증 옵션](examples/demo-corpus/README.md). 예제 문서는 PUBLIC으로 올라가 모든 로그인 사용자가 검색할 수 있습니다.
+직접 문서를 사용할 때는 회원가입·로그인 → 지원 형식 업로드 → `INDEXED` 확인 → 검색 순서로 진행합니다.
+Ollama가 준비되지 않으면 AI 생성은 실패하고, 현재 허용된 검색 근거의 원문 인용 대체 답변을 표시합니다.
+
+### 개별 실행과 관측
+
+Backend만 실행하거나 환경 파일을 직접 준비할 때는 [필수 JWT 키·서비스 기동 절차](backend/README.md#로컬-설정과-필수-서명-키)를 먼저 따릅니다.
+프런트엔드는 별도 Terminal에서 다음과 같이 실행합니다. 기존 환경 파일은 유지합니다.
+
+```bash
+test -f frontend/.env.local || cp frontend/.env.example frontend/.env.local
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
+
+의존 서비스만 제어하려면 `./scripts/local-services.sh start --scope search`와 `status --scope search`를 사용합니다.
+수동으로 실행한 Backend·Frontend는 각 Terminal에서 종료하고, Compose 서비스는 `docker compose stop postgres valkey embedding-server`로 중지합니다.
+
+선택형 관측은 `GRAFANA_PORT=3001 docker compose --profile monitoring up -d prometheus alertmanager grafana`로 시작합니다.
+Prometheus는 대상의 readiness와 별개로 먼저 기동해 수집 실패를 기록합니다.
+[Prometheus 설정](monitoring/prometheus/README.md) · [Grafana 접근](monitoring/grafana/README.md)
 
 ## 검증된 범위
 
-아래 수치는 `docs/test-results`에 기록된 **실행별 관측값이며 보장이 아닙니다.** 행마다 환경·부하·실행
-시점이 달라 서로 합산하거나 비교하지 않습니다. 다른 기능·호환성 시험은 [전체 실행 기록](docs/test-results/)에
-보존되어 있습니다.
+수치는 실행별 관측값입니다. 환경·부하·리비전이 다른 회차를 합산하지 않으며, 각 기록에 준비 문제·재시도·실패·정리를 보존했습니다.
 
-### OpenSQL 3노드 부하·장애
+### 대표 결과
 
-| 시험 | 실행 목적 | 실행 조건 | 관측 결과 | 실행 기록 | 관련 PR |
-|---|---|---|---|---|---|
-| **정상 쓰기 부하** | 이후 장애 시험을 같은 잣대로 비교할 정상 상태 기준선 확보 | GCP 내부 LB → 백엔드 A/B → OpenProxy A/B → OpenSQL 3노드, 150 req/s × 60초 × 3회, 2026-10-02 | 회차마다 HTTP 201 **9,001건**, DB 누락·중복·실패·드롭 **0건**. 200·250 req/s는 안정 기준선에서 제외 | [GCP HTTP 쓰기 기준선](docs/test-results/gimin-389-opensql-ha-http-write-baseline-20261002.md) | [#390](https://github.com/DocGrid/docgrid/pull/390) |
-| **OpenProxy 한쪽 장애** | 프록시 한 대가 멈췄을 때 기존 연결이 어떻게 실패하고 전환되는지 확인 | A와 B를 각각 중단, 100 req/s × 130초, `ha391fa20001`·`ha391fb20001`, 2026-10-03 | 살아 있는 프록시로 새 JDBC 연결 전환. 201 **12,997·12,993건**의 DB 누락·중복 **0건**. 장애 순간 HTTP 500 A 3건·B 8건 | [장애 부하](docs/test-results/gimin-391-openproxy-ab-fault-load-20261003.md), [500 원장 재분석](docs/test-results/gimin-393-openproxy-http-500-analysis-20261003.md) | [#392](https://github.com/DocGrid/docgrid/pull/392) · [#394](https://github.com/DocGrid/docgrid/pull/394) |
-| **Patroni 계획 역할 전환** | 계획 switchover 뒤 이전 리더가 `Replica:stopping`에 머무는 문제를 고치고 자동 재합류 확인 | 3노드에서 양방향 계획 switchover, HTTP 부하 없음, 2026-10-03 | 이전 리더가 replica로 자동 재합류, streaming 복귀 **19초·18초**, 수동 컨테이너 재시작 **0회** | [3노드 재합류 검증](docs/test-results/gimin-401-patroni-auto-rejoin-20261003.md) | [#403](https://github.com/DocGrid/docgrid/pull/403) |
-| **부하 중 계획 switchover** | 부하 발생기의 미전송과 서버 실패를 분리해 전환 중 실제 응답을 측정 | 70 req/s × 180초, `ha412sw400c`, 2026-10-04 | 12,601건 전송·미전송 0, 201 **12,516건**의 DB 누락·중복 **0건**. 전환 중 HTTP 500 85건, 201 최대 공백 6.204초 | [switchover 재시험](docs/test-results/issue-412-opensql-switchover-vu-telemetry-20261004.md) | [#415](https://github.com/DocGrid/docgrid/pull/415) |
-| **primary 프로세스 장애** | 계획 전환과 구분해 비계획 장애 중 쓰기 회복과 데이터 보존 측정 | PostgreSQL `postmaster` 종료, 30 req/s × 120초, `ha420proc001`, 2026-10-04 | DB가 같은 노드에서 재시작. 201 **3,372건**의 DB 누락·중복 **0건**. 장애 중 HTTP 500 227건·결과 불명 2건(1건 DB 반영) | [비계획 장애 실측](docs/test-results/opensql-primary-unplanned-fault-load-20261004.md) | [#421](https://github.com/DocGrid/docgrid/pull/421) |
-| **리더 VM 즉시 상실** | 계획 전환과 구분해 비계획 장애 중 쓰기 회복과 데이터 보존 측정 | 리더 VM과 같은 VM의 OpenProxy A가 함께 상실, 30 req/s × 180초, `ha420vm00001`, 2026-10-04 | 새 primary 승격(timeline 12→13) 후 옛 노드 재합류. 201 **4,349건**의 DB 누락·중복 **0건**. 전환 중 HTTP 500 467·503 582건·결과 불명 3건 | [비계획 장애 실측](docs/test-results/opensql-primary-unplanned-fault-load-20261004.md) | [#421](https://github.com/DocGrid/docgrid/pull/421) |
-| **etcd 두 멤버 중단** | etcd 정족수 상실 시 Patroni failsafe 동작과 앱 HTTP 쓰기 결과 확인 | 약 100초 정족수 상실, 30 req/s × 150초, `failsafe_mode=true`, `e428htwo01`, 2026-10-04 | **4,500/4,500** HTTP 201, DB 4,500 ID 각 1행. TTL(30초) 이후 구간에서도 201 2,100건 | [etcd HTTP failsafe](docs/test-results/opensql-etcd-http-failsafe-20261004.md) | [#430](https://github.com/DocGrid/docgrid/pull/430) |
-| **DB 장애 중 인덱싱 복구** | 문서 인덱싱 중 primary 장애가 나도 Worker lease·재처리로 최종 정합성이 맞는지 검증 | PDF 12건·DOCX 12건 선접수 후 primary 프로세스 종료, 시험 전용 Worker 유지, `ha424fault003`, 2026-10-04 | 최종 **24/24건** `INDEXED`, Chunk 36·ACTIVE Vector 36·자연키·Outbox 멱등 키 중복 **0**. Lease 만료 뒤 두 번째 Attempt 성공(약 5분 43초, 기본 Lease 5분 포함) | [Worker 장애 복구](docs/test-results/opensql-worker-primary-fault-20261004.md) | [#426](https://github.com/DocGrid/docgrid/pull/426) |
-| **Primary 네트워크 분할 ① 비동기 응답 보존** | 살아 있는 옛 primary가 앱에는 연결되지만 두 standby와 단절됐을 때 성공 응답 보존 확인 | 5 req/s × 150초, `partnet01`, 2026-10-17. DB 밖 최초 응답과 승격 후 DB 대조 | 751건 중 최초 `201` **632건**; 그중 **40건이 새 primary에서 누락**. 데이터 보존 기준 **실패** | [비동기 분할 시험](docs/test-results/opensql-primary-network-partition-20261017/README.md) | [#548](https://github.com/DocGrid/docgrid/pull/548) |
-| **Primary 네트워크 분할 ② 동기 strict 보존·가용성** | 같은 장애 형태에서 성공 응답 보존과 장애 중 가용성을 분리해 확인 | 5 req/s × 150초, 별도 요청 751건, `syncpart01`, 2026-10-17. 시험용 Patroni 역할 어댑터를 거친 OpenProxy 경로 | 최초 `201` **586건**의 DB 누락 **0건**. `500` **77건**·`503` **81건**·결과 불명 **7건**으로 무중단 가용성은 실패 | [동기 strict 분할 시험](docs/test-results/opensql-primary-network-partition-sync-20261017/README.md) | [#548](https://github.com/DocGrid/docgrid/pull/548) |
-| **Primary 네트워크 분할 ③ 동기 strict 멱등 재전송** | 동기 strict 분할 중 실패·결과 불명 요청을 같은 ID로 재전송해 최종 처리·중복 여부 확인 | 멱등 API의 **새 요청 751건** `ha503part01` → 네트워크 복구 후 **같은 751개 ID** 재전송 `ha503replay01`, 2026-10-17 | 첫 시도 `201` **585건**(DB 누락 **0**)·`500` **112건**·`503` **46건**·불명 **8건**. 재전송 시 기존 **585건 `200`**, 미반영 **166건 `201`** → 최종 DB **751건·중복 0건**. 첫 시도 가용성은 실패 | [멱등 본 시험·재전송](docs/test-results/opensql-primary-network-partition-retry-20261017/README.md) | [#548](https://github.com/DocGrid/docgrid/pull/548) |
-| **복제 지연·권한 안전성** | 권한 조회가 standby로 가는 경로에서, 회수한 ADMIN이 뒤처진 standby 때문에 다시 허용되는지 확인 | standby 적용을 지연시킨 뒤 ADMIN 회수, OpenProxy 경유 관리자 요청 재시험, 2026-09-29 재현 → 2026-10-01 수정 후 | 수정 전 HTTP 200 재현 → 관리자 인가를 primary 트랜잭션으로 고정한 뒤 **403**. 적용 범위는 HTTP 관리자 경로 | [문제 재현](docs/test-results/opensql-permission-replica-lag-20260929.md), [수정 후 검증](docs/test-results/opensql-admin-role-primary-consistency-20261001.md) | [#363](https://github.com/DocGrid/docgrid/pull/363) · [#364](https://github.com/DocGrid/docgrid/pull/364) |
+| 목적 | 환경·조건 | 관측 결과와 한계 | 증거 |
+|---|---|---|---|
+| **OpenSQL 장애 중 성공 응답 보존** | GCP 3노드, 네트워크 분할 회차별 최초 요청 751건 | 비동기: 최초 201 632건 중 40건 유실. 별도 동기 strict 회차: 201 586건 누락 0, HTTP 오류·결과 불명 발생. 동기는 시험용 역할 어댑터 경유 | [비동기](docs/test-results/opensql-primary-network-partition-20261017/README.md) · [strict](docs/test-results/opensql-primary-network-partition-sync-20261017/README.md) |
+| **DB·GCS 외부 복원** | 실제 OpenSQL·Barman·GCS, 전용 논리 DB·별도 PGDATA(물리 호스트 공유), 2026-10-18 | 성공 응답 65건 중 60건 복원·5건 손실. 마지막 외부 보존 확인 구간 60건 누락 0. 공개 트래픽 전환·Ollama 제외 | [WAL 완료 경계 수정](docs/test-results/wal-offsite-boundary-20261018/README.md) · [재계측](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md) |
+| **RAG 작업 소유권·현재 권한** | 로컬 격리 PostgreSQL·실제 Backend, 제어 모델 서버. 소유권은 JVM 2대, 권한은 별도 실제 인증 HTTP 시험 | B 기동 경합: 모델 호출 1회. A 중단·재선점: 호출 2회지만 최종 답변·인용 단일 확정. 별도 권한 HTTP 9/9 통과. 실제 Ollama 제외, 이 시험에서 공개 배포 미실행 | [소유권](docs/test-results/rag-ab-ownership-20261016/README.md) · [권한](docs/test-results/permission-current-auth-20261019/README.md) |
+| **Generic Plan 검색 지연 개선** | 로컬 PostgreSQL 17.8, 약 5만 청크(합성 92.9%)·허용 100%·topK 10·질문 30개, 수정 전후 연속 측정 | 벡터 검색 단계 p50 4,465.7→218.5ms, 하이브리드 5,799.9→1,380.6ms. 전체 REST API·OpenSQL 경로의 지연이 아님 | [측정·조건](docs/test-results/gimin-%23549-generic-plan-query-vector-cast.md) |
 
-장애 시험은 DB 밖 요청 원장의 `request_id`와 최종 primary의 DB 행을 실행 ID별로 대조했습니다. 이 표가
-보여 주는 것은 **각 실행에서 성공 응답(201)을 받은 쓰기의 보존 여부**입니다. 비동기 네트워크 분할에서는
-이 기준이 실패했고, 동기 strict에서는 성공 응답 보존을 관측했지만 장애 중 첫 요청의 가용성은 떨어졌습니다.
-③의 멱등 재전송으로 최종 751건을 처리한 결과를 최초 요청 성공률과 합산하지 않습니다. ① `partnet01`,
-② `syncpart01`, ③ `ha503part01`은 각각 다른 최초 요청 원장이며, 재전송 `ha503replay01`은 ③의 ID에만
-적용했습니다. 무중단 가용성이나 모든
-장애에서의 RPO 0을 주장하지 않습니다. 리더 VM 상실의 안정화 관측 구간 약 52.9초도 일반적인 RTO로
-해석하지 않습니다. 동기 standby 링크 차단 시험과 시간 값의
-해석은 [3노드 HA 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md)에 있습니다.
+네트워크 분할의 별도 멱등 API 회차에서는 새 요청 751건의 최초 201 585건을 보존했습니다.
+복구 뒤 같은 ID 재전송은 기존 585건을 200, 미반영 166건을 201로 처리해 최종 751건·중복 0건이 됐습니다.
+최초 요청 가용성과 재전송 뒤 수렴을 구분합니다. [최초 원장·재전송](docs/test-results/opensql-primary-network-partition-retry-20261017/README.md)
 
-### 검색 품질·복원·성능
+### 복구 계측과 손실 경계
 
-| 시험 | 실행 목적 | 실행 조건 | 관측 결과 | 실행 기록 | 관련 PR |
-|---|---|---|---|---|---|
-| **하이브리드 검색 품질** | 짧은 용어·약어 질문을 벡터 검색만으로 찾지 못하는 문제 개선(예: `OM은 뭐야?` 정답 7위) | 로컬 백엔드 + BGE-M3, 문서 5개·청크 83개, topK 10, 질문 3세트 111문항, 증빙 커밋 2026-10-10 | 벡터 단독 → 하이브리드: 1위 정답 **82 → 92**. 사전에 기준을 고정한 세트 3(39문항) MRR@10 **0.784 → 0.868** | [검색 품질 측정](docs/test-results/kangcheolung-%23456-hybrid-search.md) | [#482](https://github.com/DocGrid/docgrid/pull/482) |
-| **DB·GCS 시점 복원** | DB가 보관한 문서 기록과 GCS 원본을 같은 시점으로 복원해 서로 맞는지 확인 | OpenSQL 기준 백업 + 연속 WAL을 격리 경로에서 지정 시점 T로 복원, GCS 독립 사본, 2026-10-15 | T 이전 쓰기 A 1건·이후 B 0건. 복원 DB가 참조하는 파일 91건 모두 사본에 존재, 복원 버킷 92객체 SHA-256 **92/92** 일치 | [시점 복원](docs/test-results/db-gcs-point-in-time-recovery-20261015/), [서비스 경로 후속 시험](docs/test-results/db-gcs-service-recovery-20261015/) | [#500](https://github.com/DocGrid/docgrid/pull/500) · [#501](https://github.com/DocGrid/docgrid/pull/501) |
-| **GCS 원본 지속 보존** | 새 원본·버전을 별도 비공개 버킷에 보존하고 원본 삭제 뒤에도 사본이 유지되는지 확인 | GCP 시험 버킷 2개, 이벤트 기반 전송·백업 VM 일별 감사, 2026-10-17 | 새 시험 원본 **2/2건** 복사·해시 일치. 최종 원본 **94건**, 유효 사본 **97건**(삭제된 시험 원본 사본 3건), 누락 0건. 초기 잘못된 경로의 시험 사본 2건은 격리 계수. 전송은 비동기 | [실행 기록](docs/test-results/gcs-original-preservation-20261017/), [설계](docs/design/gcs-original-continuous-preservation.md) | [#529](https://github.com/DocGrid/docgrid/pull/529) |
-| **정합성 점검·복구** | 검색 데이터가 원장과 어긋났을 때 점검기가 찾아내고, 안전한 경우만 복구해 검색이 돌아오는지 확인 | 로컬 격리 DB·BGE-M3, 시험 문서 4건(Chunk 20개), SQL과 Worker·Dispatcher 정지로 4종 주입, 수동 API·Backend 1대, 2026-10-16 | Vector 1행 누락·Job 누락 각 1건: 탐지 → 복구 Event 1건 → 새 Job → `INDEXED` → 재점검 종결, 검색 반환. 기존 Vector 4행 ID·해시 보존. 삭제 잔여·정체 버전은 보고만 함. 정상 삭제 문서에 남는 `MISSING_EMBEDDINGS` 오탐 1건 발견(수정: [#518](https://github.com/DocGrid/docgrid/issues/518)). 주기 점검·A/B·나머지 4개 유형은 미시험 | [격리 시험](docs/test-results/reconciler-repair-20261016/README.md), [설계](docs/design/gimin-%23517-reconciler-consistency-check.md) | [#521](https://github.com/DocGrid/docgrid/pull/521) |
-| **PDF·DOCX 인덱싱 E2E** | 실제 PDF·DOCX 여러 건을 함께 접수했을 때의 처리량과 데이터 완전성 측정 | 로컬 Apple Silicon 1대, PostgreSQL 17.8·MinIO·CPU BGE-M3, Worker Slot 2, 50·100문서 각 2회, 2026-08-11 | **31.046·32.063**문서/분. 합계 300문서·1,200 Vector에서 실패·재시도·미완료·중복 **0** | [최종 성능 리포트](docs/test-results/gimin-%23145-final-performance-report.md), [원본 측정](docs/test-results/gimin-%23143-pdf-docx-indexing-e2e-load-benchmark.md) | [#144](https://github.com/DocGrid/docgrid/pull/144) · [#146](https://github.com/DocGrid/docgrid/pull/146) |
+10월 15일 시험은 지정 시점 T 이전 쓰기 A 1건·이후 B 0건과 GCS 사본 해시 92/92 일치를 확인했으며 RPO·RTO는 미측정입니다.
+[시점 복원](docs/test-results/db-gcs-point-in-time-recovery-20261015/) · [후속 서비스 시험](docs/test-results/db-gcs-service-recovery-20261015/)
 
-검색 품질은 직접 작성한 질문과 작은 코퍼스, 성능은 로컬 개발 장비의 기준선입니다. 시점 복원은 RPO·RTO를
-측정하지 않았고, 서비스 경로 후속 시험은 실제 모델 대신 고정 벡터 스텁으로 검색·인덱싱을 확인했습니다.
+10월 18일 최초 계측은 65건 중 33건 복원·32건 손실이었습니다. 필요한 WAL의 완료 확인을 보완한 재시험은 위 표와 같습니다.
+최초 감사 때 Worker·Flyway·수선을 끈 상태로 원장·DB·원본을 대조한 뒤 활성화했습니다.
+마지막 외부 보존 확인 뒤의 5건은 DB와 원본 모두 보존 범위 밖이었습니다.
+마지막 연속 복원 성공 응답부터 T0까지의 관측 간격은 113.978초이며 운영 RPO 보장값이 아닙니다.
+
+| 사용자 기능 | T0부터 완료까지 | 표본 |
+|---|---|---|
+| 기존 원본 다운로드·해시 | 162.9초 | 4건 |
+| 기존 문서 검색 | 178.447초 | 1건 |
+| 중단 Job 재개 | 234.365초 | 1건 |
+| 새 업로드 | 241.423초 | 1건 |
+| 새 문서 인덱싱 | 910.719초 | 1건 |
+| 새 원본 다운로드·해시 | 912.801초 | 1건 |
+
+격리 문서 기능의 관측 시간이며 공개 서비스 전체 RTO가 아닙니다. 새 인덱싱에는 복원된 대기 Job 뒤에서 처리된 영향이 있습니다.
+최종 61문서 감사에서 미완료 Job·중복 Chunk·중복/누락 Embedding은 0건이었습니다.
+[최초 감사·기능별 시간·대기열·정리](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md)
+
+### 동기 복제의 격리 시험 결과
+
+- 지정형 동기·quorum 비교는 실제 격리 OpenSQL·OpenProxy에서 수행했습니다. **원본 OpenProxy**는
+  `sync_standby`·`quorum_standby` 역할 파싱 오류로 시작하지 못해 시험용 어댑터를 경유했습니다.
+  공급사 공식 지원이나 공개 경로 적용 완료를 의미하지 않습니다. [역할 호환 경계](docs/test-results/patroni-role-compatibility-20261017/README.md)
+- 각 모드·장애 조합 1회씩 총 4회, 요청 키 192건을 비교했습니다. 최초 204 174건은 모두 보존됐고 503 18건은 같은 키로 재확정했습니다.
+  이번 조건에서 quorum의 뚜렷한 우위는 관측하지 못했습니다. [지정형·quorum 비교](docs/test-results/opensql-sync-quorum-20261017/README.md)
+- 회수는 항상 `on`, 합성 독립 쓰기만 `on/local`로 바꾼 별도 비교에서 ACK 중단 중 독립 204는 `on` 0건·`local` 5건이었습니다.
+  공유 풀 5개에서 pending 최대 8은 두 조건 모두 남았고 대표 비교에서 local 성공 유실은 관측되지 않았습니다.
+  운영 Worker 정책 도입이나 local 내구성 보장으로 확대하지 않습니다. [on/local 비교](docs/test-results/permission-mixed-commit-20261017/README.md)
+
+### 분야별 추가 기록
+
+| 분야 | 실행 범위·관측 | 상세 기록 |
+|---|---|---|
+| 검색 품질 | 로컬 BGE-M3·문서 5개·청크 83개, 질문 3세트 111문항. 사전 기준 고정 39문항 MRR@10 0.784→0.868 | [하이브리드 평가](docs/test-results/kangcheolung-%23456-hybrid-search.md) |
+| 지원 형식 | HWP/HWPX·PDF/DOCX의 실제 로컬 PostgreSQL·MinIO·BGE-M3 E2E 2/2, HWP/HWPX 각 1건 브라우저 업로드·표 문구 검색. OpenSQL·GCS 시험과 구분 | [파서·E2E·브라우저](docs/test-results/issue-505-hwp-hwpx-parsing/README.md) |
+| 기존 HA 기준선 | 쓰기 150 req/s×60초×3회, 회차마다 201 9,001건 누락·중복 0. Proxy·프로세스·VM 장애의 HTTP 오류와 결과 불명은 개별 원장에 보존 | [기준선](docs/test-results/gimin-389-opensql-ha-http-write-baseline-20261002.md) · [3노드 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md) |
+| 승격 후 권한 | 격리 OpenSQL·역할 어댑터, 실제 인증 HTTP. 회수 대상 상세·본문·파일 403 9건, 대조 200 9건, 새 검색 3회에서 금지 문구 제외. 모델 응답은 대역 | [HTTP 차단](docs/test-results/permission-http-failover-20261017/README.md) |
+| 백업 연속성 | Barman의 Primary 추적·WAL 수신, 기준 백업·완성 WAL 외부 보존·예약 실행. 모든 장애에서의 연속성 보장은 아님 | [수신 추적](docs/test-results/barman-wal-follow-20261016/README.md) · [외부 보존](docs/test-results/barman-offsite-20261017/README.md) |
+| GCS 원본 보존 | 이벤트 기반 비동기 사본·감사. 새 시험 원본 2/2 해시 일치, 해당 회차 누락 0 | [지속 보존](docs/test-results/gcs-original-preservation-20261017/README.md) |
+| 정합성·Worker | 8종 점검 중 4종 주입, Vector·Job 누락 복구와 보고 전용 유형을 구분. 별도 DB 장애 중 PDF/DOCX 24/24 INDEXED | [정합성 시험](docs/test-results/reconciler-repair-20261016/README.md) · [Worker 장애 복구](docs/test-results/opensql-worker-primary-fault-20261004.md) |
+| 초기 인덱싱 처리량 | 2026-08-11 로컬 PostgreSQL·MinIO·CPU BGE-M3, 50·100문서 각 2회. 31.046·32.063문서/분, 합계 300문서·1,200 Vector의 실패·재시도·미완료·중복 0 | [PDF·DOCX 기준선](docs/test-results/gimin-%23145-final-performance-report.md) |
+
+권한 시험은 회수 뒤 시작하는 새 조회·입력 준비와 저장 전 검사를 확인했습니다. 외부 전송과 회수 커밋을 원자적으로 묶지 않으며 이미 전달한 내용은 소급 회수하지 못합니다.
+출처 기록이 없는 기존 답변은 본문·인용·후속 문맥 사용을 보류하고 재검색을 안내합니다. 데이터는 삭제하지 않습니다.
+전체 재현 절차와 제외 범위는 [실행 기록](docs/test-results/)에서 확인할 수 있습니다.
 
 ## 아키텍처
 
-![DocGrid 최종 아키텍처: Vercel, Cloud Run, GCP 앱 A/B, OpenSQL 3노드와 관측 VM](docs/images/docgrid-final-architecture.png)
+![DocGrid GCP 배포 참고 구성: Vercel, Cloud Run, GCP 앱 A/B, OpenSQL 3노드와 관측 VM](docs/images/docgrid-final-architecture.png)
 
-위 그림은 **2026-10-10 기준 최종 배포 구성**입니다. 사용자 요청이 백엔드에 도착하는 경로와
+위 그림은 **2026-10-10 기준 GCP 배포 참고 구성**입니다. 사용자 요청이 백엔드에 도착하는 경로와
 백엔드가 사용하는 저장소·AI·DB·관측 구성을 보여줍니다. 그림에 표시된 전체 경로가 하나의
 E2E 시험으로 검증됐다는 뜻은 아닙니다.
 
@@ -143,9 +236,9 @@ Pub/Sub 신호는 재조회 계기이며, 내구성 있는 메시지 큐로 사�
 2. **인덱싱:** `INDEXING_WORKER_ENABLED=true`인 백엔드가 Job을 선점합니다. 원본 읽기 →
    Parsing·Chunking → FastAPI/BGE-M3 Embedding → pgvector 저장 순서로 처리하며,
    Lease·재시도·복구 상태를 DB에 남깁니다.
-3. **검색과 답변:** `SearchFacade`가 질문을 임베딩하고 문서 권한을 확인한 뒤 pgvector 후보를
-   조회합니다. 후보의 권한을 다시 확인하고, RAG Worker가 검색 문맥을 Ollama에 보내 답변과
-   인용을 저장합니다.
+3. **검색과 답변:** `SearchFacade`가 현재 권한으로 검색 후보를 확인합니다. RAG Worker는 모델 호출 직전
+   허용 후보·과거 문맥으로 입력을 재구성하고, 응답 저장 전 출처 권한을 다시 확인합니다. 답변·대화 GET도
+   현재 Primary 권한으로 발췌·답변·인용을 구성합니다. 작업 소유권은 token·lease로 관리합니다.
 
 ### 관측 구성과 검증 범위
 
@@ -157,6 +250,22 @@ Pub/Sub 신호는 재조회 계기이며, 내구성 있는 메시지 큐로 사�
 - [GCP 앱 A/B·OpenSQL·GCS의 PDF 저장·조회](docs/test-results/gimin-387-gcp-app-gcs-opensql-baseline-20261002.md)
 - [백엔드 A/B 간 대시보드 갱신](docs/test-results/gimin-382-dashboard-cross-backend-refresh-20261002.md)
 - [OpenSQL 3노드 장애 시험](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md)
+
+### 외부 백업과 복원 경로
+
+```text
+OpenSQL 기준 백업·WAL → Barman → DB 백업용 비공개 GCS
+원본 GCS → 독립 보존 사본
+                │ 동결한 외부 입력
+                ▼
+격리 복원 → Worker·Flyway·수선 전 최초 감사
+                ├─ 보존 확인 구간 누락: 활성화 거부
+                └─ 감사 통과: 복원본 연결 → Worker 활성화 → 기능별 확인
+```
+
+이 경로는 [외부 보존 기록](docs/test-results/barman-offsite-20261017/README.md)과
+[복구 재계측](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md)의 실행 범위입니다.
+복제 standby와 외부 백업의 역할을 구분하며, 현재 실행 중인 자원 목록은 별도 점검이 필요합니다.
 
 ## 기술 스택
 
@@ -171,218 +280,6 @@ Pub/Sub 신호는 재조회 계기이며, 내구성 있는 메시지 큐로 사�
 | 배포 · 네트워크 | Vercel, Cloud Run Nginx 공개 게이트웨이, Google Cloud Load Balancing, Compute Engine VM, IAP (위 구성도 기준) |
 | 관측 · 부하 | RAGOps Dashboard, Micrometer/Prometheus, Grafana, Blackbox Exporter, k6 Remote Write (위 구성도 기준); Alertmanager (로컬 monitoring profile) |
 | Test | JUnit 5, Gradle, Node.js Test Runner, k6 |
-
-## 빠른 실행
-
-아래는 GCP 접근 권한 없이 로컬 PostgreSQL·Valkey와 Local Filesystem 저장소로 핵심 기능을 확인하는 경로입니다.
-명령은 저장소 루트에서 실행합니다.
-
-### 통합 명령으로 시작·검증·종료
-
-macOS·Linux에서 아래 사전 준비 도구와 Python 3.9 이상, Bash·curl·lsof·ps를 준비한 뒤 실행합니다.
-
-```bash
-./scripts/demo.py start
-./scripts/demo.py verify
-./scripts/demo.py stop
-```
-
-`start`는 없는 환경 파일만 만들고 PostgreSQL·Valkey·BGE-M3·백엔드·프런트엔드를 연결합니다.
-Web은 `http://localhost:3000`이며, `verify`는 비밀번호를 입력받아 프런트엔드 API 프록시로 예제 15건의
-인덱싱·기대 검색 3개·원본 해시 15개를 확인합니다. 반복 실행은 이전 원장과 문서 ID도 대조합니다.
-준비 상태는 `./scripts/demo.py status`로 다시 확인합니다.
-
-기본 범위 `search`는 Ollama가 필요 없습니다. 실제 생성 답변·인용까지 검증하려면 Native Ollama와 지정
-모델을 먼저 준비하고 `start --scope rag`를 사용합니다. Native Ollama는 이 명령이 자동 종료하지 않습니다.
-기존 개인 환경 파일은 덮어쓰지 않으며, 원격 OpenSQL·GCS나 지원하지 않는 설정이면 자동 변경 없이 거부합니다.
-`stop`은 이번 실행이 시작한 자원만 중지하고 DB·원본·모델 캐시를 보존합니다. 다른 작업공간의 고정 이름
-컨테이너가 있으면 별도 Docker 환경을 사용하세요. 상세 경계는 [통합 명령 설계](docs/design/local-demo-lifecycle.md)를 참고하세요.
-
-아래 개별 실행 절차도 계속 사용할 수 있습니다.
-
-### 1. 사전 준비
-
-- Git
-- Java 17
-- Node.js 22.13.0 이상
-- Docker Desktop과 Docker Compose
-- RAG 답변까지 확인하려면 Native Ollama
-- 예제 문서를 넣으려면 Python 3.9 이상 (표준 라이브러리만 사용)
-
-### 2. Clone과 환경 변수
-
-```bash
-git clone https://github.com/DocGrid/docgrid.git
-cd docgrid
-cp .env.example .env
-echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env
-cp frontend/.env.example frontend/.env.local
-npm --prefix frontend ci
-```
-
-로그인 토큰 서명 키 `JWT_SECRET`은 기본값이 없는 필수 값이므로 저장소에 두지 않고 두 번째 명령으로 로컬에서
-생성합니다.
-
-`.env.example`은 로컬 PostgreSQL 접속값, Local Filesystem 저장소(`STORAGE_TYPE=local`)와 `local` 프로필
-(`SPRING_PROFILES_ACTIVE=local`)을 제공합니다. `local` 프로필에서는 인덱싱 Worker가 기본으로 **켜져
-있어**(`INDEXING_WORKER_ENABLED` 기본값 `true`) 업로드한 문서가 별도 설정 없이 자동으로 인덱싱됩니다.
-Worker를 끄려면 로컬 `.env`에 `INDEXING_WORKER_ENABLED=false`를 추가하며, `local`이 아닌 프로필의 기본값은
-`false`입니다. 실제 운영 비밀번호와 외부 서버 인증정보는 README, Issue 또는 Commit에 기록하지 않습니다.
-
-### 3. PostgreSQL, Valkey, BGE-M3 실행
-
-```bash
-docker compose up -d --build postgres valkey embedding-server
-docker compose logs -f embedding-server
-```
-
-BGE-M3는 첫 실행 시 모델 다운로드와 로딩이 필요하므로 준비 완료 로그를 확인합니다. 소요 시간은
-호스트와 네트워크에 따라 다릅니다. `Ctrl+C`로 로그 조회만 종료한 뒤 Health Check를 실행합니다.
-
-```bash
-curl -f http://localhost:8000/health/ready
-```
-
-### 4. Ollama 실행
-
-최종 RAG 답변 생성에는 `qwen2.5:7b`가 필요합니다. Ollama를 운영체제에 맞게 Native로 설치한 뒤
-모델을 준비합니다. macOS에서는 다음 명령을 사용할 수 있습니다.
-
-```bash
-brew install ollama
-brew services start ollama
-ollama pull qwen2.5:7b
-ollama run qwen2.5:7b "안녕"
-```
-
-Ollama가 없어도 업로드, 인덱싱과 검색은 동작합니다. 검색 뒤 답변을 만드는 RAG Worker는 별도 활성화 설정
-없이 Backend와 함께 실행되지만, Ollama에 연결하지 못하면 답변 생성이 실패로 끝납니다. 이때 화면에는
-"AI 생성 실패 · 검색 결과 저장됨" 표시와 함께 가장 관련도 높은 문서의 원문 일부를 인용한 대체 답변과 검색
-결과가 나옵니다.
-
-초기 설치 후 재기동할 때는 Valkey, BGE-M3, Ollama를 전용 스크립트로 기동하고 연결 상태를 확인할 수
-있습니다. 위의 `docker compose up`와 같은 서비스를 다시 시작하는 명령이므로 둘 중 한 경로를 선택합니다.
-
-```bash
-./scripts/local-services.sh start
-./scripts/local-services.sh status
-```
-
-`start`는 BGE-M3 준비 완료까지 최대 15분 기다리며, 실패하면 서비스별 복구 명령을 출력합니다.
-
-검색만 시연할 때는 명시적 로컬 범위를 사용합니다. `.env`의 local·Local Filesystem 설정과 실제
-Compose 대상 DB를 확인하고 PostgreSQL·Valkey·BGE-M3를 준비하며 Ollama는 호출하지 않습니다.
-
-```bash
-./scripts/local-services.sh start --scope search
-./scripts/local-services.sh status --scope search
-```
-
-`--scope rag`는 위 서비스와 사전 기동된 Native Ollama·모델을 확인합니다. 이 명시적 범위에서는
-Homebrew 서비스나 Ollama 앱을 자동 기동하지 않습니다. 인자 없는 기존 명령의 동작은 유지됩니다.
-설정 파일은 실행하지 않고 `KEY=VALUE` 형식만 읽으며, 원격 프로필·저장소·모호한 설정은 자동 수정하지 않고 거부합니다.
-
-Apple Silicon에서는 `ollama ps`의 `PROCESSOR`가 GPU인지 확인합니다. 설치와 성능 관련 상세 내용은
-[백엔드 실행 문서](backend/README.md#ollama-rag-llm-서버)를 참고하세요.
-
-### 5. Backend와 Frontend 실행
-
-각 명령을 별도 Terminal에서 실행합니다.
-
-```bash
-./backend/gradlew -p backend bootRun
-```
-
-```bash
-npm --prefix frontend run dev
-```
-
-- Web: `http://localhost:3000`
-- API 문서: `http://localhost:8080/swagger-ui/index.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
-
-Backend와 Embedding Provider의 운영 메트릭을 함께 수집하려면 선택형 monitoring profile을 실행합니다.
-프런트엔드가 이미 `localhost:3000`을 사용하므로 Grafana의 호스트 포트는 3001로 지정합니다.
-
-```bash
-GRAFANA_PORT=3001 docker compose --profile monitoring up -d prometheus alertmanager grafana
-```
-
-Prometheus는 감시 대상이나 Alertmanager의 health 상태를 시작 조건으로 사용하지 않는다. 따라서
-Embedding Provider가 준비되지 않아도 먼저 기동해 수집 실패와 경보를 기록한다.
-
-- Prometheus Target: `http://localhost:9090/targets`
-- Grafana Dashboard: `http://localhost:3001/d/docgrid-operations/docgrid-operations`
-- 설정과 기존 Prometheus 연결: [monitoring/prometheus/README.md](monitoring/prometheus/README.md)
-- Grafana 화면과 접근 범위: [monitoring/grafana/README.md](monitoring/grafana/README.md)
-
-### 6. 핵심 흐름 확인
-
-#### 예제 문서로 바로 확인
-
-Backend가 실행 중인 상태에서 새 Terminal을 열고 예제 문서 15건(PDF 5·DOCX 5·HWPX 5)을 넣습니다. 3단계의
-`curl -f http://localhost:8000/health/ready`가 성공한 뒤 실행합니다.
-
-```bash
-python3 scripts/demo/seed_demo_corpus.py
-```
-
-- 기본 계정은 `demo@docgrid.local`이며 비밀번호(12자 이상)를 입력받습니다. 계정이 없으면 그 비밀번호로
-  가입하고, 있으면 로그인합니다. `--email`(`DOCGRID_DEMO_EMAIL`)과 `DOCGRID_DEMO_PASSWORD`로 바꿀 수 있습니다.
-- 파일 해시로 만든 `Idempotency-Key`를 보내므로 다시 실행해도 같은 계정에 문서가 중복 생성되지 않습니다.
-- INDEXED까지 최대 10분(`--timeout`) 기다린 뒤 고정 질문 3개의 기대 문서와 원본 15건의 해시를 검사합니다. 진행되지 않으면 Worker
-  꺼짐, 임베딩 서버 미준비 같은 원인 후보를 안내합니다. 전체 옵션은 `--help`로 확인합니다.
-
-현재 기본 범위는 `search`이며 생성 답변은 미검증으로 표시합니다. 검색 실패·빈 결과·원본 해시 불일치는
-실패 종료합니다. 실제 생성 답변·인용까지 검사하려면 `--scope rag`를 지정합니다.
-실행별 원장은 `.demo/reports/<run-id>/`에 저장하며, 자세한 판정은 [예제 검증 안내](examples/demo-corpus/README.md)를 참고하세요.
-
-2026-10-18 독립 GitHub hosted 환경의 실제 PostgreSQL·Valkey·BGE-M3·백엔드·프런트엔드 회차에서
-업로드·INDEXED **15/15**, 기대 검색 **3/3**, 다운로드 해시 **15/15**가 통과했습니다. 같은 계정 재실행과
-종료 후 재기동에서도 문서 ID **15/15**가 유지됐으며, Chromium 로그인·검색·다운로드도 통과했습니다.
-
-| 같은 실행기의 명령 | 관측 소요 시간 |
-| --- | --- |
-| 첫 start: 의존성·이미지·모델 준비 포함 | 196.632초 |
-| 첫 verify | 24.135초 |
-| 같은 계정 verify 재실행 | 3.072초 |
-| 데이터·모델 캐시를 보존한 start | 26.061초 |
-
-이 수치는 해당 실행기의 개발 시연 기동·검증 시간이며 운영 복구 시간이나 성능 우위를 뜻하지 않습니다.
-실제 Ollama 생성 답변은 실행하지 않았습니다. 준비 오류·중단·브라우저 진단 회차와 최종 통과 근거는
-[독립 환경 검증 기록](docs/test-results/demo-fresh-20261018/README.md)에 분리해 두었습니다.
-
-`--scope rag`에서 Ollama와 `qwen2.5:7b`가 준비되어 있으면 실제 답변·인용 검사 결과를 확인할 수 있습니다.
-같은 계정이나 새로 가입한 계정으로 웹(`http://localhost:3000`)에 로그인해 다음 질문을 검색해 봅니다.
-예제 문서는 PUBLIC으로 올라가므로 모든 로그인 사용자가 검색할 수 있습니다.
-
-| 추천 질문 | 근거 문서(형식) | 문서에 적힌 답 |
-|---|---|---|
-| 재택근무는 일주일에 며칠까지 할 수 있고 언제까지 신청해야 하나요? | 재택근무 운영 규정 (PDF) | 주 2일, 예정일 2영업일 전까지 신청 |
-| 본인 결혼 시 경조금과 경조휴가는 얼마나 되나요? | 경조사 지원 규정 (DOCX 표) | 경조금 50만원, 휴가 5일 |
-| 계약서는 몇 년 동안 보관해야 하나요? | 문서 보존 및 폐기 기준 (HWPX) | 계약이 끝난 날부터 10년 |
-
-예제 문서 목록, 만든 방법과 라이선스는 [examples/demo-corpus/README.md](examples/demo-corpus/README.md)에
-있습니다.
-
-#### 직접 문서로 확인
-
-1. 회원가입 또는 로그인
-2. PDF/DOCX/HWP/HWPX 문서 업로드
-3. 문서 인덱싱 상태가 완료로 바뀌는지 확인 (`local` 프로필은 인덱싱 Worker가 기본으로 켜져 있음)
-4. 문서 내용으로 AI 검색
-5. RAG 답변과 인용 근거 확인 (Ollama가 없으면 원문 인용 대체 답변 표시)
-
-### 종료
-
-```bash
-docker compose stop postgres valkey embedding-server
-# macOS에서 Homebrew로 Ollama를 실행한 경우
-brew services stop ollama
-```
-
-`docker compose down -v`는 DB·Object·모델 Cache Volume을 삭제할 수 있으므로 일반적인 종료에는 사용하지
-않습니다.
 
 ## 환경 선택
 
@@ -428,8 +325,8 @@ macOS 팀원별 터널 자동 시작 절차는 [로컬 OpenSQL SSH 터널 가이
 
 ## 테스트
 
-일반 회귀 테스트는 외부 장시간 Benchmark와 실제 인프라 E2E를 제외하지만 PostgreSQL과 Valkey를
-사용하는 통합 테스트를 포함합니다. 두 Service를 먼저 준비합니다.
+기본 회귀는 장시간 Benchmark와 별도 인프라 E2E를 제외하지만 실제 PostgreSQL·Valkey 통합 시험을 포함합니다.
+[로컬 설정·필수 키](backend/README.md#로컬-설정과-필수-서명-키)를 준비한 뒤 실행합니다.
 
 ```bash
 docker compose up -d --wait postgres valkey
@@ -437,28 +334,26 @@ docker compose up -d --wait postgres valkey
 npm --prefix frontend test
 ```
 
-파일 저장소 Adapter와 실제 자동 Worker 전체 흐름은 별도 E2E로 검증합니다. 이 E2E의 MinIO·S3 Adapter
-검증은 로컬 MinIO(`localhost:9000`)를 사용하므로 `minio/minio` 이미지가 이미 있는 환경에서만 실행할 수 있습니다.
+저장 답변·모델 입력의 권한 경계는 별도 `permissionCurrentAuthorizationTest`로 실행하며, 기본 회귀와 분리된 DB·Valkey가 필요합니다.
+[시험 환경 변수·실행 절차](docs/test-results/permission-current-auth-20261019/README.md#테스트-방법)를 따르세요. CI도 별도 DB·Redis DB에서 실행합니다.
+
+실제 저장소 Adapter·자동 Worker E2E는 별도 작업입니다. MinIO/S3 검증에는 기존 `minio/minio` 이미지가 필요합니다.
 
 ```bash
 docker compose up -d --build --wait postgres minio valkey embedding-server
-
-DB_HOST=127.0.0.1 DB_PORT=55432 \
-  ./backend/gradlew -p backend storageWorkerE2eTest
+DB_HOST=127.0.0.1 DB_PORT=55432 ./backend/gradlew -p backend storageWorkerE2eTest
 ```
 
 ## 문서
 
 | 문서 | 내용 |
 |---|---|
-| [Backend README](backend/README.md) | PostgreSQL, BGE-M3, Ollama 실행 |
+| [Backend README](backend/README.md) | 필수 설정, DB·BGE-M3·Ollama와 단독 실행 |
 | [Frontend README](frontend/README.md) | Web 실행, 인증과 API 연결 범위 |
-| [로컬 DB 실행](docs/local-db.md) | PostgreSQL 17 + pgvector 로컬 기준선 |
-| [Grafana 운영 Dashboard](monitoring/grafana/README.md) | Prometheus 지표 화면·로컬 접근 설정 |
-| [설계 문서](docs/design/) | 기능·인프라의 설계 의사결정 |
-| [실행 결과](docs/test-results/) | 위 테스트 표의 상세 절차·실행별 증거·제약 |
-
-테스트 표의 각 링크에서 실행 시점, 사용한 환경, 실패·재시도와 원본 증거를 확인할 수 있습니다.
+| [로컬 DB](docs/local-db.md) | PostgreSQL 17·pgvector 로컬 기준선 |
+| [Grafana](monitoring/grafana/README.md) | 관측 화면·로컬 접근 |
+| [설계 문서](docs/design/) | 기능·인프라 의사결정 |
+| [실행 결과](docs/test-results/) | 목적·환경·절차·실행별 증거·한계 |
 
 ## 저장소 구조
 
