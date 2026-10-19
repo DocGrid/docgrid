@@ -1,0 +1,10 @@
+{
+  "declared_at_kst": "2026-10-19T22:31:04.607247+09:00",
+  "purpose": "Run the same three reproduced authorization scenarios plus in-flight, unknown-source, transitive-source regressions",
+  "mode": "Real local authenticated HTTP against fresh PostgreSQL/Valkey and controlled model HTTP",
+  "run_suffix": "FIX-R1",
+  "command": "./backend/gradlew -p backend permissionCurrentAuthorizationTest --no-daemon --offline --console=plain",
+  "criteria": "All required security assertions pass; forbidden output/input 0; allowed controls preserved",
+  "source_identity": "source-identity-1.json",
+  "production_settings": "Unchanged"
+}

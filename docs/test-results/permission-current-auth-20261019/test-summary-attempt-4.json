@@ -1,0 +1,518 @@
+[
+  {
+    "method": "transitiveSourcesAreMergedAndEverySourceMustBeReadable()",
+    "time_seconds": 0.008,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[1] json=null",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[2] json=",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[3] json=null",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[4] json={}",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[5] json=[0]",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[6] json=[-1]",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[7] json=[1.0]",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[8] json=[\"1\"]",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[9] json=[null]",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[10] json=[9223372036854775808]",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[11] json={broken",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "primaryPermissionFailureDoesNotBecomeAnEmptySuccessfulDecision()",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "정상 케이스: NDJSON 청크를 누적해 답변 텍스트와 토큰 수를 반환한다",
+    "time_seconds": 0.617,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "대량 혼입 재생성: 재생성 요청이 답변을 받지 못하면 첫 답변을 잘라 잘림 안내를 덧붙인다",
+    "time_seconds": 0.009,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "토큰 상한 도달: 단어 중간에서 끊긴 꼬리는 마지막 완결 문장까지만 남기고 잘라낸다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "문장 경계 트리밍: 백틱 코드 스팬(`ls .`) 안의 마침표는 문장 끝으로 오인하지 않는다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "문장 경계 트리밍: 백틱 코드 스팬 안의 물음표는 문장 끝으로 오인하지 않는다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "서버 장애: RestClientException 발생 시 RAG_SERVICE_UNAVAILABLE 예외가 발생한다",
+    "time_seconds": 0.004,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "문장 경계 트리밍: 경로 표기(..)의 연속 마침표는 문장 끝으로 오인하지 않는다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "서버 측 생성 취소: done 없이 스트림이 끝나면 마지막 완결 문장까지 남기고 잘림 안내를 덧붙인다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "언어 혼입: 답변에 섞인 한자/가나 문자를 제거하고 한국어만 남긴다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "스트림 정지: 읽기 중 IOException이 발생해도 이미 받은 부분 답변을 잘림으로 반환한다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "대량 혼입 재생성: 단어 중간에서 중국어로 넘어가 잘리면 1회 재생성해 잘림 없는 답변을 안내 없이 반환한다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "토큰 상한 도달: eval_count가 num_predict 이상이면 잘림 안내 문구를 덧붙인다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "데드라인 초과: 스트림을 중단하고 그때까지 받은 부분 답변에 잘림 안내를 덧붙인다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "빈 응답: 답변 텍스트 없이 done만 오면 RAG_SERVICE_UNAVAILABLE 예외가 발생한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "대량 혼입 재생성: 데드라인이 이미 지났으면 재생성하지 않고 첫 답변을 잘라 반환한다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "빈 응답: 스트림에서 청크를 하나도 받지 못하면 RAG_SERVICE_UNAVAILABLE 예외가 발생한다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "대량 혼입 재생성: 재생성 답변도 대량 혼입이면 첫 답변을 혼입 시작 지점에서 잘라 잘림 안내를 덧붙인다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "서버 오류 상태: 5xx 응답이면 RAG_SERVICE_UNAVAILABLE 예외가 발생한다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "언어 혼입: 대량 혼입(중국어 반복 루프)은 혼입 시작 지점에서 잘라내고 잘림 안내를 덧붙인다",
+    "time_seconds": 0.003,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "completeFailed: 조건부 UPDATE가 영향받은 행 0건이면(#288, 스위퍼가 이미 확정함) false를 반환한다",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "createNoContext: SUCCESS 상태로 고정 안내 문구를 저장한다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "completeFailedOwned: 현재 token의 실패 확정만 true를 반환한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "completeSuccess: 조건부 UPDATE가 영향받은 행 0건이면(#288, 스위퍼가 이미 확정함) false를 반환한다",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "completeSuccessOwned: 현재 token과 유효한 lease로 확정하면 true를 반환한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "createPending: PROCESSING 상태로 프롬프트만 먼저 저장한다(답변 없음)",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "reauthorizesBeforeSelectingThreeAndKeepsHistoryProvenance()",
+    "time_seconds": 0.03,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "생성 요청은 JSON으로 전송한다",
+    "time_seconds": 0.175,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "저장소의 최신순 문맥을 시간순으로 뒤집어 반환한다",
+    "time_seconds": 0.017,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "대화 상세는 질문별 단건 조회 없이 결과·RAG·citation을 각각 한 번에 조립한다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "질문이 없는 대화는 관련 테이블 일괄 조회를 생략한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "벡터 검색 문장은 최근 질문 두 개와 현재 질문만 포함한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "stale job이 없으면 아무것도 하지 않는다",
+    "time_seconds": 0.02,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "stale job이 여러 건이면 하나씩 전부 처리한다",
+    "time_seconds": 0.021,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "이미 RagJobWorker가 먼저 끝낸 job이면(false) 알림을 보내지 않는다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "stale job을 실제로 강제 종료했으면(true) 요청자 본인에게 알림을 보낸다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "후보 목록을 순서대로 citation_order/citation_label과 함께 저장한다",
+    "time_seconds": 0.018,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "후보가 없으면 saveAll에 빈 목록을 전달한다",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "processJob 무관 문구 혼입: 정상 답변 중간에 안내 문구가 섞이면 그 지점부터 제거한 뒤 저장하고 citation은 유지한다",
+    "time_seconds": 0.352,
+    "passed": false,
+    "failure_category": "org.mockito.exceptions.misusing.UnfinishedStubbingException: "
+  },
+  {
+    "method": "processJob 정상 흐름: Ollama 호출 성공 시 completeSuccess와 citation을 저장한다",
+    "time_seconds": 0.004,
+    "passed": false,
+    "failure_category": "org.mockito.exceptions.misusing.UnfinishedStubbingException: "
+  },
+  {
+    "method": "failIfStillProcessing: 검색 후보가 있으면 extractive fallback으로 강제 종료하고 true를 반환한다",
+    "time_seconds": 0.004,
+    "passed": false,
+    "failure_category": "org.mockito.exceptions.misusing.UnfinishedStubbingException: "
+  },
+  {
+    "method": "processJob 경합(#288): Ollama 실패 시에도 completeFailed가 false면(스위퍼가 이미 확정함) processJob도 false를 반환한다",
+    "time_seconds": 0.004,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "processJob 경합(#288): completeSuccess가 false를 반환하면(스위퍼가 이미 확정함) citation을 저장하지 않고 false를 반환한다",
+    "time_seconds": 0.004,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "markUnexpectedFailure: PROCESSING job을 실제 종료하면 예상 밖 실패 메트릭을 발행한다",
+    "time_seconds": 0.004,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "markUnexpectedFailure: 조건부 종료 경합에서 지면 메트릭을 발행하지 않는다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "enqueue: 검색 후보가 3개를 넘으면 LLM 프롬프트에는 상위 3개만 전달한다",
+    "time_seconds": 0.003,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[1] candidateCount=1",
+    "time_seconds": 0.011,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[2] candidateCount=2",
+    "time_seconds": 0.004,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[3] candidateCount=3",
+    "time_seconds": 0.005,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[4] candidateCount=5",
+    "time_seconds": 0.005,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[5] candidateCount=20",
+    "time_seconds": 0.012,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "processJob LLM 무관 판단: 답변이 안내 문구로 시작하면 citation을 저장하지 않는다",
+    "time_seconds": 0.002,
+    "passed": false,
+    "failure_category": "org.mockito.exceptions.misusing.UnfinishedStubbingException: "
+  },
+  {
+    "method": "enqueue: NO_CONTEXT면 프롬프트 조립·PROCESSING 저장 없이 고정 응답으로 즉시 끝난다",
+    "time_seconds": 0.003,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "processJob Ollama 실패: completeFailed로 최상위 후보 원문을 인용한 extractive fallback을 저장한다",
+    "time_seconds": 0.003,
+    "passed": false,
+    "failure_category": "org.mockito.exceptions.misusing.UnfinishedStubbingException: "
+  },
+  {
+    "method": "failIfStillProcessing: 검색 후보가 없으면(이론상 도달 불가능한 방어 분기) 고정 안내 문구로 강제 종료한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "enqueue: 검색 후보가 있으면 프롬프트만 조립해 PROCESSING으로 저장하고 pending을 반환한다(LLM 호출 없음)",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "processJob 경합(#288): findById 시점에 이미 PROCESSING이 아니면 Ollama 호출 없이 즉시 false를 반환한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "failIfStillProcessing: 이미 다른 트랜잭션에서 끝난 job이면(영향받은 행 0건) false를 반환한다",
+    "time_seconds": 0.002,
+    "passed": false,
+    "failure_category": "org.mockito.exceptions.misusing.UnfinishedStubbingException: "
+  },
+  {
+    "method": "긴 청크는 말줄임표를 포함해 800자로 제한한다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "페이지 번호가 없는 후보는 p. 표기가 생략된다",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "후보가 많아도 모든 라벨을 유지하며 전체 청크 본문을 3200자로 제한한다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "무관한 문맥 거절 및 환각 방지 지시문과 질문이 항상 포함된다",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "정상 케이스: 후보 순서대로 [1], [2] 라벨이 부여되고 문서 제목/페이지/청크 텍스트가 포함된다",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "후속 질문은 최근 대화를 질문 해석용 문맥으로 포함하되 문서 근거로 취급하지 않는다",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "슬롯이 없으면 claim 자체를 시도하지 않는다",
+    "time_seconds": 0.031,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "다른 트랜잭션이 이미 같은 job을 처리했으면(낙관적 락 경합) FAILED로 덮어쓰지 않고 조용히 넘어간다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "실행 중인 claim만 heartbeat로 lease를 연장한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "경합(#288): processJob이 false를 반환하면(RagJobTimeoutSweeper가 이미 확정함) 알림을 보내지 않는다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "Executor 제출이 거부되면(RejectedExecutionException) 슬롯을 반환한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "claim할 job이 없으면 슬롯을 반환하고 Executor를 부르지 않는다",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "claim에 성공하면 Executor에 제출하고, 정상 처리되면 요청자 본인에게만 완료를 push한다",
+    "time_seconds": 0.001,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "claim 직후 job이 사라졌으면(극단적 상황) processJob을 부르지 않고 슬롯만 반환한다",
+    "time_seconds": 0.0,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "claim 중 예외가 나면 슬롯을 반환하고 Executor를 부르지 않는다",
+    "time_seconds": 0.002,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "processJob이 예상 밖 예외를 던지면 job을 FAILED로 확정하고, 알림은 그대로 보낸다",
+    "time_seconds": 0.003,
+    "passed": true,
+    "failure_category": null
+  }
+]

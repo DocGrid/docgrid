@@ -1,0 +1,9 @@
+{
+  "verdict": "FAILED_ENVIRONMENT",
+  "reported_tests": 1455,
+  "failures": 23,
+  "skipped": 5,
+  "confirmed_root_cause": "PostgreSQL FATAL: too many clients already in 19 initialization failures; 4 subsequent context failure-threshold skips",
+  "correction": "Use the existing CI setting SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=3 in the isolated runner; production settings unchanged",
+  "capture_limit": "Original runner test-summary-attempt-6 counted skipped as passed. Use JUnit exports and separate derived counts; raw log retained."
+}

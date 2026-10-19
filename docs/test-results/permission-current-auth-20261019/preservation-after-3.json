@@ -1,0 +1,7 @@
+{
+  ".env": true,
+  "frontend/.env.local": true,
+  "git_head": true,
+  "git_status": true,
+  "preexisting_containers": true
+}

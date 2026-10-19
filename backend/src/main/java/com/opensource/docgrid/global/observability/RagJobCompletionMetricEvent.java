@@ -18,6 +18,7 @@ public record RagJobCompletionMetricEvent(Outcome outcome) {
      * 정상 답변과 각 fallback·회수 원인을 구분하는 RAG 완료 결과다.
      */
     public enum Outcome {
+        AUTHORIZATION_WITHHELD("authorization_withheld"),
         SUCCESS("success"),
         NO_CONTEXT("no_context"),
         PROVIDER_FALLBACK("provider_fallback"),

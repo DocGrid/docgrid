@@ -1,0 +1,8 @@
+{
+  "declared_at_kst": "2026-10-19T22:41:46.108541+09:00",
+  "run_id": "AUTH-HTTP-20261019-FIX-R8",
+  "purpose": "Final same-scenario HTTP verification plus timeout/no-sources and in-flight transaction checks",
+  "command": "./backend/gradlew -p backend permissionCurrentAuthorizationTest --no-daemon --offline --console=plain",
+  "criteria": "9 cases pass; forbidden contents 0 after revocation; allowed controls maintained; held model has 0 idle-in-transaction sessions",
+  "source_identity": "source-identity-8.json"
+}

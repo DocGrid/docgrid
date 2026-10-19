@@ -1,0 +1,40 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.5/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+> Task :compileJava
+> Task :processResources UP-TO-DATE
+> Task :classes
+
+> Task :compileTestJava FAILED
+[TASK_WORKSPACE]/backend/src/test/java/com/opensource/docgrid/domain/rag/service/RagFacadeTest.java:333: error: method completeFailedOwned in class RagResponseCommandService cannot be applied to given types;
+        then(ragResponseCommandService).should(times(1)).completeFailedOwned(
+                                                        ^
+  required: RagResponse,String,String,String
+  found:    RagResponse,String,String,String,String
+  reason: actual and formal argument lists differ in length
+Note: [TASK_WORKSPACE]/backend/src/test/java/com/opensource/docgrid/domain/rag/service/RagFacadeTest.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+1 error
+
+[Incubating] Problems report is available at: file://[TASK_WORKSPACE]/backend/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileTestJava'.
+> Compilation failed; see the compiler output below.
+  [TASK_WORKSPACE]/backend/src/test/java/com/opensource/docgrid/domain/rag/service/RagFacadeTest.java:333: error: method completeFailedOwned in class RagResponseCommandService cannot be applied to given types;
+          then(ragResponseCommandService).should(times(1)).completeFailedOwned(
+                                                          ^
+    required: RagResponse,String,String,String
+    found:    RagResponse,String,String,String,String
+    reason: actual and formal argument lists differ in length
+  Note: [TASK_WORKSPACE]/backend/src/test/java/com/opensource/docgrid/domain/rag/service/RagFacadeTest.java uses unchecked or unsafe operations.
+  Note: Recompile with -Xlint:unchecked for details.
+  1 error
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 5s
+3 actionable tasks: 2 executed, 1 up-to-date

@@ -66,7 +66,7 @@ class SearchFacadeTest {
     void setUpConversation() {
         given(searchQueryCommandService.createProcessing(USER_ID, null, null, "검색어", 5))
             .willReturn(new SearchAdmission(50L, QUERY_ID));
-        given(searchConversationQueryService.findRecentContext(50L, QUERY_ID, 2)).willReturn(List.of());
+        given(searchConversationQueryService.findRecentContext(USER_ID, 50L, QUERY_ID, 2)).willReturn(List.of());
         given(searchConversationQueryService.contextualizeRetrieval(anyString(), any()))
             .willAnswer(invocation -> invocation.getArgument(0));
     }

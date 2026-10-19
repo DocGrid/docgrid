@@ -76,6 +76,10 @@ public class RagResponse extends BaseEntity {
     @Column(name = "prompt_text", columnDefinition = "TEXT")
     private String promptText;
 
+    /** 직접 근거와 이전 대화의 전이적 출처. NULL은 추적 불명이며 재조회에서 보류한다. */
+    @Column(name = "source_document_ids_json", columnDefinition = "TEXT")
+    private String sourceDocumentIdsJson;
+
     @Column(name = "input_token_count")
     private Integer inputTokenCount;
 
@@ -110,7 +114,7 @@ public class RagResponse extends BaseEntity {
     @Builder
     public RagResponse(SearchQuery query, String answerText, String llmProvider, String llmModelName,
                         String promptText, Integer inputTokenCount, Integer outputTokenCount, Integer latencyMs,
-                        ResultStatus status, String errorMessage) {
+                        ResultStatus status, String errorMessage, String sourceDocumentIdsJson) {
         this.query = query;
         this.answerText = answerText;
         this.llmProvider = llmProvider;
@@ -121,6 +125,7 @@ public class RagResponse extends BaseEntity {
         this.latencyMs = latencyMs;
         this.status = status;
         this.errorMessage = errorMessage;
+        this.sourceDocumentIdsJson = sourceDocumentIdsJson;
     }
 
     /**

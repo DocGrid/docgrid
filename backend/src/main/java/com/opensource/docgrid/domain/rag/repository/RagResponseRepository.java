@@ -82,6 +82,14 @@ public interface RagResponseRepository extends JpaRepository<RagResponse, Long> 
     @EntityGraph(attributePaths = {"query", "query.user"})
     Optional<RagResponse> findWithQueryAndUserById(Long id);
 
+    /** 실제 모델에 보낼 프롬프트·출처도 현재 유효한 작업 소유자만 갱신한다. */
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE RagResponse r SET r.promptText = :prompt, r.sourceDocumentIdsJson = :sources "
+        + "WHERE r.id = :id AND r.status = com.opensource.docgrid.domain.search.enums.ResultStatus.PROCESSING "
+        + "AND r.claimToken = :token AND r.claimLeaseUntil > :now")
+    int preparePromptIfOwned(@Param("id") Long id, @Param("token") String token,
+        @Param("now") LocalDateTime now, @Param("prompt") String prompt, @Param("sources") String sources);
+
     /** 현재 owner·token의 lease가 아직 유효할 때만 연장한다. */
     @Modifying(clearAutomatically = true)
     @Query("UPDATE RagResponse r SET r.claimLeaseUntil = :leaseUntil "
@@ -97,7 +105,7 @@ public interface RagResponseRepository extends JpaRepository<RagResponse, Long> 
     /** 여러 대화 Turn의 RAG 상태와 답변을 queryId 기준으로 한 번에 조회한다. */
     @Query("""
         SELECT new com.opensource.docgrid.domain.search.dto.ConversationRagResponseProjection(
-            r.query.id, r.status, r.answerText
+            r.query.id, r.status, r.answerText, r.sourceDocumentIdsJson
         )
         FROM RagResponse r
         WHERE r.query.id IN :queryIds
@@ -111,7 +119,7 @@ public interface RagResponseRepository extends JpaRepository<RagResponse, Long> 
      * 현재 생성 중인 Query는 excludedQueryId로 제외해 자기 자신을 문맥으로 다시 읽지 않게 한다.
      */
     @Query("""
-        SELECT new com.opensource.docgrid.domain.search.dto.ConversationContext(q.queryText, r.answerText)
+        SELECT new com.opensource.docgrid.domain.search.dto.ConversationContext(q.queryText, r.answerText, r.sourceDocumentIdsJson)
         FROM RagResponse r
         JOIN r.query q
         WHERE q.conversation.id = :conversationId
@@ -161,6 +169,14 @@ public interface RagResponseRepository extends JpaRepository<RagResponse, Long> 
         + "WHERE r.id = :id AND r.status = com.opensource.docgrid.domain.search.enums.ResultStatus.PROCESSING")
     int forceFailIfProcessing(@Param("id") Long id, @Param("answerText") String answerText,
                                @Param("errorMessage") String errorMessage);
+
+    /** 스위퍼의 대체 답변과 그 실제 출처도 동일한 조건부 UPDATE로 함께 확정한다. */
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE RagResponse r SET r.status = com.opensource.docgrid.domain.search.enums.ResultStatus.FAILED, "
+        + "r.answerText = :answer, r.errorMessage = :error, r.sourceDocumentIdsJson = :sources "
+        + "WHERE r.id = :id AND r.status = com.opensource.docgrid.domain.search.enums.ResultStatus.PROCESSING")
+    int forceFailWithSourcesIfProcessing(@Param("id") Long id, @Param("answer") String answer,
+        @Param("error") String error, @Param("sources") String sources);
 
     /** Worker 실패 결과는 현재 소유권 토큰과 살아 있는 lease가 모두 맞을 때만 확정한다. */
     @Modifying(clearAutomatically = true)

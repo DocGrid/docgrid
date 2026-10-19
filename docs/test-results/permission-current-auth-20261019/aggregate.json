@@ -1,0 +1,171 @@
+{
+  "created_at_kst": "2026-10-19T22:43:18.698693+09:00",
+  "base_revision": "1272a016e3b83e3f028d45a3bf567dab6bee743f",
+  "issue": 566,
+  "http_final": {
+    "total": 9,
+    "failed": 0,
+    "skipped": 0,
+    "passed": 9
+  },
+  "backend_full": {
+    "total": 1525,
+    "failed": 0,
+    "skipped": 5,
+    "passed": 1520
+  },
+  "same_production_sources_in_full_and_http": true,
+  "final_http_runs": [
+    {
+      "run_id": "AUTH-EMPTY-20261019-FIX-R8",
+      "verdict": {
+        "at_kst": "2026-10-19T22:42:01.662044+09:00",
+        "event": "verdict",
+        "run_id": "AUTH-EMPTY-20261019-FIX-R8",
+        "security_pass": true,
+        "revoked_content": false,
+        "model_requests": 0
+      },
+      "model_wait_db": [],
+      "log": "AUTH-EMPTY-20261019-FIX-R8/events.jsonl"
+    },
+    {
+      "run_id": "AUTH-HISTORY-20261019-FIX-R8",
+      "verdict": {
+        "at_kst": "2026-10-19T22:41:59.282475+09:00",
+        "event": "verdict",
+        "run_id": "AUTH-HISTORY-20261019-FIX-R8",
+        "revoked_history_input": false,
+        "allowed_source_present": true,
+        "current_results_revoked": false,
+        "model_requests": 2,
+        "security_pass": true
+      },
+      "model_wait_db": [],
+      "log": "AUTH-HISTORY-20261019-FIX-R8/events.jsonl"
+    },
+    {
+      "run_id": "AUTH-INFLIGHT-20261019-FALLBACK-FIX-R8",
+      "verdict": {
+        "at_kst": "2026-10-19T22:42:00.077065+09:00",
+        "event": "verdict",
+        "run_id": "AUTH-INFLIGHT-20261019-FALLBACK-FIX-R8",
+        "revoked_response_or_persisted_answer": false,
+        "provider_failure": true,
+        "security_pass": true
+      },
+      "model_wait_db": [
+        {
+          "at_kst": "2026-10-19T22:41:59.992994+09:00",
+          "event": "model-wait-db",
+          "run_id": "AUTH-INFLIGHT-20261019-FALLBACK-FIX-R8",
+          "idle_in_transaction": 0
+        }
+      ],
+      "log": "AUTH-INFLIGHT-20261019-FALLBACK-FIX-R8/events.jsonl"
+    },
+    {
+      "run_id": "AUTH-INFLIGHT-20261019-SUCCESS-FIX-R8",
+      "verdict": {
+        "at_kst": "2026-10-19T22:41:59.665521+09:00",
+        "event": "verdict",
+        "run_id": "AUTH-INFLIGHT-20261019-SUCCESS-FIX-R8",
+        "revoked_response_or_persisted_answer": false,
+        "provider_failure": false,
+        "security_pass": true
+      },
+      "model_wait_db": [
+        {
+          "at_kst": "2026-10-19T22:41:59.592469+09:00",
+          "event": "model-wait-db",
+          "run_id": "AUTH-INFLIGHT-20261019-SUCCESS-FIX-R8",
+          "idle_in_transaction": 0
+        }
+      ],
+      "log": "AUTH-INFLIGHT-20261019-SUCCESS-FIX-R8/events.jsonl"
+    },
+    {
+      "run_id": "AUTH-LEGACY-20261019-FIX-R8",
+      "verdict": {
+        "at_kst": "2026-10-19T22:42:00.453928+09:00",
+        "event": "verdict",
+        "run_id": "AUTH-LEGACY-20261019-FIX-R8",
+        "metadata_cases": 4,
+        "revoked_history_input": false,
+        "security_pass": true
+      },
+      "model_wait_db": [],
+      "log": "AUTH-LEGACY-20261019-FIX-R8/events.jsonl"
+    },
+    {
+      "run_id": "AUTH-QUEUED-20261019-FIX-R8",
+      "verdict": {
+        "at_kst": "2026-10-19T22:41:58.799400+09:00",
+        "event": "verdict",
+        "run_id": "AUTH-QUEUED-20261019-FIX-R8",
+        "security_pass": true,
+        "model_requests": 1,
+        "revoked_model_input": false,
+        "model_started_after_revocation": true
+      },
+      "model_wait_db": [],
+      "log": "AUTH-QUEUED-20261019-FIX-R8/events.jsonl"
+    },
+    {
+      "run_id": "AUTH-SAVED-20261019-FIX-R8",
+      "verdict": {
+        "at_kst": "2026-10-19T22:41:58.384574+09:00",
+        "event": "verdict",
+        "run_id": "AUTH-SAVED-20261019-FIX-R8",
+        "conversation_exposures": 0,
+        "expected_forbidden_responses": 0,
+        "saved_answer_exposures": 0,
+        "repetitions_each": 3,
+        "security_pass": true
+      },
+      "model_wait_db": [],
+      "log": "AUTH-SAVED-20261019-FIX-R8/events.jsonl"
+    },
+    {
+      "run_id": "AUTH-TIMEOUT-20261019-FIX-R8",
+      "verdict": {
+        "at_kst": "2026-10-19T22:42:01.290703+09:00",
+        "event": "verdict",
+        "run_id": "AUTH-TIMEOUT-20261019-FIX-R8",
+        "allowed_fallback": true,
+        "revoked_fallback": false,
+        "security_pass": true
+      },
+      "model_wait_db": [],
+      "log": "AUTH-TIMEOUT-20261019-FIX-R8/events.jsonl"
+    },
+    {
+      "run_id": "AUTH-TRANSITIVE-20261019-FIX-R8",
+      "verdict": {
+        "at_kst": "2026-10-19T22:42:00.914714+09:00",
+        "event": "verdict",
+        "run_id": "AUTH-TRANSITIVE-20261019-FIX-R8",
+        "revoked_transitive_output_or_input": false,
+        "security_pass": true
+      },
+      "model_wait_db": [],
+      "log": "AUTH-TRANSITIVE-20261019-FIX-R8/events.jsonl"
+    }
+  ],
+  "before_security_failures": 3,
+  "after_required_scenarios_passed": 3,
+  "after_additional_cases_passed": 6,
+  "cleanup": {
+    ".env": true,
+    "frontend/.env.local": true,
+    "git_head": true,
+    "git_status": true,
+    "preexisting_containers": true
+  },
+  "limits": [
+    "Local PostgreSQL, controlled embedding/search candidates/model response; actual authenticated HTTP and production authorization/RAG pipeline",
+    "No actual Ollama inference, OpenSQL/OpenProxy HA, cloud deployment, public traffic or original user documents",
+    "Already sent HTTP/model input is not revoked retroactively; checks define new preparation/read boundaries",
+    "Unknown legacy provenance withholds the entire answer and citations; user questions and allowed snippets remain"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "verdict": "INCOMPLETE",
+  "executed_tests": 0,
+  "cause": "Test fixture assertion called completeFailedOwned with one extra argument; corrected only test code",
+  "capture_limit": "Collector copied stale attempt-3 JUnit files after compilation failed. test-summary-attempt-4.json and junit-4 are excluded; raw Gradle attempt-4 log proves zero test execution. Collector now requires current-run report timestamps."
+}

@@ -13,13 +13,9 @@ import com.opensource.docgrid.domain.rag.entity.RagResponse;
 import com.opensource.docgrid.domain.rag.repository.RagResponseRepository;
 import com.opensource.docgrid.domain.rag.service.command.RagResponseCommandService;
 import com.opensource.docgrid.domain.rag.service.command.ResponseCitationCommandService;
-import com.opensource.docgrid.domain.search.dto.ConversationContext;
 import com.opensource.docgrid.domain.search.dto.VectorSearchCandidate;
 import com.opensource.docgrid.domain.search.entity.SearchQuery;
-import com.opensource.docgrid.domain.search.entity.SearchResult;
 import com.opensource.docgrid.domain.search.enums.ResultStatus;
-import com.opensource.docgrid.domain.search.repository.SearchResultRepository;
-import com.opensource.docgrid.domain.search.service.query.SearchConversationQueryService;
 import com.opensource.docgrid.global.exception.DocGridException;
 import com.opensource.docgrid.global.exception.ErrorCode;
 import com.opensource.docgrid.global.observability.RagJobCompletionMetricEvent;
@@ -54,7 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RagFacade {
 
     /**
-     * 상수 7개 요약:
+     * 상수 요약:
      * <ul>
      * <li>{@link #LLM_FALLBACK_PREFIX} — Ollama 호출 실패 시 최상위 검색 후보 원문을 인용하며
      *     붙이는 안내 문구 앞부분.</li>
@@ -63,11 +59,6 @@ public class RagFacade {
      *     으로 실패한 상황에서 추가 조회로 또 실패할 위험을 만들지 않기 위함.</li>
      * <li>{@link #FALLBACK_EXCERPT_MAX_CODE_POINTS}(300) — fallback 문구에 원문을 통째로 안
      *     붙이고 미리보기 수준으로만 자르는 글자 수 상한.</li>
-     * <li>{@link #MAX_PROMPT_CANDIDATES}(3) — 프롬프트·citation에 쓸 검색 후보 상한(#210).
-     *     topK는 1~20까지 자유롭게 요청되는데 그대로 다 넣으면 prefill 시간이 예측 불가능해진다
-     *     — LLM에 주지 않은 후보가 출처로 나오지 않도록 프롬프트와 citation 모두 이 값까지만
-     *     쓴다.</li>
-     * <li>{@link #MAX_CONVERSATION_CONTEXT_TURNS}(3) — 프롬프트에 넣을 이전 대화 턴 수 상한.</li>
      * <li>{@link #NO_RELEVANT_DOC_PHRASE} — PromptBuilder가 무관한 문서일 때 이 문구로만
      *     답하도록 지시한 것과 동일한 문자열(#65). 답변이 이 문구로 시작하면 근거 문서를
      *     화면에 같이 보여주지 않는다.</li>
@@ -80,19 +71,16 @@ public class RagFacade {
         + "가장 관련도 높은 문서에서 다음 내용을 찾았습니다:\n\n";
     private static final String UNEXPECTED_FAILURE_ANSWER_TEXT = "답변 생성 중 예상치 못한 오류가 발생했습니다.";
     private static final int FALLBACK_EXCERPT_MAX_CODE_POINTS = 300;
-    private static final int MAX_PROMPT_CANDIDATES = 3;
-    private static final int MAX_CONVERSATION_CONTEXT_TURNS = 3;
     private static final String NO_RELEVANT_DOC_PHRASE = "관련 문서를 찾지 못했습니다";
     private static final String TIMEOUT_ERROR_MESSAGE =
         "PROCESSING 상태 유지 시간이 임계값을 초과해 강제 종료됨(RagJobTimeoutSweeper)";
 
-    private final PromptBuilder promptBuilder;
+    private final RagPromptPreparationService promptPreparation;
+    private final RagDocumentAccessService authorization;
     private final OllamaClient ollamaClient;
     private final RagResponseCommandService ragResponseCommandService;
     private final ResponseCitationCommandService responseCitationCommandService;
     private final RagResponseRepository ragResponseRepository;
-    private final SearchResultRepository searchResultRepository;
-    private final SearchConversationQueryService searchConversationQueryService;
     private final EntityManager entityManager;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final org.springframework.transaction.support.TransactionTemplate ragTransactionTemplate;
@@ -101,7 +89,7 @@ public class RagFacade {
      * 검색 직후 SearchController가 동기 호출하는 접수 단계. Ollama는 아직 호출하지 않는다.
      *
      * <p>candidates가 비어있으면(NO_CONTEXT) LLM 호출 없이 고정 응답으로 즉시 끝낸다 — Job
-     * 큐에 올릴 이유가 없다. 후보가 있으면 프롬프트만 조립하고(순수 문자열 처리라 빠름)
+     * 큐에 올릴 이유가 없다. 후보가 있으면 현재 Primary 권한으로 프롬프트를 준비하고
      * PROCESSING 상태로 저장한 뒤 즉시 반환한다 — 실제 LLM 호출은 나중에 RagJobWorker가
      * {@link #processJob}으로 한다.
      */
@@ -122,14 +110,14 @@ public class RagFacade {
             return RagEnqueueOutcome.done(RagAnswer.noContext(ragResponse.getAnswerText()));
         }
 
-        List<VectorSearchCandidate> promptCandidates = candidates.size() > MAX_PROMPT_CANDIDATES
-            ? candidates.subList(0, MAX_PROMPT_CANDIDATES)
-            : candidates;
-        List<ConversationContext> conversationContext = searchConversationQueryService.findRecentContext(
-            conversationId, queryId, MAX_CONVERSATION_CONTEXT_TURNS
-        );
-        String prompt = promptBuilder.build(queryText, promptCandidates, conversationContext);
-        RagResponse ragResponse = ragResponseCommandService.createPending(queryRef, prompt);
+        // 현재 권한과 전이적 출처를 확인한 입력만 대기열에 저장한다. Worker가 보내기 직전 다시 준비한다.
+        var prepared = promptPreparation.prepare(queryId);
+        if (prepared.candidates().isEmpty()) {
+            var empty = ragResponseCommandService.createNoContext(queryRef);
+            return RagEnqueueOutcome.done(RagAnswer.noContext(empty.getAnswerText()));
+        }
+        RagResponse ragResponse = ragResponseCommandService.createPending(
+            queryRef, prepared.promptText(), prepared.sourceDocumentIdsJson());
         log.info("[RAG] enqueued queryId={} responseId={}", queryId, ragResponse.getId());
         return RagEnqueueOutcome.stillPending();
     }
@@ -173,32 +161,27 @@ public class RagFacade {
         }
         Long queryId = job.getQuery().getId();
 
+        // 1. 과거 promptText를 재사용하지 않고 현재 허용 후보·대화 문맥을 짧게 다시 준비한다.
+        var prepared = promptPreparation.prepare(queryId);
+        if (!ragResponseCommandService.preparePromptOwned(job, claimToken,
+                prepared.promptText(), prepared.sourceDocumentIdsJson())) return false;
+        if (prepared.candidates().isEmpty()) {
+            return Boolean.TRUE.equals(ragTransactionTemplate.execute(status -> withhold(job, claimToken)));
+        }
+
         OllamaGenerateResult result;
         try {
-            result = ollamaClient.generate(job.getPromptText());
+            // 2. 준비 트랜잭션은 종료됐다. 외부 모델 대기 동안 연결을 점유하지 않는다.
+            result = ollamaClient.generate(prepared.promptText());
         } catch (DocGridException e) {
-            /**
-             * LLM 장애가 권한 검증을 통과한 벡터 검색 결과까지 숨기지 않도록, 최상위 후보 원문을
-             * 그대로 인용해 최소한의 답을 제공한다(extractive fallback). 이 fallback은 비동기 전환
-             * 이전과 달리 rag_responses에 그대로 영속화된다 — 나중에 GET/조회로 이 값을 그대로 돌려준다.
-             */
-            List<VectorSearchCandidate> candidates = loadCandidates(queryId);
-            String fallbackAnswer = candidates.isEmpty() ? e.getErrorCode().getMessage()
-                : buildExtractiveFallbackAnswer(candidates);
-            // 1. 모델 호출은 이미 끝났다. 실패 확정만 짧은 DB 트랜잭션에서 수행한다.
-            boolean completed = Boolean.TRUE.equals(ragTransactionTemplate.execute(status -> {
-                boolean saved = ragResponseCommandService.completeFailedOwned(
-                    job, claimToken, fallbackAnswer, e.getMessage()
-                );
-                if (saved) {
-                    applicationEventPublisher.publishEvent(
-                        new RagJobCompletionMetricEvent(Outcome.PROVIDER_FALLBACK)
-                    );
-                }
+            return Boolean.TRUE.equals(ragTransactionTemplate.execute(status -> {
+                // 모델 오류가 나도 회수된 근거를 fallback으로 다시 노출하지 않는다.
+                if (!sourcesStillReadable(prepared)) return withhold(job, claimToken);
+                boolean saved = ragResponseCommandService.completeFailedOwned(job, claimToken,
+                    buildExtractiveFallbackAnswer(prepared.candidates()), e.getMessage());
+                if (saved) applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.PROVIDER_FALLBACK));
                 return saved;
             }));
-            log.warn("[RAG] fallback queryId={} errorCode={}", queryId, e.getErrorCode().getCode());
-            return completed;
         }
 
         /**
@@ -224,8 +207,10 @@ public class RagFacade {
 
         String finalAnswerText = answerText;
         boolean finalNoRelevant = noRelevant;
-        // 2. 답변과 인용은 한 트랜잭션에서 함께 확정한다. 모델 대기 중에는 이 트랜잭션이 없다.
+        // 3. 답변과 인용은 한 트랜잭션에서 함께 확정한다. 모델 대기 중에는 이 트랜잭션이 없다.
         boolean completed = Boolean.TRUE.equals(ragTransactionTemplate.execute(status -> {
+            // 처리 중 회수됐다면 모델 원문과 인용을 저장하지 않는다.
+            if (!sourcesStillReadable(prepared)) return withhold(job, claimToken);
             boolean saved = ragResponseCommandService.completeSuccessOwned(job, claimToken, new OllamaGenerateResult(
                 result.model(), finalAnswerText, result.inputTokenCount(), result.outputTokenCount(), result.latencyMs()
             ));
@@ -233,14 +218,7 @@ public class RagFacade {
                 return false;
             }
             if (!finalNoRelevant) {
-                List<SearchResult> citationSearchResults =
-                    searchResultRepository.findByQuery_IdOrderByRankNo(queryId).stream()
-                        .limit(MAX_PROMPT_CANDIDATES)
-                        .toList();
-                List<VectorSearchCandidate> citationCandidates = citationSearchResults.stream()
-                    .map(VectorSearchCandidate::from)
-                    .toList();
-                responseCitationCommandService.saveAll(job, citationCandidates, citationSearchResults);
+                responseCitationCommandService.saveAll(job, prepared.candidates(), prepared.searchResults());
             }
             applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.SUCCESS));
             return true;
@@ -260,6 +238,21 @@ public class RagFacade {
         log.info("[RAG] done queryId={} responseId={} latencyMs={} promptTokens={} answerTokens={}",
             queryId, job.getId(), result.latencyMs(), result.inputTokenCount(), result.outputTokenCount());
         return true;
+    }
+
+    private boolean sourcesStillReadable(RagPromptPreparationService.PreparedPrompt prepared) {
+        var sources = authorization.sources(prepared.sourceDocumentIdsJson());
+        var access = authorization.authorize(prepared.userId(), sources);
+        return authorization.permits(access, prepared.sourceDocumentIdsJson());
+    }
+
+    /** 회수된 모델 결과는 내용 없는 안내로 현재 소유권 조건 아래 한 번만 확정한다. */
+    private boolean withhold(RagResponse job, String token) {
+        boolean saved = ragResponseCommandService.completeFailedOwned(job, token,
+            RagDocumentAccessService.WITHHELD_ANSWER, "RAG source access changed");
+        if (saved) applicationEventPublisher.publishEvent(
+            new RagJobCompletionMetricEvent(Outcome.AUTHORIZATION_WITHHELD));
+        return saved;
     }
 
     /**
@@ -290,8 +283,8 @@ public class RagFacade {
 
     /**
      * RagJobTimeoutSweeper가 너무 오래 PROCESSING으로 남은 job을 발견했을 때 호출한다(#286).
-     * LLM 호출 실패 fallback과 동일하게 검색 1등 후보를 인용한 답으로 채우되, 실제 종료는
-     * {@link RagResponseRepository#forceFailIfProcessing}의 조건부 UPDATE로만 한다 — 그 사이
+     * 현재 권한으로 다시 준비한 검색 1등 후보를 인용한 답으로 채우되, 실제 종료는
+     * {@link RagResponseRepository#forceFailWithSourcesIfProcessing}의 조건부 UPDATE로만 한다 — 그 사이
      * RagJobWorker가 이미 이 job을 정상 완료했다면 영향받은 행이 0건이라 덮어쓰지 않는다.
      *
      * @return 실제로 이 호출로 FAILED 전환이 일어났으면 true, 이미 다른 트랜잭션에서 끝나
@@ -299,28 +292,17 @@ public class RagFacade {
      */
     @Transactional
     public boolean failIfStillProcessing(Long jobId, Long queryId) {
-        List<VectorSearchCandidate> candidates = loadCandidates(queryId);
+        var prepared = promptPreparation.prepare(queryId);
+        List<VectorSearchCandidate> candidates = prepared.candidates();
         String fallbackAnswer = candidates.isEmpty()
             ? UNEXPECTED_FAILURE_ANSWER_TEXT
             : buildExtractiveFallbackAnswer(candidates);
-        int updated = ragResponseRepository.forceFailIfProcessing(jobId, fallbackAnswer, TIMEOUT_ERROR_MESSAGE);
+        int updated = ragResponseRepository.forceFailWithSourcesIfProcessing(
+            jobId, fallbackAnswer, TIMEOUT_ERROR_MESSAGE, prepared.sourceDocumentIdsJson());
         if (updated > 0) {
             applicationEventPublisher.publishEvent(new RagJobCompletionMetricEvent(Outcome.TIMEOUT_SWEPT));
         }
         return updated > 0;
-    }
-
-    /**
-     * LLM 실패 또는 타임아웃 fallback에 사용할 후보를 저장된 검색 결과에서 복원한다.
-     * 검색 순서({@code ORDER BY rank_no})를 유지해 최상위 후보의 원문을 인용할 수 있게 한다.
-     */
-    private List<VectorSearchCandidate> loadCandidates(Long queryId) {
-        // 검색 결과의 chunk·document 연관관계는 지연 로딩이므로 짧은 읽기 트랜잭션 안에서 DTO로 만든다.
-        return ragTransactionTemplate.execute(status ->
-            searchResultRepository.findByQuery_IdOrderByRankNo(queryId).stream()
-                .map(VectorSearchCandidate::from)
-                .toList()
-        );
     }
 
     /**

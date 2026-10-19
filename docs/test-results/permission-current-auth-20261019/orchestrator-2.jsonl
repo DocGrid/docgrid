@@ -1,0 +1,6 @@
+{"at_kst": "2026-10-19T22:32:32.423022+09:00", "preparation_attempt": "2", "event": "preparation-start", "source_revision": "1272a016e3b83e3f028d45a3bf567dab6bee743f", "purpose": "Current authorization on saved responses and model input", "existing_containers": 35}
+{"at_kst": "2026-10-19T22:32:34.145227+09:00", "preparation_attempt": "2", "event": "isolated-services-ready", "postgresql_image": "pgvector/pgvector:0.8.1-pg17", "valkey_image": "valkey/valkey:9.1-alpine", "loopback_only": true}
+{"at_kst": "2026-10-19T22:32:34.224830+09:00", "preparation_attempt": "2", "event": "gradle-start", "command": "./backend/gradlew -p backend permissionCurrentAuthorizationTest --tests com.opensource.docgrid.domain.permission.integration.PermissionSavedResponseVerificationTest --no-daemon --offline --console=plain"}
+{"at_kst": "2026-10-19T22:32:48.311991+09:00", "preparation_attempt": "2", "event": "gradle-finished", "exit_code": 0, "elapsed_seconds": 15.912}
+{"at_kst": "2026-10-19T22:32:48.314860+09:00", "preparation_attempt": "2", "event": "test-summary", "methods": 7, "passed": 7, "failed": 0}
+{"at_kst": "2026-10-19T22:32:48.979114+09:00", "preparation_attempt": "2", "event": "cleanup-finished", "owned_containers_removed": 2, "preservation": {".env": true, "frontend/.env.local": true, "git_head": true, "git_status": true, "preexisting_containers": true}}

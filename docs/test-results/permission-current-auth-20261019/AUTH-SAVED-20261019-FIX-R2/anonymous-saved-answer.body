@@ -1,0 +1,1 @@
+{"status":401,"code":"COMMON-007","message":"인증이 필요합니다.","method":"GET","path":"/search/1","success":false,"timestamp":"2026-10-19 22:32:44"}

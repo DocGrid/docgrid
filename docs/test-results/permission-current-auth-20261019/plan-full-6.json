@@ -1,0 +1,8 @@
+{
+  "declared_at_kst": "2026-10-19T22:36:34.467853+09:00",
+  "run_id": "AUTH-FULL-20261019-R6",
+  "purpose": "Full default backend regression including current-authorization units and existing API/claim/transaction contracts",
+  "command": "./backend/gradlew -p backend test --no-daemon --offline --console=plain",
+  "environment": "Fresh task-owned PostgreSQL and Valkey; test profile; remote credentials absent",
+  "criteria": "0 failed tests; skips separately reported; owned resource cleanup and environment preservation"
+}
