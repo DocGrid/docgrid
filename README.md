@@ -57,6 +57,8 @@ cd docgrid
 | `stop` | 이번 세션 소유 자원만 중지하고 DB·원본·모델 캐시 보존 |
 
 - Web: `http://localhost:3000` · API 문서: `http://localhost:8080/swagger-ui/index.html`
+- 첫 모델 다운로드 등 준비가 느리면 `./scripts/demo.py start --scope search --timeout 1200`으로 대기 제한을 늘릴 수 있습니다.
+  기본 옵션은 900초이며, 독립 환경 재현에서는 1200초를 사용했습니다.
 - `verify`는 예제 계정 비밀번호를 입력받습니다. 같은 계정의 재실행은 이전 원장과 문서 ID도 대조합니다.
   결과는 `.demo/reports/<run-id>/`에 남습니다.
 - 기본 `search` 범위는 Ollama를 시작하거나 필수로 요구하지 않습니다. 생성 답변·인용까지 검사하려면
@@ -118,12 +120,15 @@ Prometheus는 대상의 readiness와 별개로 먼저 기동해 수집 실패를
 
 ### 대표 결과
 
-| 목적 | 환경·조건 | 관측 결과와 한계 | 증거 |
-|---|---|---|---|
-| **OpenSQL 장애 중 성공 응답 보존** | GCP 3노드, 네트워크 분할 회차별 최초 요청 751건 | 비동기: 최초 201 632건 중 40건 유실. 별도 동기 strict 회차: 201 586건 누락 0, HTTP 오류·결과 불명 발생. 동기는 시험용 역할 어댑터 경유 | [비동기](docs/test-results/opensql-primary-network-partition-20261017/README.md) · [strict](docs/test-results/opensql-primary-network-partition-sync-20261017/README.md) |
-| **DB·GCS 외부 복원** | 실제 OpenSQL·Barman·GCS, 전용 논리 DB·별도 PGDATA(물리 호스트 공유), 2026-10-18 | 성공 응답 65건 중 60건 복원·5건 손실. 마지막 외부 보존 확인 구간 60건 누락 0. 공개 트래픽 전환·Ollama 제외 | [WAL 완료 경계 수정](docs/test-results/wal-offsite-boundary-20261018/README.md) · [재계측](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md) |
-| **RAG 작업 소유권·현재 권한** | 로컬 격리 PostgreSQL·실제 Backend, 제어 모델 서버. 소유권은 JVM 2대, 권한은 별도 실제 인증 HTTP 시험 | B 기동 경합: 모델 호출 1회. A 중단·재선점: 호출 2회지만 최종 답변·인용 단일 확정. 별도 권한 HTTP 9/9 통과. 실제 Ollama 제외, 이 시험에서 공개 배포 미실행 | [소유권](docs/test-results/rag-ab-ownership-20261016/README.md) · [권한](docs/test-results/permission-current-auth-20261019/README.md) |
-| **Generic Plan 검색 지연 개선** | 로컬 PostgreSQL 17.8, 약 5만 청크(합성 92.9%)·허용 100%·topK 10·질문 30개, 수정 전후 연속 측정 | 벡터 검색 단계 p50 4,465.7→218.5ms, 하이브리드 5,799.9→1,380.6ms. 전체 REST API·OpenSQL 경로의 지연이 아님 | [측정·조건](docs/test-results/gimin-%23549-generic-plan-query-vector-cast.md) |
+| 목적 | 환경·조건 | 관측 결과와 한계 | 증거 | 관련 PR |
+|---|---|---|---|---|
+| **OpenSQL 장애 중 성공 응답 보존** | GCP 3노드, 네트워크 분할 회차별 최초 요청 751건 | 비동기: 최초 201 632건 중 40건 유실. 별도 동기 strict 회차: 201 586건 누락 0, HTTP 오류·결과 불명 발생. 동기는 시험용 역할 어댑터 경유 | [비동기](docs/test-results/opensql-primary-network-partition-20261017/README.md) · [strict](docs/test-results/opensql-primary-network-partition-sync-20261017/README.md) | [#548](https://github.com/DocGrid/docgrid/pull/548) |
+| **DB·GCS 외부 복원** | 실제 OpenSQL·Barman·GCS, 전용 논리 DB·별도 PGDATA(물리 호스트 공유), 2026-10-18 | 성공 응답 65건 중 60건 복원·5건 손실. 마지막 외부 보존 확인 구간 60건 누락 0. 공개 트래픽 전환·Ollama 제외 | [WAL 완료 경계 수정](docs/test-results/wal-offsite-boundary-20261018/README.md) · [재계측](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md) | [#564](https://github.com/DocGrid/docgrid/pull/564) · [#565](https://github.com/DocGrid/docgrid/pull/565) |
+| **RAG 작업 소유권·현재 권한** | 로컬 격리 PostgreSQL·실제 Backend, 제어 모델 서버. 소유권은 JVM 2대, 권한은 별도 실제 인증 HTTP 시험 | 소유권 총 7회: 통과 4회·준비/시험 데이터 오류 2회·불합격 1회(원인 미확정). 통과 회차에서 B 기동 시 호출 1회, A 중단·재선점 시 호출 2회·최종 답변/인용 단일 확정. 별도 권한 HTTP 9/9 통과. 실제 Ollama 제외, 이 시험에서 공개 배포 미실행 | [소유권](docs/test-results/rag-ab-ownership-20261016/README.md) · [권한](docs/test-results/permission-current-auth-20261019/README.md) | [#513](https://github.com/DocGrid/docgrid/pull/513) · [#515](https://github.com/DocGrid/docgrid/pull/515) · [#516](https://github.com/DocGrid/docgrid/pull/516) · [#567](https://github.com/DocGrid/docgrid/pull/567) |
+| **Generic Plan 검색 지연 개선** | 로컬 PostgreSQL 17.8, 약 5만 청크(합성 92.9%)·허용 100%·topK 10·질문 30개, `plan_cache_mode=force_generic_plan` 고정·수정 전후 연속 측정 | 벡터 검색 단계 p50 4,465.7→218.5ms, 하이브리드 5,799.9→1,380.6ms. 전체 REST API·OpenSQL 경로의 지연이 아님 | [측정·조건](docs/test-results/gimin-%23549-generic-plan-query-vector-cast.md) | [#550](https://github.com/DocGrid/docgrid/pull/550) |
+
+RAG 소유권 7회는 서로 다른 준비·장애·경합 시나리오이며 서비스 성공률이 아닙니다.
+Generic Plan 측정은 강제 조건이며, 실제 앱 연결 풀의 계획 선택 시점은 연결별 실행 횟수에 따라 다릅니다.
 
 네트워크 분할의 별도 멱등 API 회차에서는 새 요청 751건의 최초 201 585건을 보존했습니다.
 복구 뒤 같은 ID 재전송은 기존 585건을 200, 미반영 166건을 201로 처리해 최종 751건·중복 0건이 됐습니다.
@@ -331,6 +336,7 @@ macOS 팀원별 터널 자동 시작 절차는 [로컬 OpenSQL SSH 터널 가이
 ```bash
 docker compose up -d --wait postgres valkey
 ./backend/gradlew -p backend test
+npm --prefix frontend ci
 npm --prefix frontend test
 ```
 
