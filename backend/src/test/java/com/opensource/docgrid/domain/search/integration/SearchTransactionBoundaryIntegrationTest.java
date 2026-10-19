@@ -129,7 +129,7 @@ class SearchTransactionBoundaryIntegrationTest {
             .orElseThrow()
             .getId();
 
-        given(searchConversationQueryService.findRecentContext(anyLong(), anyLong(), eq(2)))
+        given(searchConversationQueryService.findRecentContext(anyLong(), anyLong(), anyLong(), eq(2)))
             .willReturn(List.of());
         given(searchConversationQueryService.contextualizeRetrieval(anyString(), any()))
             .willAnswer(invocation -> invocation.getArgument(0));

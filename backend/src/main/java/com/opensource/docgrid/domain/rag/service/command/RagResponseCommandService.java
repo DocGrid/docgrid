@@ -38,10 +38,16 @@ public class RagResponseCommandService {
      * RagJobWorker가 한다.
      */
     public RagResponse createPending(SearchQuery query, String promptText) {
+        return createPending(query, promptText, null);
+    }
+
+    /** 새 입력의 전체 출처를 본문과 같은 트랜잭션에서 저장한다. */
+    public RagResponse createPending(SearchQuery query, String promptText, String sources) {
         RagResponse ragResponse = RagResponse.builder()
             .query(query)
             .llmProvider(LLM_PROVIDER)
             .promptText(promptText)
+            .sourceDocumentIdsJson(sources)
             .status(ResultStatus.PROCESSING)
             .build();
         return ragResponseRepository.save(ragResponse);
@@ -55,10 +61,16 @@ public class RagResponseCommandService {
     public RagResponse createNoContext(SearchQuery query) {
         RagResponse ragResponse = RagResponse.builder()
             .query(query)
+            .sourceDocumentIdsJson("[]")
             .answerText(NO_CONTEXT_ANSWER_TEXT)
             .status(ResultStatus.SUCCESS)
             .build();
         return ragResponseRepository.save(ragResponse);
+    }
+
+    /** 모델 입력 갱신도 token·lease fencing을 적용해 이전 작업자의 변경을 차단한다. */
+    public boolean preparePromptOwned(RagResponse job, String token, String prompt, String sources) {
+        return ragResponseRepository.preparePromptIfOwned(job.getId(), token, LocalDateTime.now(), prompt, sources) == 1;
     }
 
     /** 현재 claim token의 lease가 유효할 때만 성공 결과를 확정해 timeout·재선점 경합을 막는다. */

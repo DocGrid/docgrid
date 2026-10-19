@@ -1,0 +1,7 @@
+{
+  "verdict": "INCOMPLETE",
+  "security_methods_executed": 0,
+  "cause": "pg_isready returned during initdb before the requested database existed",
+  "correction": "Wait for a successful extension initialization in the exact requested database",
+  "cleanup": "Owned resources removed and personal environment preserved"
+}

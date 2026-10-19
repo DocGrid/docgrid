@@ -96,6 +96,25 @@ jobs:
       - name: Build and test
         run: ./backend/gradlew -p backend build --no-daemon
 
+      # 별도 DB·Redis DB로 기본 회귀의 잔여 Job·캐시와 분리한다.
+      - name: Verify current authorization of saved answers and model inputs
+        env:
+          PERMISSION_VERIFY_JDBC_URL: jdbc:postgresql://127.0.0.1:55432/docgrid_current_auth
+          PERMISSION_VERIFY_USER: app
+          PERMISSION_VERIFY_PASSWORD: local_password
+          PERMISSION_VERIFY_REDIS_PORT: 6379
+          PERMISSION_VERIFY_REDIS_DB: 9
+          PERMISSION_VERIFY_JWT_SECRET: docgrid-ci-current-auth-only-not-for-production
+          PERMISSION_VERIFY_RUN_SUFFIX: CI-R1
+        run: |
+          docker exec ${{ job.services.postgres.id }} psql -U app -d app -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE docgrid_current_auth OWNER app"
+          docker exec ${{ job.services.postgres.id }} psql -U app -d docgrid_current_auth -v ON_ERROR_STOP=1 \
+            -c "CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public"
+          export PERMISSION_VERIFY_RUN_DIR="$GITHUB_WORKSPACE/backend/build/reports/permission-current-auth"
+          export PERMISSION_VERIFY_SOURCE_REVISION="$GITHUB_SHA"
+          ./backend/gradlew -p backend permissionCurrentAuthorizationTest --no-daemon
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v7
@@ -104,6 +123,8 @@ jobs:
           path: |
             backend/build/test-results/test/
             backend/build/reports/tests/test/
+            backend/build/test-results/permissionCurrentAuthorizationTest/
+            backend/build/reports/permission-current-auth/
           if-no-files-found: warn
 
   frontend:

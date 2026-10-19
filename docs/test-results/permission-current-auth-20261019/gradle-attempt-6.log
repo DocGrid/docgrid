@@ -1,0 +1,261 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.5/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+
+> Task :compileTestJava
+Note: [TASK_WORKSPACE]/backend/src/test/java/com/opensource/docgrid/domain/rag/service/RagFacadeTest.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :test
+
+Document Embedding OpenSQL 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+Document 인덱싱 완료 OpenSQL 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+Document 인덱싱 실패 PostgreSQL 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+Embedding Job Attempt OpenSQL 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+Embedding Job Claim DB 동시성 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+Embedding Job 수동 재처리 PostgreSQL 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+기본 임베딩 모델 DB 제약 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+관리자 인덱싱 조회 PostgreSQL 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+EmbeddingJob 대시보드 집계 Repository 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+인덱싱 완료 Repository 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+컬렉션 USER 권한 부여 통합 테스트 > 문서가 없는 빈 컬렉션에도 USER 대상 권한을 부여할 수 있다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+컬렉션 USER 권한 부여 통합 테스트 > USER 대상 권한을 부여하면 오류 없이 부여자 이름이 응답에 담기고 컬렉션 문서의 캐시가 생긴다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+RagResponse Claim DB 동시성 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+검색 실패 원장 트랜잭션 경계 통합 테스트 > 결과 저장이 롤백되면 부분 결과 없이 원장만 FAILED로 확정한다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+검색 실패 원장 트랜잭션 경계 통합 테스트 > 원장 생성 뒤 검색이 실패해도 독립 트랜잭션으로 FAILED를 남긴다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+검색 실패 원장 트랜잭션 경계 통합 테스트 > 성공 시 임베딩 정보와 SUCCESS를 커밋하고 늦은 실패가 덮어쓰지 못한다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+검색 실패 원장 트랜잭션 경계 통합 테스트 > 임베딩 실패 시 DB 연결 없이 호출하고 FAILED 원장을 남긴다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+단어 갈래 Repository 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+벡터 검색 쿼리 Generic Plan 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+벡터 검색 Repository Section 경로 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+Embedding 저장 장애·Lease·Reconciler 복구 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+Sync Dispatch 장애 주입·복구 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+Sync Dispatcher 멱등성·동시성 통합 테스트 > initializationError FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractBeanFactory.java:328
+            Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1824
+                Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:71
+                    Caused by: org.postgresql.util.PSQLException at ConnectionFactoryImpl.java:835
+
+2026-10-19T22:38:00.318+09:00  INFO 46318 --- [docgrid] [extShutdownHook] o.s.j.d.e.EmbeddedDatabaseFactory        : Shutting down embedded database: url='jdbc:h2:mem:b4767b73-e0ce-4801-a496-30747270546f;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false'
+2026-10-19T22:38:00.320+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-19T22:38:00.320+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [[EMAIL_OMITTED]]]
+2026-10-19T22:38:00.320+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-19T22:38:00.326+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.326+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-10-19T22:38:00.327+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-10-19T22:38:00.328+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.329+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.330+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.331+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.335+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-19T22:38:00.335+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [[EMAIL_OMITTED]]]
+2026-10-19T22:38:00.335+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-19T22:38:00.339+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.340+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-5 - Shutdown initiated...
+2026-10-19T22:38:00.340+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-5 - Shutdown completed.
+2026-10-19T22:38:00.343+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.345+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.346+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.346+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.348+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-19T22:38:00.348+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [[EMAIL_OMITTED]]]
+2026-10-19T22:38:00.348+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-19T22:38:00.352+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.352+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-6 - Shutdown initiated...
+2026-10-19T22:38:00.352+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-6 - Shutdown completed.
+2026-10-19T22:38:00.354+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.354+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Shutdown initiated...
+2026-10-19T22:38:00.355+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Shutdown completed.
+2026-10-19T22:38:00.356+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.357+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.359+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.361+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.365+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-19T22:38:00.365+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [[EMAIL_OMITTED]]]
+2026-10-19T22:38:00.365+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-19T22:38:00.370+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.370+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-9 - Shutdown initiated...
+2026-10-19T22:38:00.371+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-9 - Shutdown completed.
+2026-10-19T22:38:00.372+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.373+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.374+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.375+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.376+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-19T22:38:00.376+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [[EMAIL_OMITTED]]]
+2026-10-19T22:38:00.376+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-19T22:38:00.380+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.380+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-12 - Shutdown initiated...
+2026-10-19T22:38:00.381+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-12 - Shutdown completed.
+2026-10-19T22:38:00.384+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-19T22:38:00.384+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [[EMAIL_OMITTED]]]
+2026-10-19T22:38:00.384+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-19T22:38:00.387+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.387+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-14 - Shutdown initiated...
+2026-10-19T22:38:00.387+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-14 - Shutdown completed.
+2026-10-19T22:38:00.389+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-19T22:38:00.389+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [[EMAIL_OMITTED]]]
+2026-10-19T22:38:00.389+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-19T22:38:00.392+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.392+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-15 - Shutdown initiated...
+2026-10-19T22:38:00.392+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-15 - Shutdown completed.
+2026-10-19T22:38:00.393+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-19T22:38:00.393+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [[EMAIL_OMITTED]]]
+2026-10-19T22:38:00.393+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-19T22:38:00.399+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.399+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-16 - Shutdown initiated...
+2026-10-19T22:38:00.399+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-16 - Shutdown completed.
+2026-10-19T22:38:00.400+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-10-19T22:38:00.400+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [[EMAIL_OMITTED]]]
+2026-10-19T22:38:00.400+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+2026-10-19T22:38:00.411+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.412+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-17 - Shutdown initiated...
+2026-10-19T22:38:00.412+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-17 - Shutdown completed.
+2026-10-19T22:38:00.418+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.419+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.419+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-19T22:38:00.419+09:00  INFO 46318 --- [docgrid] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-19T22:38:00.424+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-19T22:38:00.424+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-37 - Shutdown initiated...
+2026-10-19T22:38:00.424+09:00  INFO 46318 --- [docgrid] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-37 - Shutdown completed.
+
+> Task :test
+
+1455 tests completed, 23 failed, 5 skipped
+
+> Task :test FAILED
+
+[Incubating] Problems report is available at: file://[TASK_WORKSPACE]/backend/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':test'.
+> There were failing tests. See the report at: file://[TASK_WORKSPACE]/backend/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 1m 25s
+5 actionable tasks: 2 executed, 3 up-to-date

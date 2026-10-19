@@ -1,0 +1,65 @@
+[
+  {
+    "method": "Saved answer and conversation must exclude revoked content",
+    "time_seconds": 1.264,
+    "passed": true,
+    "skipped": false,
+    "failure_category": null
+  },
+  {
+    "method": "First model request after revocation must exclude an earlier queued source",
+    "time_seconds": 0.411,
+    "passed": true,
+    "skipped": false,
+    "failure_category": null
+  },
+  {
+    "method": "A new allowed search must not reuse a revoked answer in model history",
+    "time_seconds": 0.482,
+    "passed": true,
+    "skipped": false,
+    "failure_category": null
+  },
+  {
+    "method": "[1] providerFailure=false",
+    "time_seconds": 0.376,
+    "passed": true,
+    "skipped": false,
+    "failure_category": null
+  },
+  {
+    "method": "[2] providerFailure=true",
+    "time_seconds": 0.41,
+    "passed": true,
+    "skipped": false,
+    "failure_category": null
+  },
+  {
+    "method": "Legacy or malformed provenance must withhold answers and history",
+    "time_seconds": 0.376,
+    "passed": true,
+    "skipped": false,
+    "failure_category": null
+  },
+  {
+    "method": "Revoked transitive history sources must suppress a later answer citing only allowed documents",
+    "time_seconds": 0.46,
+    "passed": true,
+    "skipped": false,
+    "failure_category": null
+  },
+  {
+    "method": "Timeout fallback must use current permitted sources instead of the old top result",
+    "time_seconds": 0.375,
+    "passed": true,
+    "skipped": false,
+    "failure_category": null
+  },
+  {
+    "method": "A queued job with no readable source must finish without a model request",
+    "time_seconds": 0.371,
+    "passed": true,
+    "skipped": false,
+    "failure_category": null
+  }
+]

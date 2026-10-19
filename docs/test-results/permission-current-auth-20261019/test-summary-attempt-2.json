@@ -1,0 +1,44 @@
+[
+  {
+    "method": "Saved answer and conversation must exclude revoked content",
+    "time_seconds": 1.202,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "First model request after revocation must exclude an earlier queued source",
+    "time_seconds": 0.395,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "A new allowed search must not reuse a revoked answer in model history",
+    "time_seconds": 0.475,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[1] providerFailure=false",
+    "time_seconds": 0.398,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "[2] providerFailure=true",
+    "time_seconds": 0.394,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "Legacy or malformed provenance must withhold answers and history",
+    "time_seconds": 0.356,
+    "passed": true,
+    "failure_category": null
+  },
+  {
+    "method": "Revoked transitive history sources must suppress a later answer citing only allowed documents",
+    "time_seconds": 0.492,
+    "passed": true,
+    "failure_category": null
+  }
+]

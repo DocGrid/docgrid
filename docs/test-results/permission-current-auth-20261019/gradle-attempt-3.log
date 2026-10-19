@@ -1,0 +1,43 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.5/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :test FAILED
+
+RagFacade 단위 테스트 > processJob 무관 문구 혼입: 정상 답변 중간에 안내 문구가 섞이면 그 지점부터 제거한 뒤 저장하고 citation은 유지한다 FAILED
+    org.mockito.exceptions.misusing.UnfinishedStubbingException at RagFacadeTest.java:395
+
+RagFacade 단위 테스트 > processJob 정상 흐름: Ollama 호출 성공 시 completeSuccess와 citation을 저장한다 FAILED
+    org.mockito.exceptions.misusing.UnfinishedStubbingException at RagFacadeTest.java:266
+
+RagFacade 단위 테스트 > failIfStillProcessing: 검색 후보가 있으면 extractive fallback으로 강제 종료하고 true를 반환한다 FAILED
+    org.mockito.exceptions.misusing.UnfinishedStubbingException at RagFacadeTest.java:445
+
+RagFacade 단위 테스트 > processJob LLM 무관 판단: 답변이 안내 문구로 시작하면 citation을 저장하지 않는다 FAILED
+    org.mockito.exceptions.misusing.UnfinishedStubbingException at RagFacadeTest.java:371
+
+RagFacade 단위 테스트 > processJob Ollama 실패: completeFailed로 최상위 후보 원문을 인용한 extractive fallback을 저장한다 FAILED
+    org.mockito.exceptions.misusing.UnfinishedStubbingException at RagFacadeTest.java:327
+
+RagFacade 단위 테스트 > failIfStillProcessing: 이미 다른 트랜잭션에서 끝난 job이면(영향받은 행 0건) false를 반환한다 FAILED
+    org.mockito.exceptions.misusing.UnfinishedStubbingException at RagFacadeTest.java:463
+
+86 tests completed, 6 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':test'.
+> There were failing tests. See the report at: file://[TASK_WORKSPACE]/backend/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 5s
+5 actionable tasks: 1 executed, 4 up-to-date

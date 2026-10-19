@@ -94,12 +94,26 @@ class RagFacadeTest {
     @Mock
     private TransactionTemplate ragTransactionTemplate;
 
+    @Mock private RagPromptPreparationService promptPreparation;
+    @Mock private RagDocumentAccessService authorization;
+
     @BeforeEach
     void executeTransactionCallbacks() {
+        org.mockito.Mockito.lenient().when(promptPreparation.prepare(any())).thenReturn(preparedCandidates(
+            List.of(new VectorSearchCandidate(null, 10L, 100L, "청크 내용", 1, "문서", BigDecimal.ONE)), List.of()));
+        org.mockito.Mockito.lenient().when(ragResponseCommandService.preparePromptOwned(any(), anyString(), anyString(), anyString())).thenReturn(true);
+        org.mockito.Mockito.lenient().when(authorization.sources(anyString())).thenReturn(java.util.Set.of(100L));
+        org.mockito.Mockito.lenient().when(authorization.authorize(any(), any())).thenReturn(new RagDocumentAccessService.Access(java.util.Set.of(100L)));
+        org.mockito.Mockito.lenient().when(authorization.permits(any(), anyString())).thenReturn(true);
         org.mockito.Mockito.when(ragTransactionTemplate.execute(any())).thenAnswer(invocation -> {
             TransactionCallback<?> callback = invocation.getArgument(0);
             return callback.doInTransaction(null);
         });
+    }
+
+    private RagPromptPreparationService.PreparedPrompt preparedCandidates(
+        List<VectorSearchCandidate> candidates, List<SearchResult> results) {
+        return new RagPromptPreparationService.PreparedPrompt(1L, "조립된 프롬프트", "[100]", candidates, results);
     }
 
     private static final Long QUERY_ID = 100L;
@@ -141,12 +155,10 @@ class RagFacadeTest {
             1L, 10L, 100L, "청크 내용", 12, "인사규정", new BigDecimal("0.9")
         );
         List<VectorSearchCandidate> candidates = List.of(candidate);
-        given(searchConversationQueryService.findRecentContext(CONVERSATION_ID, QUERY_ID, 3))
-            .willReturn(List.of());
-        given(promptBuilder.build(eq("연차 규정 알려줘"), eq(candidates), eq(List.of())))
-            .willReturn("조립된 프롬프트");
-        given(ragResponseCommandService.createPending(queryRef, "조립된 프롬프트"))
+        given(ragResponseCommandService.createPending(eq(queryRef), eq("조립된 프롬프트"), anyString()))
             .willReturn(RagResponse.builder().status(ResultStatus.PROCESSING).build());
+
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(preparedCandidates(candidates, List.of()));
 
         RagEnqueueOutcome outcome = ragFacade.enqueue(
             CONVERSATION_ID, QUERY_ID, "연차 규정 알려줘", candidates
@@ -155,7 +167,7 @@ class RagFacadeTest {
         assertThat(outcome.pending()).isTrue();
         assertThat(outcome.immediateAnswer()).isNull();
         then(ollamaClient).should(never()).generate(anyString());
-        then(ragResponseCommandService).should(times(1)).createPending(queryRef, "조립된 프롬프트");
+        then(ragResponseCommandService).should(times(1)).createPending(eq(queryRef), eq("조립된 프롬프트"), anyString());
     }
 
     @Test
@@ -172,16 +184,14 @@ class RagFacadeTest {
             new VectorSearchCandidate(5L, 50L, 500L, "청크5", 5, "문서5", new BigDecimal("0.5"))
         );
         List<VectorSearchCandidate> expectedPromptCandidates = candidates.subList(0, 3);
-        given(searchConversationQueryService.findRecentContext(CONVERSATION_ID, QUERY_ID, 3))
-            .willReturn(List.of());
-        given(promptBuilder.build(anyString(), eq(expectedPromptCandidates), eq(List.of())))
-            .willReturn("조립된 프롬프트");
-        given(ragResponseCommandService.createPending(queryRef, "조립된 프롬프트"))
+        given(ragResponseCommandService.createPending(eq(queryRef), eq("조립된 프롬프트"), anyString()))
             .willReturn(RagResponse.builder().status(ResultStatus.PROCESSING).build());
+
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(preparedCandidates(expectedPromptCandidates, List.of()));
 
         ragFacade.enqueue(CONVERSATION_ID, QUERY_ID, "질문", candidates);
 
-        then(promptBuilder).should(times(1)).build(anyString(), eq(expectedPromptCandidates), eq(List.of()));
+        then(promptPreparation).should(times(1)).prepare(QUERY_ID);
     }
 
     // === processJob() ===
@@ -211,14 +221,12 @@ class RagFacadeTest {
         }
         RagResponse job = RagResponse.builder()
             .query(queryRef).promptText("조립된 프롬프트").status(ResultStatus.PROCESSING).build();
-        given(searchConversationQueryService.findRecentContext(CONVERSATION_ID, QUERY_ID, 3))
-            .willReturn(List.of());
-        given(promptBuilder.build(anyString(), any(), eq(List.of()))).willReturn("조립된 프롬프트");
-        given(ragResponseCommandService.createPending(queryRef, "조립된 프롬프트")).willReturn(job);
+        given(ragResponseCommandService.createPending(eq(queryRef), eq("조립된 프롬프트"), anyString())).willReturn(job);
         given(ragResponseRepository.findById(JOB_ID)).willReturn(Optional.of(job));
         given(ollamaClient.generate("조립된 프롬프트"))
             .willReturn(new OllamaGenerateResult("qwen2.5:7b", "정상 답변", 100, 20, 900));
-        given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(searchResults);
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(preparedCandidates(
+            candidates.subList(0, Math.min(3, candidates.size())), searchResults.subList(0, Math.min(3, searchResults.size()))));
         given(ragResponseCommandService.completeSuccessOwned(eq(job), eq("test-token"), any())).willReturn(true);
 
         // 2. 접수와 비동기 완료를 순차 실행해 두 단계의 후보 선택을 함께 검증한다.
@@ -231,7 +239,7 @@ class RagFacadeTest {
         ArgumentCaptor<List<VectorSearchCandidate>> citationCandidates = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<List<SearchResult>> citationResults = ArgumentCaptor.forClass(List.class);
         assertThat(completed).isTrue();
-        then(promptBuilder).should(times(1)).build("질문", expectedCandidates, List.of());
+        then(promptPreparation).should(times(2)).prepare(QUERY_ID);
         then(responseCitationCommandService).should(times(1))
             .saveAll(eq(job), citationCandidates.capture(), citationResults.capture());
         assertThat(citationCandidates.getValue()).containsExactlyElementsOf(expectedCandidates);
@@ -239,7 +247,7 @@ class RagFacadeTest {
             .containsExactlyElementsOf(List.of(10L, 20L, 30L).subList(0, expectedCount));
         assertThat(citationResults.getValue()).extracting(SearchResult::getId)
             .containsExactlyElementsOf(List.of(501L, 502L, 503L).subList(0, expectedCount));
-        then(searchResultRepository).should(times(1)).findByQuery_IdOrderByRankNo(QUERY_ID);
+
     }
 
     @Test
@@ -254,7 +262,8 @@ class RagFacadeTest {
         given(ollamaClient.generate("조립된 프롬프트")).willReturn(ollamaResult);
 
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "인사규정", new BigDecimal("0.9"));
-        given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
+        var prepared = preparedCandidates(List.of(VectorSearchCandidate.from(searchResult)), List.of(searchResult));
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(prepared);
         given(ragResponseCommandService.completeSuccessOwned(eq(job), eq("test-token"), any())).willReturn(true);
 
         boolean completed = ragFacade.processJob(JOB_ID, "test-token");
@@ -314,7 +323,8 @@ class RagFacadeTest {
             .willThrow(new DocGridException(ErrorCode.RAG_SERVICE_UNAVAILABLE));
 
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "인사규정", new BigDecimal("0.9"));
-        given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
+        var prepared = preparedCandidates(List.of(VectorSearchCandidate.from(searchResult)), List.of(searchResult));
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(prepared);
         given(ragResponseCommandService.completeFailedOwned(eq(job), eq("test-token"), anyString(), anyString())).willReturn(true);
 
         boolean completed = ragFacade.processJob(JOB_ID, "test-token");
@@ -357,7 +367,8 @@ class RagFacadeTest {
             new OllamaGenerateResult("qwen2.5:7b", "관련 문서를 찾지 못했습니다.", 100, 10, 500);
         given(ollamaClient.generate("조립된 프롬프트")).willReturn(ollamaResult);
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "인사규정", new BigDecimal("0.9"));
-        given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
+        var prepared = preparedCandidates(List.of(VectorSearchCandidate.from(searchResult)), List.of(searchResult));
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(prepared);
         given(ragResponseCommandService.completeSuccessOwned(eq(job), eq("test-token"), any())).willReturn(true);
 
         ragFacade.processJob(JOB_ID, "test-token");
@@ -380,7 +391,8 @@ class RagFacadeTest {
         OllamaGenerateResult ollamaResult = new OllamaGenerateResult("qwen2.5:7b", answerWithEcho, 100, 50, 500);
         given(ollamaClient.generate("조립된 프롬프트")).willReturn(ollamaResult);
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "디렉토리 명령어", new BigDecimal("0.9"));
-        given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
+        var prepared = preparedCandidates(List.of(VectorSearchCandidate.from(searchResult)), List.of(searchResult));
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(prepared);
         given(ragResponseCommandService.completeSuccessOwned(eq(job), eq("test-token"), any())).willReturn(true);
 
         ragFacade.processJob(JOB_ID, "test-token");
@@ -429,14 +441,15 @@ class RagFacadeTest {
     @DisplayName("failIfStillProcessing: 검색 후보가 있으면 extractive fallback으로 강제 종료하고 true를 반환한다")
     void failIfStillProcessing_withCandidates_forceFailsWithFallbackAndReturnsTrue() {
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "인사규정", new BigDecimal("0.9"));
-        given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
-        given(ragResponseRepository.forceFailIfProcessing(eq(JOB_ID), anyString(), anyString())).willReturn(1);
+        var prepared = preparedCandidates(List.of(VectorSearchCandidate.from(searchResult)), List.of(searchResult));
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(prepared);
+        given(ragResponseRepository.forceFailWithSourcesIfProcessing(eq(JOB_ID), anyString(), anyString(), anyString())).willReturn(1);
 
         boolean result = ragFacade.failIfStillProcessing(JOB_ID, QUERY_ID);
 
         assertThat(result).isTrue();
-        then(ragResponseRepository).should(times(1)).forceFailIfProcessing(
-            eq(JOB_ID), argThatFallbackContains("AI 답변 생성이 지연", "청크 내용", "인사규정"), anyString()
+        then(ragResponseRepository).should(times(1)).forceFailWithSourcesIfProcessing(
+            eq(JOB_ID), argThatFallbackContains("AI 답변 생성이 지연", "청크 내용", "인사규정"), anyString(), eq("[100]")
         );
         then(applicationEventPublisher).should()
             .publishEvent(new RagJobCompletionMetricEvent(Outcome.TIMEOUT_SWEPT));
@@ -446,8 +459,9 @@ class RagFacadeTest {
     @DisplayName("failIfStillProcessing: 이미 다른 트랜잭션에서 끝난 job이면(영향받은 행 0건) false를 반환한다")
     void failIfStillProcessing_alreadyFinishedByWorker_returnsFalse() {
         SearchResult searchResult = deepStubSearchResult(100L, 10L, "청크 내용", 12, "인사규정", new BigDecimal("0.9"));
-        given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of(searchResult));
-        given(ragResponseRepository.forceFailIfProcessing(eq(JOB_ID), anyString(), anyString())).willReturn(0);
+        var prepared = preparedCandidates(List.of(VectorSearchCandidate.from(searchResult)), List.of(searchResult));
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(prepared);
+        given(ragResponseRepository.forceFailWithSourcesIfProcessing(eq(JOB_ID), anyString(), anyString(), anyString())).willReturn(0);
 
         boolean result = ragFacade.failIfStillProcessing(JOB_ID, QUERY_ID);
 
@@ -458,13 +472,13 @@ class RagFacadeTest {
     @Test
     @DisplayName("failIfStillProcessing: 검색 후보가 없으면(이론상 도달 불가능한 방어 분기) 고정 안내 문구로 강제 종료한다")
     void failIfStillProcessing_noCandidates_usesUnexpectedFailureAnswerText() {
-        given(searchResultRepository.findByQuery_IdOrderByRankNo(QUERY_ID)).willReturn(List.of());
-        given(ragResponseRepository.forceFailIfProcessing(eq(JOB_ID), anyString(), anyString())).willReturn(1);
+        given(promptPreparation.prepare(QUERY_ID)).willReturn(preparedCandidates(List.of(), List.of()));
+        given(ragResponseRepository.forceFailWithSourcesIfProcessing(eq(JOB_ID), anyString(), anyString(), anyString())).willReturn(1);
 
         ragFacade.failIfStillProcessing(JOB_ID, QUERY_ID);
 
         then(ragResponseRepository).should(times(1))
-            .forceFailIfProcessing(eq(JOB_ID), eq("답변 생성 중 예상치 못한 오류가 발생했습니다."), anyString());
+            .forceFailWithSourcesIfProcessing(eq(JOB_ID), eq("답변 생성 중 예상치 못한 오류가 발생했습니다."), anyString(), eq("[100]"));
     }
 
     private SearchResult deepStubSearchResult(

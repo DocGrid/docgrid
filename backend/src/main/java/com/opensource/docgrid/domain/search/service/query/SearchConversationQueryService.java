@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.opensource.docgrid.domain.document.service.SectionPath;
 import com.opensource.docgrid.domain.rag.repository.RagResponseRepository;
+import com.opensource.docgrid.domain.rag.service.RagDocumentAccessService;
 import com.opensource.docgrid.domain.rag.repository.ResponseCitationRepository;
 import com.opensource.docgrid.domain.search.dto.ConversationCitationProjection;
 import com.opensource.docgrid.domain.search.dto.ConversationContext;
@@ -41,10 +42,10 @@ import lombok.RequiredArgsConstructor;
  * 사용자 대화방 목록·상세와 후속 질문용 제한된 최근 문맥을 조회한다.
  *
  * <p>API 상세는 최근 50개 Turn의 질문·검색 결과·RAG 답변·citation을 종류별 일괄 조회해
- * queryId로 조립한다. 내부 문맥은 호출자가 요청한 소수 Turn으로 제한하며 다른 사용자의
+ * queryId로 조립하며 답변 출처를 현재 Primary 권한으로 재인가한다. 내부 문맥은 호출자가 요청한 소수 Turn으로 제한하며 다른 사용자의
  * 대화방은 항상 찾을 수 없는 것으로 처리한다.
  */
-@Transactional(readOnly = true)
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class SearchConversationQueryService {
@@ -57,6 +58,7 @@ public class SearchConversationQueryService {
     private final RagResponseRepository ragResponseRepository;
     private final SearchResultRepository searchResultRepository;
     private final ResponseCitationRepository responseCitationRepository;
+    private final RagDocumentAccessService authorization;
 
     /**
      * 사용자의 검색 대화방을 최근 활동 순서로 페이지 조회한다.
@@ -114,24 +116,32 @@ public class SearchConversationQueryService {
                 Collectors.mapping(this::toCitationResponse, Collectors.toList())
             ));
 
-        // 4. queryId별로 그룹화한 값을 결합해 추가 SQL 없이 불변 Turn 응답을 만든다.
+        // 4. 모든 Turn의 발췌·인용·전이적 출처를 모아 고유 문서별 현재 권한을 판정한다.
+        List<Long> documentIds = new ArrayList<>();
+        resultsByQueryId.values().forEach(values -> values.forEach(value -> documentIds.add(value.documentId())));
+        citationsByQueryId.values().forEach(values -> values.forEach(value -> documentIds.add(value.documentId())));
+        var access = authorization.authorize(userId, documentIds, ragByQueryId.values().stream()
+            .map(ConversationRagResponseProjection::sourceDocumentIdsJson).toList());
+
+        // 5. 허용 발췌는 유지하고 불명·금지 출처의 답변과 인용은 함께 보류한다.
         List<SearchConversationResponse.Turn> turns = queries.stream()
             .map(query -> new SearchConversationResponse.Turn(
                 query.queryId(), query.queryText(), query.createdAt(),
                 toSearchResponse(conversation.getId(), query.queryId(), resultsByQueryId,
-                    ragByQueryId, citationsByQueryId)
+                    ragByQueryId, citationsByQueryId, access)
             ))
             .toList();
         return new SearchConversationResponse(conversation.getId(), conversation.getTitle(), turns);
     }
 
     /** rankNo 정렬 결과를 기존 단건 조회 API처럼 빈틈없는 1-based 순위로 변환한다. */
-    private List<SearchResultItem> toSearchResultItems(List<ConversationSearchResultProjection> results) {
+    private List<SearchResultItem> toSearchResultItems(List<ConversationSearchResultProjection> results, RagDocumentAccessService.Access access) {
         List<SearchResultItem> items = new ArrayList<>();
         for (int index = 0; index < results.size(); index++) {
             ConversationSearchResultProjection result = results.get(index);
+            if (!access.canRead(result.documentId())) continue;
             items.add(new SearchResultItem(
-                index + 1, result.documentId(), result.chunkId(), result.documentTitle(),
+                items.size() + 1, result.documentId(), result.chunkId(), result.documentTitle(),
                 result.chunkText(), result.pageNo(),
                 SectionPath.display(result.metadataJson(), result.sectionTitle()),
                 result.similarityScore()
@@ -155,33 +165,41 @@ public class SearchConversationQueryService {
         Long queryId,
         Map<Long, List<ConversationSearchResultProjection>> resultsByQueryId,
         Map<Long, ConversationRagResponseProjection> ragByQueryId,
-        Map<Long, List<CitationResponse>> citationsByQueryId
+        Map<Long, List<CitationResponse>> citationsByQueryId,
+        RagDocumentAccessService.Access access
     ) {
-        List<SearchResultItem> results = toSearchResultItems(resultsByQueryId.getOrDefault(queryId, List.of()));
+        List<SearchResultItem> results = toSearchResultItems(resultsByQueryId.getOrDefault(queryId, List.of()), access);
         ConversationRagResponseProjection rag = ragByQueryId.get(queryId);
         if (rag == null || rag.status() == ResultStatus.PROCESSING) {
             return new SearchResponse(conversationId, queryId, results, ResultStatus.PROCESSING, null, List.of());
         }
-        return new SearchResponse(
-            conversationId, queryId, results, rag.status(), rag.answerText(),
-            citationsByQueryId.getOrDefault(queryId, List.of())
-        );
+        boolean permitted = authorization.permits(access, rag.sourceDocumentIdsJson());
+        return new SearchResponse(conversationId, queryId, results, rag.status(),
+            permitted ? rag.answerText() : RagDocumentAccessService.WITHHELD_ANSWER,
+            permitted ? citationsByQueryId.getOrDefault(queryId, List.of()).stream()
+                .filter(citation -> access.canRead(citation.documentId())).toList() : List.of());
     }
 
     /**
      * 현재 질문을 제외한 최근 대화 Turn을 후속 검색·답변 문맥용 과거→현재 순서로 반환한다.
      */
     public List<ConversationContext> findRecentContext(
+        Long userId,
         Long conversationId,
         Long excludedQueryId,
         int maxTurns
     ) {
-        // 1. 최신순으로 제한 조회해 필요한 Turn 수 이상을 메모리에 적재하지 않는다.
+        // 1. 내부 호출도 대화 소유자를 확인하고 최신 확정 Turn만 제한 조회한다.
+        ownedConversation(conversationId, userId);
         List<ConversationContext> context = new ArrayList<>(ragResponseRepository.findRecentConversationContext(
             conversationId, excludedQueryId, PageRequest.of(0, maxTurns)
         ));
 
-        // 2. Prompt와 검색어가 자연스러운 시간 순서를 따르도록 과거→현재로 뒤집어 고정한다.
+        // 2. 금지/불명 출처 Turn은 질문과 답변 모두 문맥에서 제외한다.
+        var access = authorization.authorize(userId, List.of(), context.stream()
+            .map(ConversationContext::sourceDocumentIdsJson).toList());
+        context.removeIf(turn -> !authorization.permits(access, turn.sourceDocumentIdsJson()));
+        // 3. 허용 문맥만 과거→현재 순서로 고정한다.
         Collections.reverse(context);
         return List.copyOf(context);
     }

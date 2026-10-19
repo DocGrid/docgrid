@@ -48,6 +48,16 @@ class SearchConversationQueryServiceTest {
     @Mock private RagResponseRepository ragResponseRepository;
     @Mock private SearchResultRepository searchResultRepository;
     @Mock private ResponseCitationRepository responseCitationRepository;
+    @Mock private com.opensource.docgrid.domain.rag.service.RagDocumentAccessService authorization;
+
+    @org.junit.jupiter.api.BeforeEach
+    void allowFixtureSources() {
+        org.mockito.Mockito.lenient().when(authorization.authorize(org.mockito.ArgumentMatchers.anyLong(),
+            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenAnswer(invocation ->
+                new com.opensource.docgrid.domain.rag.service.RagDocumentAccessService.Access(
+                    new java.util.HashSet<>(invocation.<java.util.List<Long>>getArgument(1))));
+        org.mockito.Mockito.lenient().when(authorization.permits(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenReturn(true);
+    }
 
     @Test
     @DisplayName("대화 상세는 질문별 단건 조회 없이 결과·RAG·citation을 각각 한 번에 조립한다")
@@ -134,6 +144,7 @@ class SearchConversationQueryServiceTest {
     @Test
     @DisplayName("저장소의 최신순 문맥을 시간순으로 뒤집어 반환한다")
     void findRecentContext_reversesNewestFirstRepositoryResult() {
+        given(searchConversationRepository.findByIdAndUser_Id(10L, 20L)).willReturn(Optional.of(mock(SearchConversation.class)));
         ConversationContext older = new ConversationContext("첫 질문", "첫 답변");
         ConversationContext newer = new ConversationContext("둘째 질문", "둘째 답변");
         given(ragResponseRepository.findRecentConversationContext(
@@ -141,7 +152,7 @@ class SearchConversationQueryServiceTest {
             org.mockito.ArgumentMatchers.any(Pageable.class)
         )).willReturn(List.of(newer, older));
 
-        List<ConversationContext> result = searchConversationQueryService.findRecentContext(10L, 30L, 3);
+        List<ConversationContext> result = searchConversationQueryService.findRecentContext(20L, 10L, 30L, 3);
 
         assertThat(result).containsExactly(older, newer);
     }

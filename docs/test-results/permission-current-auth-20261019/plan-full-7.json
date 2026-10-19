@@ -1,0 +1,7 @@
+{
+  "declared_at_kst": "2026-10-19T22:39:17.102097+09:00",
+  "run_id": "AUTH-FULL-20261019-R7",
+  "purpose": "Full default regression under existing CI connection-pool size 3",
+  "command": "./backend/gradlew -p backend test --no-daemon --offline --console=plain",
+  "criteria": "0 failures, separate skip count, cleanup and existing environment preservation"
+}

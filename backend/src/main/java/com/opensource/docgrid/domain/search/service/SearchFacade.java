@@ -69,7 +69,7 @@ public class SearchFacade {
         try {
             // 2. 방금 만든 Query는 제외하고 최근 질문만 검색 Vector 문맥에 포함한다.
             List<ConversationContext> context = searchConversationQueryService.findRecentContext(
-                admission.conversationId(), queryId, 2
+                userId, admission.conversationId(), queryId, 2
             );
             String retrievalText = searchConversationQueryService.contextualizeRetrieval(request.queryText(), context);
 

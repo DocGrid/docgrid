@@ -1,0 +1,1 @@
+{"success":true,"status":200,"data":{"conversationId":10,"queryId":14,"results":[],"ragStatus":"FAILED","answer":"현재 문서 권한으로 이전 답변을 표시할 수 없습니다. 다시 검색해 주세요.","citations":[]},"timestamp":"2026-10-19 22:42:01"}

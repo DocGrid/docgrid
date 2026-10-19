@@ -1,0 +1,38 @@
+{
+  "2": {
+    "total": 7,
+    "failed": 0,
+    "skipped": 0,
+    "passed": 7
+  },
+  "3": {
+    "total": 86,
+    "failed": 6,
+    "skipped": 0,
+    "passed": 80
+  },
+  "5": {
+    "total": 86,
+    "failed": 1,
+    "skipped": 0,
+    "passed": 85
+  },
+  "6": {
+    "total": 1455,
+    "failed": 23,
+    "skipped": 5,
+    "passed": 1427
+  },
+  "7": {
+    "total": 1525,
+    "failed": 0,
+    "skipped": 5,
+    "passed": 1520
+  },
+  "8": {
+    "total": 9,
+    "failed": 0,
+    "skipped": 0,
+    "passed": 9
+  }
+}

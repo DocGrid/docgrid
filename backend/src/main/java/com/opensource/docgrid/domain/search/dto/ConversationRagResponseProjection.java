@@ -8,6 +8,11 @@ import com.opensource.docgrid.domain.search.enums.ResultStatus;
 public record ConversationRagResponseProjection(
     Long queryId,
     ResultStatus status,
-    String answerText
+    String answerText,
+    String sourceDocumentIdsJson
 ) {
+    /** 출처를 알 수 없는 이전 행은 명시적으로 NULL을 유지한다. */
+    public ConversationRagResponseProjection(Long queryId, ResultStatus status, String answerText) {
+        this(queryId, status, answerText, null);
+    }
 }

@@ -1,0 +1,7 @@
+{
+  "declared_at_kst": "2026-10-19T22:33:10.694190+09:00",
+  "run_id": "AUTH-UNIT-20261019-R3",
+  "purpose": "RAG and conversation unit regression after authorization boundary changes",
+  "command": "./backend/gradlew -p backend test --tests com.opensource.docgrid.domain.rag.service.* --tests com.opensource.docgrid.domain.search.service.query.SearchConversationQueryServiceTest --no-daemon --offline --console=plain",
+  "criteria": "0 unit failures; no live external service calls"
+}

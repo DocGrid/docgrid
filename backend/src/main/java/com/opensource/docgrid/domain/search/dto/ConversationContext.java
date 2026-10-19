@@ -7,6 +7,9 @@ package com.opensource.docgrid.domain.search.dto;
  */
 public record ConversationContext(
     String queryText,
-    String answerText
+    String answerText,
+    String sourceDocumentIdsJson
 ) {
+    /** 출처가 없는 이전 문맥은 현재 권한 판정에서 보류한다. */
+    public ConversationContext(String queryText, String answerText) { this(queryText, answerText, null); }
 }

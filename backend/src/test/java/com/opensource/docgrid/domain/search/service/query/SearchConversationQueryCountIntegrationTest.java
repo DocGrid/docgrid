@@ -50,7 +50,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
 /**
- * 대화 상세 조회가 Turn 수와 무관한 상수 SQL로 질문·검색 결과·RAG 답변·citation을 조립하는지 검증한다.
+ * 인가 대역을 두고 대화 상세의 질문·결과·답변·citation 일괄 조립 SQL이 Turn 수와 무관한지 검증한다.
+ * 실제 Primary 인가 비용·동작은 별도 HTTP 보안 회귀가 검증한다.
  */
 @DataJpaTest
 @ActiveProfiles("test")
@@ -71,14 +72,23 @@ class SearchConversationQueryCountIntegrationTest {
     @Autowired private EntityManagerFactory entityManagerFactory;
 
     private SearchConversationQueryService service;
+    // 이 시험은 일괄 조립 SQL을 계측한다. 실제 권한은 별도 HTTP 통합 시험에서 검증한다.
+    private final com.opensource.docgrid.domain.rag.service.RagDocumentAccessService authorization =
+        org.mockito.Mockito.mock(com.opensource.docgrid.domain.rag.service.RagDocumentAccessService.class);
     private Statistics statistics;
 
     @BeforeEach
     void setUp() {
         service = new SearchConversationQueryService(
             conversationRepository, queryRepository, ragResponseRepository,
-            resultRepository, citationRepository
+            resultRepository, citationRepository, authorization
         );
+        org.mockito.Mockito.when(authorization.authorize(org.mockito.ArgumentMatchers.anyLong(),
+            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any())).thenAnswer(invocation ->
+                new com.opensource.docgrid.domain.rag.service.RagDocumentAccessService.Access(
+                    new java.util.HashSet<>(invocation.<java.util.List<Long>>getArgument(1))));
+        org.mockito.Mockito.when(authorization.permits(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+            .thenReturn(true);
         statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.setStatisticsEnabled(true);
     }
