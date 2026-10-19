@@ -9,7 +9,7 @@ DocGrid는 PDF·DOCX·HWP 5.x·HWPX·TXT·Markdown(MD) 문서를 저장·인덱�
 로컬 실행은 PostgreSQL·Valkey·Local Filesystem을 사용하며, GCP에서는 OpenProxy를 통한 OpenSQL 3노드와
 GCS 경로를 시험했습니다. 배포 구성과 각 시험의 적용 범위는 아래에서 구분합니다.
 
-[빠른 실행](#빠른-실행) · [검증된 범위](#검증된-범위) · [아키텍처](#아키텍처) · [환경 선택](#환경-선택) · [테스트](#테스트)
+[검증된 범위](#검증된-범위) · [아키텍처](#아키텍처) · [빠른 실행](#빠른-실행) · [환경 선택](#환경-선택) · [테스트](#테스트)
 
 <!--
 ## 시연 영상
@@ -36,84 +36,6 @@ GCS 경로를 시험했습니다. 배포 구성과 각 시험의 적용 범위�
   관리자가 수동 실행하며, Job·Vector 누락의 안전 복구를 지원합니다. 주기 점검은 기본으로 꺼져 있습니다.
 - **저장소·DB 연결:** 로컬 파일·GCS Adapter와 OpenProxy A/B·OpenSQL 연결을 지원합니다. MinIO·S3는 선택형 Adapter입니다.
 
-## 빠른 실행
-
-GCP 접근 권한 없이 실행하는 macOS·Linux 로컬 경로입니다. Git·Java 17·Node.js 22.13.0 이상·Python 3.9 이상,
-실행 중인 Docker Engine과 Compose, Bash·curl·lsof·ps를 준비합니다. macOS에서는 Docker Desktop을 사용할 수 있습니다.
-
-```bash
-git clone https://github.com/DocGrid/docgrid.git
-cd docgrid
-./scripts/demo.py start --scope search
-./scripts/demo.py verify
-./scripts/demo.py stop
-```
-
-| 명령 | 동작 |
-|---|---|
-| `start` | 없는 환경 파일만 만들고 PostgreSQL·Valkey·BGE-M3·Backend·Frontend를 준비 |
-| `status` | 활성 세션의 실제 연결·준비 상태 재확인 |
-| `verify` | 프런트엔드 API 프록시로 예제 업로드·인덱싱·기대 검색·원본 해시 검증. 실패·미실행 구분 |
-| `stop` | 이번 세션 소유 자원만 중지하고 DB·원본·모델 캐시 보존 |
-
-- Web: `http://localhost:3000` · API 문서: `http://localhost:8080/swagger-ui/index.html`
-- 첫 모델 다운로드 등 준비가 느리면 `./scripts/demo.py start --scope search --timeout 1200`으로 대기 제한을 늘릴 수 있습니다.
-  기본 옵션은 900초이며, 독립 환경 재현에서는 1200초를 사용했습니다.
-- `verify`는 예제 계정 비밀번호를 입력받습니다. 같은 계정의 재실행은 이전 원장과 문서 ID도 대조합니다.
-  결과는 `.demo/reports/<run-id>/`에 남습니다.
-- 기본 `search` 범위는 Ollama를 시작하거나 필수로 요구하지 않습니다. 생성 답변·인용까지 검사하려면
-  [Native Ollama·모델](backend/README.md#ollama-rag-llm-서버)을 먼저 준비하고 `start --scope rag`를 사용합니다.
-  `verify`는 시작한 세션의 범위를 이어받습니다. Native Ollama는 자동 종료하지 않습니다.
-- 기존 `.env`·`frontend/.env.local`은 덮어쓰지 않습니다. 원격 OpenSQL·GCS나 지원하지 않는 설정은 자동 변경 없이 거부합니다.
-  다른 작업공간의 고정 이름 컨테이너가 있으면 별도 Docker 환경을 사용합니다.
-- `local` 프로필은 인덱싱 Worker 기본값이 `true`이며, 다른 프로필의 기본값은 `false`입니다.
-  [실행·소유권 경계](docs/design/local-demo-lifecycle.md)를 참고하세요.
-
-<a id="6-핵심-흐름-확인"></a>
-
-### 예제와 재현 결과
-
-2026-10-18 독립 GitHub Ubuntu 실행기의 실제 PostgreSQL·Valkey·BGE-M3·Backend·Frontend·Chromium 회차입니다.
-예제는 PDF 5·DOCX 5·HWPX 5건이며, **실제 Ollama 생성 답변·인용은 미실행**입니다.
-
-| 확인 항목 | 관측 결과 |
-|---|---|
-| 최초 시연 | 업로드·INDEXED 15/15, 기대 검색 3/3, 원본 해시 15/15 |
-| 같은 계정 재실행·종료 후 재기동 | 기존 문서 ID 15/15 유지, 필수 단계 통과 |
-| 실제 브라우저 | 로그인·검색·원본 다운로드 해시 확인 |
-| 시작·검증 시간 | 첫 start 196.632초, 첫 verify 24.135초, 같은 계정 verify 3.072초, 캐시 보존 start 26.061초 |
-
-시간은 해당 실행기의 명령 wall time이며 운영 RTO나 성능 보장값이 아닙니다. 준비 오류·중단·브라우저 진단과 최종 회차는
-[독립 환경 기록](docs/test-results/demo-fresh-20261018/README.md)에 구분했습니다.
-
-| 예제 질문 | 기대 문서·내용 |
-|---|---|
-| 재택근무는 일주일에 며칠까지 할 수 있고 언제까지 신청해야 하나요? | 재택근무 운영 규정(PDF): 주 2일, 예정일 2영업일 전 |
-| 본인 결혼 시 경조금과 경조휴가는 얼마나 되나요? | 경조사 지원 규정(DOCX 표): 50만원, 5일 |
-| 계약서는 몇 년 동안 보관해야 하나요? | 문서 보존 및 폐기 기준(HWPX): 계약 종료 뒤 10년 |
-
-[예제 문서·라이선스·검증 옵션](examples/demo-corpus/README.md). 예제 문서는 PUBLIC으로 올라가 모든 로그인 사용자가 검색할 수 있습니다.
-직접 문서를 사용할 때는 회원가입·로그인 → 지원 형식 업로드 → `INDEXED` 확인 → 검색 순서로 진행합니다.
-Ollama가 준비되지 않으면 AI 생성은 실패하고, 현재 허용된 검색 근거의 원문 인용 대체 답변을 표시합니다.
-
-### 개별 실행과 관측
-
-Backend만 실행하거나 환경 파일을 직접 준비할 때는 [필수 JWT 키·서비스 기동 절차](backend/README.md#로컬-설정과-필수-서명-키)를 먼저 따릅니다.
-프런트엔드는 별도 Terminal에서 다음과 같이 실행합니다. 기존 환경 파일은 유지합니다.
-
-```bash
-test -f frontend/.env.local || cp frontend/.env.example frontend/.env.local
-npm --prefix frontend ci
-npm --prefix frontend run dev
-```
-
-의존 서비스만 제어하려면 `./scripts/local-services.sh start --scope search`와 `status --scope search`를 사용합니다.
-수동으로 실행한 Backend·Frontend는 각 Terminal에서 종료하고, Compose 서비스는 `docker compose stop postgres valkey embedding-server`로 중지합니다.
-
-선택형 관측은 `GRAFANA_PORT=3001 docker compose --profile monitoring up -d prometheus alertmanager grafana`로 시작합니다.
-Prometheus는 대상의 readiness와 별개로 먼저 기동해 수집 실패를 기록합니다.
-[Prometheus 설정](monitoring/prometheus/README.md) · [Grafana 접근](monitoring/grafana/README.md)
-
 ## 검증된 범위
 
 수치는 실행별 관측값입니다. 환경·부하·리비전이 다른 회차를 합산하지 않으며, 각 기록에 준비 문제·재시도·실패·정리를 보존했습니다.
@@ -122,7 +44,7 @@ Prometheus는 대상의 readiness와 별개로 먼저 기동해 수집 실패를
 
 | 목적 | 환경·조건 | 관측 결과와 한계 | 증거 | 관련 PR |
 |---|---|---|---|---|
-| **OpenSQL 장애 중 성공 응답 보존** | GCP 3노드, 네트워크 분할 회차별 최초 요청 751건 | 비동기: 최초 201 632건 중 40건 유실. 별도 동기 strict 회차: 201 586건 누락 0, HTTP 오류·결과 불명 발생. 동기는 시험용 역할 어댑터 경유 | [비동기](docs/test-results/opensql-primary-network-partition-20261017/README.md) · [strict](docs/test-results/opensql-primary-network-partition-sync-20261017/README.md) | [#548](https://github.com/DocGrid/docgrid/pull/548) |
+| **고가용성(HA)** · OpenSQL 장애 중 성공 응답 보존 | GCP 3노드, 네트워크 분할 회차별 최초 요청 751건 | 비동기: 최초 201 632건 중 40건 유실. 별도 동기 strict 회차: 201 586건 누락 0, HTTP 오류·결과 불명 발생. 동기는 시험용 역할 어댑터 경유 | [비동기](docs/test-results/opensql-primary-network-partition-20261017/README.md) · [strict](docs/test-results/opensql-primary-network-partition-sync-20261017/README.md) | [#548](https://github.com/DocGrid/docgrid/pull/548) |
 | **DB·GCS 외부 복원** | 실제 OpenSQL·Barman·GCS, 전용 논리 DB·별도 PGDATA(물리 호스트 공유), 2026-10-18 | 성공 응답 65건 중 60건 복원·5건 손실. 마지막 외부 보존 확인 구간 60건 누락 0. 공개 트래픽 전환·Ollama 제외 | [WAL 완료 경계 수정](docs/test-results/wal-offsite-boundary-20261018/README.md) · [재계측](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md) | [#564](https://github.com/DocGrid/docgrid/pull/564) · [#565](https://github.com/DocGrid/docgrid/pull/565) |
 | **RAG 작업 소유권·현재 권한** | 로컬 격리 PostgreSQL·실제 Backend, 제어 모델 서버. 소유권은 JVM 2대, 권한은 별도 실제 인증 HTTP 시험 | 소유권 총 7회: 통과 4회·준비/시험 데이터 오류 2회·불합격 1회(원인 미확정). 통과 회차에서 B 기동 시 호출 1회, A 중단·재선점 시 호출 2회·최종 답변/인용 단일 확정. 별도 권한 HTTP 9/9 통과. 실제 Ollama 제외, 이 시험에서 공개 배포 미실행 | [소유권](docs/test-results/rag-ab-ownership-20261016/README.md) · [권한](docs/test-results/permission-current-auth-20261019/README.md) | [#513](https://github.com/DocGrid/docgrid/pull/513) · [#515](https://github.com/DocGrid/docgrid/pull/515) · [#516](https://github.com/DocGrid/docgrid/pull/516) · [#567](https://github.com/DocGrid/docgrid/pull/567) |
 | **Generic Plan 검색 지연 개선** | 로컬 PostgreSQL 17.8, 약 5만 청크(합성 92.9%)·허용 100%·topK 10·질문 30개, `plan_cache_mode=force_generic_plan` 고정·수정 전후 연속 측정 | 벡터 검색 단계 p50 4,465.7→218.5ms, 하이브리드 5,799.9→1,380.6ms. 전체 REST API·OpenSQL 경로의 지연이 아님 | [측정·조건](docs/test-results/gimin-%23549-generic-plan-query-vector-cast.md) | [#550](https://github.com/DocGrid/docgrid/pull/550) |
@@ -174,7 +96,7 @@ Generic Plan 측정은 강제 조건이며, 실제 앱 연결 풀의 계획 선�
 |---|---|---|
 | 검색 품질 | 로컬 BGE-M3·문서 5개·청크 83개, 질문 3세트 111문항. 사전 기준 고정 39문항 MRR@10 0.784→0.868 | [하이브리드 평가](docs/test-results/kangcheolung-%23456-hybrid-search.md) |
 | 지원 형식 | HWP/HWPX·PDF/DOCX의 실제 로컬 PostgreSQL·MinIO·BGE-M3 E2E 2/2, HWP/HWPX 각 1건 브라우저 업로드·표 문구 검색. OpenSQL·GCS 시험과 구분 | [파서·E2E·브라우저](docs/test-results/issue-505-hwp-hwpx-parsing/README.md) |
-| 기존 HA 기준선 | 쓰기 150 req/s×60초×3회, 회차마다 201 9,001건 누락·중복 0. Proxy·프로세스·VM 장애의 HTTP 오류와 결과 불명은 개별 원장에 보존 | [기준선](docs/test-results/gimin-389-opensql-ha-http-write-baseline-20261002.md) · [3노드 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md) |
+| 고가용성(HA) 부하·장애 | 쓰기 150 req/s×60초×3회, 회차마다 201 9,001건 누락·중복 0. Proxy·프로세스·VM 장애의 HTTP 오류와 결과 불명은 개별 원장에 보존 | [기준선](docs/test-results/gimin-389-opensql-ha-http-write-baseline-20261002.md) · [3노드 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md) |
 | 승격 후 권한 | 격리 OpenSQL·역할 어댑터, 실제 인증 HTTP. 회수 대상 상세·본문·파일 403 9건, 대조 200 9건, 새 검색 3회에서 금지 문구 제외. 모델 응답은 대역 | [HTTP 차단](docs/test-results/permission-http-failover-20261017/README.md) |
 | 백업 연속성 | Barman의 Primary 추적·WAL 수신, 기준 백업·완성 WAL 외부 보존·예약 실행. 모든 장애에서의 연속성 보장은 아님 | [수신 추적](docs/test-results/barman-wal-follow-20261016/README.md) · [외부 보존](docs/test-results/barman-offsite-20261017/README.md) |
 | GCS 원본 보존 | 이벤트 기반 비동기 사본·감사. 새 시험 원본 2/2 해시 일치, 해당 회차 누락 0 | [지속 보존](docs/test-results/gcs-original-preservation-20261017/README.md) |
@@ -285,6 +207,84 @@ OpenSQL 기준 백업·WAL → Barman → DB 백업용 비공개 GCS
 | 배포 · 네트워크 | Vercel, Cloud Run Nginx 공개 게이트웨이, Google Cloud Load Balancing, Compute Engine VM, IAP (위 구성도 기준) |
 | 관측 · 부하 | RAGOps Dashboard, Micrometer/Prometheus, Grafana, Blackbox Exporter, k6 Remote Write (위 구성도 기준); Alertmanager (로컬 monitoring profile) |
 | Test | JUnit 5, Gradle, Node.js Test Runner, k6 |
+
+## 빠른 실행
+
+GCP 접근 권한 없이 실행하는 macOS·Linux 로컬 경로입니다. Git·Java 17·Node.js 22.13.0 이상·Python 3.9 이상,
+실행 중인 Docker Engine과 Compose, Bash·curl·lsof·ps를 준비합니다. macOS에서는 Docker Desktop을 사용할 수 있습니다.
+
+```bash
+git clone https://github.com/DocGrid/docgrid.git
+cd docgrid
+./scripts/demo.py start --scope search
+./scripts/demo.py verify
+./scripts/demo.py stop
+```
+
+| 명령 | 동작 |
+|---|---|
+| `start` | 없는 환경 파일만 만들고 PostgreSQL·Valkey·BGE-M3·Backend·Frontend를 준비 |
+| `status` | 활성 세션의 실제 연결·준비 상태 재확인 |
+| `verify` | 프런트엔드 API 프록시로 예제 업로드·인덱싱·기대 검색·원본 해시 검증. 실패·미실행 구분 |
+| `stop` | 이번 세션 소유 자원만 중지하고 DB·원본·모델 캐시 보존 |
+
+- Web: `http://localhost:3000` · API 문서: `http://localhost:8080/swagger-ui/index.html`
+- 첫 모델 다운로드 등 준비가 느리면 `./scripts/demo.py start --scope search --timeout 1200`으로 대기 제한을 늘릴 수 있습니다.
+  기본 옵션은 900초이며, 독립 환경 재현에서는 1200초를 사용했습니다.
+- `verify`는 예제 계정 비밀번호를 입력받습니다. 같은 계정의 재실행은 이전 원장과 문서 ID도 대조합니다.
+  결과는 `.demo/reports/<run-id>/`에 남습니다.
+- 기본 `search` 범위는 Ollama를 시작하거나 필수로 요구하지 않습니다. 생성 답변·인용까지 검사하려면
+  [Native Ollama·모델](backend/README.md#ollama-rag-llm-서버)을 먼저 준비하고 `start --scope rag`를 사용합니다.
+  `verify`는 시작한 세션의 범위를 이어받습니다. Native Ollama는 자동 종료하지 않습니다.
+- 기존 `.env`·`frontend/.env.local`은 덮어쓰지 않습니다. 원격 OpenSQL·GCS나 지원하지 않는 설정은 자동 변경 없이 거부합니다.
+  다른 작업공간의 고정 이름 컨테이너가 있으면 별도 Docker 환경을 사용합니다.
+- `local` 프로필은 인덱싱 Worker 기본값이 `true`이며, 다른 프로필의 기본값은 `false`입니다.
+  [실행·소유권 경계](docs/design/local-demo-lifecycle.md)를 참고하세요.
+
+<a id="6-핵심-흐름-확인"></a>
+
+### 예제와 재현 결과
+
+2026-10-18 독립 GitHub Ubuntu 실행기의 실제 PostgreSQL·Valkey·BGE-M3·Backend·Frontend·Chromium 회차입니다.
+예제는 PDF 5·DOCX 5·HWPX 5건이며, **실제 Ollama 생성 답변·인용은 미실행**입니다.
+
+| 확인 항목 | 관측 결과 |
+|---|---|
+| 최초 시연 | 업로드·INDEXED 15/15, 기대 검색 3/3, 원본 해시 15/15 |
+| 같은 계정 재실행·종료 후 재기동 | 기존 문서 ID 15/15 유지, 필수 단계 통과 |
+| 실제 브라우저 | 로그인·검색·원본 다운로드 해시 확인 |
+| 시작·검증 시간 | 첫 start 196.632초, 첫 verify 24.135초, 같은 계정 verify 3.072초, 캐시 보존 start 26.061초 |
+
+시간은 해당 실행기의 명령 wall time이며 운영 RTO나 성능 보장값이 아닙니다. 준비 오류·중단·브라우저 진단과 최종 회차는
+[독립 환경 기록](docs/test-results/demo-fresh-20261018/README.md)에 구분했습니다.
+
+| 예제 질문 | 기대 문서·내용 |
+|---|---|
+| 재택근무는 일주일에 며칠까지 할 수 있고 언제까지 신청해야 하나요? | 재택근무 운영 규정(PDF): 주 2일, 예정일 2영업일 전 |
+| 본인 결혼 시 경조금과 경조휴가는 얼마나 되나요? | 경조사 지원 규정(DOCX 표): 50만원, 5일 |
+| 계약서는 몇 년 동안 보관해야 하나요? | 문서 보존 및 폐기 기준(HWPX): 계약 종료 뒤 10년 |
+
+[예제 문서·라이선스·검증 옵션](examples/demo-corpus/README.md). 예제 문서는 PUBLIC으로 올라가 모든 로그인 사용자가 검색할 수 있습니다.
+직접 문서를 사용할 때는 회원가입·로그인 → 지원 형식 업로드 → `INDEXED` 확인 → 검색 순서로 진행합니다.
+Ollama가 준비되지 않으면 AI 생성은 실패하고, 현재 허용된 검색 근거의 원문 인용 대체 답변을 표시합니다.
+
+### 개별 실행과 관측
+
+Backend만 실행하거나 환경 파일을 직접 준비할 때는 [필수 JWT 키·서비스 기동 절차](backend/README.md#로컬-설정과-필수-서명-키)를 먼저 따릅니다.
+프런트엔드는 별도 Terminal에서 다음과 같이 실행합니다. 기존 환경 파일은 유지합니다.
+
+```bash
+test -f frontend/.env.local || cp frontend/.env.example frontend/.env.local
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
+
+의존 서비스만 제어하려면 `./scripts/local-services.sh start --scope search`와 `status --scope search`를 사용합니다.
+수동으로 실행한 Backend·Frontend는 각 Terminal에서 종료하고, Compose 서비스는 `docker compose stop postgres valkey embedding-server`로 중지합니다.
+
+선택형 관측은 `GRAFANA_PORT=3001 docker compose --profile monitoring up -d prometheus alertmanager grafana`로 시작합니다.
+Prometheus는 대상의 readiness와 별개로 먼저 기동해 수집 실패를 기록합니다.
+[Prometheus 설정](monitoring/prometheus/README.md) · [Grafana 접근](monitoring/grafana/README.md)
 
 ## 환경 선택
 
