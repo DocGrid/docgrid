@@ -1,0 +1,234 @@
+{
+  "작성시각": "2026-10-21T08:13:55.630989+09:00",
+  "판정": "동일 5만 청크 조건의 자연 Generic Plan 재검증 완료",
+  "전체결과_해시종류수": 1,
+  "제외회차": [
+    "GP50-PROXY-A-RO-20261021-R1"
+  ],
+  "회차": [
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "첫표본시각": "2026-10-21T08:07:05.003513+09:00",
+      "마지막표본시각": "2026-10-21T08:11:42.198558+09:00",
+      "총표본수": 60,
+      "관측설정": {
+        "server_version": "17.8",
+        "maintenance_work_mem": "64MB",
+        "work_mem": "4MB",
+        "shared_buffers": "128MB",
+        "effective_cache_size": "4GB",
+        "random_page_cost": "4",
+        "max_parallel_workers_per_gather": "2",
+        "default_statistics_target": "100",
+        "jit": "on",
+        "hnsw.ef_search": "40",
+        "hnsw.iterative_scan": "off"
+      },
+      "SQL별": [
+        {
+          "SQL": "수정 전",
+          "전체": {
+            "n": 30,
+            "p50_ms": 9695.65825,
+            "p95_ms": 9866.146875,
+            "min_ms": 984.768041,
+            "max_ms": 9903.1935
+          },
+          "Custom": {
+            "n": 14,
+            "p50_ms": 1022.6184794999999,
+            "p95_ms": 1574.631708,
+            "min_ms": 984.768041,
+            "max_ms": 1574.631708
+          },
+          "Generic": {
+            "n": 16,
+            "p50_ms": 9755.0982505,
+            "p95_ms": 9903.1935,
+            "min_ms": 9680.861625,
+            "max_ms": 9903.1935
+          },
+          "미분류": {
+            "n": 0
+          },
+          "Generic_최초회차": 12,
+          "Generic_최초왕복_ms": 9821.427916,
+          "결과일치수": 30,
+          "결과해시종류수": 1,
+          "단일준비문_Generic_최대": 9,
+          "단일준비문_Custom_최대": 5,
+          "backend수": 2,
+          "별도EXPLAIN": [
+            {
+              "Execution_ms": 9523.687,
+              "HNSW": false,
+              "InitPlan": false,
+              "정렬키": [
+                "Sort Key: ((e.vector <=> ($3562)::vector))"
+              ],
+              "검색계획확인": true
+            }
+          ]
+        },
+        {
+          "SQL": "수정 후",
+          "전체": {
+            "n": 30,
+            "p50_ms": 1009.716187,
+            "p95_ms": 1206.728333,
+            "min_ms": 946.151875,
+            "max_ms": 1332.477709
+          },
+          "Custom": {
+            "n": 14,
+            "p50_ms": 1023.6824790000001,
+            "p95_ms": 1206.728333,
+            "min_ms": 964.462917,
+            "max_ms": 1206.728333
+          },
+          "Generic": {
+            "n": 16,
+            "p50_ms": 977.7634375,
+            "p95_ms": 1332.477709,
+            "min_ms": 946.151875,
+            "max_ms": 1332.477709
+          },
+          "미분류": {
+            "n": 0
+          },
+          "Generic_최초회차": 11,
+          "Generic_최초왕복_ms": 1046.439875,
+          "결과일치수": 30,
+          "결과해시종류수": 1,
+          "단일준비문_Generic_최대": 14,
+          "단일준비문_Custom_최대": 5,
+          "backend수": 2,
+          "별도EXPLAIN": [
+            {
+              "Execution_ms": 773.386,
+              "HNSW": false,
+              "InitPlan": true,
+              "정렬키": [
+                "Sort Key: ((e.vector <=> (InitPlan 2).col1))"
+              ],
+              "검색계획확인": true
+            }
+          ]
+        }
+      ],
+      "원시파일": "GP50-PROXY-A-RO-20261021-R2-events.jsonl"
+    },
+    {
+      "실행_ID": "GP50-PROXY-B-RO-20261021-R1",
+      "첫표본시각": "2026-10-21T08:01:09.755543+09:00",
+      "마지막표본시각": "2026-10-21T08:05:51.957119+09:00",
+      "총표본수": 60,
+      "관측설정": {
+        "server_version": "17.8",
+        "maintenance_work_mem": "64MB",
+        "work_mem": "4MB",
+        "shared_buffers": "128MB",
+        "effective_cache_size": "4GB",
+        "random_page_cost": "4",
+        "max_parallel_workers_per_gather": "2",
+        "default_statistics_target": "100",
+        "jit": "on",
+        "hnsw.ef_search": "40",
+        "hnsw.iterative_scan": "off"
+      },
+      "SQL별": [
+        {
+          "SQL": "수정 전",
+          "전체": {
+            "n": 30,
+            "p50_ms": 9760.664937500002,
+            "p95_ms": 9994.185292,
+            "min_ms": 1000.37675,
+            "max_ms": 10023.983458
+          },
+          "Custom": {
+            "n": 14,
+            "p50_ms": 1044.8716880000002,
+            "p95_ms": 1509.682,
+            "min_ms": 1000.37675,
+            "max_ms": 1509.682
+          },
+          "Generic": {
+            "n": 16,
+            "p50_ms": 9880.3919165,
+            "p95_ms": 10023.983458,
+            "min_ms": 9742.379375,
+            "max_ms": 10023.983458
+          },
+          "미분류": {
+            "n": 0
+          },
+          "Generic_최초회차": 11,
+          "Generic_최초왕복_ms": 9935.386375,
+          "결과일치수": 30,
+          "결과해시종류수": 1,
+          "단일준비문_Generic_최대": 11,
+          "단일준비문_Custom_최대": 5,
+          "backend수": 2,
+          "별도EXPLAIN": [
+            {
+              "Execution_ms": 9579.769,
+              "HNSW": false,
+              "InitPlan": false,
+              "정렬키": [
+                "Sort Key: ((e.vector <=> ($3562)::vector))"
+              ],
+              "검색계획확인": true
+            }
+          ]
+        },
+        {
+          "SQL": "수정 후",
+          "전체": {
+            "n": 30,
+            "p50_ms": 1036.0200625,
+            "p95_ms": 1281.014584,
+            "min_ms": 960.038333,
+            "max_ms": 1552.467417
+          },
+          "Custom": {
+            "n": 14,
+            "p50_ms": 1058.542813,
+            "p95_ms": 1552.467417,
+            "min_ms": 1004.084083,
+            "max_ms": 1552.467417
+          },
+          "Generic": {
+            "n": 16,
+            "p50_ms": 1016.813292,
+            "p95_ms": 1281.014584,
+            "min_ms": 960.038333,
+            "max_ms": 1281.014584
+          },
+          "미분류": {
+            "n": 0
+          },
+          "Generic_최초회차": 13,
+          "Generic_최초왕복_ms": 1054.411625,
+          "결과일치수": 30,
+          "결과해시종류수": 1,
+          "단일준비문_Generic_최대": 8,
+          "단일준비문_Custom_최대": 5,
+          "backend수": 2,
+          "별도EXPLAIN": [
+            {
+              "Execution_ms": 749.155,
+              "HNSW": false,
+              "InitPlan": true,
+              "정렬키": [
+                "Sort Key: ((e.vector <=> (InitPlan 2).col1))"
+              ],
+              "검색계획확인": true
+            }
+          ]
+        }
+      ],
+      "원시파일": "GP50-PROXY-B-RO-20261021-R1-events.jsonl"
+    }
+  ]
+}

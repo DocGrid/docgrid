@@ -1,0 +1,10 @@
+{
+  "version": "GP50-R4",
+  "files": {
+    "Stage50.java": "d670aaf343b2b516fdedd4afe59f3194efff1b74f8001bbaa63492c02bc645af",
+    "Stage50.class": "98712d7b686061ac8d4d2e5eb2559c7dbac3958323e6a45228bbb26fe4684612",
+    "src/com/opensource/docgrid/domain/search/benchmark/PermissionRecallDataset.java": "97e2a4b0cd6fb5eead9252efbd2e6cc796612803ce0c5bad8472faffbfff8930",
+    "src/com/opensource/docgrid/domain/search/benchmark/FullFixture.java": "ec3ddae083b2b0e8daee160a0dfcd1e6ddf39181de017b759497a19e0cfdf1f9",
+    "MaskProbe.java": "666c6742dbd657b01000c891e39365cd008d5825c80344f382797d89e64aad8d"
+  }
+}

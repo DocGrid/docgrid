@@ -1,0 +1,191 @@
+{
+  "scope": "선택한 기존 로컬 실행 기록과 실행 소스의 원문 바이트를 그대로 복사. 관리자·SSH·프로젝트 자동화, 개인 설정, 캐시·벡터, 컴파일 산출물은 포함하지 않음. 원본 이벤트를 사후 재작성하지 않음.",
+  "files": [
+    {
+      "file": "GP50-DB-CLEANUP-20261021-R1-events.jsonl",
+      "sha256": "0748e32d9f234cef0a1c604a8a27c6ce9498c2dcd43dc9c7f36762d7458e2372",
+      "bytes": 638,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-DB-PREPARE-20261021-R1-events.jsonl",
+      "sha256": "a5835af3b97ca89538010422a5875963a40cc85eb9d98a082287238296160240",
+      "bytes": 666,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-FIXTURE-20261021-R1-events.jsonl",
+      "sha256": "2838e1c761b16e73c95063645e29f7a01b655485bcadc891d3eb12c4535dbdad",
+      "bytes": 11238,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-HARNESS-20261021-R1-events.jsonl",
+      "sha256": "2f9b9a8a041e0c6c90e4ecace178dabbaa46642f359bc3b4f7c3f236fc532bb9",
+      "bytes": 1067,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-HARNESS-20261021-R2-events.jsonl",
+      "sha256": "1ad42a642361251cffc785c706e5f58e4c64a8ded8996c3ddcefd43ced5a2522",
+      "bytes": 1067,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-HARNESS-20261021-R3-events.jsonl",
+      "sha256": "7718447898f6fb49fb2a577ecfb5d05ac8fd2b127f366fb924d1ea768ab37105",
+      "bytes": 1067,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-HARNESS-20261021-R4-events.jsonl",
+      "sha256": "dbdc9eb773e4467fadde61c58b31ab22a3a4f0934d8c57103cbe74027190c779",
+      "bytes": 1067,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-MASK-DIAG-20261021-R1-events.jsonl",
+      "sha256": "dd3be72a56f73ea7b5b0b11a5592c2eeba45e1ec661695b73bd7e7c3d41f0804",
+      "bytes": 741,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-OBSERVATION-RECOVERY-20261021-R1-events.jsonl",
+      "sha256": "ad078955ac13d21e0d6a2bb81cffa7f620115947dcf77227b71ec33ef155c1cc",
+      "bytes": 912,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-PREFLIGHT-20261021-R1-events.jsonl",
+      "sha256": "0bb9bf3628df838999c4bb72cc5cec4cc21ebaf9a8f3e3849c8901b77a5157e3",
+      "bytes": 1850,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-PRESERVE-20261021-R1-events.jsonl",
+      "sha256": "f6099036477e15b6ebbedfdaf273d98dd9f42240e5440bd8659f837e978e8da9",
+      "bytes": 1938,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-PROXY-A-RO-20261021-R1-events.jsonl",
+      "sha256": "a5e9a0dabd99c085ce9670e6129eb8685e27fa31800f7cc731cdf36f82466e25",
+      "bytes": 61474,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-PROXY-A-RO-20261021-R2-events.jsonl",
+      "sha256": "5349172c2aeee82ab0ff395c6eb7a2ef5a7bcbe0f9fb36db4e2431f3d5a2b003",
+      "bytes": 69871,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-PROXY-B-RO-20261021-R1-events.jsonl",
+      "sha256": "b52407026125238aaa401815594d6f08ff62e79e4f765bd2340f157ca1ab5aad",
+      "bytes": 69021,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-REDACTION-20261021-R1-events.jsonl",
+      "sha256": "0fb4d0224f7dcadefa5268be61eb058d5e4af1ff0365bacfbcbd706c58a035c8",
+      "bytes": 938,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-REPORT-20261021-R1-events.jsonl",
+      "sha256": "fe9370b5cbadca4769a4225e325ca6bc076356af192cd5f35e741312f6906e61",
+      "bytes": 315,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "aggregate.json",
+      "sha256": "62f882e1903a35771f112cf2ae0507bebf2700e34ef3554e9548690f389ff095",
+      "bytes": 6899,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "fixture-provenance.json",
+      "sha256": "f1f5f854e68e87f8972fbee0a57b0f231008fd82b0a13926d448e63303e946e3",
+      "bytes": 1743,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "schema-manifest.json",
+      "sha256": "3bb48daa7983b45dc5693dd559d4a565d9bbbbe824909681f87527aaf7f93439",
+      "bytes": 13290,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "preservation-after.json",
+      "sha256": "4acef22694be6d80c03d7dfa3e66c4f4c81e537068c557eea9d59b620c0c6072",
+      "bytes": 343,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "harness-final.json",
+      "sha256": "29965452e12ce198f928f00d1f1b4fd59b36ec475c452f9ee3d163f2d2039990",
+      "bytes": 609,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-PROXY-A-RO-20261021-R2-summary.md",
+      "sha256": "976693d27ec60d9fd7c78858d4e52edc3a9216c16708cdf21c3aa8e4681dc876",
+      "bytes": 1565,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-PROXY-B-RO-20261021-R1-summary.md",
+      "sha256": "0ceb20f2f3f41a9f2a39cb1a9d208c0a0c09963942f5c850351cbdc1ca598448",
+      "bytes": 1566,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-PROXY-A-RO-20261021-R2-classified.json",
+      "sha256": "202e695db8327d7be3d0394d7a0ae4ef8341b5a30c4af66e67d50a54899d15f3",
+      "bytes": 90553,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "GP50-PROXY-B-RO-20261021-R1-classified.json",
+      "sha256": "e1e238ebab2b6a13cd5eccd7d288fc52708cbefed90d29f1f46d798f6f9bcf8c",
+      "bytes": 89211,
+      "source_kind": "original-local-artifact"
+    },
+    {
+      "file": "source/Stage50.java",
+      "sha256": "d670aaf343b2b516fdedd4afe59f3194efff1b74f8001bbaa63492c02bc645af",
+      "bytes": 10900,
+      "source_kind": "executed-source-snapshot"
+    },
+    {
+      "file": "source/MaskProbe.java",
+      "sha256": "666c6742dbd657b01000c891e39365cd008d5825c80344f382797d89e64aad8d",
+      "bytes": 1215,
+      "source_kind": "executed-source-snapshot"
+    },
+    {
+      "file": "source/findTopK.sql",
+      "sha256": "4c65c899327a380a473a9a20b37bb12df8949ce551d3410f7434b34babd1dd53",
+      "bytes": 950,
+      "source_kind": "executed-source-snapshot"
+    },
+    {
+      "file": "source/src/com/opensource/docgrid/domain/search/benchmark/FullFixture.java",
+      "sha256": "ec3ddae083b2b0e8daee160a0dfcd1e6ddf39181de017b759497a19e0cfdf1f9",
+      "bytes": 9450,
+      "source_kind": "executed-source-snapshot"
+    },
+    {
+      "file": "source/src/com/opensource/docgrid/domain/search/benchmark/PermissionRecallCorpus.java",
+      "sha256": "e5bf301856eb1bffb3be07a7644b2e1e62e11a17874b4921ff7abdc1d4f89e47",
+      "bytes": 930,
+      "source_kind": "executed-source-snapshot"
+    },
+    {
+      "file": "source/src/com/opensource/docgrid/domain/search/benchmark/PermissionRecallDataset.java",
+      "sha256": "97e2a4b0cd6fb5eead9252efbd2e6cc796612803ce0c5bad8472faffbfff8930",
+      "bytes": 9706,
+      "source_kind": "executed-source-snapshot"
+    }
+  ]
+}
