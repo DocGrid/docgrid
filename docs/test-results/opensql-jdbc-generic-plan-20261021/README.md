@@ -1,5 +1,9 @@
 # OpenSQL·원본 OpenProxy·JDBC의 Generic Plan 자연 전환과 수정 효과
 
+- 관련 PR: [#550 SQL 수정](https://github.com/DocGrid/docgrid/pull/550) · [#568 OpenSQL·JDBC 후속 시험](https://github.com/DocGrid/docgrid/pull/568)
+- 제품 SQL: [시험 기준 findTopK](https://github.com/DocGrid/docgrid/blob/b6ee78bfebfcc8d23b4ee039e2852faf6679fb98/backend/src/main/java/com/opensource/docgrid/domain/search/repository/VectorSearchRepository.java#L23-L43)
+- 기준 스키마: [a24d3e8 migration](https://github.com/DocGrid/docgrid/tree/a24d3e80771168cdc95c67c2ef8ad51cf2130241/backend/src/main/resources/db/migration)
+
 ## 결론
 
 2026-10-21 KST, 기존 약 5만 청크 재현 조건을 실제 클라우드 OpenSQL·원본 OpenProxy 바이너리·pgJDBC 경로에 맞췄습니다.
