@@ -11,6 +11,7 @@ GCS 경로를 시험했습니다. 배포 구성과 각 시험의 적용 범위�
 
 [검증된 범위](#검증된-범위) · [아키텍처](#아키텍처) · [빠른 실행](#빠른-실행) · [환경 선택](#환경-선택) · [테스트](#테스트)
 
+<!--
 
 ## 시연 영상
 
@@ -21,6 +22,8 @@ GCS 경로를 시험했습니다. 배포 구성과 각 시험의 적용 범위�
 | [![서비스 사용 흐름 및 인덱싱 장애 대응 시연](https://img.youtube.com/vi/t2JHrvTSC-w/mqdefault.jpg)](https://youtu.be/t2JHrvTSC-w) | [![OpenProxy A 장애 중 k6 부하·HTTP 응답 시연](https://img.youtube.com/vi/hwP4-J86BqE/mqdefault.jpg)](https://youtu.be/hwP4-J86BqE) |
 | **3. OpenProxy A 장애 중 실제 웹 기능** | **4. Primary VM 장애·Failover·멱등 재전송** |
 | [![OpenProxy A 장애 중 실제 웹 기능 시연](https://img.youtube.com/vi/i9-LmozKqu4/mqdefault.jpg)](https://youtu.be/i9-LmozKqu4) | [![Primary VM 장애·Failover·멱등 재전송 시연](https://img.youtube.com/vi/NWlwwDB0a94/mqdefault.jpg)](https://youtu.be/NWlwwDB0a94) |
+
+-->
 
 ## 주요 기능
 
