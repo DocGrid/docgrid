@@ -1,0 +1,64 @@
+{
+  "corpus_cache_sha256": "f7a24253cd5e9cf964c182791b1d6aa7d68cb83ad0a9a551538fa631de9216bd",
+  "question_cache_sha256": "e6635cc8f1eaf1a756b63051a8267b73e4b4f504609145c988f8dcf92b9ca5a3",
+  "original_report_time": "2026-10-17T08:47:40.935636Z",
+  "documents": 251,
+  "real_chunks": 3572,
+  "questions": 30,
+  "source_sha_mismatch": 0,
+  "target_scale": {
+    "scale": "50000",
+    "documents": 3559,
+    "realDocuments": 251,
+    "syntheticDocuments": 3308,
+    "chunks": 50008,
+    "realChunks": 3572,
+    "syntheticChunkRatio": 0.9285714285714286,
+    "syntheticSimilarityLow": 0.7593591047524721,
+    "syntheticSimilarityHigh": 0.835336629551107,
+    "loadSeconds": 13.947758416,
+    "indexBuildSeconds": 26.725677333,
+    "tableBytes": 10485760,
+    "indexBytes": 409673728,
+    "totalBytes": 700735488,
+    "ratios": [
+      {
+        "ratio": 1.0,
+        "permittedDocuments": 3559,
+        "permittedChunks": 50008
+      },
+      {
+        "ratio": 0.1,
+        "permittedDocuments": 356,
+        "permittedChunks": 5244
+      },
+      {
+        "ratio": 0.01,
+        "permittedDocuments": 36,
+        "permittedChunks": 434
+      },
+      {
+        "ratio": 0.001,
+        "permittedDocuments": 4,
+        "permittedChunks": 40
+      }
+    ]
+  },
+  "settings": {
+    "hnsw.ef_search": "40",
+    "hnsw.iterative_scan": "off",
+    "hnsw.max_scan_tuples": "20000",
+    "hnsw.scan_mem_multiplier": "1",
+    "shared_buffers": "128MB",
+    "work_mem": "4MB",
+    "maintenance_work_mem": "64MB",
+    "effective_cache_size": "4GB",
+    "random_page_cost": "4",
+    "max_parallel_workers_per_gather": "2",
+    "max_parallel_maintenance_workers": "2",
+    "plan_cache_mode": "auto",
+    "jit": "on"
+  },
+  "query_id": "D01",
+  "seed": 545
+}

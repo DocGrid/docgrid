@@ -1,0 +1,2772 @@
+{
+  "주의": "증가량은 동일 backend·동일 준비문의 직전 관측과 비교. 누적 스냅샷 합산 아님",
+  "표본": [
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:05.003513+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 1,
+      "JDBC_왕복_ms": 1574.631708,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": false,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 1,
+        "관측_준비문수": 1,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:07.579567+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 1,
+      "JDBC_왕복_ms": 1206.728333,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": false,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 1,
+        "관측_준비문수": 1,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:09.843709+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 2,
+      "JDBC_왕복_ms": 1016.599084,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": false,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 2,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:12.109987+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 2,
+      "JDBC_왕복_ms": 1076.162083,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": false,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 2,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:14.362521+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 3,
+      "JDBC_왕복_ms": 1044.05325,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": false,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 1,
+        "관측_준비문수": 1,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:16.532281+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 3,
+      "JDBC_왕복_ms": 1012.792333,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": false,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 1,
+        "관측_준비문수": 1,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "e3a448f78008738f",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:18.786994+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 4,
+      "JDBC_왕복_ms": 1012.24575,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 2,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:21.104091+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 4,
+      "JDBC_왕복_ms": 1086.539791,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 3,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:23.631225+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 5,
+      "JDBC_왕복_ms": 1028.637875,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 3,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:25.981372+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 5,
+      "JDBC_왕복_ms": 1009.690666,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 4,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:28.236895+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 6,
+      "JDBC_왕복_ms": 984.768041,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 4,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 2,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 2,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:30.496164+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 6,
+      "JDBC_왕복_ms": 1016.484875,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 2,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "e3a448f78008738f",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:32.799391+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 7,
+      "JDBC_왕복_ms": 1048.842833,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 3,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 1,
+        "준비문별": [
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:35.070704+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 7,
+      "JDBC_왕복_ms": 1002.467,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 5,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 2,
+        "준비문별": [
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 2,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:37.357626+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 8,
+      "JDBC_왕복_ms": 994.978875,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 4,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 2,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 2,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:39.761754+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 8,
+      "JDBC_왕복_ms": 1045.872083,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 6,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 3,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 3,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:42.043690+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 9,
+      "JDBC_왕복_ms": 1055.435459,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 5,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 3,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 3,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:44.351508+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 9,
+      "JDBC_왕복_ms": 1051.094,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 7,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 4,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 4,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:46.692676+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 10,
+      "JDBC_왕복_ms": 1084.938125,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 6,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 4,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 4,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:48.974888+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 10,
+      "JDBC_왕복_ms": 1030.880083,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:51.812107+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 11,
+      "JDBC_왕복_ms": 992.664458,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:07:54.087459+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 11,
+      "JDBC_왕복_ms": 1046.439875,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 1,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 1,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 1,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:05.121193+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 12,
+      "JDBC_왕복_ms": 9821.427916,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 1,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 1,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 1,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:07.415092+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 12,
+      "JDBC_왕복_ms": 1043.18275,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 2,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 2,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 2,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:18.390249+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 13,
+      "JDBC_왕복_ms": 9758.516334,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 2,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 2,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 2,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:20.603874+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 13,
+      "JDBC_왕복_ms": 951.176083,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 3,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 3,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 3,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:22.948497+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 14,
+      "JDBC_왕복_ms": 1152.407834,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 5,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 3,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 3,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:25.213445+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 14,
+      "JDBC_왕복_ms": 1009.741708,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 3,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 2,
+        "준비문별": [
+          {
+            "준비문_별칭": "e3a448f78008738f",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 2,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:27.707644+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 15,
+      "JDBC_왕복_ms": 1006.127333,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 6,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 4,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 4,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:30.129838+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 15,
+      "JDBC_왕복_ms": 1005.817625,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 4,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 3,
+        "준비문별": [
+          {
+            "준비문_별칭": "e3a448f78008738f",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 3,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:32.645773+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 16,
+      "JDBC_왕복_ms": 989.827541,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 0,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:34.876547+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 16,
+      "JDBC_왕복_ms": 978.013375,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 4,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 4,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 4,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:45.855249+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 17,
+      "JDBC_왕복_ms": 9725.898125,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 3,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 3,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 3,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:48.141751+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 17,
+      "JDBC_왕복_ms": 1012.504959,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 5,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 5,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 5,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:08:59.401102+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 18,
+      "JDBC_왕복_ms": 9816.603542,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 1,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 1,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 1,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:09:01.747800+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 18,
+      "JDBC_왕복_ms": 1000.403792,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 6,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 6,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 6,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:09:12.701824+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 19,
+      "JDBC_왕복_ms": 9734.887792,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 2,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 2,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 2,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:09:14.953488+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 19,
+      "JDBC_왕복_ms": 964.462917,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 5,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 4,
+        "준비문별": [
+          {
+            "준비문_별칭": "e3a448f78008738f",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 4,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:09:25.909176+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 20,
+      "JDBC_왕복_ms": 9725.698458,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 4,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 4,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 4,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:09:28.268563+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 20,
+      "JDBC_왕복_ms": 1047.452209,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 0,
+        "custom_plans": 6,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 0,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e3a448f78008738f",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 0,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Custom",
+      "Generic_증가": 0,
+      "Custom_증가": 1
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:09:39.308653+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 21,
+      "JDBC_왕복_ms": 9815.045833,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 5,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 5,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 5,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:09:41.616507+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 21,
+      "JDBC_왕복_ms": 1003.847125,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 7,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 7,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 7,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:09:52.598216+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 22,
+      "JDBC_왕복_ms": 9736.324416,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 6,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 6,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 6,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:09:54.855514+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 22,
+      "JDBC_왕복_ms": 950.750708,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 8,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 8,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 8,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:10:06.140240+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 23,
+      "JDBC_왕복_ms": 9866.146875,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 3,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 3,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 3,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:10:08.381671+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 23,
+      "JDBC_왕복_ms": 977.5135,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 9,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 9,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 9,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:10:19.322454+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 24,
+      "JDBC_왕복_ms": 9729.053708,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 4,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 4,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 4,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:10:21.646066+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 24,
+      "JDBC_왕복_ms": 1049.978417,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 10,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 10,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 10,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:10:33.134518+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 25,
+      "JDBC_왕복_ms": 9815.806875,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 7,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 7,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 7,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:10:35.559187+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 25,
+      "JDBC_왕복_ms": 946.151875,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 11,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 11,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 11,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:10:46.586301+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 26,
+      "JDBC_왕복_ms": 9710.454875,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 8,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 8,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 8,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:10:48.804891+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 26,
+      "JDBC_왕복_ms": 948.145125,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 12,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 12,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 12,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:10:59.983889+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 27,
+      "JDBC_왕복_ms": 9903.1935,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 5,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 5,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 5,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:11:02.522683+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 27,
+      "JDBC_왕복_ms": 1332.477709,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 13,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 13,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 13,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:11:13.607749+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 28,
+      "JDBC_왕복_ms": 9781.809833,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 9,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 9,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 9,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "2f47b202eb32cc5b",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "adc0fe8d4f6576a0",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:11:15.763830+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 28,
+      "JDBC_왕복_ms": 968.079084,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 1,
+        "custom_plans": 6,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 1,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e3a448f78008738f",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 1,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:11:26.687709+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 29,
+      "JDBC_왕복_ms": 9680.861625,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 6,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 6,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 6,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:11:28.889098+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 29,
+      "JDBC_왕복_ms": 970.765667,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "acd933c1438aa1c68738ec185045d030:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 14,
+        "custom_plans": 8,
+        "관측_준비문수": 4,
+        "단일준비문_generic_최대": 14,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 14,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "897bee801b8d9db3",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "c92e5f4742aad525",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "4795f604fef8ea45",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:11:39.906143+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 전",
+      "회차": 30,
+      "JDBC_왕복_ms": 9751.680167,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 7,
+        "custom_plans": 7,
+        "관측_준비문수": 3,
+        "단일준비문_generic_최대": 7,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "8011f307ff62695c",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "fec7f21db050e60d",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "e603d83cb97e0a1b",
+            "generic_plans": 7,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    },
+    {
+      "실행_ID": "GP50-PROXY-A-RO-20261021-R2",
+      "시각": "2026-10-21T08:11:42.198558+09:00",
+      "이벤트": "SQL 반복 관측",
+      "SQL": "수정 후",
+      "회차": 30,
+      "JDBC_왕복_ms": 950.206583,
+      "결과수": 40,
+      "결과동일": true,
+      "결과_SHA256": "aff60ed6a81929ba91a39e2bae0695ebb899b0fd1e165f0ba0cb11cd5cb11209",
+      "backend_별칭": "b575cfe8d6c89463f3ae7f8e550b7e8e:standby",
+      "isUseServerPrepare_호출후_flag": true,
+      "계획카운터": {
+        "generic_plans": 2,
+        "custom_plans": 6,
+        "관측_준비문수": 2,
+        "단일준비문_generic_최대": 2,
+        "단일준비문_custom_최대": 5,
+        "준비문별": [
+          {
+            "준비문_별칭": "e3a448f78008738f",
+            "generic_plans": 0,
+            "custom_plans": 1,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          },
+          {
+            "준비문_별칭": "d96ace33e6bec9b1",
+            "generic_plans": 2,
+            "custom_plans": 5,
+            "매개변수수": 3563,
+            "벡터바인딩타입": "varchar"
+          }
+        ]
+      },
+      "선택판정": "Generic",
+      "Generic_증가": 1,
+      "Custom_증가": 0
+    }
+  ]
+}

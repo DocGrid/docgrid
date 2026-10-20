@@ -1,0 +1,276 @@
+{
+  "revision": "a24d3e80771168cdc95c67c2ef8ad51cf2130241",
+  "files": [
+    {
+      "file": "V10__create_user_roles.sql",
+      "sha256": "f1a07b21cba2c12dca68c7067eb51c86a47b9d5d680b5a512b4c10bd06927a99",
+      "executed_sha256": "f1a07b21cba2c12dca68c7067eb51c86a47b9d5d680b5a512b4c10bd06927a99"
+    },
+    {
+      "file": "V11__create_collection_permissions.sql",
+      "sha256": "cd17fe1e7cc0a1fda91cd95487da34d6f1f4b69212fae06e60f2ee13e3e70e9e",
+      "executed_sha256": "cd17fe1e7cc0a1fda91cd95487da34d6f1f4b69212fae06e60f2ee13e3e70e9e"
+    },
+    {
+      "file": "V12__create_document_permissions.sql",
+      "sha256": "eeed264b6d9e286215fd148ff99c77579e86f357277c0e96035b3b0ebd00e330",
+      "executed_sha256": "eeed264b6d9e286215fd148ff99c77579e86f357277c0e96035b3b0ebd00e330"
+    },
+    {
+      "file": "V13__create_user_document_access_cache.sql",
+      "sha256": "3d362791daa7ae9ea5d2efe5177067491b66902ea0476894973d9f9500a69e84",
+      "executed_sha256": "3d362791daa7ae9ea5d2efe5177067491b66902ea0476894973d9f9500a69e84"
+    },
+    {
+      "file": "V14__create_embedding_models.sql",
+      "sha256": "02990b2a86a6bc132c7b0edfd9e604b754497a7778d8d368c38e379da6ca8078",
+      "executed_sha256": "02990b2a86a6bc132c7b0edfd9e604b754497a7778d8d368c38e379da6ca8078"
+    },
+    {
+      "file": "V15__create_document_chunks.sql",
+      "sha256": "8491ec2c31df0334b42dfae9711c34c42460577a1f2f642820f13bf45dc2c600",
+      "executed_sha256": "8491ec2c31df0334b42dfae9711c34c42460577a1f2f642820f13bf45dc2c600"
+    },
+    {
+      "file": "V16__create_embeddings.sql",
+      "sha256": "8110564b58b201df34fabb7393a84164464f34d5c3fae6c0320c8ec60cd2b9e2",
+      "executed_sha256": "8110564b58b201df34fabb7393a84164464f34d5c3fae6c0320c8ec60cd2b9e2"
+    },
+    {
+      "file": "V17__create_worker_nodes.sql",
+      "sha256": "ad63e61e8b7e0b83665b3c3f4dbe375b72a23b73d6816dfaa9a525bd74dc52db",
+      "executed_sha256": "ad63e61e8b7e0b83665b3c3f4dbe375b72a23b73d6816dfaa9a525bd74dc52db"
+    },
+    {
+      "file": "V18__create_embedding_jobs.sql",
+      "sha256": "5f8a0e7d3e46d6a1a3e43c995dbe326eae4ea8a5d549fb1aa0b06d7720d3207e",
+      "executed_sha256": "5f8a0e7d3e46d6a1a3e43c995dbe326eae4ea8a5d549fb1aa0b06d7720d3207e"
+    },
+    {
+      "file": "V19__create_embedding_job_attempts.sql",
+      "sha256": "1322ac70eec8fc8374d3ed05741fa64f3cfcfd11bf61dc5dc1f10010cc39d463",
+      "executed_sha256": "1322ac70eec8fc8374d3ed05741fa64f3cfcfd11bf61dc5dc1f10010cc39d463"
+    },
+    {
+      "file": "V1__init_schema.sql",
+      "sha256": "7419e485251fb4b8488392b1bc128b9809c390a5ca3abba57a1aa1aaea9b54ad",
+      "executed_sha256": "7419e485251fb4b8488392b1bc128b9809c390a5ca3abba57a1aa1aaea9b54ad"
+    },
+    {
+      "file": "V20__create_indexing_events.sql",
+      "sha256": "60fe5e0fe457d2c5411d5ea56167097b5832d1978b1835180dce6caf8c44f292",
+      "executed_sha256": "60fe5e0fe457d2c5411d5ea56167097b5832d1978b1835180dce6caf8c44f292"
+    },
+    {
+      "file": "V21__create_search_queries.sql",
+      "sha256": "d06ccbe8cd910c16e8f3bc4388c45c079e9ee2b0b47ddc0115a068713a5fcfc6",
+      "executed_sha256": "d06ccbe8cd910c16e8f3bc4388c45c079e9ee2b0b47ddc0115a068713a5fcfc6"
+    },
+    {
+      "file": "V22__create_search_results.sql",
+      "sha256": "305ed449eb1515137f79de312eeb15c56d08c1dd6b00b455601cba80869c5b38",
+      "executed_sha256": "305ed449eb1515137f79de312eeb15c56d08c1dd6b00b455601cba80869c5b38"
+    },
+    {
+      "file": "V23__create_rag_responses.sql",
+      "sha256": "6aa19ba28f6c224781e180ae7af87d710575f0252d3ff7912ea9dcceb82816be",
+      "executed_sha256": "6aa19ba28f6c224781e180ae7af87d710575f0252d3ff7912ea9dcceb82816be"
+    },
+    {
+      "file": "V24__create_response_citations.sql",
+      "sha256": "96f2e434f3656ddc59134399026f8466dbd4706e691013b68e2dd02dab082323",
+      "executed_sha256": "96f2e434f3656ddc59134399026f8466dbd4706e691013b68e2dd02dab082323"
+    },
+    {
+      "file": "V25__create_failover_events.sql",
+      "sha256": "0d6927872ab76023c69d0f2793e16a19ad1cda4cefdb485f137f0fbaddeb0efd",
+      "executed_sha256": "0d6927872ab76023c69d0f2793e16a19ad1cda4cefdb485f137f0fbaddeb0efd"
+    },
+    {
+      "file": "V26__create_mcp_access_tokens.sql",
+      "sha256": "cf8982fb91181996a47e11ca4d8504884e8fd05ea1e8f94ffcf8323bf9d499ea",
+      "executed_sha256": "cf8982fb91181996a47e11ca4d8504884e8fd05ea1e8f94ffcf8323bf9d499ea"
+    },
+    {
+      "file": "V27__add_embedding_model_constraints.sql",
+      "sha256": "0d1df92b42709276ef62cc28684057728cb4134a9c3c502294e0124f9d05df1a",
+      "executed_sha256": "0d1df92b42709276ef62cc28684057728cb4134a9c3c502294e0124f9d05df1a"
+    },
+    {
+      "file": "V28__seed_roles_departments_admin.sql",
+      "sha256": "d474332979fbd1507489e24e9f3c543039e017d056ead72ce1a848d473b9fcae",
+      "executed_sha256": "c85bfd7ad2b7ffa71f5b97017fd1e4317281a43ea686c5b982fc3deccbfa5eea"
+    },
+    {
+      "file": "V29__add_file_object_deduplication_constraint.sql",
+      "sha256": "c3d2f615bec1e69efc6398c342bf0bb297577965bb72201f26d2f8864d66e037",
+      "executed_sha256": "c3d2f615bec1e69efc6398c342bf0bb297577965bb72201f26d2f8864d66e037"
+    },
+    {
+      "file": "V2__create_departments.sql",
+      "sha256": "aba3263473ae41a2f5685fb245d9736796569c6ed467244f5199b78bd4604824",
+      "executed_sha256": "aba3263473ae41a2f5685fb245d9736796569c6ed467244f5199b78bd4604824"
+    },
+    {
+      "file": "V30__add_document_version_upload_metadata.sql",
+      "sha256": "51fa3c4b167a1b11c11c347c57d8302d13e7f3d2aaf3a706aa94a950f1cf7c3b",
+      "executed_sha256": "51fa3c4b167a1b11c11c347c57d8302d13e7f3d2aaf3a706aa94a950f1cf7c3b"
+    },
+    {
+      "file": "V31__add_worker_instance_id.sql",
+      "sha256": "6cb3c850e98480de902b0e95528ee72cb2131e349710c1a3e276b5af3012e5e5",
+      "executed_sha256": "6cb3c850e98480de902b0e95528ee72cb2131e349710c1a3e276b5af3012e5e5"
+    },
+    {
+      "file": "V32__convert_vector_columns_to_pgvector.sql",
+      "sha256": "b6d7d7c1ae6489cce26028d770cf3b5ccbf8df8dac47dc8401d017edf7bf16ec",
+      "executed_sha256": "b6d7d7c1ae6489cce26028d770cf3b5ccbf8df8dac47dc8401d017edf7bf16ec"
+    },
+    {
+      "file": "V33__add_embedding_job_claim_token.sql",
+      "sha256": "25323eadc32396d3e55e7806eeeb1a895c60393f00c1447c6ab61f4df7b252c2",
+      "executed_sha256": "25323eadc32396d3e55e7806eeeb1a895c60393f00c1447c6ab61f4df7b252c2"
+    },
+    {
+      "file": "V34__add_claim_token_to_embedding_job_attempts.sql",
+      "sha256": "e52ea0f8361f0d42360d6240283285001b25a70d0721170cb3d79abbec230549",
+      "executed_sha256": "e52ea0f8361f0d42360d6240283285001b25a70d0721170cb3d79abbec230549"
+    },
+    {
+      "file": "V35__add_embedding_job_next_retry_at.sql",
+      "sha256": "590daa41cabcbe71938e36c184a2ae496dc2648d02ed44ff92f37e77c720b5bf",
+      "executed_sha256": "590daa41cabcbe71938e36c184a2ae496dc2648d02ed44ff92f37e77c720b5bf"
+    },
+    {
+      "file": "V36__create_sync_outbox_events.sql",
+      "sha256": "5c80386eebb4a8199d8d8289433a201411086227a490dce2a6e9191b5c1b9828",
+      "executed_sha256": "5c80386eebb4a8199d8d8289433a201411086227a490dce2a6e9191b5c1b9828"
+    },
+    {
+      "file": "V37__create_sync_consistency_issues.sql",
+      "sha256": "4b53a243d4d126b07d6a4ee67dee4fc74476e0e51fbe6b203c9ed74a87556ca8",
+      "executed_sha256": "4b53a243d4d126b07d6a4ee67dee4fc74476e0e51fbe6b203c9ed74a87556ca8"
+    },
+    {
+      "file": "V38__create_sync_admin_actions.sql",
+      "sha256": "35c641e32284587f2a0963d828f6954bff6445f24f2de5995b2212e647f985ff",
+      "executed_sha256": "35c641e32284587f2a0963d828f6954bff6445f24f2de5995b2212e647f985ff"
+    },
+    {
+      "file": "V39__create_sync_event_delivery_attempts.sql",
+      "sha256": "b924b446ce4e4d024a05ae97f5d3a1620ed5ae5e6af1c80ae4ea1e40087033cd",
+      "executed_sha256": "b924b446ce4e4d024a05ae97f5d3a1620ed5ae5e6af1c80ae4ea1e40087033cd"
+    },
+    {
+      "file": "V3__create_users.sql",
+      "sha256": "b0155709c4cdb9fc891db1d369e65587dc4babb83d53ef3e0aed9f7543369b05",
+      "executed_sha256": "b0155709c4cdb9fc891db1d369e65587dc4babb83d53ef3e0aed9f7543369b05"
+    },
+    {
+      "file": "V40__alter_rag_responses_answer_text_nullable.sql",
+      "sha256": "487d2ac4317e10a12a85fa8b92beeed1ce0695a5f54b380c3a8221b80bf43c2e",
+      "executed_sha256": "487d2ac4317e10a12a85fa8b92beeed1ce0695a5f54b380c3a8221b80bf43c2e"
+    },
+    {
+      "file": "V41__create_search_conversations.sql",
+      "sha256": "e3c26a63988f2ceb037bce20d5dba0f171feec7d3ccb3936e0092fabf534c97b",
+      "executed_sha256": "e3c26a63988f2ceb037bce20d5dba0f171feec7d3ccb3936e0092fabf534c97b"
+    },
+    {
+      "file": "V42__create_collection_closure.sql",
+      "sha256": "26025f3d3b01132307ec051fd0c1a18433c9ead9a45807014d5f9fbd3a359dc9",
+      "executed_sha256": "26025f3d3b01132307ec051fd0c1a18433c9ead9a45807014d5f9fbd3a359dc9"
+    },
+    {
+      "file": "V43__add_rag_responses_claimed_at.sql",
+      "sha256": "f1bcacff7263e2895d0976b4637cbad8b9300a2213cdb730bfb7f4fd1317f78e",
+      "executed_sha256": "f1bcacff7263e2895d0976b4637cbad8b9300a2213cdb730bfb7f4fd1317f78e"
+    },
+    {
+      "file": "V44__create_ha_probe_writes.sql",
+      "sha256": "251669299097d8f8db0ce45e85c59a43c8df8479f699b2cc5aa4cb10090f3aca",
+      "executed_sha256": "251669299097d8f8db0ce45e85c59a43c8df8479f699b2cc5aa4cb10090f3aca"
+    },
+    {
+      "file": "V45__create_ha_probe_idempotent_writes.sql",
+      "sha256": "e35ccdbf4760609f9826a7d46e459df8fbf6421f4660acae7c0c01244e620877",
+      "executed_sha256": "e35ccdbf4760609f9826a7d46e459df8fbf6421f4660acae7c0c01244e620877"
+    },
+    {
+      "file": "V46__enable_pg_trgm_chunk_text_index.sql",
+      "sha256": "8d048a09faad94be7618f4e6fbf95b08cccc48c0ef86ea52323e712d1cceb87e",
+      "executed_sha256": "8d048a09faad94be7618f4e6fbf95b08cccc48c0ef86ea52323e712d1cceb87e"
+    },
+    {
+      "file": "V47__create_initial_upload_requests.sql",
+      "sha256": "5abdca47e1f08a97ee19ebe73999ded395e2de03816955605a869b11faf8c373",
+      "executed_sha256": "5abdca47e1f08a97ee19ebe73999ded395e2de03816955605a869b11faf8c373"
+    },
+    {
+      "file": "V48__track_initial_upload_candidates.sql",
+      "sha256": "650e7d40e5281c6c232142c7420fc3f910e6da90488f5e250691d3a2bf490fe4",
+      "executed_sha256": "650e7d40e5281c6c232142c7420fc3f910e6da90488f5e250691d3a2bf490fe4"
+    },
+    {
+      "file": "V49__create_version_upload_requests.sql",
+      "sha256": "8847ee8a8ee025985731ce1ceea74c364a5bb222bb236c09b5fbbc4101155882",
+      "executed_sha256": "8847ee8a8ee025985731ce1ceea74c364a5bb222bb236c09b5fbbc4101155882"
+    },
+    {
+      "file": "V4__create_file_objects.sql",
+      "sha256": "cbf1a09810270a2933ba4ab383d459ad5cbf91cc9cdc322726882cc73ac06d9d",
+      "executed_sha256": "cbf1a09810270a2933ba4ab383d459ad5cbf91cc9cdc322726882cc73ac06d9d"
+    },
+    {
+      "file": "V50__track_version_upload_candidates.sql",
+      "sha256": "4889855b0669c9dbcba37e721792ff8e0d1894cac9fbbcf271deb235efc54a0c",
+      "executed_sha256": "4889855b0669c9dbcba37e721792ff8e0d1894cac9fbbcf271deb235efc54a0c"
+    },
+    {
+      "file": "V51__add_rag_response_claim_lease.sql",
+      "sha256": "9f4f605c92b1f35fd5b169b3a9517738458e1640029db2ca0fb7d89591458331",
+      "executed_sha256": "9f4f605c92b1f35fd5b169b3a9517738458e1640029db2ca0fb7d89591458331"
+    },
+    {
+      "file": "V52__create_permission_revocation_requests.sql",
+      "sha256": "24ec19b1db08317fac548011314e6cc1ba868b3fa01232391f262ae291827ff8",
+      "executed_sha256": "24ec19b1db08317fac548011314e6cc1ba868b3fa01232391f262ae291827ff8"
+    },
+    {
+      "file": "V5__create_documents.sql",
+      "sha256": "2c3f98c0db479dbdb655b83015125fb19135beca793704ec245f54c6eb38dc6c",
+      "executed_sha256": "2c3f98c0db479dbdb655b83015125fb19135beca793704ec245f54c6eb38dc6c"
+    },
+    {
+      "file": "V6__create_document_versions.sql",
+      "sha256": "0e69406c70dd38019b73d901420a4c12765cbf3febd275606ffa861e151bb8c6",
+      "executed_sha256": "0e69406c70dd38019b73d901420a4c12765cbf3febd275606ffa861e151bb8c6"
+    },
+    {
+      "file": "V7__create_collections.sql",
+      "sha256": "54bbf51186ec36e2096a49cd42f4aeff575999ece9d886ade9608c495877c9b3",
+      "executed_sha256": "54bbf51186ec36e2096a49cd42f4aeff575999ece9d886ade9608c495877c9b3"
+    },
+    {
+      "file": "V8__create_collection_documents.sql",
+      "sha256": "bd731aade3b7c13e8c0116d40b3f943fc9c20ee9f93983b78ed9fd1f699120aa",
+      "executed_sha256": "bd731aade3b7c13e8c0116d40b3f943fc9c20ee9f93983b78ed9fd1f699120aa"
+    },
+    {
+      "file": "V9__create_roles.sql",
+      "sha256": "e75b52e91e18727bf2cfd8cc670789b74a667ac81f16ea0d506f0e8faa3bead3",
+      "executed_sha256": "e75b52e91e18727bf2cfd8cc670789b74a667ac81f16ea0d506f0e8faa3bead3"
+    },
+    {
+      "file": "R__seed_bge_m3_embedding_model.sql",
+      "sha256": "99c455a371a7bfbc113115d7752009a00ea7008d8991676c32debd4723ad44f4",
+      "executed_sha256": "99c455a371a7bfbc113115d7752009a00ea7008d8991676c32debd4723ad44f4"
+    },
+    {
+      "file": "R__seed_test_fixtures.sql",
+      "sha256": "5e8355d2224e58f39a6c6c40179dfb2ca70ac851dbe7c7ca1b61d06fb7c34c5a",
+      "executed_sha256": "5e8355d2224e58f39a6c6c40179dfb2ca70ac851dbe7c7ca1b61d06fb7c34c5a"
+    }
+  ],
+  "seed_redaction": "V28의 개인정보·기본 인증값은 시험용 값으로 치환. DDL 동일, 데이터 적재 전 users를 원래 하네스처럼 TRUNCATE."
+}
