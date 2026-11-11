@@ -1,4 +1,4 @@
-# DocGrid
+# DocGrid [2026 오픈소스 개발자대회 기업과제상 수상]
 
 [![CI](https://github.com/DocGrid/docgrid/actions/workflows/ci.yml/badge.svg?branch=develop&event=push)](https://github.com/DocGrid/docgrid/actions/workflows/ci.yml?query=branch%3Adevelop+event%3Apush)
 
