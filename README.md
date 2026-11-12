@@ -38,78 +38,6 @@ GCS 경로를 시험했습니다. 배포 구성과 각 시험의 적용 범위�
   관리자가 수동 실행하며, Job·Vector 누락의 안전 복구를 지원합니다. 주기 점검은 기본으로 꺼져 있습니다.
 - **저장소·DB 연결:** 로컬 파일·GCS Adapter와 OpenProxy A/B·OpenSQL 연결을 지원합니다. MinIO·S3는 선택형 Adapter입니다.
 
-## 검증된 범위
-
-수치는 실행별 관측값입니다. 환경·부하·리비전이 다른 회차를 합산하지 않으며, 각 기록에 준비 문제·재시도·실패·정리를 보존했습니다.
-
-### 대표 결과
-
-| 목적 | 검증 분야 | 환경·조건 | 관측 결과와 한계 | 증거 | 관련 PR |
-|---|---|---|---|---|---|
-| **OpenSQL 장애 중 성공 응답 보존** | 고가용성(HA)·데이터 내구성 | GCP 3노드, 네트워크 분할 회차별 최초 요청 751건 | 비동기: 최초 201 632건 중 40건 유실. 별도 동기 strict 회차: 201 586건 누락 0, HTTP 오류·결과 불명 발생. 동기는 시험용 역할 어댑터 경유 | [비동기](docs/test-results/opensql-primary-network-partition-20261017/README.md) · [strict](docs/test-results/opensql-primary-network-partition-sync-20261017/README.md) | [#548](https://github.com/DocGrid/docgrid/pull/548) |
-| **DB·GCS 외부 복원** | 백업·복구(DR) | 실제 OpenSQL·Barman·GCS, 전용 논리 DB·별도 PGDATA(물리 호스트 공유), 2026-10-18 | 성공 응답 65건 중 60건 복원·5건 손실. 마지막 외부 보존 확인 구간 60건 누락 0. 공개 트래픽 전환·Ollama 제외 | [WAL 완료 경계 수정](docs/test-results/wal-offsite-boundary-20261018/README.md) · [재계측](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md) | [#564](https://github.com/DocGrid/docgrid/pull/564) · [#565](https://github.com/DocGrid/docgrid/pull/565) |
-| **RAG 작업 소유권·현재 권한** | 작업 정합성·접근 제어 | 로컬 격리 PostgreSQL·실제 Backend, 제어 모델 서버. 소유권은 JVM 2대, 권한은 별도 실제 인증 HTTP 시험 | 소유권 총 7회: 통과 4회·준비/시험 데이터 오류 2회·불합격 1회(원인 미확정). 통과 회차에서 B 기동 시 호출 1회, A 중단·재선점 시 호출 2회·최종 답변/인용 단일 확정. 별도 권한 HTTP 9/9 통과. 실제 Ollama 제외, 이 시험에서 공개 배포 미실행 | [소유권](docs/test-results/rag-ab-ownership-20261016/README.md) · [권한](docs/test-results/permission-current-auth-20261019/README.md) | [#513](https://github.com/DocGrid/docgrid/pull/513) · [#515](https://github.com/DocGrid/docgrid/pull/515) · [#516](https://github.com/DocGrid/docgrid/pull/516) · [#567](https://github.com/DocGrid/docgrid/pull/567) |
-| **Generic Plan 검색 지연 개선 · 로컬** | 검색 성능·쿼리 최적화 | 로컬 PostgreSQL 17.8, 약 5만 청크(합성 92.9%)·허용 100%·topK 10·질문 30개, `plan_cache_mode=force_generic_plan` 고정·수정 전후 연속 측정 | 벡터 검색 단계 p50 4,465.7→218.5ms, 하이브리드 5,799.9→1,380.6ms. 전체 REST API·OpenSQL 경로의 지연이 아님 | [측정·조건](docs/test-results/gimin-%23549-generic-plan-query-vector-cast.md) | [#550](https://github.com/DocGrid/docgrid/pull/550) |
-| **Generic Plan 자연 전환·수정 효과 · OpenSQL/JDBC** | 검색 성능·제품 경로 검증 | 실제 OpenSQL 17.8·원본 OpenProxy 별도 리스너 2개·pgJDBC 42.7.11, 50,008청크(합성 92.9%)·D01 1개·허용 100%·SQL 후보 40·`auto` | Generic p50: A 9,755.10→977.76ms, B 9,880.39→1,016.81ms(각 SQL Generic n=16). 최종 결과 120/120 일치. JDBC 왕복이며 공개 HTTP·Spring/Hikari·하이브리드 미측정 | [회차·계획·제외·정리](docs/test-results/opensql-jdbc-generic-plan-20261021/README.md) | [#550](https://github.com/DocGrid/docgrid/pull/550) · [#568](https://github.com/DocGrid/docgrid/pull/568) |
-
-RAG 소유권 7회는 서로 다른 준비·장애·경합 시나리오이며 서비스 성공률이 아닙니다.
-로컬 Generic Plan 대표 수치는 강제 조건입니다. 별도 OpenSQL·JDBC 시험은 `auto`에서 서버 준비문별 자연 전환을 확인했습니다.
-이번 JDBC 값은 IAP·SSH·Proxy 왕복을 포함하며, 공개 HTTP·Spring/Hikari 응답시간이나 하이브리드 검색 측정값이 아닙니다.
-
-네트워크 분할의 별도 멱등 API 회차에서는 새 요청 751건의 최초 201 585건을 보존했습니다.
-복구 뒤 같은 ID 재전송은 기존 585건을 200, 미반영 166건을 201로 처리해 최종 751건·중복 0건이 됐습니다.
-최초 요청 가용성과 재전송 뒤 수렴을 구분합니다. [최초 원장·재전송](docs/test-results/opensql-primary-network-partition-retry-20261017/README.md)
-
-### 복구 계측과 손실 경계
-
-10월 15일 시험은 지정 시점 T 이전 쓰기 A 1건·이후 B 0건과 GCS 사본 해시 92/92 일치를 확인했으며 RPO·RTO는 미측정입니다.
-[시점 복원](docs/test-results/db-gcs-point-in-time-recovery-20261015/) · [후속 서비스 시험](docs/test-results/db-gcs-service-recovery-20261015/)
-
-10월 18일 최초 계측은 65건 중 33건 복원·32건 손실이었습니다. 필요한 WAL의 완료 확인을 보완한 재시험은 위 표와 같습니다.
-최초 감사 때 Worker·Flyway·수선을 끈 상태로 원장·DB·원본을 대조한 뒤 활성화했습니다.
-마지막 외부 보존 확인 뒤의 5건은 DB와 원본 모두 보존 범위 밖이었습니다.
-마지막 연속 복원 성공 응답부터 T0까지의 관측 간격은 113.978초이며 운영 RPO 보장값이 아닙니다.
-
-| 사용자 기능 | T0부터 완료까지 | 표본 |
-|---|---|---|
-| 기존 원본 다운로드·해시 | 162.9초 | 4건 |
-| 기존 문서 검색 | 178.447초 | 1건 |
-| 중단 Job 재개 | 234.365초 | 1건 |
-| 새 업로드 | 241.423초 | 1건 |
-| 새 문서 인덱싱 | 910.719초 | 1건 |
-| 새 원본 다운로드·해시 | 912.801초 | 1건 |
-
-격리 문서 기능의 관측 시간이며 공개 서비스 전체 RTO가 아닙니다. 새 인덱싱에는 복원된 대기 Job 뒤에서 처리된 영향이 있습니다.
-최종 61문서 감사에서 미완료 Job·중복 Chunk·중복/누락 Embedding은 0건이었습니다.
-[최초 감사·기능별 시간·대기열·정리](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md)
-
-### 동기 복제의 격리 시험 결과
-
-- 지정형 동기·quorum 비교는 실제 격리 OpenSQL·OpenProxy에서 수행했습니다. **원본 OpenProxy**는
-  `sync_standby`·`quorum_standby` 역할 파싱 오류로 시작하지 못해 시험용 어댑터를 경유했습니다.
-  공급사 공식 지원이나 공개 경로 적용 완료를 의미하지 않습니다. [역할 호환 경계](docs/test-results/patroni-role-compatibility-20261017/README.md)
-- 각 모드·장애 조합 1회씩 총 4회, 요청 키 192건을 비교했습니다. 최초 204 174건은 모두 보존됐고 503 18건은 같은 키로 재확정했습니다.
-  이번 조건에서 quorum의 뚜렷한 우위는 관측하지 못했습니다. [지정형·quorum 비교](docs/test-results/opensql-sync-quorum-20261017/README.md)
-- 회수는 항상 `on`, 합성 독립 쓰기만 `on/local`로 바꾼 별도 비교에서 ACK 중단 중 독립 204는 `on` 0건·`local` 5건이었습니다.
-  공유 풀 5개에서 pending 최대 8은 두 조건 모두 남았고 대표 비교에서 local 성공 유실은 관측되지 않았습니다.
-  운영 Worker 정책 도입이나 local 내구성 보장으로 확대하지 않습니다. [on/local 비교](docs/test-results/permission-mixed-commit-20261017/README.md)
-
-### 분야별 추가 기록
-
-| 목적 | 검증 분야 | 실행 범위·관측 | 상세 기록 |
-|---|---|---|---|
-| 검색 품질 | 검색 품질 평가 | 로컬 BGE-M3·문서 5개·청크 83개, 질문 3세트 111문항. 사전 기준 고정 39문항 MRR@10 0.784→0.868 | [하이브리드 평가](docs/test-results/kangcheolung-%23456-hybrid-search.md) |
-| 지원 형식 | 문서 호환성 | HWP/HWPX·PDF/DOCX의 실제 로컬 PostgreSQL·MinIO·BGE-M3 E2E 2/2, HWP/HWPX 각 1건 브라우저 업로드·표 문구 검색. OpenSQL·GCS 시험과 구분 | [파서·E2E·브라우저](docs/test-results/issue-505-hwp-hwpx-parsing/README.md) |
-| 부하·장애 | 고가용성(HA)·부하 내성 | 쓰기 150 req/s×60초×3회, 회차마다 201 9,001건 누락·중복 0. Proxy·프로세스·VM 장애의 HTTP 오류와 결과 불명은 개별 원장에 보존 | [기준선](docs/test-results/gimin-389-opensql-ha-http-write-baseline-20261002.md) · [3노드 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md) |
-| 승격 후 권한 | 접근 제어·장애 후 정합성 | 격리 OpenSQL·역할 어댑터, 실제 인증 HTTP. 회수 대상 상세·본문·파일 403 9건, 대조 200 9건, 새 검색 3회에서 금지 문구 제외. 모델 응답은 대역 | [HTTP 차단](docs/test-results/permission-http-failover-20261017/README.md) |
-| 백업 연속성 | 백업 운영·WAL 보존 | Barman의 Primary 추적·WAL 수신, 기준 백업·완성 WAL 외부 보존·예약 실행. 모든 장애에서의 연속성 보장은 아님 | [수신 추적](docs/test-results/barman-wal-follow-20261016/README.md) · [외부 보존](docs/test-results/barman-offsite-20261017/README.md) |
-| GCS 원본 보존 | 원본 내구성·비동기 보존 | 이벤트 기반 비동기 사본·감사. 새 시험 원본 2/2 해시 일치, 해당 회차 누락 0 | [지속 보존](docs/test-results/gcs-original-preservation-20261017/README.md) |
-| 정합성·Worker | 데이터 정합성·작업 복구 | 8종 점검 중 4종 주입, Vector·Job 누락 복구와 보고 전용 유형을 구분. 별도 DB 장애 중 PDF/DOCX 24/24 INDEXED | [정합성 시험](docs/test-results/reconciler-repair-20261016/README.md) · [Worker 장애 복구](docs/test-results/opensql-worker-primary-fault-20261004.md) |
-| 초기 인덱싱 처리량 | 인덱싱 성능·처리량 | 2026-08-11 로컬 PostgreSQL·MinIO·CPU BGE-M3, 50·100문서 각 2회. 31.046·32.063문서/분, 합계 300문서·1,200 Vector의 실패·재시도·미완료·중복 0 | [PDF·DOCX 기준선](docs/test-results/gimin-%23145-final-performance-report.md) |
-
-권한 시험은 회수 뒤 시작하는 새 조회·입력 준비와 저장 전 검사를 확인했습니다. 외부 전송과 회수 커밋을 원자적으로 묶지 않으며 이미 전달한 내용은 소급 회수하지 못합니다.
-출처 기록이 없는 기존 답변은 본문·인용·후속 문맥 사용을 보류하고 재검색을 안내합니다. 데이터는 삭제하지 않습니다.
-전체 재현 절차와 제외 범위는 [실행 기록](docs/test-results/)에서 확인할 수 있습니다.
 
 ## 아키텍처
 
@@ -197,6 +125,79 @@ OpenSQL 기준 백업·WAL → Barman → DB 백업용 비공개 GCS
 이 경로는 [외부 보존 기록](docs/test-results/barman-offsite-20261017/README.md)과
 [복구 재계측](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md)의 실행 범위입니다.
 복제 standby와 외부 백업의 역할을 구분하며, 현재 실행 중인 자원 목록은 별도 점검이 필요합니다.
+
+## 검증된 범위
+
+수치는 실행별 관측값입니다. 환경·부하·리비전이 다른 회차를 합산하지 않으며, 각 기록에 준비 문제·재시도·실패·정리를 보존했습니다.
+
+### 대표 결과
+
+| 목적 | 검증 분야 | 환경·조건 | 관측 결과와 한계 | 증거 | 관련 PR |
+|---|---|---|---|---|---|
+| **OpenSQL 장애 중 성공 응답 보존** | 고가용성(HA)·데이터 내구성 | GCP 3노드, 네트워크 분할 회차별 최초 요청 751건 | 비동기: 최초 201 632건 중 40건 유실. 별도 동기 strict 회차: 201 586건 누락 0, HTTP 오류·결과 불명 발생. 동기는 시험용 역할 어댑터 경유 | [비동기](docs/test-results/opensql-primary-network-partition-20261017/README.md) · [strict](docs/test-results/opensql-primary-network-partition-sync-20261017/README.md) | [#548](https://github.com/DocGrid/docgrid/pull/548) |
+| **DB·GCS 외부 복원** | 백업·복구(DR) | 실제 OpenSQL·Barman·GCS, 전용 논리 DB·별도 PGDATA(물리 호스트 공유), 2026-10-18 | 성공 응답 65건 중 60건 복원·5건 손실. 마지막 외부 보존 확인 구간 60건 누락 0. 공개 트래픽 전환·Ollama 제외 | [WAL 완료 경계 수정](docs/test-results/wal-offsite-boundary-20261018/README.md) · [재계측](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md) | [#564](https://github.com/DocGrid/docgrid/pull/564) · [#565](https://github.com/DocGrid/docgrid/pull/565) |
+| **RAG 작업 소유권·현재 권한** | 작업 정합성·접근 제어 | 로컬 격리 PostgreSQL·실제 Backend, 제어 모델 서버. 소유권은 JVM 2대, 권한은 별도 실제 인증 HTTP 시험 | 소유권 총 7회: 통과 4회·준비/시험 데이터 오류 2회·불합격 1회(원인 미확정). 통과 회차에서 B 기동 시 호출 1회, A 중단·재선점 시 호출 2회·최종 답변/인용 단일 확정. 별도 권한 HTTP 9/9 통과. 실제 Ollama 제외, 이 시험에서 공개 배포 미실행 | [소유권](docs/test-results/rag-ab-ownership-20261016/README.md) · [권한](docs/test-results/permission-current-auth-20261019/README.md) | [#513](https://github.com/DocGrid/docgrid/pull/513) · [#515](https://github.com/DocGrid/docgrid/pull/515) · [#516](https://github.com/DocGrid/docgrid/pull/516) · [#567](https://github.com/DocGrid/docgrid/pull/567) |
+| **Generic Plan 검색 지연 개선 · 로컬** | 검색 성능·쿼리 최적화 | 로컬 PostgreSQL 17.8, 약 5만 청크(합성 92.9%)·허용 100%·topK 10·질문 30개, `plan_cache_mode=force_generic_plan` 고정·수정 전후 연속 측정 | 벡터 검색 단계 p50 4,465.7→218.5ms, 하이브리드 5,799.9→1,380.6ms. 전체 REST API·OpenSQL 경로의 지연이 아님 | [측정·조건](docs/test-results/gimin-%23549-generic-plan-query-vector-cast.md) | [#550](https://github.com/DocGrid/docgrid/pull/550) |
+| **Generic Plan 자연 전환·수정 효과 · OpenSQL/JDBC** | 검색 성능·제품 경로 검증 | 실제 OpenSQL 17.8·원본 OpenProxy 별도 리스너 2개·pgJDBC 42.7.11, 50,008청크(합성 92.9%)·D01 1개·허용 100%·SQL 후보 40·`auto` | Generic p50: A 9,755.10→977.76ms, B 9,880.39→1,016.81ms(각 SQL Generic n=16). 최종 결과 120/120 일치. JDBC 왕복이며 공개 HTTP·Spring/Hikari·하이브리드 미측정 | [회차·계획·제외·정리](docs/test-results/opensql-jdbc-generic-plan-20261021/README.md) | [#550](https://github.com/DocGrid/docgrid/pull/550) · [#568](https://github.com/DocGrid/docgrid/pull/568) |
+
+RAG 소유권 7회는 서로 다른 준비·장애·경합 시나리오이며 서비스 성공률이 아닙니다.
+로컬 Generic Plan 대표 수치는 강제 조건입니다. 별도 OpenSQL·JDBC 시험은 `auto`에서 서버 준비문별 자연 전환을 확인했습니다.
+이번 JDBC 값은 IAP·SSH·Proxy 왕복을 포함하며, 공개 HTTP·Spring/Hikari 응답시간이나 하이브리드 검색 측정값이 아닙니다.
+
+네트워크 분할의 별도 멱등 API 회차에서는 새 요청 751건의 최초 201 585건을 보존했습니다.
+복구 뒤 같은 ID 재전송은 기존 585건을 200, 미반영 166건을 201로 처리해 최종 751건·중복 0건이 됐습니다.
+최초 요청 가용성과 재전송 뒤 수렴을 구분합니다. [최초 원장·재전송](docs/test-results/opensql-primary-network-partition-retry-20261017/README.md)
+
+### 복구 계측과 손실 경계
+
+10월 15일 시험은 지정 시점 T 이전 쓰기 A 1건·이후 B 0건과 GCS 사본 해시 92/92 일치를 확인했으며 RPO·RTO는 미측정입니다.
+[시점 복원](docs/test-results/db-gcs-point-in-time-recovery-20261015/) · [후속 서비스 시험](docs/test-results/db-gcs-service-recovery-20261015/)
+
+10월 18일 최초 계측은 65건 중 33건 복원·32건 손실이었습니다. 필요한 WAL의 완료 확인을 보완한 재시험은 위 표와 같습니다.
+최초 감사 때 Worker·Flyway·수선을 끈 상태로 원장·DB·원본을 대조한 뒤 활성화했습니다.
+마지막 외부 보존 확인 뒤의 5건은 DB와 원본 모두 보존 범위 밖이었습니다.
+마지막 연속 복원 성공 응답부터 T0까지의 관측 간격은 113.978초이며 운영 RPO 보장값이 아닙니다.
+
+| 사용자 기능 | T0부터 완료까지 | 표본 |
+|---|---|---|
+| 기존 원본 다운로드·해시 | 162.9초 | 4건 |
+| 기존 문서 검색 | 178.447초 | 1건 |
+| 중단 Job 재개 | 234.365초 | 1건 |
+| 새 업로드 | 241.423초 | 1건 |
+| 새 문서 인덱싱 | 910.719초 | 1건 |
+| 새 원본 다운로드·해시 | 912.801초 | 1건 |
+
+격리 문서 기능의 관측 시간이며 공개 서비스 전체 RTO가 아닙니다. 새 인덱싱에는 복원된 대기 Job 뒤에서 처리된 영향이 있습니다.
+최종 61문서 감사에서 미완료 Job·중복 Chunk·중복/누락 Embedding은 0건이었습니다.
+[최초 감사·기능별 시간·대기열·정리](docs/test-results/wal-offsite-recovery-recheck-20261018/README.md)
+
+### 동기 복제의 격리 시험 결과
+
+- 지정형 동기·quorum 비교는 실제 격리 OpenSQL·OpenProxy에서 수행했습니다. **원본 OpenProxy**는
+  `sync_standby`·`quorum_standby` 역할 파싱 오류로 시작하지 못해 시험용 어댑터를 경유했습니다.
+  공급사 공식 지원이나 공개 경로 적용 완료를 의미하지 않습니다. [역할 호환 경계](docs/test-results/patroni-role-compatibility-20261017/README.md)
+- 각 모드·장애 조합 1회씩 총 4회, 요청 키 192건을 비교했습니다. 최초 204 174건은 모두 보존됐고 503 18건은 같은 키로 재확정했습니다.
+  이번 조건에서 quorum의 뚜렷한 우위는 관측하지 못했습니다. [지정형·quorum 비교](docs/test-results/opensql-sync-quorum-20261017/README.md)
+- 회수는 항상 `on`, 합성 독립 쓰기만 `on/local`로 바꾼 별도 비교에서 ACK 중단 중 독립 204는 `on` 0건·`local` 5건이었습니다.
+  공유 풀 5개에서 pending 최대 8은 두 조건 모두 남았고 대표 비교에서 local 성공 유실은 관측되지 않았습니다.
+  운영 Worker 정책 도입이나 local 내구성 보장으로 확대하지 않습니다. [on/local 비교](docs/test-results/permission-mixed-commit-20261017/README.md)
+
+### 분야별 추가 기록
+
+| 목적 | 검증 분야 | 실행 범위·관측 | 상세 기록 |
+|---|---|---|---|
+| 검색 품질 | 검색 품질 평가 | 로컬 BGE-M3·문서 5개·청크 83개, 질문 3세트 111문항. 사전 기준 고정 39문항 MRR@10 0.784→0.868 | [하이브리드 평가](docs/test-results/kangcheolung-%23456-hybrid-search.md) |
+| 지원 형식 | 문서 호환성 | HWP/HWPX·PDF/DOCX의 실제 로컬 PostgreSQL·MinIO·BGE-M3 E2E 2/2, HWP/HWPX 각 1건 브라우저 업로드·표 문구 검색. OpenSQL·GCS 시험과 구분 | [파서·E2E·브라우저](docs/test-results/issue-505-hwp-hwpx-parsing/README.md) |
+| 부하·장애 | 고가용성(HA)·부하 내성 | 쓰기 150 req/s×60초×3회, 회차마다 201 9,001건 누락·중복 0. Proxy·프로세스·VM 장애의 HTTP 오류와 결과 불명은 개별 원장에 보존 | [기준선](docs/test-results/gimin-389-opensql-ha-http-write-baseline-20261002.md) · [3노드 통합 보고서](docs/test-results/opensql-three-node-ha-integrated-report-20261004.md) |
+| 승격 후 권한 | 접근 제어·장애 후 정합성 | 격리 OpenSQL·역할 어댑터, 실제 인증 HTTP. 회수 대상 상세·본문·파일 403 9건, 대조 200 9건, 새 검색 3회에서 금지 문구 제외. 모델 응답은 대역 | [HTTP 차단](docs/test-results/permission-http-failover-20261017/README.md) |
+| 백업 연속성 | 백업 운영·WAL 보존 | Barman의 Primary 추적·WAL 수신, 기준 백업·완성 WAL 외부 보존·예약 실행. 모든 장애에서의 연속성 보장은 아님 | [수신 추적](docs/test-results/barman-wal-follow-20261016/README.md) · [외부 보존](docs/test-results/barman-offsite-20261017/README.md) |
+| GCS 원본 보존 | 원본 내구성·비동기 보존 | 이벤트 기반 비동기 사본·감사. 새 시험 원본 2/2 해시 일치, 해당 회차 누락 0 | [지속 보존](docs/test-results/gcs-original-preservation-20261017/README.md) |
+| 정합성·Worker | 데이터 정합성·작업 복구 | 8종 점검 중 4종 주입, Vector·Job 누락 복구와 보고 전용 유형을 구분. 별도 DB 장애 중 PDF/DOCX 24/24 INDEXED | [정합성 시험](docs/test-results/reconciler-repair-20261016/README.md) · [Worker 장애 복구](docs/test-results/opensql-worker-primary-fault-20261004.md) |
+| 초기 인덱싱 처리량 | 인덱싱 성능·처리량 | 2026-08-11 로컬 PostgreSQL·MinIO·CPU BGE-M3, 50·100문서 각 2회. 31.046·32.063문서/분, 합계 300문서·1,200 Vector의 실패·재시도·미완료·중복 0 | [PDF·DOCX 기준선](docs/test-results/gimin-%23145-final-performance-report.md) |
+
+권한 시험은 회수 뒤 시작하는 새 조회·입력 준비와 저장 전 검사를 확인했습니다. 외부 전송과 회수 커밋을 원자적으로 묶지 않으며 이미 전달한 내용은 소급 회수하지 못합니다.
+출처 기록이 없는 기존 답변은 본문·인용·후속 문맥 사용을 보류하고 재검색을 안내합니다. 데이터는 삭제하지 않습니다.
+전체 재현 절차와 제외 범위는 [실행 기록](docs/test-results/)에서 확인할 수 있습니다.
 
 ## 기술 스택
 
